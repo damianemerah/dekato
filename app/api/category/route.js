@@ -2,15 +2,34 @@ import dbConnect from "@/utils/mongoConnection";
 import Category from "@/app/models/category";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
-import APIFeatures from "@/utils/apiFeatures";
 
 export async function POST(req) {
-  const originalString = "women's-shoe";
-  const encodedString = encodeURIComponent(originalString);
+  // const originalString = "women's-shoe";
+  // const encodedString = encodeURIComponent(originalString);
 
-  console.log(encodedString);
+  // console.log(encodedString);
+
   try {
     await dbConnect();
+
+    // const sampleCategories = [
+    //   {
+    //     name: "Clothing",
+    //     description: "Fashionable clothing for all occasions",
+    //     image: ["clothing_image1.jpg", "clothing_image2.jpg"],
+    //     parentId: null,
+    //   },
+    //   {
+    //     name: "Footwear",
+    //     description: "Stylish footwear for men and women",
+    //     image: ["footwear_image1.jpg", "footwear_image2.jpg"],
+    //     parentId: null,
+    //   },
+    // ];
+
+    // for (const category of sampleCategories) {
+    //   await Category.create(category);
+    // }
 
     const body = await req.json();
 
@@ -28,25 +47,23 @@ export async function POST(req) {
 export async function GET(req) {
   try {
     await dbConnect();
+    console.log("Finding category 🙏🙏");
 
-    let filter = {};
     const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
+    console.log(searchParams, "🔥");
 
-    if (searchParams.slug) {
-      filter = { ...searchParams };
-    }
-
-    const feature = new APIFeatures(Category.find(filter), searchParams)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-
-    const category = await feature.query;
+    const category = await Category.find(searchParams)
+      .populate({
+        path: "parentId",
+        select: "name slug",
+      })
+      .populate({
+        path: "products",
+        select: "name price priceDiscount image",
+      });
 
     return NextResponse.json({
       success: true,
-      result: category.length,
       data: category,
     });
   } catch (error) {

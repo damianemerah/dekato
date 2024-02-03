@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import Product from "./product.js";
 
 const categorySchema = new mongoose.Schema({
-  name: String,
+  name: { type: String, required: true, unique: true },
   description: String,
   image: [String],
   slug: { type: String, unique: true },
@@ -13,14 +14,6 @@ const categorySchema = new mongoose.Schema({
 
 categorySchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
-  next();
-});
-
-categorySchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "parentId",
-    select: "name slug",
-  });
   next();
 });
 

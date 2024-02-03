@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import slugify from "slugify";
 
 const productSchema = new mongoose.Schema({
-  name: String,
-  description: String,
-  price: Number,
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
   priceDiscount: {
     type: Number,
     validate: {
@@ -14,8 +14,14 @@ const productSchema = new mongoose.Schema({
       message: "Discount price ({VALUE}) should be below this regular price",
     },
   },
-  image: [String],
-  imageCover: String,
+  discountDuration: {
+    type: Date,
+    required: function () {
+      return this.priceDiscount;
+    },
+  },
+  images: [String],
+  videos: [String],
   categoryId: {
     type: mongoose.Schema.ObjectId,
     ref: "Category",
@@ -23,6 +29,7 @@ const productSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
+  tags: [String],
   variants: [
     {
       image: String,
@@ -33,6 +40,11 @@ const productSchema = new mongoose.Schema({
     },
   ],
   quantity: { type: Number, required: true },
+  status: {
+    type: String,
+    default: "draft",
+    enum: ["draft", "active", "archived"],
+  },
 });
 
 productSchema.index({ price: 1, slug: 1 });
@@ -44,3 +56,5 @@ productSchema.pre("save", function (next) {
 
 export default mongoose.models.Product ||
   mongoose.model("Product", productSchema);
+
+// Products based on status

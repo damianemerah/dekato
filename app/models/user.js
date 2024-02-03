@@ -5,7 +5,8 @@ import crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
   {
-    name: String,
+    firstname: String,
+    lastname: String,
     email: {
       type: String,
       required: true,
@@ -26,9 +27,31 @@ const userSchema = new mongoose.Schema(
         phone: String,
         city: String,
         state: String,
-        country: String,
+        country: { type: String, default: "Nigeria" },
         postalCode: String,
         isDefault: { type: Boolean, default: true },
+      },
+    ],
+    cart: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        quantity: { type: Number, default: 1 },
+        size: String,
+        color: String,
+        price: Number,
+        name: String,
+        image: String,
+      },
+    ],
+    wishlist: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
       },
     ],
     password: { type: String, required: true },

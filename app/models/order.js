@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.ObjectId, ref: "User", unique: true },
-  products: [
+  items: [
     {
       productId: { type: mongoose.Schema.ObjectId, ref: "Product" },
       name: String,
@@ -18,6 +18,13 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: "pending",
     enum: ["pending", "completed", "cancelled"],
+  },
+  shippingAddress: {
+    address: String,
+    city: String,
+    state: String,
+    country: String,
+    postalCode: String,
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
