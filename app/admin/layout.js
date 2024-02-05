@@ -2,6 +2,7 @@
 import { useState, useCallback, useRef } from 'react';
 
 import '@shopify/polaris/build/esm/styles.css';
+import './admin.css';
 import {
   AppProvider,
   Frame,

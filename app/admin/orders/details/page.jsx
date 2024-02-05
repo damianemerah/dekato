@@ -31,6 +31,7 @@ import {
   CancelMinor,
   MobileHorizontalDotsMajor,
   ShipmentMajor,
+  MarkPaidMinor,
 } from '@shopify/polaris-icons';
 import { useCallback, useState } from 'react';
 
@@ -110,156 +111,309 @@ function OrderDetails() {
       }}
     >
       <InlineGrid columns={{ xs: 1, md: '2fr 1fr' }} gap='400'>
-        <LegacyCard>
-          <LegacyCard.Header
+        <Box gap='400'>
+          <LegacyCard primaryFooterAction={{ content: 'Fulfill items' }}>
+            <LegacyCard.Header
+              title={
+                <Text as='h2' variant='headingSm'>
+                  <Badge tone='success' size='large' icon={ShipmentMajor}>
+                    Fulfilled
+                  </Badge>
+                </Text>
+              }
+            >
+              <Popover
+                active={active}
+                activator={
+                  <Button
+                    accessibilityLabel='Add variant'
+                    variant='plain'
+                    onClick={toggleActive}
+                  >
+                    <Icon source={MobileHorizontalDotsMajor} tone='base' />
+                  </Button>
+                }
+                onClose={toggleActive}
+              >
+                <ActionList
+                  actionRole='menuitem'
+                  items={[
+                    { content: 'Print packing slip' },
+                    {
+                      content: 'Cancel fulfillment',
+                      onAction: () => {},
+                      destructive: true,
+                    },
+                  ]}
+                />
+              </Popover>
+            </LegacyCard.Header>
+            <Box
+              paddingInline='400'
+              paddingBlockStart='200'
+              paddingBlockEnd='400'
+            >
+              <Box
+                borderColor='border'
+                borderWidth='025'
+                borderRadius='200'
+                overflowX='hidden'
+                overflowY='hidden'
+              >
+                <Box
+                  padding='300'
+                  borderColor='border'
+                  borderBlockEndWidth='025'
+                >
+                  Add variants if this product comes in multiple versions, like
+                  different sizes or colors.
+                </Box>
+                <ResourceList
+                  resourceName={{ singular: 'order', plural: 'orders' }}
+                  items={[
+                    {
+                      id: '145',
+                      url: '#',
+                      avatarSource:
+                        'https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg',
+                      name: 'VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)',
+                      sku: '9504957',
+                      qty: 1,
+                      price: '200',
+                      size: 9,
+                      color: 'black',
+                    },
+                    {
+                      id: '145',
+                      url: '#',
+                      avatarSource:
+                        'https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg',
+                      name: 'Tucan scarf',
+                      sku: '0404957',
+                      qty: 1,
+                      price: '500',
+                      size: 9,
+                      color: 'white',
+                    },
+                  ]}
+                  renderItem={(item) => {
+                    const {
+                      id,
+                      url,
+                      name,
+                      sku,
+                      qty,
+                      price,
+                      avatarSource,
+                      size,
+                      color,
+                    } = item;
+
+                    return (
+                      <ResourceItem
+                        id={id}
+                        url={url}
+                        media={
+                          <Avatar
+                            customer
+                            size='lg'
+                            name={name}
+                            source={avatarSource}
+                          />
+                        }
+                        accessibilityLabel={`View details for ${name}`}
+                      >
+                        <div className='order_details-grid'>
+                          <div className='col-2'>
+                            <BlockStack gap='100'>
+                              <Text
+                                variant='bodyMd'
+                                fontWeight='medium'
+                                as='h3'
+                                breakWord={true}
+                              >
+                                {name}
+                              </Text>
+                              <Text>
+                                <Tag>
+                                  {size} / {color}
+                                </Tag>
+                              </Text>
+
+                              <Text tone='subdued' variant='bodySm'>
+                                SKU: {sku}
+                              </Text>
+                            </BlockStack>
+                          </div>
+                          <div className='col-3'>
+                            <Text>
+                              ${price} x {qty}
+                            </Text>
+                          </div>
+                          <div className='col-4'>
+                            <Text>${price}</Text>
+                          </div>
+                        </div>
+                      </ResourceItem>
+                    );
+                  }}
+                />
+              </Box>
+            </Box>
+          </LegacyCard>
+          <LegacyCard
             title={
               <Text as='h2' variant='headingSm'>
-                <Badge tone='success' size='large' icon={ShipmentMajor}>
-                  Fulfilled
+                <Badge size='large' icon={MarkPaidMinor}>
+                  Paid
                 </Badge>
               </Text>
             }
           >
-            <Popover
-              active={active}
-              activator={
-                <Button
-                  accessibilityLabel='Add variant'
-                  variant='plain'
-                  onClick={toggleActive}
+            <Box paddingBlockStart='200' paddingBlockEnd='400'>
+              <Box paddingInline='400'>
+                <Box
+                  borderColor='border'
+                  borderWidth='025'
+                  borderRadius='200'
+                  overflowX='hidden'
+                  overflowY='hidden'
                 >
-                  <Icon source={MobileHorizontalDotsMajor} tone='base' />
-                </Button>
-              }
-              onClose={toggleActive}
-            >
-              <ActionList
-                actionRole='menuitem'
-                items={[
-                  { content: 'Print packing slip' },
-                  {
-                    content: 'Cancel fulfillment',
-                    onAction: () => {},
-                    destructive: true,
-                  },
-                ]}
-              />
-            </Popover>
-          </LegacyCard.Header>
-          <Box paddingInline='400' paddingBlock='200'>
-            <Box
-              borderColor='border'
-              borderWidth='025'
-              borderRadius='200'
-              overflowX='hidden'
-              overflowY='hidden'
-            >
-              <Box padding='300' borderColor='border' borderBlockEndWidth='025'>
-                Add variants if this product comes in multiple versions, like
-                different sizes or colors.
-              </Box>
-              <ResourceList
-                resourceName={{ singular: 'order', plural: 'orders' }}
-                items={[
-                  {
-                    id: '145',
-                    url: '#',
-                    avatarSource:
-                      'https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg',
-                    name: 'VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)',
-                    sku: '9504957',
-                    qty: 1,
-                    price: '200',
-                    size: 9,
-                    color: 'black',
-                  },
-                  {
-                    id: '145',
-                    url: '#',
-                    avatarSource:
-                      'https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg',
-                    name: 'Tucan scarf',
-                    sku: '0404957',
-                    qty: 1,
-                    price: '500',
-                    size: 9,
-                    color: 'white',
-                  },
-                ]}
-                renderItem={(item) => {
-                  const {
-                    id,
-                    url,
-                    name,
-                    sku,
-                    qty,
-                    price,
-                    avatarSource,
-                    size,
-                    color,
-                  } = item;
-
-                  return (
-                    <ResourceItem
-                      id={id}
-                      url={url}
-                      media={
-                        <Avatar
-                          customer
-                          size='lg'
-                          name={name}
-                          source={avatarSource}
-                        />
-                      }
-                      accessibilityLabel={`View details for ${name}`}
+                  <Box padding='300'>
+                    <div
+                      style={{
+                        marginBottom: 'var(--p-space-300)',
+                        paddingBottom: 'var(--p-space-300)',
+                        borderBottom:
+                          'var(--p-border-width-025) solid var(--p-color-border)',
+                      }}
                     >
-                      <Grid
-                        columns={{ xs: 6, sm: 6 }}
-                        areas={{
-                          xs: [
-                            'product product product product product orders',
-                            'sales . . . . .',
-                          ],
-                          sm: ['product product product product sales orders'],
-                        }}
-                      >
-                        <Grid.Cell area='product'>
-                          <BlockStack gap='100'>
-                            <Text
-                              variant='bodyMd'
-                              fontWeight='medium'
-                              as='h3'
-                              breakWord={true}
-                            >
-                              {name}
+                      <BlockStack gap='200'>
+                        <p className='order_overview'>
+                          <span>Subtotal</span>
+                          <span className='order_overview_sub'>
+                            <Text as='p' tone='subdued'>
+                              2 Items
                             </Text>
-                            <Text>
-                              <Tag>
-                                {size} / {color}
-                              </Tag>
-                            </Text>
+                            $40
+                          </span>
+                        </p>
+                        <Text as='h3' variant='headingSm' fontWeight='medium'>
+                          <div className='order_overview'>
+                            <span>Total</span>
+                            <span className='order_overview_sub'>
+                              <span></span>
+                              <span>$40</span>
+                            </span>
+                          </div>
+                        </Text>
+                      </BlockStack>
+                    </div>
+                    <div>
+                      <p className='order_overview'>
+                        <span>Paid by customer</span>
+                        <span className='order_overview_sub'>
+                          <span></span>
+                          $40
+                        </span>
+                      </p>
+                    </div>
+                  </Box>
+                </Box>
+                {/* <ResourceList
+                  resourceName={{ singular: 'order', plural: 'orders' }}
+                  items={[
+                    {
+                      id: '145',
+                      url: '#',
+                      avatarSource:
+                        'https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg',
+                      name: 'VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)',
+                      sku: '9504957',
+                      qty: 1,
+                      price: '200',
+                      size: 9,
+                      color: 'black',
+                    },
+                    {
+                      id: '145',
+                      url: '#',
+                      avatarSource:
+                        'https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg',
+                      name: 'Tucan scarf',
+                      sku: '0404957',
+                      qty: 1,
+                      price: '500',
+                      size: 9,
+                      color: 'white',
+                    },
+                  ]}
+                  renderItem={(item) => {
+                    const {
+                      id,
+                      url,
+                      name,
+                      sku,
+                      qty,
+                      price,
+                      avatarSource,
+                      size,
+                      color,
+                    } = item;
 
-                            <Text tone='subdued' variant='bodySm'>
-                              SKU: {sku}
+                    return (
+                      <ResourceItem
+                        id={id}
+                        url={url}
+                        media={
+                          <Avatar
+                            customer
+                            size='lg'
+                            name={name}
+                            source={avatarSource}
+                          />
+                        }
+                        accessibilityLabel={`View details for ${name}`}
+                      >
+                        <div className='order_details-grid'>
+                          <div className='col-2'>
+                            <BlockStack gap='100'>
+                              <Text
+                                variant='bodyMd'
+                                fontWeight='medium'
+                                as='h3'
+                                breakWord={true}
+                              >
+                                {name}
+                              </Text>
+                              <Text>
+                                <Tag>
+                                  {size} / {color}
+                                </Tag>
+                              </Text>
+
+                              <Text tone='subdued' variant='bodySm'>
+                                SKU: {sku}
+                              </Text>
+                            </BlockStack>
+                          </div>
+                          <div className='col-3'>
+                            <Text>
+                              ${price} x {qty}
                             </Text>
-                          </BlockStack>
-                        </Grid.Cell>
-                        <Grid.Cell area='sales'>
-                          <Text>
-                            ${price} x {qty}
-                          </Text>
-                        </Grid.Cell>
-                        <Grid.Cell area='orders'>
-                          <Text>${price}</Text>
-                        </Grid.Cell>
-                      </Grid>
-                    </ResourceItem>
-                  );
-                }}
-              />
+                          </div>
+                          <div className='col-4'>
+                            <Text>${price}</Text>
+                          </div>
+                        </div>
+                      </ResourceItem>
+                    );
+                  }}
+                /> */}
+              </Box>
             </Box>
-          </Box>
-        </LegacyCard>
+          </LegacyCard>
+        </Box>
 
         <BlockStack gap='400'>
           <Card roundedAbove='sm'>
