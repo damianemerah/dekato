@@ -31,6 +31,13 @@
   }
 }
 
+.variant_grid {
+  display: grid;
+  grid-template-columns: 2rem 1fr minmax(1.75rem, min-content);
+  gap: var(--p-space-300);
+  align-content: center;
+}
+
 @media (min-width: 30.625em) {
   .order_overview {
     grid-template-columns: 140px auto;
@@ -47,4 +54,8 @@
 
 .col-4 {
   grid-area: col-4;
+}
+
+.right {
+  text-align: right;
 }

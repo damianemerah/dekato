@@ -277,6 +277,7 @@ function Products() {
         <IndexTable.Cell>
           <Thumbnail
             source={'https://picsum.photos/50?random=' + String(index)}
+            size='small'
             alt={'product thumbnail' + product}
           />
         </IndexTable.Cell>

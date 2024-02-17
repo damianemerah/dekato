@@ -10,6 +10,7 @@ import {
   Card,
   Divider,
   Grid,
+  TextField,
   Icon,
   InlineGrid,
   LegacyCard,
@@ -17,9 +18,14 @@ import {
   Popover,
   ResourceItem,
   ResourceList,
+  TextContainer,
+  Banner,
+  Checkbox,
+  FormLayout,
   SkeletonBodyText,
   SkeletonDisplayText,
   Tag,
+  Link,
   Text,
   Thumbnail,
 } from '@shopify/polaris';
@@ -37,83 +43,23 @@ import {
 import { useCallback, useState } from 'react';
 
 // This example is for guidance purposes. Copying it will come with caveats.
-function OrderDetails() {
-  const SkeletonLabel = (props) => {
-    return (
-      <Box
-        background='bg-fill-tertiary'
-        minHeight='1rem'
-        maxWidth='5rem'
-        borderRadius='base'
-        {...props}
-      />
-    );
-  };
-
+function Fullfillment() {
   const [active, setActive] = useState(false);
   const toggleActive = useCallback(() => setActive((active) => !active), []);
   return (
     <Page
       backAction={{ content: 'Products', url: '/admin/orders' }}
-      title='#1033'
-      titleMetadata={
-        <>
-          <Badge progress='complete'>Paid</Badge>{' '}
-          <Badge progress='complete'>Fullfilled</Badge>
-        </>
-      }
-      subtitle='January 18, 2024 at 12:54 pm'
-      compactTitle
+      title='Fulfill item'
       secondaryActions={[
         {
-          content: 'Restock',
-          accessibilityLabel: 'Restock Orders',
-          onAction: () => alert('Order restocked'),
-        },
-        {
-          content: 'Edit',
-          onAction: () => alert('Edit order'),
+          content: 'Print packing slip',
+          onAction: () => alert('print packing slip'),
         },
       ]}
-      actionGroups={[
-        {
-          title: 'More actions',
-          actions: [
-            {
-              content: 'Duplicate',
-              accessibilityLabel: 'Duplicate order',
-              icon: DuplicateMinor,
-              onAction: () => alert('order duplicated'),
-            },
-            {
-              content: 'Cancel order',
-              accessibilityLabel: 'Cancel order',
-              icon: CancelMinor,
-              onAction: () => alert('order canceled'),
-            },
-            {
-              content: 'Archive',
-              accessibilityLabel: 'Archive order',
-              icon: ArchiveMinor,
-              onAction: () => alert('order archived'),
-            },
-            {
-              content: 'Print order slip',
-              accessibilityLabel: 'Print order slip',
-              icon: PrintMinor,
-              onAction: () => alert('printed'),
-            },
-          ],
-        },
-      ]}
-      pagination={{
-        hasPrevious: true,
-        hasNext: true,
-      }}
     >
       <InlineGrid columns={{ xs: 1, md: '2fr 1fr' }} gap='400'>
         <Box gap='400'>
-          <LegacyCard primaryFooterAction={{ content: 'Fulfill items' }}>
+          <LegacyCard>
             <LegacyCard.Header
               title={
                 <Text as='h2' variant='headingSm'>
@@ -224,8 +170,8 @@ function OrderDetails() {
                         }
                         accessibilityLabel={`View details for ${name}`}
                       >
-                        <div className='order_details-grid'>
-                          <div className='col-2'>
+                        <div className='flex flex-row flex-wrap gap-3 justify-between'>
+                          <div className='basis-1/2'>
                             <BlockStack gap='100'>
                               <Text
                                 variant='bodyMd'
@@ -246,13 +192,23 @@ function OrderDetails() {
                               </Text>
                             </BlockStack>
                           </div>
-                          <div className='col-3'>
-                            <Text>
-                              ${price} x {qty}
-                            </Text>
+                          <div className='basis-auto grid'>
+                            <span className='sm:justify-self-end'>
+                              kg {qty}
+                            </span>
                           </div>
-                          <div className='col-4'>
-                            <Text>${price}</Text>
+                          <div className='basis-32'>
+                            <TextField
+                              label='Price'
+                              labelHidden
+                              type='number'
+                              value={'5'}
+                              onChange={() => {}}
+                              suffix='of 1'
+                              autoComplete='off'
+                              add
+                              va
+                            />
                           </div>
                         </div>
                       </ResourceItem>
@@ -261,66 +217,60 @@ function OrderDetails() {
                 />
               </Box>
             </Box>
-          </LegacyCard>
-          <LegacyCard
-            title={
-              <Text as='h2' variant='headingSm'>
-                <Badge size='large' icon={MarkPaidMinor}>
-                  Paid
-                </Badge>
-              </Text>
-            }
-          >
-            <Box paddingBlockStart='200' paddingBlockEnd='400'>
-              <Box paddingInline='400'>
-                <Box
-                  borderColor='border'
-                  borderWidth='025'
-                  borderRadius='200'
-                  overflowX='hidden'
-                  overflowY='hidden'
-                >
-                  <Box padding='300'>
-                    <div
-                      style={{
-                        marginBottom: 'var(--p-space-300)',
-                        paddingBottom: 'var(--p-space-300)',
-                        borderBottom:
-                          'var(--p-border-width-025) solid var(--p-color-border)',
-                      }}
-                    >
-                      <BlockStack gap='200'>
-                        <p className='order_overview'>
-                          <span>Subtotal</span>
-                          <span className='order_overview_sub'>
-                            <Text as='p' tone='subdued'>
-                              2 Items
-                            </Text>
-                            $40
-                          </span>
-                        </p>
-                        <Text as='h3' variant='headingSm' fontWeight='medium'>
-                          <div className='order_overview'>
-                            <span>Total</span>
-                            <span className='order_overview_sub'>
-                              <span></span>
-                              <span>$40</span>
-                            </span>
-                          </div>
-                        </Text>
-                      </BlockStack>
-                    </div>
-                    <div>
-                      <p className='order_overview'>
-                        <span>Paid by customer</span>
-                        <span className='order_overview_sub'>
-                          <span></span>
-                          $40
-                        </span>
-                      </p>
-                    </div>
-                  </Box>
-                </Box>
+
+            <Box
+              paddingInline='400'
+              paddingBlockStart='200'
+              paddingBlockEnd='400'
+            >
+              <BlockStack gap='200'>
+                <Text variant='headingSm' as='h6'>
+                  Tracking information
+                </Text>
+                <Banner onDismiss={() => {}}>
+                  <p>
+                    Add tracking to improve customer satisfaction Orders with
+                    tracking let customers receive delivery updates and reduce
+                    support requests.
+                  </p>
+                </Banner>
+
+                <FormLayout>
+                  <FormLayout.Group>
+                    <TextField
+                      label='Tracking number'
+                      onChange={() => {}}
+                      autoComplete='off'
+                    />
+                    <TextField
+                      label='Shipping carrier'
+                      onChange={() => {}}
+                      autoComplete='off'
+                    />
+                  </FormLayout.Group>
+                </FormLayout>
+              </BlockStack>
+            </Box>
+            <Box
+              paddingInline='400'
+              paddingBlockStart='200'
+              paddingBlockEnd='400'
+            >
+              <Box
+                paddingBlockStart='200'
+                borderColor='border'
+                borderBlockStartWidth='025'
+              >
+                <BlockStack gap='200'>
+                  <Text variant='headingSm' as='h6'>
+                    Notify customer of shipment
+                  </Text>
+                  <Checkbox
+                    label='Send shipment details to your customer now'
+                    checked={true}
+                    onChange={() => {}}
+                  />
+                </BlockStack>
               </Box>
             </Box>
           </LegacyCard>
@@ -329,56 +279,6 @@ function OrderDetails() {
         <BlockStack gap='400'>
           <Card roundedAbove='sm'>
             <BlockStack gap='400'>
-              <InlineGrid columns='1fr auto'>
-                <Text as='h3' variant='headingSm' fontWeight='medium'>
-                  Note from customer
-                </Text>
-                <Button
-                  variant='plain'
-                  onClick={() => {}}
-                  accessibilityLabel='Edit'
-                >
-                  <Icon source={EditMajor} tone='base' />
-                </Button>
-              </InlineGrid>
-              <Text as='p' variant='bodyMd' tone='subdued'>
-                No notes from customer
-              </Text>
-            </BlockStack>
-          </Card>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <BlockStack gap='200'>
-                <Text as='h2' variant='headingSm'>
-                  Customer
-                </Text>
-                <Text as='p' variant='bodyMd'>
-                  John Smith
-                </Text>
-                <Text as='p' variant='bodyMd'>
-                  4 orders
-                </Text>
-              </BlockStack>
-              <BlockStack gap='200'>
-                <InlineGrid columns='1fr auto'>
-                  <Text as='h3' variant='headingSm' fontWeight='medium'>
-                    Contact Information
-                  </Text>
-                  <Button
-                    variant='plain'
-                    onClick={() => {}}
-                    accessibilityLabel='Edit'
-                  >
-                    <Icon source={EditMajor} tone='base' />
-                  </Button>
-                </InlineGrid>
-                <Text as='p' variant='bodyMd'>
-                  john.smith@example.com
-                </Text>
-                <Text as='p' variant='bodyMd'>
-                  +234957304755
-                </Text>
-              </BlockStack>
               <BlockStack gap='200'>
                 <InlineGrid columns='1fr auto'>
                   <Text as='h3' variant='headingSm' fontWeight='medium'>
@@ -398,23 +298,28 @@ function OrderDetails() {
                   <br /> +59546811470
                 </Text>
               </BlockStack>
+            </BlockStack>
+          </Card>
+
+          <Card roundedAbove='sm'>
+            <BlockStack gap='200'>
+              <Text as='h2' variant='headingSm'>
+                Summary
+              </Text>
               <BlockStack gap='200'>
-                <InlineGrid columns='1fr auto'>
-                  <Text as='h3' variant='headingSm' fontWeight='medium'>
-                    Billing address
-                  </Text>
-                  <Button
-                    variant='plain'
-                    onClick={() => {}}
-                    accessibilityLabel='Edit'
-                  >
-                    <Icon source={EditMajor} tone='base' />
-                  </Button>
-                </InlineGrid>
                 <Text as='p' variant='bodyMd' tone='subdued'>
-                  Same as shipping address
+                  Fullfilling from Dekato Shop
+                  <br /> {2} of {2} items
                 </Text>
               </BlockStack>
+              <Divider />
+              <Button
+                variant='primary'
+                onClick={() => {}}
+                accessibilityLabel='Fullfill items'
+              >
+                Fullfill items
+              </Button>
             </BlockStack>
           </Card>
         </BlockStack>
@@ -423,4 +328,4 @@ function OrderDetails() {
   );
 }
 
-export default OrderDetails;
+export default Fullfillment;
