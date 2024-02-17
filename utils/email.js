@@ -1,68 +1,76 @@
 import nodemail from "nodemailer";
 import { htmlToText } from "html-to-text";
+import pug from "pug";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+const path = require("path");
 
-// module.exports = class Email {
-//   constructor(user) {
-//     this.to = user.email;
-//     this.from = `Dekato Store <${process.env.EMAIL_FROM}>`;
-//   }
-
-//   newTransport() {
-//     if (process.env.NODE_ENV === "production") {
-//       // Sendgrid
-//       return nodemail.createTransport({
-//         service: "gmail",
-//         host: "smtp.gmail.com",
-//         port: 587,
-//         auth: {
-//           user: process.env.EMAIL_FROM,
-//           pass: process.env.APP_PASSWORD,
-//         },
-//       });
-//     }
-
-//     return nodemail.createTransport({
-//       service: "gmail",
-//       host: "smtp.gmail.com",
-//       port: 587,
-//       auth: {
-//         user: process.env.EMAIL_FROM,
-//         pass: process.env.APP_PASSWORD,
-//       },
-//     });
-//   }
-
-//   async send(subject) {
-//     // 1) Render HTML based on a pug template
-//     const html =
-//       "<p>Hello world!</p><img src='https://th.bing.com/th/id/R.7f015e168dbd0dc35e9ba74e8afc2415?rik=0zAoMKHho1cqQQ&pid=ImgRaw&r=0' alt='nft frog'>";
-
-//     // 2) Define email options
-//     const mailOptions = {
-//       from: this.from,
-//       to: this.to,
-//       subject: "Hello world!",
-//       text: htmlToText(html),
-//       subject,
-//       html,
-//       attachments: [
-//         {
-//           filename: "AI-OIG.jpeg",
-//           path: "./public/AI-OIG.jpeg",
-//           contentTypr: "image/jpeg",
-//         },
-//       ],
-//     };
-
-//     // 3) Create a transport and send email
-//     await this.newTransport().sendMail(mailOptions);
-//     console.log("Email sent🔥🔥🔥");
-//   }
-
-//   async sendWelcome() {
-//     await this.send("Hello world, welcome!");
-//   }
-// };
-
-console.log(process.env.EMAIL_FROM, process.env.APP_PASSWORD);
 //AWS-SES
+
+module.exports = class Email {
+  constructor(user, url) {
+    this.to = user.email;
+    this.firstName = user.firstname || "Customer";
+    this.url = url;
+    this.from = `Dekato <${process.env.EMAIL_FROM}>`;
+  }
+
+  async sendEmail(template, subject) {
+    const html = pug.renderFile(
+      path.join(process.cwd(), "utils", "emailTemplate", `${template}.pug`),
+      {
+        firstName: this.firstName,
+        url: this.url,
+        subject,
+      }
+    );
+
+    const params = {
+      Destination: {
+        ToAddresses: [this.to],
+      },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: html,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: htmlToText(html),
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: subject,
+        },
+      },
+      Source: process.env.EMAIL_FROM,
+      ReplyToAddresses: [],
+    };
+
+    try {
+      const client = new SESClient({
+        region: process.env.AWS_REGION,
+        credentials: {
+          accessKeyId: process.env.S3_ACCESS_KEY,
+          secretAccessKey: process.env.S3_SECRET_KEY,
+        },
+      });
+      const command = new SendEmailCommand(params);
+      const response = await client.send(command);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async sendWelcome() {
+    await this.sendEmail("welcome", "Welcome to Dekato");
+  }
+
+  async sendPasswordReset() {
+    await this.sendEmail(
+      "passwordReset",
+      "Your password reset token (valid for only 10 minutes)"
+    );
+  }
+};

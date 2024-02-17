@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: [true, "Email already exists, please login"],
       lowercase: true,
       validate: [validator.isEmail, "Please provide a valid email"],
     },
@@ -110,7 +110,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest("hex");
 
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
 };

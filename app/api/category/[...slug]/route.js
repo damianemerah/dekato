@@ -2,13 +2,14 @@ import dbConnect from "@/utils/mongoConnection";
 import Category from "@/app/models/category";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
+import AppError from "@/utils/errorClass";
 
 export async function GET(req, { params }) {
   try {
     const { slug } = params;
     await dbConnect();
 
-    const category = await Category.findOne({ slug: slug });
+    const category = await Category.findOne({ slug });
 
     if (!category) {
       throw new AppError("Category not found", 404);

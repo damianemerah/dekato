@@ -1,16 +1,10 @@
-"use client";
-
 import Image from "next/image";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { getServerSession } from "next-auth";
+import options from "@/app/api/auth/[...nextauth]/options";
 
-export default function Home() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  console.log("router", router);
-  console.log("pathname", pathname);
-  console.log("searchParams", searchParams);
+export default async function Home() {
+  const { data: session } = await getServerSession();
+  console.log("📩🌞🌞📩", session);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">

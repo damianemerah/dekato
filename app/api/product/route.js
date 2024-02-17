@@ -5,9 +5,17 @@ import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import AppError from "@/utils/errorClass";
 import { uploadFiles } from "@/utils/s3Func";
+import { getServerSession } from "next-auth";
+import options from "../auth/[...nextauth]/options";
 
 export async function POST(req) {
   try {
+    const session = await getServerSession(options);
+    if (!session) {
+      console.log("You need to be logged in to create a product🚀🚀🚀");
+    } else {
+      console.log("You are logged in🚀🚀🚀");
+    }
     await dbConnect();
     // const sampleProducts = [
     //   {
