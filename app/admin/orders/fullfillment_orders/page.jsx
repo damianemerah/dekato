@@ -57,7 +57,7 @@ function Fullfillment() {
         },
       ]}
     >
-      <InlineGrid columns={{ xs: 1, md: '2fr 1fr' }} gap='400'>
+      <InlineGrid columns={{ xs: 1, lg: '2fr 1fr' }} gap='400'>
         <Box gap='400'>
           <LegacyCard>
             <LegacyCard.Header

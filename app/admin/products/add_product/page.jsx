@@ -29,15 +29,65 @@ import {
   QuestionMarkMajor,
   PlusMinor,
   DragHandleMinor,
+  DeleteMajor,
 } from '@shopify/polaris-icons';
 import { useState, useCallback } from 'react';
 
 function AddProduct() {
   const [files, setFiles] = useState([]);
+  const [titleValue, setTitleValue] = useState('');
+  const [descriptionValue, setDescriptionValue] = useState('');
+  const [priceValue, setPriceValue] = useState('');
+  const [compareAtPriceValue, setCompareAtPriceValue] = useState('');
+  const [quantityValue, setQuantityValue] = useState('1');
+  const [options, setOptions] = useState([{ name: '', values: [''] }]);
 
-  const [value, setValue] = useState('1');
+  const handleTitleChange = useCallback(
+    (newValue) => setTitleValue(newValue),
+    []
+  );
+  const handleDescriptionChange = useCallback(
+    (newValue) => setDescriptionValue(newValue),
+    []
+  );
+  const handlePriceChange = useCallback(
+    (newValue) => setPriceValue(newValue),
+    []
+  );
+  const handleCompareAtPriceChange = useCallback(
+    (newValue) => setCompareAtPriceValue(newValue),
+    []
+  );
+  const handleQuantityChange = useCallback(
+    (newValue) => setQuantityValue(newValue),
+    []
+  );
 
-  const handleChange = useCallback((newValue) => setValue(newValue), []);
+  const handleAddOption = () => {
+    setOptions([...options, { name: '', values: [''] }]);
+  };
+
+  const handleOptionNameChange = (index) => (newValue) => {
+    const newOptions = [...options];
+    newOptions[index].name = newValue;
+    setOptions(newOptions);
+  };
+
+  const handleOptionValueChange = (optionIndex, valueIndex) => (newValue) => {
+    const newOptions = [...options];
+    newOptions[optionIndex].values[valueIndex] = newValue;
+    setOptions(newOptions);
+
+    // Check if the current option value being edited is the last one
+    if (
+      valueIndex === options[optionIndex].values.length - 1 &&
+      newValue !== ''
+    ) {
+      // Add a new empty option value field
+      newOptions[optionIndex].values.push('');
+      setOptions(newOptions);
+    }
+  };
 
   const [open, setOpen] = useState(false);
 
@@ -78,50 +128,33 @@ function AddProduct() {
       ))}
     </LegacyStack>
   );
-  const [selected, setSelected] = useState([]);
 
-  const [popoverActive, setPopoverActive] = useState(false);
+  const [compareAtPopover, setCompareAtPopover] = useState(false);
+  const [variantOptionPopover, setvariantOptionPopover] = useState(false);
 
-  const handlePopoverEnter = useCallback(() => {
-    setPopoverActive(true);
+  const handleTogglePopover = useCallback((popover) => {
+    if (popover === 'popover1') setCompareAtPopover((open) => !open);
+    if (popover === 'focused') setvariantOptionPopover(true);
+    if (popover === 'popover2') setvariantOptionPopover((open) => !open);
   }, []);
-
-  const handlePopoverLeave = useCallback(() => {
-    setPopoverActive(false);
-  }, []);
-
-  const activator = (
-    <div onMouseEnter={handlePopoverEnter} onMouseLeave={handlePopoverLeave}>
-      <Icon source={QuestionMarkMajor} tone='base' />
-    </div>
-  );
-  const variantOptionsName = (
-    <TextField
-      label='Option name'
-      labelHidden
-      value={value}
-      onChange={handleChange}
-      autoComplete='off'
-      onClick={handlePopoverEnter}
-    />
-  );
 
   return (
     <Page backAction={{ content: 'Settings', url: '#' }} title='General'>
-      <InlineGrid columns={{ xs: 1, md: '2fr 1fr' }} gap='400'>
+      <InlineGrid columns={{ xs: 1, lg: '2fr 1fr' }} gap='400'>
         <BlockStack gap='400'>
           <Card roundedAbove='sm'>
             <BlockStack gap='400'>
               <TextField
                 label='Title'
-                value='Short sleeve t-shirt'
-                onChange={() => {}}
+                placeholder='Short sleeve t-shirt'
+                value={titleValue}
+                onChange={handleTitleChange}
                 autoComplete='off'
               />
               <TextField
                 label='Description'
-                value={''}
-                onChange={() => {}}
+                value={descriptionValue}
+                onChange={handleDescriptionChange}
                 multiline={4}
                 autoComplete='off'
               />
@@ -147,7 +180,8 @@ function AddProduct() {
                 <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
                   <TextField
                     label='Price'
-                    onChange={() => {}}
+                    value={priceValue}
+                    onChange={handlePriceChange}
                     autoComplete='off'
                     prefix='₦'
                     placeholder='0.00'
@@ -156,15 +190,24 @@ function AddProduct() {
                 <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
                   <TextField
                     label='Compare-at price'
-                    onChange={() => {}}
+                    value={compareAtPriceValue}
+                    onChange={handleCompareAtPriceChange}
                     autoComplete='off'
                     prefix='₦'
                     placeholder='0.00'
                     suffix={
                       <Popover
-                        active={popoverActive}
-                        activator={activator}
-                        onClose={handlePopoverLeave}
+                        id='compare-at_price'
+                        active={compareAtPopover}
+                        activator={
+                          <div
+                            onMouseEnter={() => handleTogglePopover('popover1')}
+                            onMouseLeave={() => handleTogglePopover('popover1')}
+                          >
+                            <Icon source={QuestionMarkMajor} tone='base' />
+                          </div>
+                        }
+                        onClose={() => handleTogglePopover('popover1')}
                       >
                         <div className='max-w-64'>
                           <Card>
@@ -189,8 +232,8 @@ function AddProduct() {
                   <TextField
                     label='Quantity'
                     type='number'
-                    value={value}
-                    onChange={handleChange}
+                    value={quantityValue}
+                    onChange={handleQuantityChange}
                     autoComplete='off'
                   />
                 </Grid.Cell>
@@ -212,46 +255,120 @@ function AddProduct() {
                 expandOnPrint
               >
                 <Box borderColor='border' borderWidth='025' borderRadius='200'>
-                  <div className='grid grid-cols-variant gap-x-3 gap-y-1 p-3'>
-                    <div className='col-start-2'>
-                      <Text as='p' variant='bodyMd'>
-                        Option name
-                      </Text>
-                    </div>
-                    <button className='col-start-1 cursor-grab'>
-                      <Icon source={DragHandleMinor} tone='base' />
-                    </button>
-                    <div className='col-start-2'>
-                      <Popover
-                        active={popoverActive}
-                        activator={variantOptionsName}
-                        onClose={handlePopoverLeave}
-                      >
-                        <OptionList
-                          title='Inventory Location'
-                          onChange={setSelected}
-                          options={[
-                            {
-                              value: 'byward_market',
-                              label: 'Byward Market',
-                              active: true,
-                            },
-                            { value: 'centretown', label: 'Centretown' },
-                            {
-                              value: 'hintonburg',
-                              label: 'Hintonburg',
-                              active: true,
-                            },
-                            { value: 'westboro', label: 'Westboro' },
-                            { value: 'downtown', label: 'Downtown' },
-                          ]}
-                          selected={selected}
-                        />
-                      </Popover>
-                    </div>
-                    <button className='col-start-3'>
-                      <Icon source={DragHandleMinor} tone='base' />
-                    </button>
+                  <ul>
+                    {options.map((option, optionIndex) => (
+                      <li key={optionIndex}>
+                        <div className='grid grid-cols-variant gap-x-3 gap-y-1 p-4'>
+                          <div className='col-start-2'>
+                            <Text as='p' variant='bodyMd'>
+                              Option name
+                            </Text>
+                          </div>
+                          <button className='col-start-1 cursor-grab'>
+                            <Icon source={DragHandleMinor} tone='base' />
+                          </button>
+                          <div className='col-start-2'>
+                            <Popover
+                              active={variantOptionPopover}
+                              activator={
+                                <TextField
+                                  label='Option name'
+                                  labelHidden
+                                  value={option.name}
+                                  autoComplete='off'
+                                  onFocus={() => handleTogglePopover('focused')}
+                                />
+                              }
+                              fullWidth
+                              onClose={() => handleTogglePopover('popover2')}
+                            >
+                              <OptionList
+                                onChange={handleOptionNameChange(optionIndex)}
+                                options={[
+                                  {
+                                    value: 'Color',
+                                    label: 'Color',
+                                    active: false,
+                                  },
+                                  { value: 'Size', label: 'Size' },
+                                  {
+                                    value: 'Material',
+                                    label: 'Material',
+                                  },
+                                  { value: 'Style', label: 'Style' },
+                                ]}
+                                selected={option.name}
+                              />
+                            </Popover>
+                          </div>
+                          <button className='col-start-3'>
+                            <Icon source={DeleteMajor} tone='base' />
+                          </button>
+                        </div>
+                        <div className='mb-4'>
+                          <div className='flex flex-col gap-y-1'>
+                            <div className='grid grid-cols-variant gap-x-3 px-5'>
+                              <div className='col-start-2'>
+                                <Text as='p' variant='bodyMd'>
+                                  Option value
+                                </Text>
+                              </div>
+                            </div>
+
+                            {option.values.map((value, valueIndex) => (
+                              <div
+                                className='grid grid-cols-variant gap-x-3 gap-y-1 px-5'
+                                key={valueIndex}
+                              >
+                                <button className='col-start-1 cursor-grab hidden justify-self-end'>
+                                  <Icon source={DragHandleMinor} tone='base' />
+                                </button>
+                                <div className='col-start-2'>
+                                  <TextField
+                                    label='Option value'
+                                    placeholder={
+                                      valueIndex > 0
+                                        ? 'Add another value'
+                                        : 'Add Value'
+                                    }
+                                    labelHidden
+                                    value={value}
+                                    onChange={handleOptionValueChange(
+                                      optionIndex,
+                                      valueIndex
+                                    )}
+                                    autoComplete='off'
+                                  />
+                                </div>
+                                <button className='col-start-3 hidden justify-self-start'>
+                                  <Icon source={DeleteMajor} tone='base' />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className='grid grid-cols-variant gap-x-3 px-5 mt-4'>
+                            <div className='col-start-2'>
+                              <Button>Done</Button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Divider />
+                  <div className='p-4'>
+                    <Button
+                      variant='plain'
+                      size='slim'
+                      textAlign='left'
+                      onClick={handleAddOption}
+                      ariaExpanded={open}
+                      ariaControls='basic-collapsible'
+                      icon={PlusMinor}
+                    >
+                      Add another option
+                    </Button>
                   </div>
                 </Box>
               </Collapsible>
