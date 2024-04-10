@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstname: "",
+    lastname: "",
     email: "",
     password: "",
   });
@@ -22,6 +23,7 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Handling submit", formData);
     const result = await fetch("/api/user", {
       method: "POST",
       body: JSON.stringify(formData),
@@ -29,9 +31,14 @@ const SignUp = () => {
         "Content-Type": "application/json",
       },
     });
+    console.log(result, "result🚀🚀🚀");
 
-    const data = await result.json();
-    console.log(data);
+    if (result.ok) {
+      //redirect to /signin
+      router.push("/signin");
+    }
+    //   const data = await result.json();
+    //   console.log(data);
   };
 
   return (
@@ -50,18 +57,30 @@ const SignUp = () => {
         onSubmit={handleSubmit}
         style={{ display: "flex", flexDirection: "column" }}
       >
-        <label style={{ marginBottom: "8px" }} htmlFor="name">
-          Name
+        <label style={{ marginBottom: "8px" }} htmlFor="firstname">
+          Firstname
         </label>
         <input
           type="text"
-          id="name"
-          name="name"
-          value={formData.name}
+          id="firstname"
+          name="firstname"
+          value={formData.firstname}
           onChange={handleChange}
           style={{ padding: "10px", marginBottom: "16px" }}
         />
 
+        <label style={{ marginBottom: "8px" }} htmlFor="lastname">
+          Lastname
+        </label>
+
+        <input
+          type="text"
+          id="lastname"
+          name="lastname"
+          value={formData.lastname}
+          onChange={handleChange}
+          style={{ padding: "10px", marginBottom: "16px" }}
+        />
         <label style={{ marginBottom: "8px" }} htmlFor="email">
           Email
         </label>

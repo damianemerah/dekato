@@ -9,7 +9,7 @@ import {
 import AppError from "./errorClass";
 
 const s3 = new S3Client({
-  region: process.env.S3_REGION,
+  region: process.env.AWS_REGION,
   credentials: {
     accessKeyId: process.env.S3_ACCESS_KEY,
     secretAccessKey: process.env.S3_SECRET_KEY,
@@ -53,7 +53,7 @@ export const uploadFiles = (files) =>
     if (!data) throw new AppError("Error uploading files", 400);
 
     const url =
-      `https://${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com/${fileName}
+      `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}
   `.trim();
 
     return url;

@@ -2,16 +2,17 @@ import dbConnect from "@/utils/mongoConnection";
 import User from "@/app/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
-import AppError from "@/utils/appError";
+import AppError from "@/utils/errorClass";
+import crypto from "crypto";
 
-export async function POST(req, { params }) {
+export async function PATCH(req, { params }) {
   try {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(req.body.token)
-      .digest("hex");
-
+    const token = params.token;
     const body = await req.json();
+
+    console.log(token, "🚀🚀");
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     await dbConnect();
 

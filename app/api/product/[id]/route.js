@@ -129,7 +129,7 @@ export async function DELETE(req, { params }) {
       throw new AppError("Product not found", 404);
     }
 
-    return NextResponse.json({ success: true, data: {} }, { status: 204 });
+    return NextResponse.json({ data: null }, { status: 204 });
   } catch (error) {
     return handleAppError(error, req);
   }

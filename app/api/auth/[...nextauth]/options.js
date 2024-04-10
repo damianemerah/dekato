@@ -10,20 +10,20 @@ const options = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  // secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {},
       async authorize(credentials, req) {
         const { email, password } = credentials;
-        console.log(email, password, "result");
 
         await dbConnect();
 
         const user = await User.findOne({ email: email });
 
         if (!user) {
-          throw new Error("Invalid credentials");
+          throw new Error("User with that email not found");
         }
 
         if (!(await user.correctPassword(password, user?.password))) {
@@ -34,21 +34,29 @@ const options = {
       },
     }),
   ],
-  callback: {
+  callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.user = user;
+        token.user = {
+          id: user._id,
+          email: user.email,
+          name: user.firstname,
+          role: user.role,
+        };
       }
+      console.log("Token:", token, "User: ", user, "🎈🎈");
       return token;
     },
     async session({ session, token }) {
-      session.user = token.user;
+      session.user = { ...token.user, name: token.user.name };
+      console.log("Session:", session, "Token:", token, "🌞");
       return session;
     },
   },
   pages: {
     signIn: "/signin",
   },
+  debug: process.env.NODE_ENV === "development",
 };
 
 export default NextAuth(options);
