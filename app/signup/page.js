@@ -9,6 +9,7 @@ const SignUp = () => {
     lastname: "",
     email: "",
     password: "",
+    passwordConfirm: "",
   });
 
   const router = useRouter();
@@ -23,7 +24,6 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Handling submit", formData);
     const result = await fetch("/api/user", {
       method: "POST",
       body: JSON.stringify(formData),
@@ -31,14 +31,15 @@ const SignUp = () => {
         "Content-Type": "application/json",
       },
     });
+
     console.log(result, "result🚀🚀🚀");
 
     if (result.ok) {
       //redirect to /signin
       router.push("/signin");
+      const data = await result.json();
+      console.log(data, "data🚀🚀🚀");
     }
-    //   const data = await result.json();
-    //   console.log(data);
   };
 
   return (
@@ -101,6 +102,17 @@ const SignUp = () => {
           id="password"
           name="password"
           value={formData.password}
+          onChange={handleChange}
+          style={{ padding: "10px", marginBottom: "16px" }}
+        />
+        <label style={{ marginBottom: "8px" }} htmlFor="passwordConfirm">
+          Password Confirm
+        </label>
+        <input
+          type="password"
+          id="passwordConfirm"
+          name="passwordConfirm"
+          value={formData.passwordConfirm}
           onChange={handleChange}
           style={{ padding: "10px", marginBottom: "16px" }}
         />

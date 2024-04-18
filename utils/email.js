@@ -1,4 +1,3 @@
-import nodemail from "nodemailer";
 import { htmlToText } from "html-to-text";
 import pug from "pug";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
@@ -48,19 +47,15 @@ module.exports = class Email {
       ReplyToAddresses: [],
     };
 
-    try {
-      const client = new SESClient({
-        region: process.env.AWS_REGION,
-        credentials: {
-          accessKeyId: process.env.S3_ACCESS_KEY,
-          secretAccessKey: process.env.S3_SECRET_KEY,
-        },
-      });
-      const command = new SendEmailCommand(params);
-      const response = await client.send(command);
-    } catch (err) {
-      console.error(err);
-    }
+    const client = new SESClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY,
+        secretAccessKey: process.env.S3_SECRET_KEY,
+      },
+    });
+    const command = new SendEmailCommand(params);
+    await client.send(command);
   }
 
   async sendWelcome() {

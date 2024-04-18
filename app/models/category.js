@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
-import Product from "./product.js";
 
 const categorySchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   description: String,
   image: [String],
   slug: { type: String, unique: true },
-  parentId: { type: mongoose.Schema.ObjectId, ref: "Category" },
-  products: [{ type: mongoose.Schema.ObjectId, ref: "Product" }],
+  parent: { type: mongoose.Schema.ObjectId, ref: "Category", default: null },
+  children: [{ type: mongoose.Schema.ObjectId, ref: "Category" }],
   createdAt: { type: Date, default: Date.now },
 });
 

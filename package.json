@@ -16,6 +16,8 @@
     "bcryptjs": "^2.4.3",
     "formidable": "^3.5.1",
     "html-to-text": "^9.0.5",
+    "joi": "^17.12.3",
+    "lodash": "^4.17.21",
     "mongoose": "^8.0.3",
     "next": "14.0.1",
     "next-auth": "^4.24.5",
@@ -30,6 +32,7 @@
     "validator": "^13.11.0"
   },
   "devDependencies": {
+    "@types/react": "18.2.56",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.1",

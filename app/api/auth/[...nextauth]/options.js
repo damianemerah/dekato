@@ -10,7 +10,7 @@ const options = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  // secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -20,7 +20,8 @@ const options = {
 
         await dbConnect();
 
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ email: email }).select("+password");
+        console.log("👇🔥👇", user);
 
         if (!user) {
           throw new Error("User with that email not found");
@@ -43,13 +44,13 @@ const options = {
           name: user.firstname,
           role: user.role,
         };
+
+        token.name = user.firstname;
       }
-      console.log("Token:", token, "User: ", user, "🎈🎈");
       return token;
     },
     async session({ session, token }) {
-      session.user = { ...token.user, name: token.user.name };
-      console.log("Session:", session, "Token:", token, "🌞");
+      session.user = { ...token.user };
       return session;
     },
   },
