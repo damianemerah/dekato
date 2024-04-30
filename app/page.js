@@ -26,26 +26,40 @@ export default function Home() {
     const form = new FormData();
 
     const data = {
+      productId: "662eae4289440597e922d89f",
       name: "new product 1",
       image: ["new image", "cat.jpg"],
       // // parent: false,
-      price: 500,
-      quantity: 83,
+      price: 350,
+      quantity: 50,
       // discount: 0,
       description: "new description UPDATED",
-      category: "66134467a5b51ddeb6ce44c2",
+      category: "662c8505f72ae9759f2f6aea",
       variant: [
         {
+          _id: "662eae4289440597e922d8a0",
           size: "medium",
+          quantity: 25,
         },
-        { size: "big" },
-        // { size: "small" },
+        { size: "big", quantity: 5, _id: "662eae4289440597e922d8a1" },
+        { size: "small", quantity: 20, _id: "662eae4289440597e922d8a2" },
+        { size: "lars", quantity: 5, _id: "662eae4289440597e922d8a3" },
+        { size: "last", quantity: 52 },
       ],
     };
+
+    // const data = {
+    //   name: "men",
+    //   image: ["new image", "cat.jpg"],
+    //   description: "new description updated",
+    // };
     form.append("data", JSON.stringify(data));
     form.append("parent", false);
 
     console.log(form.get("name"), "form🚀🚀🚀");
+    // const res = await fetch(
+    //   "http://localhost:3000/api/category",
+    //   {
     const res = await fetch("http://localhost:3000/api/product", {
       method: "POST",
       header: {

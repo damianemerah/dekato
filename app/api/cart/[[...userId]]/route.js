@@ -1,10 +1,10 @@
 import { Cart, CartItem } from "@/app/models/cart";
 import User from "@/app/models/user";
-import Product from "@/app/models/product";
+import { Product } from "@/app/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import dbConnect from "@/utils/mongoConnection";
-import mongoose from "mongoose";
+import AppError from "@/utils/errorClass";
 import _ from "lodash";
 
 export async function GET(req, { params }) {
@@ -13,18 +13,26 @@ export async function GET(req, { params }) {
 
     const { userId } = params;
 
-    const cart = await Cart.findOne({ user: userId });
-
-    console.log(cart, "cart🙏");
+    const cart = await Cart.findOne({ user: userId }).populate({
+      path: "item",
+      select: "-__v",
+    });
 
     if (!cart) {
+      const newCart = await Cart.create({
+        user: userId,
+        item: [],
+      });
       return NextResponse.json(
-        { success: false, error: "Cart not found" },
-        { status: 404 }
+        { success: true, length: newCart.item.length, data: newCart },
+        { status: 201 }
       );
     }
 
-    return NextResponse.json({ success: true, data: cart }, { status: 200 });
+    return NextResponse.json(
+      { success: true, length: cart.item.length, data: cart },
+      { status: 200 }
+    );
   } catch (error) {
     return handleAppError(error, req);
   }
@@ -36,91 +44,66 @@ export async function POST(req) {
 
     const body = await req.json();
     const { user: userId, item } = body;
-
     const user = await User.findById(userId);
+    let existingProduct;
+
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 }
-      );
+      throw new AppError("User not found", 404);
     }
 
-    // Check if product exists
-    const existingProduct = await Product.findOne({ _id: item.product });
-    if (!existingProduct) {
-      return NextResponse.json(
-        { success: false, error: "Product not found" },
-        { status: 404 }
-      );
+    // Check if product exists or variant exists
+    if (item.variantId) {
+      existingProduct = await Product.findOne({
+        _id: item.product,
+        "variant._id": item.variantId,
+      });
+    } else {
+      existingProduct = await Product.findOne({ _id: item.product });
     }
+
+    if (!existingProduct) {
+      throw new AppError("Product or variant not found", 404);
+    }
+
+    checkQuantity(item, existingProduct);
 
     const cart = await Cart.findOne({ user: userId });
+    if (!cart) throw new AppError("Cart not found", 404);
 
-    // If cart does not exist, create a new cart
-    if (!cart) {
-      console.log("Creating new cart😎😎");
-      const cartItem = await CartItem.create(item);
-      const newCart = await Cart.create({
-        user: userId,
-        item: [cartItem],
-      });
-      return NextResponse.json(
-        { success: true, data: newCart },
-        { status: 201 }
-      );
-    }
     //check if user already has the item in cart
     const existingItem = await Cart.findOne({
       user: userId,
-      "item.product": item.product,
+    }).populate({
+      path: "item",
+      match: { product: item.product },
     });
 
     if (existingItem) {
-      const clientItemData = { ...item };
-      delete clientItemData._id;
-
       // check if variant already exists
+      if (
+        item.variantId &&
+        !existingItem.item.some(
+          (cartItem) => cartItem.variantId === item.variantId
+        )
+      ) {
+        const cartItem = await CartItem.create(item);
+        existingItem.item.push(cartItem);
+        await existingItem.save();
 
-      if (item.variant && Object.keys(item.variant).length > 0) {
-        const hasMatchingVariant = existingItem.item.some((cartItem) => {
-          const variant = { ...cartItem.variant?._doc };
-          delete variant._id;
-          return _.isEqual(variant, clientItemData.variant);
-        });
-
-        if (hasMatchingVariant) {
-          // cart item already exists, do nothing
-          return NextResponse.json(
-            {
-              success: true,
-              length: existingItem.item.length,
-              data: existingItem,
-            },
-            { status: 200 }
-          );
-        }
-
-        // cart item variant does not exist, add it
-        if (!hasMatchingVariant) {
-          const cartItem = await CartItem.create(item);
-          existingItem.item.push(cartItem);
-          await existingItem.save();
-
-          return NextResponse.json(
-            {
-              success: true,
-              length: existingItem.item.length,
-              data: existingItem,
-            },
-            { status: 201 }
-          );
-        }
+        return NextResponse.json(
+          {
+            success: true,
+            length: existingItem.item.length,
+            data: existingItem,
+          },
+          { status: 201 }
+        );
       }
-
-      // item has not variant, cart item has variant, but not product without variant, add it
-      if (existingItem.item.every((cartItem) => cartItem.variant)) {
-        console.log("NO VARIANTS 🚀🚀🚀🚀");
-
+      // Check if item already exists in cart
+      else if (
+        !item.variantId &&
+        existingItem.item.every((cartItem) => cartItem.variantId)
+      ) {
         const cartItem = await CartItem.create(item);
         existingItem.item.push(cartItem);
         await existingItem.save();
@@ -135,7 +118,6 @@ export async function POST(req) {
         );
       }
     } else {
-      // Add item to cart
       const cartItem = await CartItem.create(item);
       cart.item.push(cartItem);
       await cart.save();
@@ -158,58 +140,81 @@ export async function PATCH(req) {
   try {
     await dbConnect();
 
+    let existingProduct;
     const body = await req.json();
-    const { user: userId, item: itemId, quantity } = body;
+    const {
+      user: userId,
+      item: itemId,
+      quantity,
+      checked,
+      selectAll,
+      cartId,
+    } = body;
 
-    const cart = await Cart.findOne({ user: userId });
+    if (
+      (!selectAll && quantity === undefined && checked === undefined) ||
+      (selectAll && !cartId)
+    )
+      throw new AppError("Invalid request", 400);
 
-    console.log("cart🚀", cart);
+    const cartItem = await CartItem.findById(itemId);
+    if (!cartItem) throw new AppError("Cart item not found", 404);
 
-    if (!cart) {
-      return NextResponse.json(
-        { success: false, error: "Cart not found" },
-        { status: 404 }
-      );
+    if (typeof checked === "boolean") {
+      cartItem.checked = checked;
     }
 
-    console.log(quantity, itemId);
-
-    if (!itemId ?? !quantity) {
-      return NextResponse.json(
-        { success: false, error: "Invalid request" },
-        { status: 400 }
-      );
+    if (cartItem.variantId) {
+      existingProduct = await Product.findOne({
+        "variant._id": cartItem.variantId,
+      });
+    } else {
+      existingProduct = await Product.findOne({
+        _id: cartItem.product,
+      });
     }
 
-    // Check if item exists in cart
+    if (!existingProduct) throw new AppError("Product not found", 404);
 
-    const existingItemIndex = cart.item.findIndex(
-      (item) => item._id.toString() === itemId
-    );
+    checkQuantity(body, existingProduct);
 
-    console.log(existingItemIndex, "existingItemIndex💎💎💎");
-    if (existingItemIndex !== -1) {
-      const existingItem = cart.item[existingItemIndex];
+    //quantity and body.quantity is not the same, idk why
+    if (quantity && quantity > 0 && typeof quantity === "number") {
+      cartItem.quantity = body.quantity;
+    }
+    if (quantity && typeof quantity === "number" && quantity <= 0) {
+      // Delete item if quantity is zero
+      await cartItem.deleteOne();
+      const updatedCart = await Cart.findOneAndUpdate(
+        { user: userId },
+        {
+          $pull: { item: itemId },
+        },
+        { new: true }
+      );
 
-      console.log(existingItem);
-      if (quantity > 0) {
-        existingItem.quantity = quantity;
-      } else {
-        // Delete item if quantity is zero
-        cart.item.splice(existingItemIndex, 1);
-      }
-
-      await cart.save();
       return NextResponse.json(
-        { success: true, length: cart.item.length, data: cart },
+        { success: true, data: updatedCart },
         { status: 200 }
       );
-    } else {
-      return NextResponse.json(
-        { success: false, error: "Item not found" },
-        { status: 404 }
+    }
+
+    if (selectAll !== undefined && typeof selectAll === "boolean") {
+      await CartItem.updateMany(
+        { cartId },
+        {
+          $set: { checked: selectAll },
+        }
       );
     }
+
+    await cartItem.save();
+    const updatedCart = await Cart.findOne({ user: userId }).populate("item");
+
+    return NextResponse.json(
+      { success: true, data: updatedCart },
+      { status: 200 }
+    );
   } catch (error) {
     return handleAppError(error, req);
   }
@@ -220,23 +225,35 @@ export async function DELETE(req) {
     await dbConnect();
 
     const body = await req.json();
-    const { user: userId, item: itemId } = body;
+    const { user: userId, item: itemId, deleteAll, cartId } = body;
+
+    if (
+      deleteAll !== undefined &&
+      typeof deleteAll === "boolean" &&
+      cartId !== undefined
+    ) {
+      await CartItem.deleteMany({ cartId: cartId });
+
+      const cart = await Cart.findOne({ user: userId });
+      cart.item = [];
+      await cart.save();
+
+      if (!cart) throw new AppError("Cart not found", 404);
+      return NextResponse.json(
+        {
+          success: true,
+          length: cart.item.length,
+          data: cart,
+        },
+        { status: 200 }
+      );
+    }
 
     const cart = await Cart.findOne({ user: userId });
 
-    if (!cart) {
-      return NextResponse.json(
-        { success: false, error: "Cart not found" },
-        { status: 404 }
-      );
-    }
+    if (!cart) throw new AppError("Cart not found", 404);
 
-    if (!itemId) {
-      return NextResponse.json(
-        { success: false, error: "Invalid request" },
-        { status: 400 }
-      );
-    }
+    if (!itemId) throw new AppError("Invalid request", 400);
 
     // Check if item exists in cart
     const existingItemIndex = cart.item.findIndex(
@@ -251,12 +268,26 @@ export async function DELETE(req) {
         { status: 200 }
       );
     } else {
-      return NextResponse.json(
-        { success: false, error: "Item not found" },
-        { status: 404 }
-      );
+      throw new AppError("Item not found", 404);
     }
   } catch (error) {
     return handleAppError(error, req);
   }
+}
+
+function checkQuantity(item, product) {
+  if (item.variantId && product?.variant.length > 0) {
+    const variant = product.variant.find(
+      (doc) => doc._id.toString() === item.variantId
+    );
+
+    if (item.quantity > variant.quantity && variant.quantity > 0) {
+      item.quantity = variant.quantity;
+    }
+  } else if (item.quantity > product.quantity && product.quantity > 0) {
+    item.quantity = product.quantity;
+  } else {
+    throw new AppError("Quantity exceeds available stock", 400);
+  }
+  return item;
 }

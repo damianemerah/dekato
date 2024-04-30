@@ -49,8 +49,6 @@ export async function POST(req) {
     user.address.push(address._id);
     await user.save({ validateBeforeSave: false });
 
-    console.log("address", address);
-
     return NextResponse.json({ success: true, data: address }, { status: 201 });
   } catch (error) {
     return handleAppError(error, req);

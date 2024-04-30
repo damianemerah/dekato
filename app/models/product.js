@@ -1,14 +1,6 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
-import Category from "./category.js";
-
-const variantSchema = new mongoose.Schema({
-  color: String,
-  size: String,
-  price: Number,
-  quantity: Number,
-  image: String,
-});
+import dbConnect from "@/utils/mongoConnection";
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -43,8 +35,21 @@ const productSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
   tag: [String],
-  variant: [variantSchema],
+  variant: [
+    {
+      color: String,
+      size: String,
+      price: Number,
+      quantity: { type: Number, required: true },
+      image: String,
+    },
+  ],
   quantity: { type: Number, required: true },
+  sold: { type: Number, default: 0 },
+  isAvailable: {
+    type: Boolean,
+    default: true,
+  },
   status: {
     type: String,
     default: "draft",
@@ -59,15 +64,36 @@ productSchema.pre("save", function (next) {
   next();
 });
 
-productSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "category",
-    select: "name slug",
-  });
-  next();
-});
+export async function watchProductChanges(productId) {
+  try {
+    console.log("Watching for product changes🚀🚀🚀🚀🚀🚀🚀🚀", productId);
 
-export default mongoose.models.Product ||
-  mongoose.model("Product", productSchema);
+    // Listen for change events using Mongoose change streams
+    const changeStream = Product.watch();
 
-// Products based on status
+    // Handle change events
+    changeStream.on("change", async (change) => {
+      console.log("Change event:🤑🤑", change);
+
+      // Check if the change event is for the specified productId
+      if (change.documentKey._id === productId) {
+        // Get the updated product from the database
+        const updatedProduct = await Product.findById(productId);
+
+        // Check if the quantity of the product is 0
+        if (updatedProduct.quantity === 0) {
+          // Update the isSoldOut field to true
+          updatedProduct.isSoldOut = true;
+
+          // Save the updated product to the database
+          await updatedProduct.save();
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error watching for product changes:", error);
+  }
+}
+
+export const Product =
+  mongoose.models.Product || mongoose.model("Product", productSchema);

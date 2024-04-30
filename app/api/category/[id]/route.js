@@ -34,13 +34,8 @@ export async function PATCH(req, { params }) {
     await dbConnect();
 
     const formData = await req.formData();
-
-    for (const [key, value] of formData.entries()) {
-      console.log(`Key: ${key}, Value: ${value}. ${typeof value}`);
-    }
     const body = await handleFormData(formData, Category, id);
 
-    console.log(body, "🎈🎈");
     const category = await Category.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

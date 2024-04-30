@@ -1,24 +1,25 @@
 import Order from "@/app/models/order";
-import Checkout from "@/app/models/checkout";
-import { Cart, CartItem } from "@/app/models/cart";
+import Address from "@/app/models/address";
+import { Cart } from "@/app/models/cart";
 import dbConnect from "@/utils/mongoConnection";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
-import filterObject from "@/utils/filterObj";
+import { startSession } from "mongoose";
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
   try {
     const { userId } = params;
+
     await dbConnect();
 
-    const cartItems = await Cart.findOne({ user: userId }).populate({
-      path: "user",
-      select: "email",
-    });
-
-    console.log(cartItems.user.email, "🔥cartItems");
+    const cartItems = await Cart.findOne({ user: userId })
+      .populate({
+        path: "user",
+        select: "email",
+      })
+      .populate("item");
 
     const items = cartItems.item.filter((item) => {
       return item.checked === true;
@@ -29,39 +30,17 @@ export async function GET(req, { params }) {
     }
 
     const amount = items.reduce((acc, item) => {
-      return acc + item.price;
+      return acc + item.price * item.quantity;
     }, 0);
-
-    const itemsId = items.map((item) => item._id.toString());
 
     const checkoutData = {
       user: userId.toString(),
-      product: itemsId,
+      product: items,
       total: amount,
     };
 
-    const existingCheckout = await Checkout.findOne({ user: userId });
-
-    if (existingCheckout) {
-      // update existing checkout
-      existingCheckout.product = itemsId;
-      existingCheckout.total = amount;
-      await existingCheckout.save();
-
-      return NextResponse.json(
-        { success: true, data: existingCheckout },
-        { status: 200 }
-      );
-    }
-
-    const checkout = await Checkout.create(checkoutData);
-
-    if (!checkout) {
-      throw new AppError("Checkout could not be created", 500);
-    }
-
     return NextResponse.json(
-      { success: true, data: checkout },
+      { success: true, data: checkoutData },
       { status: 200 }
     );
   } catch (error) {
@@ -70,31 +49,62 @@ export async function GET(req, { params }) {
 }
 
 export async function POST(req) {
+  await dbConnect();
+  const session = await startSession();
   try {
-    await dbConnect();
-    const { userId } = await req.json();
+    session.startTransaction();
 
-    console.log(userId, "userId🔥");
-    const checkoutProduct = await Checkout.findOne({ user: userId }).populate({
-      path: "user",
-      select: "email",
-    });
+    const body = await req.json();
+    const { userId, shippingMethod, address } = body;
 
-    console.log(checkoutProduct, "🔥checkoutProduct");
+    const checkoutProduct = await Cart.findOne({ user: userId })
+      .populate({
+        path: "item",
+        match: { checked: true },
+      })
+      .populate({
+        path: "user",
+        select: "email",
+      });
 
-    if (!checkoutProduct) {
-      throw new AppError("Checkout product not found", 404);
+    const checkoutItems = checkoutProduct.item;
+
+    if (!checkoutItems || checkoutItems.length === 0) {
+      throw new AppError("No items selected", 400);
     }
 
-    //create order here
-    //should we allow data from client or form it here?
-    //adding shipping method and address to order here
+    const amount = Math.ceil(
+      checkoutItems.reduce((acc, item) => {
+        return acc + item.price * item.quantity;
+      }, 0)
+    );
 
-    const order = await Order.create({
+    //check if address is user's address
+
+    if (shippingMethod.toLowerCase() === "delivery" && !address) {
+      throw new AppError("Address is required for delivery", 400);
+    }
+
+    if (shippingMethod.toLowerCase() === "delivery") {
+      const userAddress = await Address.findById(address);
+
+      if (!userAddress) {
+        throw new AppError("User address not found", 404);
+      }
+    }
+
+    const orderData = {
       user: userId,
-      product: checkoutProduct.product,
-      total: checkoutProduct.total,
-    });
+      item: checkoutItems,
+      total: amount,
+      shippingMethod: shippingMethod,
+      address:
+        shippingMethod.toLowerCase() === "delivery" ? address : undefined,
+    };
+
+    const order = await Order.create([orderData], { session });
+
+    const createdOrder = order[0];
 
     if (!order) {
       throw new AppError("Order could not be created", 500);
@@ -102,55 +112,30 @@ export async function POST(req) {
 
     const payment = await Paystack.transaction.initialize({
       email: checkoutProduct.user.email,
-      amount: checkoutProduct.total * 100,
+      amount: amount * 100,
       callback_url: `${req.nextUrl.origin}`,
       currency: "NGN",
       metadata: {
-        orderId: checkoutProduct._id,
+        orderId: createdOrder["_id"].toString(),
+        userId,
       },
     });
 
-    if (!payment) {
-      throw new AppError("Payment could not be initialized", 500);
+    if (!payment || payment.status === false) {
+      console.log(payment);
+      throw new AppError(payment.message, 500);
     }
 
-    return NextResponse.json({ success: true, data: payment }, { status: 200 });
-  } catch (error) {
-    return handleAppError(error, req);
-  }
-}
-
-export async function PATCH(req) {
-  try {
-    await dbConnect();
-    const body = await req.json();
-
-    const { userId } = body;
-
-    const checkout = await Checkout.findOne({ user: userId });
-
-    const obj = filterObject(body, "shippingMethod", "address");
-
-    console.log(obj, "obj🔥");
-
-    if (!checkout) {
-      throw new AppError("Checkout not found", 404);
-    }
-
-    checkout.shippingMethod = obj.shippingMethod;
-    checkout.address = obj.address;
-
-    await checkout.save();
-
-    console.log(checkout, "checkout🔥");
+    await session.commitTransaction();
 
     return NextResponse.json(
-      { success: true, data: checkout },
+      { success: true, data: { payment, order: createdOrder } },
       { status: 200 }
     );
   } catch (error) {
+    await session.abortTransaction();
     return handleAppError(error, req);
+  } finally {
+    session.endSession();
   }
 }
-
-//shippingmethod should not be recreated in cheackout

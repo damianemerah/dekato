@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 import crypto from "crypto";
-import Address from "./address";
+import Address from "./address.js";
+import Wishlist from "./wishlist.js";
+import Cart from "./cart.js";
 
 const userSchema = new mongoose.Schema(
   {

@@ -1,6 +1,7 @@
 import AppError from "@/utils/errorClass";
 import { uploadFiles, deleteFiles } from "@/utils/s3Func";
 
+//Model here is designed to be only Product model
 export const handleFormData = async (formData, Model, id) => {
   const obj = {};
   obj.image = [];
@@ -23,17 +24,15 @@ export const handleFormData = async (formData, Model, id) => {
     }
   }
 
-  console.log(obj, "obj🚀🚀🚀");
-
   //check if image is uploaded
   if (!formData.has("image") && obj.image.length === 0) {
-    console.log("No image found🤒🤒");
     throw new AppError("Please upload image", 400);
   }
 
   // check if model and id is provided & get existing product
   if (Model && id) {
     existingProd = await Model.findById(id);
+    console.log(existingProd, id, "existingProd🚀🚀🚀");
 
     if (!existingProd) {
       throw new AppError("Product not found", 404);
@@ -67,6 +66,5 @@ export const handleFormData = async (formData, Model, id) => {
     ...obj.video,
     ...fileNames.filter((file) => file.includes("com/video/")),
   ];
-
   return obj;
 };

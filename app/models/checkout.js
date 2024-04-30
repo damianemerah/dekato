@@ -15,15 +15,6 @@ const checkoutSchema = new mongoose.Schema({
     },
   ],
   total: Number,
-  shippingMethod: {
-    type: String,
-    toLowerCase: true,
-    enum: ["pickup", "delivery"],
-  },
-  address: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Address",
-  },
 });
 
 export default mongoose.models.Checkout ||
