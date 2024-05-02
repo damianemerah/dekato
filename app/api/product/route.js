@@ -4,21 +4,15 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import AppError from "@/utils/errorClass";
-import { getServerSession } from "next-auth";
-import options from "../auth/[...nextauth]/options";
 import { handleFormData } from "@/utils/handleFormData";
 import Category from "@/app/models/category";
 import { deleteFiles } from "@/utils/s3Func";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function POST(req) {
   try {
-    // const session = await getServerSession(options);
-    // console.log(session, "🚀🚀🚀");
-    // if (!session) {
-    //   console.log("You need to be logged in to create a product🚀🚀🚀");
-    // } else {
-    //   console.log("You are logged in🚀🚀🚀");
-    // }
+    await protect();
+    await restrictTo("admin");
     await dbConnect();
 
     const formData = await req.formData();
@@ -63,6 +57,8 @@ export async function GET(req) {
 
 export async function PATCH(req) {
   try {
+    await protect();
+    await restrictTo("admin");
     await dbConnect();
     //remove params from the functions
     const formData = await req.formData();
@@ -109,6 +105,8 @@ export async function PATCH(req) {
 
 export async function DELETE(req) {
   try {
+    await protect();
+    await restrictTo("admin");
     const { id } = await req.json();
 
     await dbConnect();

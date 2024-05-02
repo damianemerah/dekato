@@ -8,17 +8,15 @@ import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
 import { startSession } from "mongoose";
 import checkQuantity from "@/utils/checkQuantity";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
   await dbConnect();
   try {
-    const id = params.id;
-
-    console.log("GET ROUTE 💎💎💎", id[0]);
-
-    const product = await Product.findById(id[0]);
+    const id = params.id[0];
+    const product = await Product.findById(id);
 
     if (!product) {
       throw new AppError("Product not found", 404);
@@ -30,7 +28,10 @@ export async function GET(req, { params }) {
   }
 }
 
+//Single product order
 export async function POST(req, { params }) {
+  await protect();
+  await restrictTo("admin", "user");
   await dbConnect();
   const session = await startSession();
 

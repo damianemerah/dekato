@@ -37,27 +37,27 @@ const options = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      console.log(token, "token🕊️🕊️🕊️");
       if (user) {
         token.user = {
           id: user._id,
           email: user.email,
-          name: user.firstname,
+          firstname: user.firstname,
+          lastname: user.lastname,
           role: user.role,
         };
-
-        token.name = user.firstname;
       }
       return token;
     },
     async session({ session, token }) {
       session.user = { ...token.user };
+      console.log(session, "session🚀🚀🚀");
       return session;
     },
   },
   pages: {
     signIn: "/signin",
   },
-  debug: process.env.NODE_ENV === "development",
 };
 
 export default NextAuth(options);

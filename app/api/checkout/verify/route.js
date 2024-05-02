@@ -4,6 +4,7 @@ import { Cart, CartItem } from "@/app/models/cart";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
+import { protect, restrictTo } from "@/utils/checkPermission";
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 async function updateProductQuantity(order) {
@@ -56,6 +57,8 @@ async function updateProductQuantitySingle(order) {
 }
 
 export async function POST(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     const body = await req.json();
     console.log("VERIFY ROUTE 💎💎💎");

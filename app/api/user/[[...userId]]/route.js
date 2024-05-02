@@ -6,6 +6,7 @@ import AppError from "@/utils/errorClass";
 import filterObj from "@/utils/filterObj";
 import { Cart } from "@/app/models/cart";
 import Wishlist from "@/app/models/wishlist";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function POST(req) {
   try {
@@ -43,10 +44,6 @@ export async function POST(req) {
 export async function GET(req, { params }) {
   try {
     await dbConnect();
-
-    // const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
-    // console.log("🎈🎈", searchParams);
-
     const userId = params.userId;
 
     const user = await User.findById(userId).populate("address");
@@ -62,6 +59,8 @@ export async function GET(req, { params }) {
 }
 
 export async function PATCH(req) {
+  await protect();
+  s;
   try {
     await dbConnect();
 
@@ -80,6 +79,8 @@ export async function PATCH(req) {
 }
 
 export async function DELETE(req) {
+  await protect();
+  await restrictTo("admin");
   try {
     await dbConnect();
     const { id } = await req.json();

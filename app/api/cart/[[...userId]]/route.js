@@ -7,8 +7,12 @@ import dbConnect from "@/utils/mongoConnection";
 import AppError from "@/utils/errorClass";
 import checkQuantity from "@/utils/checkQuantity";
 import _ from "lodash";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function GET(req, { params }) {
+  await protect();
+  await restrictTo("admin", "user");
+
   try {
     await dbConnect();
 
@@ -40,6 +44,8 @@ export async function GET(req, { params }) {
 }
 
 export async function POST(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     await dbConnect();
 
@@ -139,6 +145,8 @@ export async function POST(req) {
 }
 
 export async function PATCH(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     await dbConnect();
 
@@ -223,6 +231,8 @@ export async function PATCH(req) {
 }
 
 export async function DELETE(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     await dbConnect();
 

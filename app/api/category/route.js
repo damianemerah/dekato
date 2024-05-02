@@ -4,8 +4,11 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import { handleFormData } from "@/utils/handleFormData";
 import AppError from "@/utils/errorClass";
+import { uploadFiles, deleteFiles } from "@/utils/s3Func";
 
 export async function POST(req) {
+  await protect();
+  await restrictTo("admin");
   try {
     await dbConnect();
 

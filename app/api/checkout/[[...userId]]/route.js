@@ -8,9 +8,13 @@ import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
 import { startSession } from "mongoose";
 import checkQuantity from "@/utils/checkQuantity";
+import { protect, restrictTo } from "@/utils/checkPermission";
+
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     const { userId } = params;
 
@@ -51,6 +55,8 @@ export async function GET(req, { params }) {
 }
 
 export async function POST(req) {
+  await protect();
+  await restrictTo("admin", "user");
   await dbConnect();
   const session = await startSession();
   try {

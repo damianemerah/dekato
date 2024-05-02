@@ -4,8 +4,11 @@ import Wishlist from "@/app/models/wishlist";
 import Product from "@/app/models/product";
 import dbConnect from "@/utils/mongoConnection";
 import AppError from "@/utils/errorClass";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function GET(req, { params }) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     await dbConnect();
     const userId = params.userId;
@@ -26,6 +29,8 @@ export async function GET(req, { params }) {
 }
 
 export async function POST(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     await dbConnect();
 
@@ -81,6 +86,8 @@ export async function POST(req) {
 // route.js
 
 export async function DELETE(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     await dbConnect();
 

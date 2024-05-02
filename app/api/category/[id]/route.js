@@ -3,8 +3,8 @@ import Category from "@/app/models/category";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
-import { uploadFiles, deleteFiles } from "@/utils/s3Func";
 import { handleFormData } from "@/utils/handleFormData";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function GET(req, { params }) {
   try {
@@ -29,6 +29,8 @@ export async function GET(req, { params }) {
 }
 
 export async function PATCH(req, { params }) {
+  await protect();
+  await restrictTo("admin");
   try {
     const { id } = params;
     await dbConnect();
@@ -55,6 +57,8 @@ export async function PATCH(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
+  await protect();
+  await restrictTo("admin");
   try {
     const { id } = params;
     await dbConnect();
