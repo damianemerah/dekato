@@ -1,5 +1,5 @@
 import dbConnect from "@/utils/mongoConnection";
-import { Product, watchProductChanges } from "@/app/models/product";
+import { Product } from "@/app/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
@@ -100,8 +100,6 @@ export async function PATCH(req) {
       new: true,
       runValidators: true,
     });
-    console.log(product, "body.variant🚀🚀🚀");
-    watchProductChanges(id);
 
     return NextResponse.json({ success: true, data: product }, { status: 200 });
   } catch (error) {

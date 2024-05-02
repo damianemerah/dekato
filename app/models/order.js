@@ -1,14 +1,31 @@
 import mongoose from "mongoose";
 import { CartItem } from "./cart";
 
+const singleProductSchema = new mongoose.Schema({
+  productId: { type: String, required: true },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  quantity: { type: Number, required: true },
+  color: String,
+  size: String,
+  variantId: String,
+  image: String,
+});
+
 const orderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.ObjectId, ref: "User" },
-  item: [
+  cartItem: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CartItem",
     },
   ],
+  singleProduct: {
+    type: singleProductSchema,
+    required: function () {
+      return this.type === "single";
+    },
+  },
   total: Number,
   status: {
     type: String,
@@ -23,6 +40,11 @@ const orderSchema = new mongoose.Schema({
       "cancelled",
       "returned",
     ],
+  },
+  type: {
+    type: String,
+    enum: ["cart", "single"],
+    required: true,
   },
   shippingMethod: {
     type: String,

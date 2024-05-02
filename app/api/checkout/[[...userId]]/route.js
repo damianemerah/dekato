@@ -1,11 +1,13 @@
 import Order from "@/app/models/order";
 import Address from "@/app/models/address";
+import { Product } from "@/app/models/product";
 import { Cart } from "@/app/models/cart";
 import dbConnect from "@/utils/mongoConnection";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
 import { startSession } from "mongoose";
+import checkQuantity from "@/utils/checkQuantity";
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
@@ -65,9 +67,30 @@ export async function POST(req) {
       .populate({
         path: "user",
         select: "email",
-      });
+      })
+      .session(session);
 
     const checkoutItems = checkoutProduct.item;
+
+    //check that product quantity for checkoutItems is not 0
+
+    for (const item of checkoutItems) {
+      //check if product exists or variant exists
+      //variant
+
+      console.log(item.product.toString(), item.variantId, "🕊️ 🕊️");
+
+      const existingProduct = await Product.findOne({
+        _id: item.product.toString(),
+        "variant._id": item.variantId,
+      });
+
+      if (!existingProduct) {
+        throw new AppError("Product or variant not found", 404);
+      }
+      console.log("checking quantity🕊️ 🕊️");
+      checkQuantity(item, existingProduct);
+    }
 
     if (!checkoutItems || checkoutItems.length === 0) {
       throw new AppError("No items selected", 400);
@@ -86,7 +109,9 @@ export async function POST(req) {
     }
 
     if (shippingMethod.toLowerCase() === "delivery") {
-      const userAddress = await Address.findById(address);
+      const userAddress = await Address.findOne({ user: userId }).session(
+        session
+      );
 
       if (!userAddress) {
         throw new AppError("User address not found", 404);
@@ -95,13 +120,15 @@ export async function POST(req) {
 
     const orderData = {
       user: userId,
-      item: checkoutItems,
+      cartItem: checkoutItems,
       total: amount,
+      type: "cart",
       shippingMethod: shippingMethod,
       address:
         shippingMethod.toLowerCase() === "delivery" ? address : undefined,
     };
 
+    //session require array of objects
     const order = await Order.create([orderData], { session });
 
     const createdOrder = order[0];
@@ -122,7 +149,6 @@ export async function POST(req) {
     });
 
     if (!payment || payment.status === false) {
-      console.log(payment);
       throw new AppError(payment.message, 500);
     }
 

@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import dbConnect from "@/utils/mongoConnection";
 import AppError from "@/utils/errorClass";
+import checkQuantity from "@/utils/checkQuantity";
 import _ from "lodash";
 
 export async function GET(req, { params }) {
@@ -86,6 +87,7 @@ export async function POST(req) {
           (cartItem) => cartItem.variantId === item.variantId
         )
       ) {
+        //check quantity
         const cartItem = await CartItem.create(item);
         existingItem.item.push(cartItem);
         await existingItem.save();
@@ -273,21 +275,4 @@ export async function DELETE(req) {
   } catch (error) {
     return handleAppError(error, req);
   }
-}
-
-function checkQuantity(item, product) {
-  if (item.variantId && product?.variant.length > 0) {
-    const variant = product.variant.find(
-      (doc) => doc._id.toString() === item.variantId
-    );
-
-    if (item.quantity > variant.quantity && variant.quantity > 0) {
-      item.quantity = variant.quantity;
-    }
-  } else if (item.quantity > product.quantity && product.quantity > 0) {
-    item.quantity = product.quantity;
-  } else {
-    throw new AppError("Quantity exceeds available stock", 400);
-  }
-  return item;
 }
