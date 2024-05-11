@@ -1,6 +1,6 @@
 import dbConnect from "@/utils/mongoConnection";
-import Address from "@/app/models/address";
-import User from "@/app/models/user";
+import Address from "@/models/address";
+import User from "@/models/user";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";

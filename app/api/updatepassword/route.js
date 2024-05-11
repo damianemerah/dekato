@@ -1,9 +1,12 @@
-import User from "@/app/models/user";
+import User from "@/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function PATCH(req) {
+  await protect();
+  await restrictTo("admin", "user");
   try {
     const body = await req.json();
 

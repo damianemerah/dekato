@@ -1,11 +1,11 @@
 import dbConnect from "@/utils/mongoConnection";
-import User from "@/app/models/user";
+import User from "@/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
 import filterObj from "@/utils/filterObj";
-import { Cart } from "@/app/models/cart";
-import Wishlist from "@/app/models/wishlist";
+import { Cart } from "@/models/cart";
+import Wishlist from "@/models/wishlist";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function POST(req) {
@@ -60,7 +60,6 @@ export async function GET(req, { params }) {
 
 export async function PATCH(req) {
   await protect();
-  s;
   try {
     await dbConnect();
 

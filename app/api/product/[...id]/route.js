@@ -1,8 +1,8 @@
 import dbConnect from "@/utils/mongoConnection";
-import { Product } from "@/app/models/product";
-import Address from "@/app/models/address";
-import Order from "@/app/models/order";
-import User from "@/app/models/user";
+import { Product } from "@/models/product";
+import Address from "@/models/address";
+import Order from "@/models/order";
+import User from "@/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";

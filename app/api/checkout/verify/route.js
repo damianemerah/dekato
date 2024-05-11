@@ -1,6 +1,6 @@
-import Order from "@/app/models/order";
-import { Product } from "@/app/models/product";
-import { Cart, CartItem } from "@/app/models/cart";
+import Order from "@/models/order";
+import { Product } from "@/models/product";
+import { Cart, CartItem } from "@/models/cart";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";

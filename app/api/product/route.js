@@ -1,11 +1,11 @@
 import dbConnect from "@/utils/mongoConnection";
-import { Product } from "@/app/models/product";
+import { Product } from "@/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import AppError from "@/utils/errorClass";
 import { handleFormData } from "@/utils/handleFormData";
-import Category from "@/app/models/category";
+import Category from "@/models/category";
 import { deleteFiles } from "@/utils/s3Func";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
@@ -63,6 +63,8 @@ export async function PATCH(req) {
     //remove params from the functions
     const formData = await req.formData();
     const id = JSON.parse(formData.get("data")).productId;
+
+    if (!id) throw new AppError("Product not found", 404);
     const body = await handleFormData(formData, Product, id);
 
     // Find the existing product

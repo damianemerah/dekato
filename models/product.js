@@ -32,6 +32,10 @@ const productSchema = new mongoose.Schema({
     ref: "Category",
     required: true,
   },
+  cat: {
+    type: String,
+    required: true,
+  },
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
   tag: [String],

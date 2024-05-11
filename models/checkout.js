@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { CartItem } from "@/app/models/cart";
-import Address from "@/app/models/address";
+import { CartItem } from "@/models/cart";
+import Address from "@/models/address";
 import { toLower } from "lodash";
 
 const checkoutSchema = new mongoose.Schema({

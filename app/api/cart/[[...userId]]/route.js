@@ -1,6 +1,6 @@
-import { Cart, CartItem } from "@/app/models/cart";
-import User from "@/app/models/user";
-import { Product } from "@/app/models/product";
+import { Cart, CartItem } from "@/models/cart";
+import User from "@/models/user";
+import { Product } from "@/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import dbConnect from "@/utils/mongoConnection";

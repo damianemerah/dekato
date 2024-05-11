@@ -1,7 +1,7 @@
-import Order from "@/app/models/order";
-import Address from "@/app/models/address";
-import { Product } from "@/app/models/product";
-import { Cart } from "@/app/models/cart";
+import Order from "@/models/order";
+import Address from "@/models/address";
+import { Product } from "@/models/product";
+import { Cart } from "@/models/cart";
 import dbConnect from "@/utils/mongoConnection";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
