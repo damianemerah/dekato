@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Page,
   InlineGrid,
@@ -18,8 +18,8 @@ import {
   Grid,
   Collapsible,
   Button,
-  OptionList,
-  Combobox,
+  Autocomplete,
+  PageActions,
 } from '@shopify/polaris';
 
 import {
@@ -30,6 +30,7 @@ import {
 } from '@shopify/polaris-icons';
 
 import usePopover from '../../hooks/usePopover';
+import { VariantsTableComponent } from '../../components';
 
 function AddProduct() {
   //State
@@ -39,7 +40,8 @@ function AddProduct() {
   const [priceValue, setPriceValue] = useState('');
   const [compareAtPriceValue, setCompareAtPriceValue] = useState('');
   const [quantityValue, setQuantityValue] = useState('1');
-  const [options, setOptions] = useState([{ name: '', values: [''] }]);
+  const [options, setOptions] = useState([]);
+
   const [open, setOpen] = useState(false);
 
   const [defaultPlaceholders, setDefaultPlaceholders] = useState({
@@ -49,6 +51,7 @@ function AddProduct() {
     Style: 'Classic',
   });
 
+  console.log(options);
   //Event Handlers
   const handleTitleChange = useCallback(
     (newValue) => setTitleValue(newValue),
@@ -102,7 +105,17 @@ function AddProduct() {
     }
   };
 
-  const handleToggle = useCallback(() => setOpen((open) => !open), []);
+  const handleToggle = () => {
+    // If there are no options yet, add a new empty option field
+    if (options.length === 0) {
+      setOptions([...options, { name: '', values: [''] }]);
+      setOpen(true); // Collapse immediately after adding the new option
+    } else {
+      setOpen((open) => !open);
+    }
+
+    console.log(options);
+  };
 
   const handleDropZoneDrop = useCallback(
     (_dropFiles, acceptedFiles, _rejectedFiles) =>
@@ -141,6 +154,30 @@ function AddProduct() {
   );
 
   const { handleTogglePopover, isPopoverActive } = usePopover();
+
+  const optionsList = useMemo(
+    () => [
+      { value: 'Size', label: 'Size' },
+      {
+        value: 'Color',
+        label: 'Color',
+      },
+      {
+        value: 'Material',
+        label: 'Material',
+      },
+      { value: 'Style', label: 'Style' },
+    ],
+    []
+  );
+
+  const handleDeleteOption = (optionIndex) => () => {
+    const newOptions = [...options];
+    newOptions.splice(optionIndex, 1);
+    setOptions(newOptions);
+    console.log(newOptions);
+    console.log(options);
+  };
 
   return (
     <Page backAction={{ content: 'Settings', url: '#' }} title='General'>
@@ -230,6 +267,8 @@ function AddProduct() {
               </Grid>
             </BlockStack>
           </Card>
+
+          {/* Inventory */}
           <Card roundedAbove='sm'>
             <BlockStack gap='400'>
               <Text as='h2' variant='headingSm'>
@@ -243,162 +282,166 @@ function AddProduct() {
                     value={quantityValue}
                     onChange={handleQuantityChange}
                     autoComplete='off'
+                    min={0}
                   />
                 </Grid.Cell>
               </Grid>
             </BlockStack>
           </Card>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <Text as='h2' variant='headingSm'>
-                Variants
-              </Text>
-              <Collapsible
-                open={open}
-                id='basic-collapsible'
-                transition={{
-                  duration: '500ms',
-                  timingFunction: 'ease-in-out',
-                }}
-              >
-                <Box borderColor='border' borderWidth='025' borderRadius='200'>
-                  <ul>
-                    {options.map((option, optionIndex) => (
-                      <li key={optionIndex}>
-                        {optionIndex !== 0 && (
-                          <Box
-                            borderColor='border'
-                            borderBlockStartWidth='025'
-                          ></Box>
-                        )}
-                        <div className='grid grid-cols-variant gap-x-3 gap-y-1 p-4'>
-                          <div className='col-start-2'>
-                            <Text as='p' variant='bodyMd'>
-                              Option name
-                            </Text>
-                          </div>
-                          <button className='col-start-1 cursor-grab'>
-                            <Icon source={DragHandleMinor} tone='base' />
-                          </button>
-                          <div className='col-start-2'>
-                            <Popover
-                              active={isPopoverActive(optionIndex)}
-                              activator={
-                                <TextField
-                                  label='Option name'
-                                  placeholder='Size'
-                                  focused={open}
-                                  labelHidden
-                                  value={option.name}
-                                  autoComplete='off'
-                                  onFocus={() =>
-                                    handleTogglePopover(optionIndex)
-                                  }
-                                />
-                              }
-                              fullWidth
-                              onClose={() => handleTogglePopover(optionIndex)}
-                            >
-                              <OptionList
-                                onChange={handleOptionNameChange(optionIndex)}
-                                options={[
-                                  {
-                                    value: 'Color',
-                                    label: 'Color',
-                                  },
-                                  { value: 'Size', label: 'Size' },
-                                  {
-                                    value: 'Material',
-                                    label: 'Material',
-                                  },
-                                  { value: 'Style', label: 'Style' },
-                                ]}
-                                selected={option.name}
-                              />
-                            </Popover>
-                          </div>
-                          <button className='col-start-3'>
-                            <Icon source={DeleteMajor} tone='base' />
-                          </button>
-                        </div>
-                        <div className='mb-4'>
-                          <div className='flex flex-col gap-y-1'>
-                            <div className='grid grid-cols-variant gap-x-3 px-5'>
+
+          {/* Variants */}
+          <Card roundedAbove='sm' padding={0}>
+            <Box padding={400}>
+              <BlockStack gap='400'>
+                <Text as='h2' variant='headingSm'>
+                  Variants
+                </Text>
+                {options.length > 0 && (
+                  <Collapsible
+                    open={open}
+                    id='basic-collapsible'
+                    transition={{
+                      duration: '500ms',
+                      timingFunction: 'ease-in-out',
+                    }}
+                  >
+                    <Box
+                      borderColor='border'
+                      borderWidth='025'
+                      borderRadius='200'
+                    >
+                      <ul>
+                        {options.map((option, optionIndex) => (
+                          <li key={optionIndex}>
+                            {optionIndex !== 0 && (
+                              <Box
+                                borderColor='border'
+                                borderBlockStartWidth='025'
+                              ></Box>
+                            )}
+                            <div className='grid grid-cols-variant gap-x-3 gap-y-1 p-4'>
                               <div className='col-start-2'>
                                 <Text as='p' variant='bodyMd'>
-                                  Option value
+                                  Option name
                                 </Text>
                               </div>
-                            </div>
-
-                            {option.values.map((value, valueIndex) => (
-                              <div
-                                className='grid grid-cols-variant gap-x-3 gap-y-1 px-5'
-                                key={valueIndex}
-                              >
-                                <button className='col-start-1 cursor-grab hidden justify-self-end'>
-                                  <Icon source={DragHandleMinor} tone='base' />
-                                </button>
-                                <div className='col-start-2'>
-                                  <TextField
-                                    label='Option value'
-                                    placeholder={
-                                      valueIndex > 0
-                                        ? 'Add another value'
-                                        : defaultPlaceholders[option.name]
-                                    }
-                                    labelHidden
-                                    value={value}
-                                    onChange={handleOptionValueChange(
-                                      optionIndex,
-                                      valueIndex
-                                    )}
-                                    autoComplete='off'
-                                  />
-                                </div>
-                                <button className='col-start-3 hidden justify-self-start'>
-                                  <Icon source={DeleteMajor} tone='base' />
-                                </button>
+                              <button className='col-start-1 cursor-grab'>
+                                <Icon source={DragHandleMinor} tone='base' />
+                              </button>
+                              <div className='col-start-2'>
+                                <Autocomplete
+                                  options={optionsList}
+                                  selected={option.name}
+                                  onSelect={handleOptionNameChange(optionIndex)}
+                                  textField={
+                                    <Autocomplete.TextField
+                                      onChange={handleOptionNameChange(
+                                        optionIndex
+                                      )}
+                                      label='Option name'
+                                      labelHidden
+                                      ariaExpanded={true}
+                                      value={`${option.name}`}
+                                      placeholder='Size'
+                                      autoComplete='off'
+                                    />
+                                  }
+                                />
                               </div>
-                            ))}
-                          </div>
-                          <div className='grid grid-cols-variant gap-x-3 px-5 mt-4'>
-                            <div className='col-start-2'>
-                              <Button>Done</Button>
+                              <button
+                                className='col-start-3'
+                                onClick={handleDeleteOption(optionIndex)}
+                              >
+                                <Icon source={DeleteMajor} tone='base' />
+                              </button>
                             </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                            <div className='mb-4'>
+                              <div className='flex flex-col gap-y-1'>
+                                <div className='grid grid-cols-variant gap-x-3 px-5'>
+                                  <div className='col-start-2'>
+                                    <Text as='p' variant='bodyMd'>
+                                      Option value
+                                    </Text>
+                                  </div>
+                                </div>
 
-                  <Divider />
-                  <div className='p-4'>
-                    <Button
-                      variant='plain'
-                      size='slim'
-                      textAlign='left'
-                      onClick={handleAddOption}
-                      ariaExpanded={open}
-                      ariaControls='basic-collapsible'
-                      icon={PlusMinor}
-                    >
-                      Add another option
-                    </Button>
-                  </div>
-                </Box>
-              </Collapsible>
-              <Button
-                variant='plain'
-                textAlign='left'
-                onClick={handleToggle}
-                ariaExpanded={open}
-                ariaControls='basic-collapsible'
-                icon={PlusMinor}
-              >
-                Add options like size or colors
-              </Button>
-            </BlockStack>
+                                {option.values.map((value, valueIndex) => (
+                                  <div
+                                    className='grid grid-cols-variant gap-x-3 gap-y-1 px-5'
+                                    key={valueIndex}
+                                  >
+                                    <button className='col-start-1 cursor-grab hidden justify-self-end'>
+                                      <Icon
+                                        source={DragHandleMinor}
+                                        tone='base'
+                                      />
+                                    </button>
+                                    <div className='col-start-2'>
+                                      <TextField
+                                        label='Option value'
+                                        placeholder={
+                                          valueIndex > 0
+                                            ? 'Add another value'
+                                            : defaultPlaceholders[option.name]
+                                        }
+                                        labelHidden
+                                        value={value}
+                                        onChange={handleOptionValueChange(
+                                          optionIndex,
+                                          valueIndex
+                                        )}
+                                        autoComplete='off'
+                                      />
+                                    </div>
+                                    <button className='col-start-3 hidden justify-self-start'>
+                                      <Icon source={DeleteMajor} tone='base' />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className='grid grid-cols-variant gap-x-3 px-5 mt-4'>
+                                <div className='col-start-2'>
+                                  <Button>Done</Button>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Divider />
+                      <div className='p-4'>
+                        <Button
+                          variant='plain'
+                          size='slim'
+                          textAlign='left'
+                          onClick={handleAddOption}
+                          icon={PlusMinor}
+                        >
+                          Add another option
+                        </Button>
+                      </div>
+                    </Box>
+                  </Collapsible>
+                )}
+                {options.length === 0 && (
+                  <Button
+                    variant='plain'
+                    textAlign='left'
+                    onClick={handleToggle}
+                    ariaExpanded={open}
+                    ariaControls='basic-collapsible'
+                    icon={PlusMinor}
+                  >
+                    Add options like size or colors
+                  </Button>
+                )}
+              </BlockStack>
+            </Box>
+
+            <Bleed marginInline={{}}>
+              <VariantsTableComponent />
+            </Bleed>
           </Card>
         </BlockStack>
         <BlockStack gap={{ xs: '400', md: '200' }}>
@@ -421,6 +464,8 @@ function AddProduct() {
           </Card>
         </BlockStack>
       </InlineGrid>
+
+      <PageActions primaryAction={{ content: 'Save' }} />
     </Page>
   );
 }
