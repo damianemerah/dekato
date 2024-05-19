@@ -25,8 +25,8 @@ export default function Footer() {
                 <div className="flex flex-col grow justify-center px-10 text-lg font-semibold tracking-tight text-center text-black max-md:px-5 max-md:mt-10">
                   <Image
                     alt="footer img"
-                    width="100%"
-                    heigth="100%"
+                    width={48}
+                    heigth={48}
                     loading="lazy"
                     src={new_releases}
                     className="self-center"
@@ -38,8 +38,8 @@ export default function Footer() {
                 <div className="flex flex-col grow justify-center px-14 text-lg font-semibold tracking-tight text-center text-black max-md:px-5 max-md:mt-10">
                   <Image
                     alt="footer img"
-                    width="100%"
-                    heigth="100%"
+                    width={48}
+                    heigth={48}
                     loading="lazy"
                     src={local_shipping}
                     className="self-center"
@@ -51,8 +51,8 @@ export default function Footer() {
                 <div className="flex flex-col grow justify-center px-12 text-lg font-semibold tracking-tight text-center text-black max-md:px-5 max-md:mt-10">
                   <Image
                     alt="footer img"
-                    width="100%"
-                    heigth="100%"
+                    width={48}
+                    heigth={48}
                     loading="lazy"
                     src={shield}
                     className="self-center"
@@ -64,8 +64,8 @@ export default function Footer() {
                 <div className="flex flex-col grow justify-center px-10 text-lg font-semibold tracking-tight text-center text-black max-md:px-5 max-md:mt-10">
                   <Image
                     alt="footer img"
-                    width="100%"
-                    heigth="100%"
+                    width={48}
+                    heigth={48}
                     loading="lazy"
                     src={support_agent}
                     className="self-center"
@@ -78,7 +78,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="flex flex-col justify-center items-center px-16 py-16 w-full bg-black max-md:px-5 max-md:max-w-full">
-        <div className="flex justify-center items-center px-16 py-16 w-full max-md:px-5 max-md:max-w-full">
+        <div className="flex justify-center items-center px-16 w-full max-md:px-5 max-md:max-w-full">
           <div className="flex flex-col grow mt-2.5 max-md:mt-10">
             <Image
               alt="footer logo"

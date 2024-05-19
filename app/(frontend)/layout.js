@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <Provider>
-        <body className={inter.className}>
+        <body className={`relative ${inter.className}`}>
           <Header />
           {children}
           <Footer />

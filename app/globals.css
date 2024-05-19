@@ -6,3 +6,42 @@
 * {
   border: 1px solid red;
 } */
+
+h2 {
+  @apply text-2xl font-bold mb-2;
+}
+
+a:visited,
+a:link {
+  text-decoration: none;
+}
+
+.active__category {
+  @apply border-b-2 border-black;
+}
+
+.center {
+  @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+}
+
+.heading_bd::after,
+.heading_bd::before {
+  content: "";
+  display: block;
+  position: absolute;
+  background-color: black;
+}
+
+.heading_bd::after {
+  height: 20%;
+  width: 2px;
+  top: 0;
+  right: 0;
+}
+
+.heading_bd::before {
+  height: 2px;
+  width: 75%;
+  top: 0;
+  right: 0;
+}

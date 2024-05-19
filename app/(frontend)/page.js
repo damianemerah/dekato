@@ -1,16 +1,23 @@
-import Header from "@/components/Header";
+import Hero from "@/components/Hero";
+import HomeCategory from "@/components/HomeCategory";
+import ProductCard from "@/components/ProductCard";
+import Campaign from "@/components/Campaign";
+import { oswald } from "@/style/font";
+import SubPageCampaign from "@/components/SubPageCampaign";
+import Galley from "@/components/Galley";
 
 export default function Home() {
   return (
-    <div className="mx-auto h-screen">
-      <main className="main">
-        <h1 className="text-4xl font-bold text-center mt-8">
-          Welcome to the Store
-        </h1>
-        <p className="text-center mt-4">
-          This is a simple store built with Next.js and Tailwind CSS
-        </p>
-      </main>
-    </div>
+    <section className={`${oswald.className}`}>
+      <Hero />
+      <HomeCategory />
+      <Campaign />
+      <div className="py-10 px-5">
+        <h2 className="mb-7">YOU MAY ALSO LIKE</h2>
+        <ProductCard />
+      </div>
+      <SubPageCampaign />
+      <Galley />
+    </section>
   );
 }
