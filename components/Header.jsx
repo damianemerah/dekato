@@ -2,46 +2,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import menu from "@/public/assets/icons/menu.png";
-import search from "@/public/assets/icons/search.png";
 import favorite from "@/public/assets/icons/favorite.png";
 import person from "@/public/assets/icons/person.png";
 import localShip from "@/public/assets/icons/local_shipping.png";
 import bag from "@/public/assets/icons/shopping_bag.png";
 import logo from "@/public/assets/icons/dekato.png";
 import { oswald } from "@/font";
-import { useState, useRef, useEffect } from "react";
-import SideMenu from "@/components/SideMenu";
+import { useAppContext } from "./AppContext";
 
 function Header() {
-  const [height, setHeight] = useState(0);
-  const [show, setShow] = useState(false);
-  const headerRef = useRef(null);
-
-  useEffect(() => {
-    function handleResize() {
-      if (headerRef.current) {
-        const componentHeight = headerRef.current.clientHeight;
-        setHeight(componentHeight);
-      }
-    }
-    // Initial measurement
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [headerRef]);
+  const { setShow, show, headerRef } = useAppContext();
 
   return (
     <div>
       <header
         ref={headerRef}
-        className={`${
-          oswald.className
-        } flex justify-between items-center px-12 py-3 text-white bg-black max-md:flex-wrap max-md:px-5 ${
-          show ? "fixed left-0 right-0 top-0 z-50" : ""
-        }`}
+        className={`${oswald.className} flex justify-between items-center px-12 py-3 text-white bg-black max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex gap-10 justify-between items-center py-1 text-sm font-medium uppercase whitespace-nowrap">
           <Image
@@ -126,10 +102,7 @@ function Header() {
           </div>
         </div>
       </header>
-      <div
-        className="text-center bg-white text-black py-2 px-8 flex justify-center self-center"
-        style={{ marginTop: `${show ? height + "px" : 0}` }}
-      >
+      <div className="text-center bg-white text-black py-2 px-8 flex justify-center self-center">
         <Image
           src={localShip}
           width="100%"
@@ -139,7 +112,6 @@ function Header() {
         />
         <p>FREE SHIPPING ON ORDERS ABOVE ₦150,000</p>
       </div>
-      <SideMenu setHeight={height} show={show} />
     </div>
   );
 }

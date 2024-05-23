@@ -1,8 +1,10 @@
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
-import Provider from "@/utils/Provider";
+import Provider from "@/components/Provider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AppProvider } from "@/components/AppContext";
+import SideMenu from "@/components/SideMenu";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,10 +17,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <Provider>
-        <body className={`relative ${inter.className}`}>
-          <Header />
-          {children}
-          <Footer />
+        <body className={`${inter.className}`}>
+          <AppProvider>
+            <Header />
+            <div className="flex">
+              <SideMenu />
+              <div className="flex-1">{children}</div>
+            </div>
+            <Footer />
+          </AppProvider>
         </body>
       </Provider>
     </html>

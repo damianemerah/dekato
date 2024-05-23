@@ -45,3 +45,16 @@ a:link {
   top: 0;
   right: 0;
 }
+
+.animate_hover:hover {
+  animation: productCard 0.3s both;
+}
+
+@keyframes productCard {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
+  }
+  100% {
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.1);
+  }
+}

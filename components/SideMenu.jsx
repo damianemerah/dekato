@@ -1,11 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import add from "@/public/assets/icons/add.png";
 import remove from "@/public/assets/icons/remove.png";
 import { useState } from "react";
 import { oswald } from "@/font";
+import { useAppContext } from "./AppContext";
+import { usePathname } from "next/navigation";
 
-export default function SideMenu({ setHeight, show }) {
+export default function SideMenu() {
   const [openMenuItemIds, setOpenMenuItemIds] = useState([]);
+  const { show } = useAppContext();
+  const pathname = usePathname();
 
   const toggleMenuItem = (menuItemId) => {
     if (openMenuItemIds.includes(menuItemId)) {
@@ -23,10 +29,9 @@ export default function SideMenu({ setHeight, show }) {
 
   return (
     <div
-      className="bg-white w-80 h-screen fixed top-0 left-0 bottom-0 z-50 overflow-y-scroll"
+      className="bg-white w-full basis-80 h-screen overflow-y-scroll"
       style={{
-        marginTop: `${setHeight}px`,
-        display: `${show ? "block" : "none"}`,
+        display: `${show || pathname === "/products" ? "block" : "none"}`,
       }}
     >
       {menuItems.map((menuItem) => (
