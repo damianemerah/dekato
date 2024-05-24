@@ -6,12 +6,10 @@ import remove from "@/public/assets/icons/remove.png";
 import { useState } from "react";
 import { oswald } from "@/font";
 import { useAppContext } from "./AppContext";
-import { usePathname } from "next/navigation";
 
 export default function SideMenu() {
   const [openMenuItemIds, setOpenMenuItemIds] = useState([]);
   const { show } = useAppContext();
-  const pathname = usePathname();
 
   const toggleMenuItem = (menuItemId) => {
     if (openMenuItemIds.includes(menuItemId)) {
@@ -31,7 +29,7 @@ export default function SideMenu() {
     <div
       className="bg-white w-full basis-80 h-screen overflow-y-scroll"
       style={{
-        display: `${show || pathname === "/products" ? "block" : "none"}`,
+        display: `${show ? "block" : "none"}`,
       }}
     >
       {menuItems.map((menuItem) => (

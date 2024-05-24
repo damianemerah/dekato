@@ -9,7 +9,7 @@ export default function ProductCard() {
       href="#"
       className={`flex flex-col w-64 mr-3 mb-3 ${oswald.className} animate_hover`}
     >
-      <div className="flex justify-center shrink-0 overflow-hidden relative">
+      <div className="flex justify-center shrink-0 overflow-hidden relative ">
         <Image
           src={image3}
           width="100%"

@@ -2,15 +2,16 @@
 
 import Filter from "@/components/Filter";
 import ProductCard from "@/components/ProductCard";
-import { usePathname } from "next/navigation";
 import SubPageCampaign from "@/components/SubPageCampaign";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
+import { useAppContext } from "@/components/AppContext";
 
 export default function Product() {
-  const pathname = usePathname();
+  //Always show menu
+  const { setShow } = useAppContext();
+  setShow(true);
 
-  console.log(pathname);
   return (
     <div>
       <Filter />
