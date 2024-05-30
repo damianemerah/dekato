@@ -1,23 +1,23 @@
 import * as React from "react";
 import Image from "next/image";
 import logoBig from "@/public/assets/icons/logo-lg.png";
-import shield from "@/public/assets/icons/shield.png";
-import support_agent from "@/public/assets/icons/support_agent.png";
-import local_shipping from "@/public/assets/icons/local_shipping.png";
-import new_releases from "@/public/assets/icons/new_releases.png";
+import security from "@/public/assets/icons/security.svg";
+import support_agent from "@/public/assets/icons/support_agent.svg";
+import local_shipping from "@/public/assets/icons/local_shipping.svg";
+import quality from "@/public/assets/icons/quality.svg";
 import cardFrame from "@/public/assets/frame77.png";
-import call from "@/public/assets/icons/call.png";
-import facebook from "@/public/assets/icons/bxl-facebook.png";
-import instagram from "@/public/assets/icons/instagram-logo.png";
-import whatsapp from "@/public/assets/icons/whatsapp-icon.png";
+import call from "@/public/assets/icons/call.svg";
+import facebook from "@/public/assets/icons/facebook.svg";
+import instagram from "@/public/assets/icons/instagram.svg";
+import whatsapp from "@/public/assets/icons/whatsapp.svg";
 
 export default function Footer() {
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-center items-center px-16 py-16 w-full bg-sky-100 max-md:px-5 max-md:max-w-full">
+    <div className="flex flex-col mt-10">
+      <div className="flex justify-center items-center px-16 py-16 w-full bg-neutral-300 max-md:px-5 max-md:max-w-full">
         <div className="flex flex-col mb-11 w-full max-w-[1228px] max-md:mb-10 max-md:max-w-full">
           <h2 className="self-center text-3xl font-semibold tracking-normal text-black">
-            Why Shop Dekato
+            Why Shop With Us
           </h2>
           <div className="mt-16 max-md:mt-10 max-md:max-w-full">
             <div className="flex gap-5 max-md:flex-col max-md:gap-0">
@@ -28,7 +28,7 @@ export default function Footer() {
                     width={48}
                     heigth={48}
                     loading="lazy"
-                    src={new_releases}
+                    src={quality}
                     className="self-center"
                   />
                   <p className="mt-12 max-md:mt-10">Quality Assurance</p>
@@ -54,7 +54,7 @@ export default function Footer() {
                     width={48}
                     heigth={48}
                     loading="lazy"
-                    src={shield}
+                    src={security}
                     className="self-center"
                   />
                   <p className="mt-12 max-md:mt-10">Secure Payment</p>
@@ -77,7 +77,7 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col justify-center items-center px-16 py-16 w-full bg-black max-md:px-5 max-md:max-w-full">
+      <div className="flex flex-col justify-center items-center px-16 py-16 w-full bg-slate-800 max-md:px-5 max-md:max-w-full">
         <div className="flex justify-center items-center px-16 w-full max-md:px-5 max-md:max-w-full">
           <div className="flex flex-col grow mt-2.5 max-md:mt-10">
             <Image
@@ -182,7 +182,7 @@ export default function Footer() {
         </div>
         <div className="shrink-0 mt-6 max-w-full h-0.5 border border-solid bg-slate-900 border-neutral-400 w-[1087px] max-md:mt-10" />
         <div className="mt-8 text-sm text-center text-white">
-          © 2023 Dekato.ng | All Rights Reserved
+          © 2023 business.ng | All Rights Reserved
         </div>
       </div>
     </div>

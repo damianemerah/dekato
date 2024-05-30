@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import add from "@/public/assets/icons/add.png";
-import remove from "@/public/assets/icons/remove.png";
+import add from "@/public/assets/icons/add.svg";
+import remove from "@/public/assets/icons/minus.svg";
 import { useState } from "react";
 import { oswald } from "@/font";
 import { useAppContext } from "./AppContext";
@@ -38,13 +38,16 @@ export default function SideMenu() {
             <h4 className={`mr-3 p-2 text-base ${oswald.className}`}>
               {menuItem.title}
             </h4>
-            <Image
-              onClick={() => toggleMenuItem(menuItem.id)}
-              src={openMenuItemIds.includes(menuItem.id) ? remove : add}
-              width={19}
-              height={19}
-              alt="dropdown icon"
-            />
+            <div className="w-3.5 h-3.5 flex justify-center items-center py-2">
+              <Image
+                onClick={() => toggleMenuItem(menuItem.id)}
+                src={openMenuItemIds.includes(menuItem.id) ? remove : add}
+                width={19}
+                height={19}
+                alt="dropdown icon"
+                className="cursor-pointer object-cover w-full h-auto block"
+              />
+            </div>
           </div>
           <ul
             className={`uppercase list-none text-xs ${

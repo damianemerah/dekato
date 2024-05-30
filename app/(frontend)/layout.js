@@ -1,12 +1,10 @@
-import { Inter } from "next/font/google";
+import { inter } from "@/font";
 import "@/app/globals.css";
 import Provider from "@/components/Provider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AppProvider } from "@/components/AppContext";
 import SideMenu from "@/components/SideMenu";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Create Next App",

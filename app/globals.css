@@ -11,6 +11,27 @@ h2 {
   @apply text-2xl font-bold mb-2;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply text-slate-950;
+}
+
+.flex__center {
+  @apply flex justify-center items-center;
+}
+
+.flex__btw {
+  @apply flex justify-between items-center;
+}
+
+.item__center {
+  @apply flex items-center;
+}
+
 a:visited,
 a:link {
   text-decoration: none;

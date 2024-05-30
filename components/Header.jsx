@@ -1,11 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import menu from "@/public/assets/icons/menu.png";
-import favorite from "@/public/assets/icons/favorite.png";
-import person from "@/public/assets/icons/person.png";
-import localShip from "@/public/assets/icons/local_shipping.png";
-import bag from "@/public/assets/icons/shopping_bag.png";
+import menu from "@/public/assets/icons/menu.svg";
+import heart from "@/public/assets/icons/heart-white.svg";
+import user from "@/public/assets/icons/user.svg";
+import localShip from "@/public/assets/icons/local_shipping.svg";
+import cart from "@/public/assets/icons/cart.svg";
 import logo from "@/public/assets/icons/dekato.png";
 import { oswald } from "@/font";
 import { useAppContext } from "./AppContext";
@@ -17,7 +17,7 @@ function Header() {
     <div>
       <header
         ref={headerRef}
-        className={`${oswald.className} flex justify-between items-center px-12 py-3 text-white bg-black max-md:flex-wrap max-md:px-5`}
+        className={`${oswald.className} flex justify-between items-center px-12 py-3 text-white bg-slate-950 max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex gap-10 justify-between items-center py-1 text-sm font-medium uppercase whitespace-nowrap">
           <Image
@@ -27,7 +27,7 @@ function Header() {
             width={100}
             height={100}
             src={menu}
-            className="shrink-0 self-stretch w-8 aspect-square"
+            className="cursor-pointer shrink-0 self-stretch w-8 aspect-square"
           />
           <Link href="/">
             <Image
@@ -66,39 +66,39 @@ function Header() {
           </button>
         </div>
 
-        <div className="flex gap-5 justify-between text-xs tracking-normal whitespace-nowrap">
-          <div className="flex flex-col">
+        <div className="flex gap-5 justify-center items-center text-xs tracking-normal whitespace-nowrap">
+          <div className="flex flex-col items-center justify-center">
             <Image
               alt="cat"
               width="100%"
               height="100%"
               loading="lazy"
-              src={person}
+              src={user}
               className="self-center"
             />
             <div className="mt-1">LOGIN</div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center justify-center">
             <Image
               alt="cat"
               width="100%"
               height="100%"
               loading="lazy"
-              src={favorite}
+              src={heart}
               className="self-center shadow-sm"
             />
             <div className="mt-1">WISHLIST</div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center justify-center">
             <Image
               width="100%"
               height="100%"
               alt="cat"
               loading="lazy"
-              src={bag}
+              src={cart}
               className="self-center shadow-lg"
             />
-            <div className="mt-1">BAG</div>
+            <div className="mt-1">cart</div>
           </div>
         </div>
       </header>

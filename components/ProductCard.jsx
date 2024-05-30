@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import image3 from "@/public/assets/image3.png";
-import { oswald } from "@/font";
+import { oswald, inter } from "@/font";
 
 export default function ProductCard() {
   return (
@@ -19,10 +19,10 @@ export default function ProductCard() {
         />
       </div>
       <div className="p-2">
-        <p className="opacity-60 text-xs uppercase font-thin">
+        <p className={`${inter.className} opacity-50 text-xs uppercase `}>
           Product Category
         </p>
-        <p className="text-lg font-extralight mb-2">
+        <p className="text-lg font-light mb-2">
           Angels malu zip jeans slim black used
         </p>
         <p>₦13,900 EUR</p>

@@ -3,8 +3,8 @@ import Link from "next/link";
 import image2 from "@/public/assets/image2.png";
 import image3 from "@/public/assets/image3.png";
 import heroBg from "@/public/assets/hero_bg.png";
-import arrowLeft from "@/public/assets/icons/arrow_left.png";
-import arrowRight from "@/public/assets/icons/arrow_right.png";
+import arrowLeft from "@/public/assets/icons/arrow_left.svg";
+import arrowRight from "@/public/assets/icons/arrow_right.svg";
 import { oswald } from "@/font";
 import styles from "./Hero.module.css";
 
@@ -20,12 +20,24 @@ export default function Hero() {
       }}
       className={`${oswald.className}`}
     >
-      <div className="flex justify-center self-center absolute bottom-0 right-0">
-        <button>
-          <Image src={arrowLeft} width="40" height="40" alt="arrow" />
+      <div className="flex justify-center self-center absolute bottom-0 right-0 gap-3 mb-4 mr-4">
+        <button className="w-5 h-5">
+          <Image
+            className="w-full h-full"
+            src={arrowLeft}
+            width="100%"
+            height="auto"
+            alt="arrow"
+          />
         </button>
-        <button>
-          <Image src={arrowRight} width="40" height="40" alt="arrow" />
+        <button className="w-5 h-5">
+          <Image
+            className="w-full h-full"
+            src={arrowRight}
+            width="100%"
+            height="auto"
+            alt="arrow"
+          />
         </button>
       </div>
 
@@ -40,7 +52,7 @@ export default function Hero() {
 
       <div className={`flex items-center justify-center px-16 py-16 `}>
         <div className="heading_bd relative flex flex-col justify-center flex-grow-0 flex-shrink-0 basis-1/2 mr-4 p-8">
-          <h1 className="mb-10 font-bold text-7xl leading-tight">
+          <h1 className="text-slate-950 mb-10 font-bold text-7xl leading-tight">
             SUMMER SALE: Get 30% OFF On all dresses.
           </h1>
           <Link
