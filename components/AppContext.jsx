@@ -21,6 +21,7 @@ export default function AppProvider({ children }) {
 
 function useAppContext() {
   const context = useContext(AppContext);
+  console.log("context", context);
   if (!context) {
     throw new Error("useAppContext must be used within an AppProvider");
   }

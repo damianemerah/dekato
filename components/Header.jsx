@@ -8,20 +8,20 @@ import localShip from "@/public/assets/icons/local_shipping.svg";
 import cart from "@/public/assets/icons/cart.svg";
 import logo from "@/public/assets/icons/dekato.png";
 import { oswald } from "@/font";
-import { useAppContext } from "./AppContext";
+// import { useAppContext } from "./AppContext";
 
 function Header() {
-  const { setShow, show, headerRef } = useAppContext();
+  // const { setShow, show, headerRef } = useAppContext();
 
   return (
     <div>
       <header
-        ref={headerRef}
+        // ref={headerRef}
         className={`${oswald.className} flex justify-between items-center px-12 py-3 text-white bg-slate-950 max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex gap-10 justify-between items-center py-1 text-sm font-medium uppercase whitespace-nowrap">
           <Image
-            onClick={() => setShow(!show)}
+            // onClick={() => setShow(!show)}
             alt="cat"
             loading="lazy"
             width={100}

@@ -12,15 +12,15 @@ import frame77 from "@/public/assets/frame77-dark.svg";
 
 export default function Cart() {
   useEffect(() => {
-    document.body.classList.add("bg-gray-100");
+    // document.body.classList.add("bg-gray-100");
   }, []);
 
   return (
     <div
-      className={`${oswald.className} flex mx-40 mt-7 items-start justify-center gap-4`}
+      className={`bg-gray-100 w-full h-full ${oswald.className} flex-1 flex px-40 mt-7 items-start justify-between gap-4`}
     >
-      <div className="grow-0 shrink-0 basis-2/3">
-        <div className="bg-white py-4 px-7 rounded-sm">
+      <div className="flex-1 min-w-0">
+        <div className=" bg-white py-4 px-7 ">
           <h2 className="text-2xl font-bold mb-5">Shopping Cart (4)</h2>
           <div className={`flex items-center ${inter.className}`}>
             <label className="relative flex items-center">
@@ -28,17 +28,17 @@ export default function Cart() {
               <input type="checkbox" className="absolute w-0 h-0" />
               <span className="pr-4">Select all items</span>
             </label>
-            <div className="border-l border-l-gray-400 px-4 text-blue-600">
+            <button className="border-l border-l-gray-400 px-4 text-blue-600">
               Remove selected items
-            </div>
+            </button>
           </div>
         </div>
-        <div className="mt-2 bg-white rounded-sm px-7">
+        <div className="mt-2 bg-white  px-7 ">
           <CartCard heart={heart} edit={edit} del={del} />
           <CartCard heart={heart} edit={edit} del={del} />
         </div>
       </div>
-      <div className="flex-1">
+      <div className="shrink-0 grow-0 basis-1/3 rounded-sm shadow-lg">
         <div className="bg-white rounded-sm">
           <div className="py-4 px-5">
             <h2 className="mb-4">Summary</h2>
@@ -49,7 +49,7 @@ export default function Cart() {
               <p className="font-semibold text-xl">20 EUR</p>
             </div>
           </div>
-          <Button className="block text-white bg-black self-stretch text-center">
+          <Button className="block text-white bg-black w-full text-center">
             Checkout (0)
           </Button>
         </div>

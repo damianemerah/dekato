@@ -5,8 +5,8 @@ import { inter } from "@/font";
 export default function CartCard({ heart, edit, del, showIcon = true }) {
   return (
     <div className="flex items-start gap-3 py-5 border-b border-b-gray-100">
-      <div className="self-center block w-5 h-5 border border-gray-400 rounded-full mr-2"></div>
-      <div className="w-28 h-28">
+      <div className="shrink-0 self-center block w-5 h-5 border border-gray-400 rounded-full mr-2 cursor-pointer"></div>
+      <div className="w-28 h-28 shrink-0">
         <Image
           src={image10}
           width="100%"
@@ -15,10 +15,11 @@ export default function CartCard({ heart, edit, del, showIcon = true }) {
           className="block object-cover w-full h-full rounded-lg"
         />
       </div>
-      <div className="flex flex-col justify-center flex-1 gap-2">
-        <div className="flex justify-between items-center">
-          <h4 className="inline-block font-medium overflow-hidden overflow-ellipsis mr-auto">
-            Angels malu zip jeans slim black used
+      <div className="flex flex-col gap-2 min-w-0 w-full">
+        <div className="flex__center min-w-0">
+          <h4 className="flex-1 font-medium overflow-hidden overflow-ellipsis text-nowrap pr-1.5">
+            Angels malu zip jea ns slim black used Angels malu zip jeans slim
+            black used Angels malu zip jeans slim black used
           </h4>
           {showIcon && (
             <div className="flex items-center gap-3">

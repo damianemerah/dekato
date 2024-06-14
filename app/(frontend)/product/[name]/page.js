@@ -10,12 +10,12 @@ import { oswald } from "@/font";
 import ProductDetail from "@/components/ProductDetail";
 import ProductCard from "@/components/ProductCard";
 
-export default function page() {
+export default function CategoryPage() {
   return (
     <div className={`${oswald.className} px-40 mb-10 mt-8`}>
       <div className="flex justify-start mb-20">
-        <div className="flex justify-start items-center mr-10 shrink-0 group-placeholder-shown: basis-1/2">
-          <div className="flex flex-col gap-2 mr-3">
+        <div className="flex mr-10 shrink-0 group-placeholder-shown: basis-1/2">
+          <div className="self-start flex flex-col gap-2 mr-3">
             <div className="w-16 h-16">
               <Image
                 className="block object-cover w-full h-full"

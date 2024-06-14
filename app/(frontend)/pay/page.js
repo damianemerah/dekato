@@ -11,12 +11,9 @@ export default function ConfirmCheckout() {
   }, []);
 
   return (
-    <div className="flex items-start justify-center gap-4 mx-40 mt-7 ">
-      <div className="grow-0 shrink-0 basis-2/3">
-        <div
-          className="px-5 py-4 bg-white rounded-sm
-        "
-        >
+    <div className="flex mx-40 mt-7 items-start justify-between gap-4 ">
+      <div className="flex-1 shrink min-w-0">
+        <div className="px-5 py-4 bg-white rounded-sm">
           <h2>Shipping Address</h2>
           <div className="text-sm text-slate-500 flex__btw">
             <div>
@@ -37,7 +34,7 @@ export default function ConfirmCheckout() {
           <CartCard showIcon={false} />
         </div>
       </div>
-      <div className="flex-1">
+      <div className="shrink-0 basis-1/3">
         <div className="bg-white rounded-sm">
           <div className="py-4 px-5">
             <h2 className="mb-4">Summary</h2>

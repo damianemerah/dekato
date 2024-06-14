@@ -5,11 +5,9 @@ import add from "@/public/assets/icons/add.svg";
 import remove from "@/public/assets/icons/minus.svg";
 import { useState } from "react";
 import { oswald } from "@/font";
-import { useAppContext } from "./AppContext";
 
 export default function SideMenu() {
   const [openMenuItemIds, setOpenMenuItemIds] = useState([]);
-  const { show } = useAppContext();
 
   const toggleMenuItem = (menuItemId) => {
     if (openMenuItemIds.includes(menuItemId)) {
@@ -26,12 +24,7 @@ export default function SideMenu() {
   ];
 
   return (
-    <div
-      className="bg-white w-full basis-80 h-screen overflow-y-scroll"
-      style={{
-        display: `${show ? "block" : "none"}`,
-      }}
-    >
+    <div className="shrink-0 bg-white w-full basis-80 h-screen overflow-y-scroll">
       {menuItems.map((menuItem) => (
         <div key={menuItem.id}>
           <div className="flex justify-between items-center border-b w-full border-b-slate-200 mb-1">

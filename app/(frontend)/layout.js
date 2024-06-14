@@ -1,10 +1,9 @@
 import { inter } from "@/font";
-import "@/app/globals.css";
+import "@/style/globals.css";
 import Provider from "@/components/Provider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AppProvider } from "@/components/AppContext";
-import SideMenu from "@/components/SideMenu";
 
 export const metadata = {
   title: "Create Next App",
@@ -18,10 +17,7 @@ export default function RootLayout({ children }) {
         <body className={`${inter.className}`}>
           <AppProvider>
             <Header />
-            <div className="flex">
-              <SideMenu />
-              <div className="flex-1">{children}</div>
-            </div>
+            {children}
             <Footer />
           </AppProvider>
         </body>
