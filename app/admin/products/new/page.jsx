@@ -20,6 +20,7 @@ import {
   Button,
   Autocomplete,
   PageActions,
+  Select,
 } from '@shopify/polaris';
 
 import {
@@ -30,7 +31,8 @@ import {
 } from '@shopify/polaris-icons';
 
 import usePopover from '../../hooks/usePopover';
-import { VariantsTableComponent } from '../../components';
+import { VariantsTableComponent } from '@/app/admin/components';
+import { ProductOrganization } from '@/app/admin/ui/products/new';
 
 function AddProduct() {
   //State
@@ -178,6 +180,15 @@ function AddProduct() {
     console.log(newOptions);
     console.log(options);
   };
+
+  const [selected, setSelected] = useState('active');
+
+  const handleSelectChange = useCallback((value) => setSelected(value), []);
+
+  const statusOptions = [
+    { label: 'Active', value: 'active' },
+    { label: 'Draft', value: 'draft' },
+  ];
 
   return (
     <Page backAction={{ content: 'Settings', url: '#' }} title='General'>
@@ -446,22 +457,20 @@ function AddProduct() {
         </BlockStack>
         <BlockStack gap={{ xs: '400', md: '200' }}>
           <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <Box border='divider' borderRadius='base' minHeight='2rem' />
-              <Box>
-                <Bleed marginInline={{ xs: 400, sm: 500 }}>
-                  <Divider />
-                </Bleed>
-              </Box>
-              <Divider />
-            </BlockStack>
+            <Text as='h2' variant='headingSm'>
+              Status
+            </Text>
+            <Box paddingBlock='200'>
+              <Select
+                label='product status'
+                labelHidden
+                options={statusOptions}
+                onChange={handleSelectChange}
+                value={selected}
+              />
+            </Box>
           </Card>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <Box border='divider' borderRadius='base' minHeight='2rem' />
-              <Box border='divider' borderRadius='base' minHeight='2rem' />
-            </BlockStack>
-          </Card>
+          <ProductOrganization />
         </BlockStack>
       </InlineGrid>
 
