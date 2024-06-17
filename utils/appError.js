@@ -80,7 +80,7 @@ const sendErrorProd = (err, res) => {
   return NextResponse.json(
     {
       status: "error",
-      message: "Something went wrong",
+      message: "Something went wrong" + err.message,
     },
     { status: 500 }
   );

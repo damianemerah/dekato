@@ -6,6 +6,7 @@ import {
   PutObjectCommand,
   DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
+
 import AppError from "./errorClass";
 
 const s3 = new S3Client({
@@ -16,61 +17,83 @@ const s3 = new S3Client({
   },
 });
 
-export const uploadFiles = (files) =>
-  files.map(async (file) => {
-    let buffer;
+export const uploadFiles = async (files) => {
+  try {
+    const uploadPromises = files.map(async (file) => {
+      console.log(file.size, "file🔥🔥🔥");
+      let buffer;
 
-    if (file.type.includes("image")) {
-      const buf = Buffer.from(await file.arrayBuffer());
-      buffer = await sharp(buf).webp({ quality: 90 }).toBuffer();
-    }
+      if (file.type.includes("image")) {
+        const buf = Buffer.from(await file.arrayBuffer());
 
-    if (file.type.includes("video")) {
-      if (file.size > 50 * 1024 * 1024) {
-        throw new AppError("Video size exceeded. 50MB", 400);
+        console.log(buf.length, "buf🔥🔥🔥");
+        buffer = await sharp(buf).webp({ quality: 90 }).toBuffer();
+        console.log("Continuing from buffer🔥🔥🔥");
       }
 
-      buffer = Buffer.from(await file.arrayBuffer());
-    }
+      if (file.type.includes("video")) {
+        if (file.size > 50 * 1024 * 1024) {
+          throw new AppError("Video size exceeded. 50MB", 400);
+        }
 
-    const slug = slugify(file.name.split(".")[0], { lower: true });
+        buffer = Buffer.from(await file.arrayBuffer());
 
-    const fileName = file.type.includes("image")
-      ? `image/prod-${uuidv4()}-${slug}.webp`
-      : file.type.includes("video")
-      ? `video/prod-${uuidv4()}-${slug}.mp4`
-      : null;
+        console.log("Continuing from buffer2 👇👇");
+      }
 
-    const uploadParams = {
-      Bucket: process.env.S3_BUCKET,
-      Key: fileName,
-      Body: buffer,
-    };
+      const slug = slugify(file.name.split(".")[0], { lower: true });
 
-    const command = new PutObjectCommand(uploadParams);
-    const data = await s3.send(command);
+      const fileName = file.type.includes("image")
+        ? `image/prod-${uuidv4()}-${slug}.webp`
+        : file.type.includes("video")
+        ? `video/prod-${uuidv4()}-${slug}.mp4`
+        : null;
 
-    if (!data) throw new AppError("Error uploading files", 400);
+      console.log(fileName, "fileName🔥🔥🔥");
 
-    const url =
-      `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}
-  `.trim();
+      const uploadParams = {
+        Bucket: process.env.S3_BUCKET,
+        Key: fileName,
+        Body: buffer,
+      };
 
-    return url;
-  });
+      const command = new PutObjectCommand(uploadParams);
+      const data = await s3.send(command);
+
+      console.log(data, "data🔥🔥🔥");
+
+      const url =
+        `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}
+      `.trim();
+
+      return url;
+    });
+
+    const urls = await Promise.all(uploadPromises);
+    return urls;
+  } catch (error) {
+    throw new AppError(`Error uploading file: ${error?.message}`, 400);
+  }
+};
 
 export const deleteFiles = async (files) => {
-  const deleteParams = {
-    Bucket: process.env.S3_BUCKET,
-    Delete: {
-      Objects: files.map((file) => ({ Key: file.split(".com/")[1] })),
-    },
-    Quiet: false,
-  };
+  try {
+    const deleteParams = {
+      Bucket: process.env.S3_BUCKET,
+      Delete: {
+        Objects: files.map((file) => {
+          const parts = file.split(".com/");
 
-  console.log(deleteParams, "deleteParams🔥");
-  const command = new DeleteObjectsCommand(deleteParams);
-  const data = await s3.send(command);
+          return parts.length > 1 ? { Key: parts[1] } : { Key: file };
+        }),
+      },
+      Quiet: false,
+    };
 
-  if (!data) throw new AppError("Error deleting files", 400);
+    const command = new DeleteObjectsCommand(deleteParams);
+    await s3.send(command);
+  } catch (e) {
+    console.log(e, "error🔥🔥");
+    throw new AppError("Error deleting file", 400);
+  }
 };

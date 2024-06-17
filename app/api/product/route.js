@@ -1,105 +1,29 @@
 import dbConnect from "@/utils/mongoConnection";
-import Product from "@/app/models/product";
+import { Product } from "@/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import AppError from "@/utils/errorClass";
-import { uploadFiles } from "@/utils/s3Func";
-import { getServerSession } from "next-auth";
-import options from "../auth/[...nextauth]/options";
+import { handleFormData } from "@/utils/handleFormData";
+import Category from "@/models/category";
+import { deleteFiles } from "@/utils/s3Func";
+import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(options);
-    if (!session) {
-      console.log("You need to be logged in to create a product🚀🚀🚀");
-    } else {
-      console.log("You are logged in🚀🚀🚀");
-    }
+    await protect();
+    await restrictTo("admin");
     await dbConnect();
-    // const sampleProducts = [
-    //   {
-    //     name: "T-Shirt",
-    //     description: "Comfortable cotton T-Shirt",
-    //     price: 19.99,
-    //     images: ["tshirt_image1.jpg", "tshirt_image2.jpg"],
-    //     categoryId: "65ac5486e6b69d93b64d3cdf",
-    //     variants: [
-    //       { color: "Red", size: "Medium", price: 19.99, quantity: 50 },
-    //       { color: "Blue", size: "Large", price: 22.99, quantity: 30 },
-    //     ],
-    //     quantity: 80,
-    //     tags: ["Casual", "Cotton", "Summer"],
-    //     status: "active",
-    //   },
-    //   {
-    //     name: "Sneakers",
-    //     description: "Sporty sneakers for active lifestyle",
-    //     price: 49.99,
-    //     images: ["sneakers_image1.jpg", "sneakers_image2.jpg"],
-    //     categoryId: "65ac5485e6b69d93b64d3cdc",
-    //     variants: [
-    //       { color: "White", size: "US 9", price: 49.99, quantity: 20 },
-    //       { color: "Black", size: "US 10", price: 54.99, quantity: 15 },
-    //     ],
-    //     quantity: 35,
-    //     tags: ["Sportswear", "Athletic", "Running"],
-    //     status: "active",
-    //   },
-    //   // Add more products as needed
-    // ];
-
-    // for (const product of sampleProducts) {
-    //   await Product.create(product);
-    // }
 
     const formData = await req.formData();
+    const obj = await handleFormData(formData);
+    const category = await Category.findById(obj.category);
 
-    if (!formData || !formData.has("images")) {
-      throw new AppError("Please upload images", 400);
-    }
+    if (!category) throw new AppError("Category not found", 404);
 
-    const obj = {};
-    obj.images = [];
-    obj.videos = [];
-    const images = formData.getAll("images");
-    const videos = formData.getAll("videos");
-    const files = [];
-
-    for (const [key, value] of formData.entries()) {
-      if (key === "images" || key === "videos") continue;
-      obj[key] = value;
-    }
-
-    for (const image of images) {
-      if (typeof image === "string") {
-        obj.images.push(image);
-      } else if (image.type.includes("image")) {
-        files.push(image);
-      }
-    }
-
-    for (const video of videos) {
-      if (typeof video === "string") {
-        obj.videos.push(video);
-      } else if (video.type.includes("video")) {
-        files.push(video);
-      }
-    }
-
-    //upload files to s3
-    const fileNames = await Promise.all(uploadFiles(files));
-    obj.images = [
-      ...obj.images,
-      ...fileNames.filter((file) => file.includes("com/image/")),
-    ];
-    obj.videos = [
-      ...obj.videos,
-      ...fileNames.filter((file) => file.includes("com/video/")),
-    ];
-
-    //create product
     const product = await Product.create(obj);
+
+    if (!product) throw new AppError("Product not created", 400);
 
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {
@@ -126,6 +50,78 @@ export async function GET(req) {
       result: product.length,
       data: product,
     });
+  } catch (error) {
+    return handleAppError(error, req);
+  }
+}
+
+export async function PATCH(req) {
+  try {
+    await protect();
+    await restrictTo("admin");
+    await dbConnect();
+    //remove params from the functions
+    const formData = await req.formData();
+    const id = JSON.parse(formData.get("data")).productId;
+
+    if (!id) throw new AppError("Product not found", 404);
+    const body = await handleFormData(formData, Product, id);
+
+    // Find the existing product
+    const existingProduct = await Product.findById(id);
+
+    // Create a map of existing variant IDs to their corresponding variant objects
+    const existingVariantsMap = new Map(
+      existingProduct.variant.map((variant) => [
+        variant._id.toString(),
+        variant,
+      ])
+    );
+
+    // Update existing variants and collect new variants
+    const updatedVariants = body.variant.map((newVariant) => {
+      const existingVariant = existingVariantsMap.get(newVariant._id);
+      if (existingVariant) {
+        // Merge existing and new variant fields
+        return { ...existingVariant.toObject(), ...newVariant };
+      } else {
+        // New variant, add it as is
+        return newVariant;
+      }
+    });
+
+    // Replace the variant array with the updated and new variants
+    body.variant = updatedVariants;
+
+    // Update the product
+    const product = await Product.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    return NextResponse.json({ success: true, data: product }, { status: 200 });
+  } catch (error) {
+    return handleAppError(error, req);
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    await protect();
+    await restrictTo("admin");
+    const { id } = await req.json();
+
+    await dbConnect();
+
+    const product = await Product.findByIdAndDelete(id);
+
+    await deleteFiles(product.image);
+
+    if (!product) {
+      throw new AppError("Product not found", 404);
+    }
+
+    return NextResponse.json({ success: true, data: null }, { status: 200 });
   } catch (error) {
     return handleAppError(error, req);
   }

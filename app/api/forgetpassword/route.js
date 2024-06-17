@@ -1,5 +1,5 @@
 import dbConnect from "@/utils/mongoConnection";
-import User from "@/app/models/user";
+import User from "@/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
@@ -13,7 +13,7 @@ export async function POST(req) {
   const user = await User.findOne({ email: body.email });
 
   if (!user) {
-    throw new AppError("Please provide your account email", 404);
+    throw new AppError("User with that email not found", 404);
   }
   try {
     const resetToken = await user.createPasswordResetToken();
