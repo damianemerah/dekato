@@ -53,7 +53,6 @@ function AddProduct() {
     Style: 'Classic',
   });
 
-  console.log(options);
   //Event Handlers
   const handleTitleChange = useCallback(
     (newValue) => setTitleValue(newValue),
