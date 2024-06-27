@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .order_details-grid {
   display: grid;
   column-gap: 12px;
