@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import CartCard from "@/components/CartCard";
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import { inter } from "@/font";
 
 export default function ConfirmCheckout() {

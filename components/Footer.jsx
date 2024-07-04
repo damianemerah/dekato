@@ -13,7 +13,7 @@ import whatsapp from "@/public/assets/icons/whatsapp.svg";
 
 export default function Footer() {
   return (
-    <div className="flex flex-col mt-10">
+    <div className="flex flex-col">
       <div className="flex justify-center items-center px-16 py-8 w-full bg-neutral-300 max-md:px-5 max-md:max-w-full">
         <div className="flex flex-col mb-11 w-full max-w-[1228px] max-md:mb-10 max-md:max-w-full">
           <h2 className="self-center text-3xl font-semibold tracking-normal text-black">

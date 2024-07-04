@@ -7,7 +7,7 @@ import del from "@/public/assets/icons/delete.svg";
 import CartCard from "@/components/CartCard";
 import { useEffect } from "react";
 import { oswald, inter } from "@/font";
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import frame77 from "@/public/assets/frame77-dark.svg";
 
 export default function Cart() {
@@ -17,7 +17,7 @@ export default function Cart() {
 
   return (
     <div
-      className={`bg-gray-100 w-full h-full ${oswald.className} flex-1 flex px-40 mt-7 items-start justify-between gap-4`}
+      className={`bg-gray-100 w-full h-full ${oswald.className} flex-1 flex px-40 mt-7 items-start justify-between gap-4 py-4`}
     >
       <div className="flex-1 min-w-0">
         <div className=" bg-white py-4 px-7 ">
