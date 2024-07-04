@@ -261,18 +261,22 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <AppProvider linkComponent={LinkWrapper} i18n={en}>
-      <Frame
-        logo={logo}
-        topBar={topBarMarkup}
-        navigation={
-          <Navigation location={pathname}>
-            <Navigation.Section items={navigationItems} />
-          </Navigation>
-        }
-      >
-        {children}
-      </Frame>
-    </AppProvider>
+    <html lang='en'>
+      <body>
+        <AppProvider linkComponent={LinkWrapper} i18n={en}>
+          <Frame
+            logo={logo}
+            topBar={topBarMarkup}
+            navigation={
+              <Navigation location={pathname}>
+                <Navigation.Section items={navigationItems} />
+              </Navigation>
+            }
+          >
+            {children}
+          </Frame>
+        </AppProvider>
+      </body>
+    </html>
   );
 }

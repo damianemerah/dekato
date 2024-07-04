@@ -10,6 +10,7 @@ import {
   IndexTable,
   Page,
   Thumbnail,
+  TextField,
 } from '@shopify/polaris';
 import Image from 'next/image';
 
@@ -27,6 +28,7 @@ function Inventory() {
         return value;
     }
   }
+
   function isEmpty(value) {
     if (Array.isArray(value)) {
       return value.length === 0;
@@ -34,19 +36,18 @@ function Inventory() {
       return value === '' || value == null;
     }
   }
+
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const [itemStrings, setItemStrings] = useState([
-    'All',
-    'Active',
-    'Draft',
-    'Archived',
-  ]);
+
+  const [itemStrings, setItemStrings] = useState(['All']);
+
   const deleteView = (index) => {
     const newItemStrings = [...itemStrings];
     newItemStrings.splice(index, 1);
     setItemStrings(newItemStrings);
     setSelected(0);
   };
+
   const duplicateView = async (name) => {
     setItemStrings([...itemStrings, name]);
     setSelected(itemStrings.length);
@@ -99,13 +100,16 @@ function Inventory() {
             },
           ],
   }));
+
   const [selected, setSelected] = useState(0);
+
   const onCreateNewView = async (value) => {
     await sleep(500);
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);
     return true;
   };
+
   const sortOptions = [
     { label: 'Product', value: 'product asc', directionLabel: 'Ascending' },
     { label: 'Product', value: 'product desc', directionLabel: 'Descending' },
@@ -116,13 +120,18 @@ function Inventory() {
     { label: 'Vendor', value: 'vendor asc', directionLabel: 'Ascending' },
     { label: 'Vendor', value: 'vendor desc', directionLabel: 'Descending' },
   ];
+
   const [sortSelected, setSortSelected] = useState(['product asc']);
+
   const { mode, setMode } = useSetIndexFiltersMode();
+
   const onHandleCancel = () => {};
+
   const onHandleSave = async () => {
     await sleep(1);
     return true;
   };
+
   const primaryAction =
     selected === 0
       ? {
@@ -137,8 +146,11 @@ function Inventory() {
           disabled: false,
           loading: false,
         };
+
   const [tone, setStatus] = useState(undefined);
+
   const [type, setType] = useState(undefined);
+
   const [queryValue, setQueryValue] = useState('');
   const handleStatusChange = useCallback((value) => setStatus(value), []);
   const handleTypeChange = useCallback((value) => setType(value), []);
@@ -193,7 +205,9 @@ function Inventory() {
       shortcut: true,
     },
   ];
+
   const appliedFilters = [];
+
   if (tone && !isEmpty(tone)) {
     const key = 'tone';
     appliedFilters.push({
@@ -202,6 +216,7 @@ function Inventory() {
       onRemove: handleStatusRemove,
     });
   }
+
   if (type && !isEmpty(type)) {
     const key = 'type';
     appliedFilters.push({
@@ -210,64 +225,56 @@ function Inventory() {
       onRemove: handleTypeRemove,
     });
   }
-  const products = [
+  const inventories = [
     {
       id: '1020',
-      price: '$200',
       product: '1ZPRESSO | J-MAX Manual Coffee Grinder',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '20 in stock',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      committed: '2',
+      available: '12',
+      on_hand: '10',
+      created_at: '',
     },
     {
       id: '1018',
-      price: '$200',
-      product: 'Acaia Pearl Set',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '2 in stock for 50 variants',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      product: '1ZPRESSO | J-MAX Manual Coffee Grinder',
+      committed: '2',
+      available: '12',
+      on_hand: '10',
+      created_at: '',
     },
     {
       id: '1016',
-      price: '$200',
-      product: 'AeroPress Go Brewer',
-      tone: <Badge tone='info'>Draft</Badge>,
-      inventory: '3 in stock for 50 variants',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      product: '1ZPRESSO | J-MAX Manual Coffee Grinder',
+      committed: '2',
+      available: '12',
+      on_hand: '10',
+      created_at: '',
     },
     {
       id: '1015',
-      price: '$200',
-      product: 'Canadiano Brewer',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '890 in stock for 50 variants',
-      category: 'Brew Merch',
-      vendor: 'Espresso Shot Coffee',
+      product: '1ZPRESSO | J-MAX Manual Coffee Grinder',
+      committed: '2',
+      available: '12',
+      on_hand: '10',
+      created_at: '',
     },
     {
       id: '1014',
-      price: '200',
-      product: 'Canadiano Brewer White Ash',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '890 in stock for 50 variants',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      product: '1ZPRESSO | J-MAX Manual Coffee Grinder',
+      committed: '2',
+      available: '12',
+      on_hand: '10',
+      created_at: '',
     },
   ];
   const resourceName = {
-    singular: 'product',
-    plural: 'products',
+    singular: 'inventory',
+    plural: 'inventories',
   };
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(products);
-  const rowMarkup = products.map(
-    (
-      { id, thumbnail, product, price, tone, inventory, category, vendor },
-      index
-    ) => (
+    useIndexResourceState(inventories);
+  const rowMarkup = inventories.map(
+    ({ id, product, committed, available, on_hand }, index) => (
       <IndexTable.Row
         id={id}
         key={id}
@@ -277,15 +284,34 @@ function Inventory() {
         <IndexTable.Cell>
           <Thumbnail
             source={'https://picsum.photos/50?random=' + String(index)}
+            size='small'
             alt={'product thumbnail' + product}
           />
         </IndexTable.Cell>
         <IndexTable.Cell>{product}</IndexTable.Cell>
-        <IndexTable.Cell>{price}</IndexTable.Cell>
-        <IndexTable.Cell>{tone}</IndexTable.Cell>
-        <IndexTable.Cell>{inventory}</IndexTable.Cell>
-        <IndexTable.Cell>{category}</IndexTable.Cell>
-        <IndexTable.Cell>{vendor}</IndexTable.Cell>
+        <IndexTable.Cell>{committed}</IndexTable.Cell>
+        <IndexTable.Cell>
+          <div className='flex'>
+            <TextField
+              type='number'
+              value={available}
+              // onChange={handleWeightChange}
+              // error={Boolean(!weight && unit)}
+              autoComplete='off'
+            />
+          </div>
+        </IndexTable.Cell>
+        <IndexTable.Cell>
+          <div className='flex'>
+            <TextField
+              type='number'
+              value={on_hand}
+              autoComplete='off'
+              align='left'
+              // autoSize={true}
+            />
+          </div>
+        </IndexTable.Cell>
       </IndexTable.Row>
     )
   );
@@ -293,7 +319,6 @@ function Inventory() {
     <Page
       fullWidth
       title={'Inventory'}
-      primaryAction={{ content: 'Add product' }}
       secondaryActions={[
         {
           content: 'Export',
@@ -335,7 +360,7 @@ function Inventory() {
         />
         <IndexTable
           resourceName={resourceName}
-          itemCount={products.length}
+          itemCount={inventories.length}
           selectedItemsCount={
             allResourcesSelected ? 'All' : selectedResources.length
           }
@@ -344,11 +369,9 @@ function Inventory() {
           headings={[
             { title: '' },
             { title: 'Product' },
-            { title: 'Price' },
-            { title: 'Status' },
-            { title: 'Inventory' },
-            { title: 'Category' },
-            { title: 'Vendor' },
+            { title: 'Committed' },
+            { title: 'Available' },
+            { title: 'On hand' },
           ]}
         >
           {rowMarkup}

@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Badge,
   Card,
   ChoiceList,
   IndexFilters,
@@ -11,7 +10,6 @@ import {
   Page,
   Thumbnail,
 } from '@shopify/polaris';
-import Image from 'next/image';
 
 import { useState, useCallback } from 'react';
 
@@ -35,12 +33,7 @@ function Collections() {
     }
   }
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const [itemStrings, setItemStrings] = useState([
-    'All',
-    'Active',
-    'Draft',
-    'Archived',
-  ]);
+  const [itemStrings, setItemStrings] = useState(['All']);
   const deleteView = (index) => {
     const newItemStrings = [...itemStrings];
     newItemStrings.splice(index, 1);
@@ -210,64 +203,46 @@ function Collections() {
       onRemove: handleTypeRemove,
     });
   }
-  const products = [
+  const collections = [
     {
       id: '1020',
-      price: '$200',
-      product: '1ZPRESSO | J-MAX Manual Coffee Grinder',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '20 in stock',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      title: '1ZPRESSO | J-MAX Manual Coffee Grinder',
+      products: '12',
+      productConditions: 'Espresso Shot Coffee',
     },
     {
       id: '1018',
-      price: '$200',
-      product: 'Acaia Pearl Set',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '2 in stock for 50 variants',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      title: 'Acaia Pearl Set',
+      products: '12',
+      productConditions: 'Espresso Shot Coffee',
     },
     {
       id: '1016',
-      price: '$200',
-      product: 'AeroPress Go Brewer',
-      tone: <Badge tone='info'>Draft</Badge>,
-      inventory: '3 in stock for 50 variants',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      title: 'AeroPress Go Brewer',
+      products: '12',
+      productConditions: 'Espresso Shot Coffee',
     },
     {
       id: '1015',
-      price: '$200',
-      product: 'Canadiano Brewer',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '890 in stock for 50 variants',
-      category: 'Brew Merch',
-      vendor: 'Espresso Shot Coffee',
+      title: 'Canadiano Brewer',
+      products: '12',
+      productConditions: 'Espresso Shot Coffee',
     },
     {
       id: '1014',
-      price: '200',
-      product: 'Canadiano Brewer White Ash',
-      tone: <Badge tone='success'>Active</Badge>,
-      inventory: '890 in stock for 50 variants',
-      category: 'Brew Gear',
-      vendor: 'Espresso Shot Coffee',
+      title: 'Canadiano Brewer White Ash',
+      products: '12',
+      productConditions: 'Espresso Shot Coffee',
     },
   ];
   const resourceName = {
-    singular: 'product',
-    plural: 'products',
+    singular: 'collection',
+    plural: 'collections',
   };
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(products);
-  const rowMarkup = products.map(
-    (
-      { id, thumbnail, product, price, tone, inventory, category, vendor },
-      index
-    ) => (
+    useIndexResourceState(collections);
+  const rowMarkup = collections.map(
+    ({ id, title, products, productConditions }, index) => (
       <IndexTable.Row
         id={id}
         key={id}
@@ -277,15 +252,13 @@ function Collections() {
         <IndexTable.Cell>
           <Thumbnail
             source={'https://picsum.photos/50?random=' + String(index)}
-            alt={'product thumbnail' + product}
+            size='small'
+            alt={'product thumbnail' + title}
           />
         </IndexTable.Cell>
-        <IndexTable.Cell>{product}</IndexTable.Cell>
-        <IndexTable.Cell>{price}</IndexTable.Cell>
-        <IndexTable.Cell>{tone}</IndexTable.Cell>
-        <IndexTable.Cell>{inventory}</IndexTable.Cell>
-        <IndexTable.Cell>{category}</IndexTable.Cell>
-        <IndexTable.Cell>{vendor}</IndexTable.Cell>
+        <IndexTable.Cell>{title}</IndexTable.Cell>
+        <IndexTable.Cell>{products}</IndexTable.Cell>
+        <IndexTable.Cell>{productConditions}</IndexTable.Cell>
       </IndexTable.Row>
     )
   );
@@ -293,19 +266,7 @@ function Collections() {
     <Page
       fullWidth
       title={'Collections'}
-      primaryAction={{ content: 'Add product' }}
-      secondaryActions={[
-        {
-          content: 'Export',
-          accessibilityLabel: 'Export product list',
-          onAction: () => alert('Export action'),
-        },
-        {
-          content: 'Import',
-          accessibilityLabel: 'Import product list',
-          onAction: () => alert('Import action'),
-        },
-      ]}
+      primaryAction={{ content: 'Create collection' }}
     >
       <Card padding='0'>
         <IndexFilters
@@ -335,7 +296,7 @@ function Collections() {
         />
         <IndexTable
           resourceName={resourceName}
-          itemCount={products.length}
+          itemCount={collections.length}
           selectedItemsCount={
             allResourcesSelected ? 'All' : selectedResources.length
           }
@@ -343,12 +304,9 @@ function Collections() {
           sortable={[false, true, true, true, true, true, true]}
           headings={[
             { title: '' },
-            { title: 'Product' },
-            { title: 'Price' },
-            { title: 'Status' },
-            { title: 'Inventory' },
-            { title: 'Category' },
-            { title: 'Vendor' },
+            { title: 'Title' },
+            { title: 'Products' },
+            { title: 'Products conditions' },
           ]}
         >
           {rowMarkup}

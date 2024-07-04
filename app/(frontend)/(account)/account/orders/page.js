@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import CartCard from "@/components/CartCard";
+import CartCard from "@/app/ui/cart/CartCard";
 
 export default function Orders() {
   return (
