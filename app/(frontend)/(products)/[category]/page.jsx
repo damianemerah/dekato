@@ -1,11 +1,11 @@
 'use client';
 
-import Filter from '@/components/Filter';
-import ProductCard from '@/components/ProductCard';
-import SubPageCampaign from '@/components/SubPageCampaign';
+import Filter from '@/app/ui/products/Filter';
+import ProductCard from '@/app/ui/ProductCard';
+import SubPageCampaign from '@/app/ui/SubPageCampaign';
 import Image from 'next/image';
 import image6 from '@/public/assets/image6.png';
-import { useAppContext } from '@/components/AppContext';
+import { useAppContext } from '@/app/ui/AppContext';
 
 export default function Product() {
   //Always show menu

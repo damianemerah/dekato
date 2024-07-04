@@ -4,10 +4,10 @@ import Image from 'next/image';
 import heart from '@/public/assets/icons/heart.svg';
 import edit from '@/public/assets/icons/edit.svg';
 import del from '@/public/assets/icons/delete.svg';
-import CartCard from '@/components/CartCard';
+import CartCard from '@/app/ui/cart/CartCard';
 import { useEffect } from 'react';
 import { oswald, inter } from '@/font';
-import { Button } from '@/components/Button';
+import { Button } from '@/app/ui/Button';
 import frame77 from '@/public/assets/frame77-dark.svg';
 
 export default function Cart() {

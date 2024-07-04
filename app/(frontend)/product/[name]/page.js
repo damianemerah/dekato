@@ -7,8 +7,8 @@ import fb from '@/public/assets/icons/facebook.svg';
 import insta from '@/public/assets/icons/instagram.svg';
 import whatsapp from '@/public/assets/icons/whatsapp.svg';
 import { oswald } from '@/font';
-import ProductDetail from '@/components/ProductDetail';
-import ProductCard from '@/components/ProductCard';
+import ProductDetail from '@/app/ui/product/ProductDetail';
+import ProductCard from '@/app/ui/ProductCard';
 
 export default function CategoryPage() {
   return (

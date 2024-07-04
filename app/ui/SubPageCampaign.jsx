@@ -1,12 +1,12 @@
-import { oswald, inter } from "@/style/font";
-import { Button } from "./Button";
+import { oswald, inter } from '@/style/font';
+import { Button } from './Button';
 
 export default function SubPageCampaign({ className, heading_bg }) {
   return (
     <div
       className={`${oswald.className} heading_bd relative self-baseline flex flex-col justify-center flex-grow-0 flex-shrink-0 basis-1/2 p-8 ${heading_bg}`}
     >
-      <h2 className="mb-10 font-medium text-5xl leading-tight">
+      <h2 className='mb-10 font-medium text-5xl leading-tight'>
         EXPLORE THE BEST OF YOU.
       </h2>
       <p className={`${inter.className} mb-10`}>
