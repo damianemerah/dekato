@@ -1,18 +1,45 @@
+import Link from "next/link";
 export default function AccountLayout({ children }) {
+  const links = [
+    {
+      href: "/account",
+      label: "Account Dashboard",
+    },
+    {
+      href: "/account/orders",
+      label: "My Orders",
+    },
+    {
+      href: "/account/wishlist",
+      label: "My Wish List",
+    },
+    {
+      href: "/account/address",
+      label: "Shipping Address",
+    },
+    {
+      href: "/account/payment",
+      label: "Payment Method",
+    },
+    {
+      href: "/account/newsletter",
+      label: "Newsletter",
+    },
+  ];
   return (
-    <div className="flex-1 flex items-start shrink-0 px-28 bg-gray-100">
-      <div className="p-6 w-60 basis-1/4 shrink-0 grow-0">
-        <h3 className="text-lg font-bold mb-4">Account</h3>
-        <ul className=" flex flex-col gap-4">
-          <li>Overview</li>
-          <li>Wishlist</li>
-          <li>Orders</li>
-          <li>Payment</li>
-          <li>Settings</li>
-          <li>Address</li>
-        </ul>
-      </div>
-      <div className="flex-1 min-w-full bg-red-100 w-full">{children}</div>
+    <div className="flex items-start px-28 bg-gray-100 gap-4 py-6">
+      <ul className=" flex flex-col justify-start shrink-0 bg-white self-stretch rounded-lg min-w-[20%]">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="relative px-4 py-3 hover:before:content-[''] hover:before:w-1 hover:before:bg-slate-950 hover:before:h-full hover:before:absolute hover:before:top-0 hover:before:left-0 block hover:bg-gray-200 transition-all duration-400 before:transition-all before:duration-400"
+          >
+            <li>{link.label}</li>
+          </Link>
+        ))}
+      </ul>
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

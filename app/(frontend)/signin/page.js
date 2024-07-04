@@ -32,7 +32,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex_center my-16 mx-auto max-w-2xl px-20 py-10 border border-gray-300 rounded-lg shadow-md bg-white">
+    <div className="flex_center my-16 mx-auto max-w-2xl px-20 py-10 border border-gray-100 rounded-lg shadow-xl bg-white">
       <h2>Sign in</h2>
       <form onSubmit={handleSubmit} className="flex flex-col mt-4 w-full gap-4">
         {/* <label style={{ marginBottom: "10px" }}> */}

@@ -2,10 +2,21 @@ import Image from "next/image";
 import image10 from "@/public/assets/image10.png";
 import { inter } from "@/font";
 
-export default function CartCard({ heart, edit, del, showIcon = true }) {
+export default function CartCard({
+  heart,
+  edit,
+  del,
+  showIcon = true,
+  showButton = true,
+  className,
+}) {
   return (
-    <div className="flex items-start gap-3 py-5 border-b border-b-gray-100">
-      <div className="shrink-0 self-center block w-5 h-5 border border-gray-400 rounded-full mr-2 cursor-pointer"></div>
+    <div
+      className={`${className} flex items-start gap-3 py-5 border-b border-b-gray-100`}
+    >
+      {showButton && (
+        <div className="shrink-0 self-center block w-5 h-5 border border-gray-400 rounded-full mr-2 cursor-pointer"></div>
+      )}
       <div className="w-28 h-28 shrink-0">
         <Image
           src={image10}
@@ -44,19 +55,21 @@ export default function CartCard({ heart, edit, del, showIcon = true }) {
         </div>
         <div className="flex items-center justify-between">
           <p className={`${inter.className}`}>500 EUR</p>
-          <div className="flex justify-center items-center">
-            <button className="flex justify-center items-center w-7 h-7 bg-gray-100 rounded-full">
-              -
-            </button>
-            <input
-              type="text"
-              defaultValue={1}
-              className="text-center outline-none w-10 px-1"
-            />
-            <button className="flex justify-center items-center w-7 h-7 bg-gray-100 rounded-full">
-              +
-            </button>
-          </div>
+          {showButton && (
+            <div className="flex justify-center items-center">
+              <button className="flex justify-center items-center w-7 h-7 bg-gray-100 rounded-full">
+                -
+              </button>
+              <input
+                type="text"
+                defaultValue={1}
+                className="text-center outline-none w-10 px-1"
+              />
+              <button className="flex justify-center items-center w-7 h-7 bg-gray-100 rounded-full">
+                +
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

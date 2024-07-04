@@ -1,5 +1,5 @@
 import { oswald, inter } from "@/style/font";
-import Button from "./Button";
+import { Button } from "./Button";
 
 export default function SubPageCampaign({ className, heading_bg }) {
   return (
