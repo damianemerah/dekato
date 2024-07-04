@@ -18,14 +18,14 @@ export async function GET(req, { params }) {
 
     const { userId } = params;
 
-    const cart = await Cart.findOne({ user: userId }).populate({
+    const cart = await Cart.findOne({ userId }).populate({
       path: "item",
       select: "-__v",
     });
 
     if (!cart) {
       const newCart = await Cart.create({
-        user: userId,
+        userId,
         item: [],
       });
       return NextResponse.json(
@@ -50,7 +50,7 @@ export async function POST(req) {
     await dbConnect();
 
     const body = await req.json();
-    const { user: userId, item } = body;
+    const { userId, item } = body;
     const user = await User.findById(userId);
     let existingProduct;
 
@@ -74,12 +74,12 @@ export async function POST(req) {
 
     checkQuantity(item, existingProduct);
 
-    const cart = await Cart.findOne({ user: userId });
+    const cart = await Cart.findOne({ userId });
     if (!cart) throw new AppError("Cart not found", 404);
 
     //check if user already has the item in cart
     const existingItem = await Cart.findOne({
-      user: userId,
+      userId,
     }).populate({
       path: "item",
       match: { product: item.product },
@@ -152,14 +152,7 @@ export async function PATCH(req) {
 
     let existingProduct;
     const body = await req.json();
-    const {
-      user: userId,
-      item: itemId,
-      quantity,
-      checked,
-      selectAll,
-      cartId,
-    } = body;
+    const { userId, item: itemId, quantity, checked, selectAll, cartId } = body;
 
     if (
       (!selectAll && quantity === undefined && checked === undefined) ||
@@ -196,7 +189,7 @@ export async function PATCH(req) {
       // Delete item if quantity is zero
       await cartItem.deleteOne();
       const updatedCart = await Cart.findOneAndUpdate(
-        { user: userId },
+        { userId },
         {
           $pull: { item: itemId },
         },
@@ -219,7 +212,7 @@ export async function PATCH(req) {
     }
 
     await cartItem.save();
-    const updatedCart = await Cart.findOne({ user: userId }).populate("item");
+    const updatedCart = await Cart.findOne({ userId }).populate("item");
 
     return NextResponse.json(
       { success: true, data: updatedCart },
@@ -237,7 +230,7 @@ export async function DELETE(req) {
     await dbConnect();
 
     const body = await req.json();
-    const { user: userId, item: itemId, deleteAll, cartId } = body;
+    const { userId, item: itemId, deleteAll, cartId } = body;
 
     if (
       deleteAll !== undefined &&
@@ -246,7 +239,7 @@ export async function DELETE(req) {
     ) {
       await CartItem.deleteMany({ cartId: cartId });
 
-      const cart = await Cart.findOne({ user: userId });
+      const cart = await Cart.findOne({ userId });
       cart.item = [];
       await cart.save();
 
@@ -261,7 +254,7 @@ export async function DELETE(req) {
       );
     }
 
-    const cart = await Cart.findOne({ user: userId });
+    const cart = await Cart.findOne({ userId });
 
     if (!cart) throw new AppError("Cart not found", 404);
 
