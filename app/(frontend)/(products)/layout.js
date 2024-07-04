@@ -1,4 +1,4 @@
-import SideMenu from '@/components/SideMenu';
+import SideMenu from '@/app/ui/products/SideMenu';
 
 export const metadata = {
   title: 'Create Next App',

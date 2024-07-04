@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import CartCard from '@/components/CartCard';
-import { Button } from '@/components/Button';
+import CartCard from '@/app/ui/cart/CartCard';
+import { Button } from '@/app/ui/Button';
 import { inter } from '@/font';
 
 export default function ConfirmCheckout() {

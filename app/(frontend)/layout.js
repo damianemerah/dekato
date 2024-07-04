@@ -1,9 +1,9 @@
 import { inter } from '@/font';
 import '@/style/globals.css';
-import Provider from '@/components/Provider';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { AppProvider } from '@/components/AppContext';
+import Provider from '@/app/ui/Provider';
+import Header from '@/app/ui/Header';
+import Footer from '@/app/ui/Footer';
+import { AppProvider } from '@/app/ui/AppContext';
 
 export const metadata = {
   title: 'Create Next App',
