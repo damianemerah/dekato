@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,6 +9,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: "#191C1D",
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
@@ -15,10 +19,11 @@ module.exports = {
       },
       gridTemplateColumns: {
         variant: "2rem 1fr minmax(1.75rem, min-content)",
+        14: "repeat(14, minmax(0, 1fr))",
       },
       fontFamily: {
-        oswald: ["var(--font-oswald)", "sans-serif"],
-        inter: ["var(--font-inter)", "sans-serif"],
+        oswald: "var(--font-oswald)",
+        roboto: "var(--font-roboto)",
       },
     },
   },

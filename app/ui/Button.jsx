@@ -4,17 +4,27 @@ export function Button({ children, className }) {
   return (
     <Link
       href="#"
-      className={`${className} font-medium no-underline self-start py-2 px-8 border-2 hover:scale-105`}
+      className={`self-start border-2 px-8 py-2 font-medium no-underline hover:scale-105 active:scale-95 ${className}`}
     >
       {children}
     </Link>
   );
 }
 
+export function ButtonPrimary({ children, className }) {
+  return (
+    <button
+      className={`bg-primary rounded-sm px-8 py-2 text-white hover:scale-105 active:scale-95 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function ButtonSecondary({ children, className }) {
   return (
     <button
-      className={`py-2 p-4 bg-gray-200 rounded-lg hover:scale-105 ${className}`}
+      className={`rounded-sm bg-gray-200 px-3 py-1 hover:scale-105 active:scale-95 ${className}`}
     >
       {children}
     </button>
