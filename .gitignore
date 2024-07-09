@@ -16,7 +16,7 @@ docs
 
 # production
 /build
-
+gitflow.txt
 # misc
 .DS_Store
 *.pem

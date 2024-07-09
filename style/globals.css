@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* body,
-* {
-  border: 1px solid red;
-} */
+:root {
+  --font-oswald: "Oswald", sans-serif;
+  --font-roboto: "Roboto", sans-serif;
+}
 
 h2 {
   @apply text-2xl font-bold mb-2;
