@@ -1,24 +1,35 @@
-import { ButtonSecondary } from '@/app/ui/Button';
-import Wishlist from '@/app/ui/Wishlist';
+import { ButtonSecondary } from "@/app/ui/Button";
+import Wishlist from "@/app/ui/Wishlist";
+import AccountLayout from "../AccountLayout";
+import { oswald } from "@/style/font";
 
 export default function WishlistPage() {
+  const breadcrumbs = [
+    { href: "/", label: "Home" },
+    { href: "/account", label: "My Account" },
+    { href: "/account/wishlist", label: "My WishList", active: true },
+  ];
+
   return (
-    <div className='bg-white pb-8 rounded-lg p-4 w-full'>
-      <h1 className='font-semibold text-2xl px-4 py-2 border-b border-b-gray-100 mb-1'>
-        WishList
-      </h1>
-      <div className='my-4 flex justify-end gap-2 items-center'>
-        <ButtonSecondary className='bg-slate-950 text-white'>
+    <AccountLayout title="Wishlist" breadcrumbs={breadcrumbs}>
+      <div className="grid grid-cols-3 gap-8">
+        <Wishlist />
+        <Wishlist />
+        <Wishlist />
+        <Wishlist />
+      </div>
+      <div className="my-4 mt-10 flex items-center gap-2">
+        <ButtonSecondary
+          className={`${oswald.className} bg-grayBg border-grayOutline text-grayText border-2 text-sm uppercase`}
+        >
           Add all to cart
         </ButtonSecondary>
-        <ButtonSecondary>Clear wishlist</ButtonSecondary>
+        <ButtonSecondary
+          className={`${oswald.className} bg-grayBg border-grayOutline text-grayText border-2 text-sm uppercase`}
+        >
+          Share Wishlist
+        </ButtonSecondary>
       </div>
-      <div className='flex flex-wrap gap-4 justify-center items-center'>
-        <Wishlist />
-        <Wishlist />
-        <Wishlist />
-        <Wishlist />
-      </div>
-    </div>
+    </AccountLayout>
   );
 }

@@ -6,8 +6,8 @@ import { oswald } from "@/style/font";
 export default function Newsletter() {
   const breadcrumbs = [
     { href: "/", label: "Home" },
-    { href: "/account", label: "Account" },
-    { href: "/account/address", label: "Address", active: true },
+    { href: "/account", label: "My Account" },
+    { href: "/account/newsletter", label: "Newsletter", active: true },
   ];
   return (
     <AccountLayout title="Address Book" breadcrumbs={breadcrumbs}>

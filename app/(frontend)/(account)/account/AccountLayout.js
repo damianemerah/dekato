@@ -20,7 +20,7 @@ export default function AccountLayout({ children, title, breadcrumbs }) {
     },
     {
       href: "/account/wishlist",
-      label: "My Wish List",
+      label: "My Wishlist",
     },
     {
       href: "/account/address",
@@ -42,7 +42,7 @@ export default function AccountLayout({ children, title, breadcrumbs }) {
       <h1 className={`${oswald.className} mt-7 text-4xl antialiased`}>
         {title}
       </h1>
-      <div className="my-5 w-[85%] border border-gray-300">
+      <div className="mb-16 mt-5 w-[85%] border border-gray-300">
         <div className="grid grid-cols-14 gap-7 space-x-10 py-16">
           <ul
             className={`${oswald.className} col-span-3 col-start-2 flex shrink-0 flex-col space-y-1`}

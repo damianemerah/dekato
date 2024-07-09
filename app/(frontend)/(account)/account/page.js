@@ -5,7 +5,7 @@ import { oswald } from "@/style/font";
 export default function Overview() {
   const breadcrumbs = [
     { href: "/", label: "Home" },
-    { href: "/account", label: "Account", active: true },
+    { href: "/account", label: "My Account", active: true },
   ];
   return (
     <AccountLayout title="My Dashboard" breadcrumbs={breadcrumbs}>

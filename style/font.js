@@ -5,6 +5,7 @@ const oswald = Oswald({
   display: "swap",
   fallbacks: ["sans-serif"],
   variable: "--font-oswald",
+  weight: ["300", "400", "500", "600"],
 });
 
 const inter = Inter({
