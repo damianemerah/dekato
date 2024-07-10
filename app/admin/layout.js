@@ -1,8 +1,9 @@
-'use client';
-import { useState, useCallback, useRef } from 'react';
+"use client";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-import '@shopify/polaris/build/esm/styles.css';
-import './admin.css';
+import "@shopify/polaris/build/esm/styles.css";
+import "./admin.css";
 import {
   AppProvider,
   Frame,
@@ -11,59 +12,65 @@ import {
   ActionList,
   ContextualSaveBar,
   Toast,
-} from '@shopify/polaris';
-import en from '@shopify/polaris/locales/en.json';
-import { LinkWrapper, TopBarMarkup } from './components';
+  Loading,
+} from "@shopify/polaris";
+import en from "@shopify/polaris/locales/en.json";
+import { LinkWrapper, TopBarMarkup } from "./components";
 import {
+  OrdersMinor,
+  MarketingMinor,
+  ProductsMinor,
   HomeMinor,
+  CollectionsMajor,
   OrdersFilledMinor,
   ProductsFilledMinor,
+  ProductsMajor,
   CustomersFilledMinor,
-} from '@shopify/polaris-icons';
-import { usePathname } from 'next/navigation';
+  InventoryMajor,
+} from "@shopify/polaris-icons";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
 
-  const paths = pathname.split('/').filter(Boolean);
-  const selected = paths.length > 0 ? paths[paths.length - 1] : 'home';
+  const paths = pathname.split("/").filter(Boolean);
+  const selected = paths.length > 0 ? paths[paths.length - 1] : "admin";
 
   const [selectedNavItem, setSelectedNavItem] = useState(selected);
-  const [exclude, setExclude] = useState(null);
 
   const handleNavItemClick = useCallback((item) => {
     setSelectedNavItem(item);
-    setExclude(item);
+    setIsLoading(true);
+    //  router.push(`/admin/${item}`);
   }, []);
 
-  const handleSubItemClick = useCallback((item) => {
-    setExclude(item);
-  }, []);
+  useEffect(() => {
+    setIsLoading(false);
+  }, [pathname]);
 
   //TopBar
 
   const defaultState = useRef({
-    emailFieldValue: 'dharma@jadedpixel.com',
-    nameFieldValue: 'Jaded Pixel',
+    emailFieldValue: "dharma@jadedpixel.com",
+    nameFieldValue: "Jaded Pixel",
   });
-  const skipToContentRef = useRef(null);
 
   const [toastActive, setToastActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [userMenuActive, setUserMenuActive] = useState(false);
   // const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
   // const [modalActive, setModalActive] = useState(false);
   const [nameFieldValue, setNameFieldValue] = useState(
-    defaultState.current.nameFieldValue
+    defaultState.current.nameFieldValue,
   );
   const [emailFieldValue, setEmailFieldValue] = useState(
-    defaultState.current.emailFieldValue
+    defaultState.current.emailFieldValue,
   );
   const [storeName, setStoreName] = useState(
-    defaultState.current.nameFieldValue
+    defaultState.current.nameFieldValue,
   );
   // const [supportSubject, setSupportSubject] = useState('');
   // const [supportMessage, setSupportMessage] = useState('');
@@ -99,7 +106,7 @@ export default function AdminLayout({ children }) {
   // }, []);
   const handleSearchResultsDismiss = useCallback(() => {
     setSearchActive(false);
-    setSearchValue('');
+    setSearchValue("");
   }, []);
   const handleSearchFieldChange = useCallback((value) => {
     setSearchValue(value);
@@ -107,23 +114,24 @@ export default function AdminLayout({ children }) {
   }, []);
   const toggleToastActive = useCallback(
     () => setToastActive((toastActive) => !toastActive),
-    []
+    [],
   );
   const toggleUserMenuActive = useCallback(
     () => setUserMenuActive((userMenuActive) => !userMenuActive),
-    []
+    [],
   );
   const toggleMobileNavigationActive = useCallback(
     () =>
       setMobileNavigationActive(
-        (mobileNavigationActive) => !mobileNavigationActive
+        (mobileNavigationActive) => !mobileNavigationActive,
       ),
-    []
+    [],
   );
-  // const toggleIsLoading = useCallback(
-  //   () => setIsLoading((isLoading) => !isLoading),
-  //   []
-  // );
+  const toggleIsLoading = useCallback(
+    () => setIsLoading((isLoading) => !isLoading),
+    [],
+  );
+
   // const toggleModalActive = useCallback(
   //   () => setModalActive((modalActive) => !modalActive),
   //   []
@@ -135,7 +143,7 @@ export default function AdminLayout({ children }) {
 
   const userMenuActions = [
     {
-      items: [{ content: 'Community forums' }],
+      items: [{ content: "Community forums" }],
     },
   ];
 
@@ -154,9 +162,9 @@ export default function AdminLayout({ children }) {
   const userMenuMarkup = (
     <TopBar.UserMenu
       actions={userMenuActions}
-      name='Dharma'
+      name="Dharma"
       detail={storeName}
-      initials='D'
+      initials="D"
       open={userMenuActive}
       onToggle={toggleUserMenuActive}
     />
@@ -165,8 +173,8 @@ export default function AdminLayout({ children }) {
   const searchResultsMarkup = (
     <ActionList
       items={[
-        { content: 'Shopify help center' },
-        { content: 'Community forums' },
+        { content: "Shopify help center" },
+        { content: "Community forums" },
       ]}
     />
   );
@@ -175,104 +183,100 @@ export default function AdminLayout({ children }) {
     <TopBar.SearchField
       onChange={handleSearchFieldChange}
       value={searchValue}
-      placeholder='Search'
+      placeholder="Search"
     />
   );
+
+  // Polaris-Navigation__Item Polaris-Navigation__Item--selected Polaris-Navigation--subNavigationActive Polaris-Navigation--itemLinePointer
+
+  // Polaris-Navigation__Item Polaris-Navigation__Item--selected Polaris-Navigation--subNavigationActive
+
+  // Polaris-Navigation__Item Polaris-Navigation__Item--selected Polaris-Navigation--subNavigationActive
 
   const topBarMarkup = (
     <TopBar
       showNavigationToggle
       userMenu={userMenuMarkup}
-      searchResultsVisible={searchActive}
-      searchField={searchFieldMarkup}
-      searchResults={searchResultsMarkup}
-      onSearchResultsDismiss={handleSearchResultsDismiss}
+      // searchResultsVisible={searchActive}
+      // searchField={searchFieldMarkup}
+      // searchResults={searchResultsMarkup}
+      // onSearchResultsDismiss={handleSearchResultsDismiss}
       onNavigationToggle={toggleMobileNavigationActive}
     />
   );
 
-  //Ends
+  const navigationMarkup = (
+    <Navigation location="/">
+      <Navigation.Section
+        items={[
+          {
+            url: "/admin",
+            label: "Home",
+            icon: HomeMinor,
+            onClick: () => handleNavItemClick("admin"),
+            selected: selectedNavItem === "admin",
+          },
+          {
+            url: "/admin/orders",
+            label: "Orders",
+            icon: OrdersMinor,
+            onClick: () => handleNavItemClick("orders"),
+            selected: selectedNavItem === "orders",
+          },
+          {
+            url: "/admin/products",
+            label: "Products",
+            icon: ProductsMinor,
+            onClick: () => handleNavItemClick("products"),
+            selected: selectedNavItem === "products",
+          },
+          {
+            url: "/admin/collections",
+            icon: CollectionsMajor,
+            label: "Collections",
+            onClick: () => handleNavItemClick("collections"),
+            selected: selectedNavItem === "collections",
+          },
+          {
+            url: "/admin/products/inventory",
+            icon: InventoryMajor,
+            label: "Inventory",
+            onClick: () => handleNavItemClick("inventory"),
+            selected: selectedNavItem === "inventory",
+          },
+          {
+            url: "/admin/customers",
+            label: "Customers",
+            icon: CustomersFilledMinor,
+            onClick: () => handleNavItemClick("customers"),
+            selected: selectedNavItem === "customers",
+          },
+        ]}
+      />
+    </Navigation>
+  );
 
-  const navigationItems = [
-    {
-      url: '/admin',
-      excludePaths: ['#'],
-      label: 'Home',
-      icon: HomeMinor,
-      onClick: () => handleNavItemClick('home'),
-      selected: selectedNavItem === 'home',
-      excludePaths: exclude === 'home' ? [] : ['/home'],
-    },
-    {
-      url: '/admin/orders',
-      excludePaths: ['#'],
-      label: 'Orders',
-      icon: OrdersFilledMinor,
-      badge: '15',
-      onClick: () => handleNavItemClick('orders'),
-      selected: selectedNavItem === 'orders',
-      excludePaths: exclude === 'orders' ? [] : ['/orders'],
-    },
-    {
-      url: '/admin/products',
-      label: 'Products',
-      icon: ProductsFilledMinor,
-      selected: true,
-      badge: '20',
-      onClick: () => handleNavItemClick('products'),
-      selected: selectedNavItem === 'products',
-      excludePaths: exclude === 'products' ? [] : ['/products'],
-      subNavigationItems: [
-        {
-          url: '/admin/collections',
-          excludePaths: ['#'],
-          disabled: false,
-          label: 'Collections',
-          onClick: () => handleSubItemClick('collections'),
-          excludePaths: exclude === 'collections' ? [] : ['/collections'],
-        },
-        {
-          url: '/admin/inventory',
-          disabled: false,
-          label: 'Inventory',
-          onClick: () => handleSubItemClick('inventory'),
-          excludePaths: exclude === 'inventory' ? [] : ['/inventory'],
-        },
-      ],
-    },
-    {
-      url: '/admin/customers',
-      excludePaths: ['#'],
-      label: 'Customers',
-      icon: CustomersFilledMinor,
-      onClick: () => handleNavItemClick('customers'),
-      selected: selectedNavItem === 'customers',
-      excludePaths: exclude === 'customers' ? [] : ['/customers'],
-    },
-  ];
+  const loadingMarkup = isLoading ? <Loading /> : null;
 
   const logo = {
     width: 86,
     topBarSource:
-      'https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png',
+      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
     contextualSaveBarSource:
-      'https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png',
-    accessibilityLabel: 'Shopify',
+      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
+    accessibilityLabel: "Shopify",
   };
 
   return (
-    <html lang='en'>
+    <html lang="en">
       <body>
         <AppProvider linkComponent={LinkWrapper} i18n={en}>
           <Frame
             logo={logo}
             topBar={topBarMarkup}
-            navigation={
-              <Navigation location={pathname}>
-                <Navigation.Section items={navigationItems} />
-              </Navigation>
-            }
+            navigation={navigationMarkup}
           >
+            {loadingMarkup}
             {children}
           </Frame>
         </AppProvider>
