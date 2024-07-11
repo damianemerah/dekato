@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import {
   ActionList,
   Avatar,
@@ -22,29 +22,29 @@ import {
   Tag,
   Text,
   Thumbnail,
-} from '@shopify/polaris';
+} from "@shopify/polaris";
 
 import {
-  EditMajor,
-  DuplicateMinor,
-  ArchiveMinor,
-  PrintMinor,
-  CancelMinor,
-  MobileHorizontalDotsMajor,
-  ShipmentMajor,
-  MarkPaidMinor,
-} from '@shopify/polaris-icons';
-import { useCallback, useState } from 'react';
+  EditIcon,
+  DuplicateIcon,
+  ArchiveIcon,
+  PrintIcon,
+  XIcon,
+  MenuHorizontalIcon,
+  DeliveryIcon,
+  ReceiptPaidIcon,
+} from "@shopify/polaris-icons";
+import { useCallback, useState } from "react";
 
 // This example is for guidance purposes. Copying it will come with caveats.
 function OrderDetails() {
   const SkeletonLabel = (props) => {
     return (
       <Box
-        background='bg-fill-tertiary'
-        minHeight='1rem'
-        maxWidth='5rem'
-        borderRadius='base'
+        background="bg-fill-tertiary"
+        minHeight="1rem"
+        maxWidth="5rem"
+        borderRadius="base"
         {...props}
       />
     );
@@ -54,54 +54,54 @@ function OrderDetails() {
   const toggleActive = useCallback(() => setActive((active) => !active), []);
   return (
     <Page
-      backAction={{ content: 'Products', url: '/admin/orders' }}
-      title='#1033'
+      backAction={{ content: "Products", url: "/admin/orders" }}
+      title="#1033"
       titleMetadata={
         <>
-          <Badge progress='complete'>Paid</Badge>{' '}
-          <Badge progress='complete'>Fullfilled</Badge>
+          <Badge progress="complete">Paid</Badge>{" "}
+          <Badge progress="complete">Fullfilled</Badge>
         </>
       }
-      subtitle='January 18, 2024 at 12:54 pm'
+      subtitle="January 18, 2024 at 12:54 pm"
       compactTitle
       secondaryActions={[
         {
-          content: 'Restock',
-          accessibilityLabel: 'Restock Orders',
-          onAction: () => alert('Order restocked'),
+          content: "Restock",
+          accessibilityLabel: "Restock Orders",
+          onAction: () => alert("Order restocked"),
         },
         {
-          content: 'Edit',
-          onAction: () => alert('Edit order'),
+          content: "Edit",
+          onAction: () => alert("Edit order"),
         },
       ]}
       actionGroups={[
         {
-          title: 'More actions',
+          title: "More actions",
           actions: [
             {
-              content: 'Duplicate',
-              accessibilityLabel: 'Duplicate order',
-              icon: DuplicateMinor,
-              onAction: () => alert('order duplicated'),
+              content: "Duplicate",
+              accessibilityLabel: "Duplicate order",
+              icon: DuplicateIcon,
+              onAction: () => alert("order duplicated"),
             },
             {
-              content: 'Cancel order',
-              accessibilityLabel: 'Cancel order',
-              icon: CancelMinor,
-              onAction: () => alert('order canceled'),
+              content: "Cancel order",
+              accessibilityLabel: "Cancel order",
+              icon: XIcon,
+              onAction: () => alert("order canceled"),
             },
             {
-              content: 'Archive',
-              accessibilityLabel: 'Archive order',
-              icon: ArchiveMinor,
-              onAction: () => alert('order archived'),
+              content: "Archive",
+              accessibilityLabel: "Archive order",
+              icon: ArchiveIcon,
+              onAction: () => alert("order archived"),
             },
             {
-              content: 'Print order slip',
-              accessibilityLabel: 'Print order slip',
-              icon: PrintMinor,
-              onAction: () => alert('printed'),
+              content: "Print order slip",
+              accessibilityLabel: "Print order slip",
+              icon: PrintIcon,
+              onAction: () => alert("printed"),
             },
           ],
         },
@@ -111,13 +111,13 @@ function OrderDetails() {
         hasNext: true,
       }}
     >
-      <InlineGrid columns={{ xs: 1, lg: '2fr 1fr' }} gap='400'>
-        <Box gap='400'>
-          <LegacyCard primaryFooterAction={{ content: 'Fulfill items' }}>
+      <InlineGrid columns={{ xs: 1, lg: "2fr 1fr" }} gap="400">
+        <Box gap="400">
+          <LegacyCard primaryFooterAction={{ content: "Fulfill items" }}>
             <LegacyCard.Header
               title={
-                <Text as='h2' variant='headingSm'>
-                  <Badge tone='success' size='large' icon={ShipmentMajor}>
+                <Text as="h2" variant="headingSm">
+                  <Badge tone="success" size="large" icon={DeliveryIcon}>
                     Fulfilled
                   </Badge>
                 </Text>
@@ -127,21 +127,21 @@ function OrderDetails() {
                 active={active}
                 activator={
                   <Button
-                    accessibilityLabel='Add variant'
-                    variant='plain'
+                    accessibilityLabel="Add variant"
+                    variant="plain"
                     onClick={toggleActive}
                   >
-                    <Icon source={MobileHorizontalDotsMajor} tone='base' />
+                    <Icon source={MenuHorizontalIcon} tone="base" />
                   </Button>
                 }
                 onClose={toggleActive}
               >
                 <ActionList
-                  actionRole='menuitem'
+                  actionRole="menuitem"
                   items={[
-                    { content: 'Print packing slip' },
+                    { content: "Print packing slip" },
                     {
-                      content: 'Cancel fulfillment',
+                      content: "Cancel fulfillment",
                       onAction: () => {},
                       destructive: true,
                     },
@@ -150,51 +150,51 @@ function OrderDetails() {
               </Popover>
             </LegacyCard.Header>
             <Box
-              paddingInline='400'
-              paddingBlockStart='200'
-              paddingBlockEnd='400'
+              paddingInline="400"
+              paddingBlockStart="200"
+              paddingBlockEnd="400"
             >
               <Box
-                borderColor='border'
-                borderWidth='025'
-                borderRadius='200'
-                overflowX='hidden'
-                overflowY='hidden'
+                borderColor="border"
+                borderWidth="025"
+                borderRadius="200"
+                overflowX="hidden"
+                overflowY="hidden"
               >
                 <Box
-                  padding='300'
-                  borderColor='border'
-                  borderBlockEndWidth='025'
+                  padding="300"
+                  borderColor="border"
+                  borderBlockEndWidth="025"
                 >
                   Add variants if this product comes in multiple versions, like
                   different sizes or colors.
                 </Box>
                 <ResourceList
-                  resourceName={{ singular: 'order', plural: 'orders' }}
+                  resourceName={{ singular: "order", plural: "orders" }}
                   items={[
                     {
-                      id: '145',
-                      url: '#',
+                      id: "145",
+                      url: "#",
                       avatarSource:
-                        'https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg',
-                      name: 'VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)',
-                      sku: '9504957',
+                        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
+                      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
+                      sku: "9504957",
                       qty: 1,
-                      price: '200',
+                      price: "200",
                       size: 9,
-                      color: 'black',
+                      color: "black",
                     },
                     {
-                      id: '145',
-                      url: '#',
+                      id: "145",
+                      url: "#",
                       avatarSource:
-                        'https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg',
-                      name: 'Tucan scarf',
-                      sku: '0404957',
+                        "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
+                      name: "Tucan scarf",
+                      sku: "0404957",
                       qty: 1,
-                      price: '500',
+                      price: "500",
                       size: 9,
-                      color: 'white',
+                      color: "white",
                     },
                   ]}
                   renderItem={(item) => {
@@ -217,20 +217,20 @@ function OrderDetails() {
                         media={
                           <Avatar
                             customer
-                            size='lg'
+                            size="lg"
                             name={name}
                             source={avatarSource}
                           />
                         }
                         accessibilityLabel={`View details for ${name}`}
                       >
-                        <div className='order_details-grid'>
-                          <div className='col-2'>
-                            <BlockStack gap='100'>
+                        <div className="order_details-grid">
+                          <div className="col-2">
+                            <BlockStack gap="100">
                               <Text
-                                variant='bodyMd'
-                                fontWeight='medium'
-                                as='h3'
+                                variant="bodyMd"
+                                fontWeight="medium"
+                                as="h3"
                                 breakWord={true}
                               >
                                 {name}
@@ -241,17 +241,17 @@ function OrderDetails() {
                                 </Tag>
                               </Text>
 
-                              <Text tone='subdued' variant='bodySm'>
+                              <Text tone="subdued" variant="bodySm">
                                 SKU: {sku}
                               </Text>
                             </BlockStack>
                           </div>
-                          <div className='col-3'>
+                          <div className="col-3">
                             <Text>
                               ${price} x {qty}
                             </Text>
                           </div>
-                          <div className='col-4'>
+                          <div className="col-4">
                             <Text>${price}</Text>
                           </div>
                         </div>
@@ -264,45 +264,45 @@ function OrderDetails() {
           </LegacyCard>
           <LegacyCard
             title={
-              <Text as='h2' variant='headingSm'>
-                <Badge size='large' icon={MarkPaidMinor}>
+              <Text as="h2" variant="headingSm">
+                <Badge size="large" icon={ReceiptPaidIcon}>
                   Paid
                 </Badge>
               </Text>
             }
           >
-            <Box paddingBlockStart='200' paddingBlockEnd='400'>
-              <Box paddingInline='400'>
+            <Box paddingBlockStart="200" paddingBlockEnd="400">
+              <Box paddingInline="400">
                 <Box
-                  borderColor='border'
-                  borderWidth='025'
-                  borderRadius='200'
-                  overflowX='hidden'
-                  overflowY='hidden'
+                  borderColor="border"
+                  borderWidth="025"
+                  borderRadius="200"
+                  overflowX="hidden"
+                  overflowY="hidden"
                 >
-                  <Box padding='300'>
+                  <Box padding="300">
                     <div
                       style={{
-                        marginBottom: 'var(--p-space-300)',
-                        paddingBottom: 'var(--p-space-300)',
+                        marginBottom: "var(--p-space-300)",
+                        paddingBottom: "var(--p-space-300)",
                         borderBottom:
-                          'var(--p-border-width-025) solid var(--p-color-border)',
+                          "var(--p-border-width-025) solid var(--p-color-border)",
                       }}
                     >
-                      <BlockStack gap='200'>
-                        <p className='order_overview'>
+                      <BlockStack gap="200">
+                        <p className="order_overview">
                           <span>Subtotal</span>
-                          <span className='order_overview_sub'>
-                            <Text as='p' tone='subdued'>
+                          <span className="order_overview_sub">
+                            <Text as="p" tone="subdued">
                               2 Items
                             </Text>
                             $40
                           </span>
                         </p>
-                        <Text as='h3' variant='headingSm' fontWeight='medium'>
-                          <div className='order_overview'>
+                        <Text as="h3" variant="headingSm" fontWeight="medium">
+                          <div className="order_overview">
                             <span>Total</span>
-                            <span className='order_overview_sub'>
+                            <span className="order_overview_sub">
                               <span></span>
                               <span>$40</span>
                             </span>
@@ -311,9 +311,9 @@ function OrderDetails() {
                       </BlockStack>
                     </div>
                     <div>
-                      <p className='order_overview'>
+                      <p className="order_overview">
                         <span>Paid by customer</span>
-                        <span className='order_overview_sub'>
+                        <span className="order_overview_sub">
                           <span></span>
                           $40
                         </span>
@@ -326,92 +326,92 @@ function OrderDetails() {
           </LegacyCard>
         </Box>
 
-        <BlockStack gap='400'>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <InlineGrid columns='1fr auto'>
-                <Text as='h3' variant='headingSm' fontWeight='medium'>
+        <BlockStack gap="400">
+          <Card roundedAbove="sm">
+            <BlockStack gap="400">
+              <InlineGrid columns="1fr auto">
+                <Text as="h3" variant="headingSm" fontWeight="medium">
                   Note from customer
                 </Text>
                 <Button
-                  variant='plain'
+                  variant="plain"
                   onClick={() => {}}
-                  accessibilityLabel='Edit'
+                  accessibilityLabel="Edit"
                 >
-                  <Icon source={EditMajor} tone='base' />
+                  <Icon source={EditIcon} tone="base" />
                 </Button>
               </InlineGrid>
-              <Text as='p' variant='bodyMd' tone='subdued'>
+              <Text as="p" variant="bodyMd" tone="subdued">
                 No notes from customer
               </Text>
             </BlockStack>
           </Card>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <BlockStack gap='200'>
-                <Text as='h2' variant='headingSm'>
+          <Card roundedAbove="sm">
+            <BlockStack gap="400">
+              <BlockStack gap="200">
+                <Text as="h2" variant="headingSm">
                   Customer
                 </Text>
-                <Text as='p' variant='bodyMd'>
+                <Text as="p" variant="bodyMd">
                   John Smith
                 </Text>
-                <Text as='p' variant='bodyMd'>
+                <Text as="p" variant="bodyMd">
                   4 orders
                 </Text>
               </BlockStack>
-              <BlockStack gap='200'>
-                <InlineGrid columns='1fr auto'>
-                  <Text as='h3' variant='headingSm' fontWeight='medium'>
+              <BlockStack gap="200">
+                <InlineGrid columns="1fr auto">
+                  <Text as="h3" variant="headingSm" fontWeight="medium">
                     Contact Information
                   </Text>
                   <Button
-                    variant='plain'
+                    variant="plain"
                     onClick={() => {}}
-                    accessibilityLabel='Edit'
+                    accessibilityLabel="Edit"
                   >
-                    <Icon source={EditMajor} tone='base' />
+                    <Icon source={EditIcon} tone="base" />
                   </Button>
                 </InlineGrid>
-                <Text as='p' variant='bodyMd'>
+                <Text as="p" variant="bodyMd">
                   john.smith@example.com
                 </Text>
-                <Text as='p' variant='bodyMd'>
+                <Text as="p" variant="bodyMd">
                   +234957304755
                 </Text>
               </BlockStack>
-              <BlockStack gap='200'>
-                <InlineGrid columns='1fr auto'>
-                  <Text as='h3' variant='headingSm' fontWeight='medium'>
+              <BlockStack gap="200">
+                <InlineGrid columns="1fr auto">
+                  <Text as="h3" variant="headingSm" fontWeight="medium">
                     Shipping address
                   </Text>
                   <Button
-                    variant='plain'
+                    variant="plain"
                     onClick={() => {}}
-                    accessibilityLabel='Edit'
+                    accessibilityLabel="Edit"
                   >
-                    <Icon source={EditMajor} tone='base' />
+                    <Icon source={EditIcon} tone="base" />
                   </Button>
                 </InlineGrid>
-                <Text as='p' variant='bodyMd'>
+                <Text as="p" variant="bodyMd">
                   Tyler Ware <br /> 3508 Pharetra. Av.
                   <br /> 42621 Nantes <br /> Paraguay
                   <br /> +59546811470
                 </Text>
               </BlockStack>
-              <BlockStack gap='200'>
-                <InlineGrid columns='1fr auto'>
-                  <Text as='h3' variant='headingSm' fontWeight='medium'>
+              <BlockStack gap="200">
+                <InlineGrid columns="1fr auto">
+                  <Text as="h3" variant="headingSm" fontWeight="medium">
                     Billing address
                   </Text>
                   <Button
-                    variant='plain'
+                    variant="plain"
                     onClick={() => {}}
-                    accessibilityLabel='Edit'
+                    accessibilityLabel="Edit"
                   >
-                    <Icon source={EditMajor} tone='base' />
+                    <Icon source={EditIcon} tone="base" />
                   </Button>
                 </InlineGrid>
-                <Text as='p' variant='bodyMd' tone='subdued'>
+                <Text as="p" variant="bodyMd" tone="subdued">
                   Same as shipping address
                 </Text>
               </BlockStack>

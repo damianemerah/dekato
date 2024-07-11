@@ -9,10 +9,10 @@ import {
   Badge,
   Page,
 } from "@shopify/polaris";
-import { DeleteMajor, PlusMinor } from "@shopify/polaris-icons";
+import { DeleteIcon, PlusIcon } from "@shopify/polaris-icons";
 import React from "react";
 
-function IndexTableWithPaginationAndBulkActionsExample() {
+function Orders() {
   const orders = [
     {
       id: "1020",
@@ -92,7 +92,7 @@ function IndexTableWithPaginationAndBulkActionsExample() {
           onAction: () => console.log("Todo: implement adding customers"),
         },
         {
-          icon: DeleteMajor,
+          icon: DeleteIcon,
           destructive: true,
           content: "Delete customers",
           onAction: () => console.log("Todo: implement deleting customers"),
@@ -123,7 +123,7 @@ function IndexTableWithPaginationAndBulkActionsExample() {
       onAction: () => console.log("Todo: implement bulk remove tags"),
     },
     {
-      icon: DeleteMajor,
+      icon: DeleteIcon,
       destructive: true,
       content: "Delete customers",
       onAction: () => console.log("Todo: implement bulk delete"),
@@ -134,7 +134,7 @@ function IndexTableWithPaginationAndBulkActionsExample() {
     <Page
       fullWidth
       title="Orders"
-      primaryAction={{ content: "Create order", icon: PlusMinor }}
+      primaryAction={{ content: "Create order", icon: PlusIcon }}
       secondaryActions={[{ content: "Export" }]}
     >
       <Box paddingBlockEnd="400">
@@ -169,4 +169,4 @@ function IndexTableWithPaginationAndBulkActionsExample() {
   );
 }
 
-export default IndexTableWithPaginationAndBulkActionsExample;
+export default Orders;
