@@ -1,4 +1,8 @@
-import React, { useState, useCallback, useRef } from "react";
+"use client";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import en from "@shopify/polaris/locales/en.json";
+import "@shopify/polaris/build/esm/styles.css";
 import {
   ActionList,
   AppProvider,
@@ -20,19 +24,56 @@ import {
   TopBar,
 } from "@shopify/polaris";
 import {
+  OrdersMinor,
+  ProductsMinor,
+  HomeMinor,
+  CollectionsMajor,
+  CustomersFilledMinor,
+  InventoryMajor,
   ArrowLeftMinor,
   HomeMajor,
   OrdersMajor,
   ConversationMinor,
 } from "@shopify/polaris-icons";
 
-function FrameExample() {
+import { LinkWrapper } from "./components";
+import Link from "next/link";
+
+function AdminLayout({ children }) {
+  // Loading component and active navlink style
+  const pathname = usePathname();
+
+  // Split the pathname into an array of path segments
+  const paths = pathname.split("/").filter(Boolean);
+  // Get the last path segment, which represents the currently active page
+  const selected = paths.length > 0 ? paths[paths.length - 1] : "admin";
+
+  // State to manage the currently selected navigation item
+  const [selectedNavItem, setSelectedNavItem] = useState(selected);
+
+  // Callback function to handle navigation item clicks
+  const handleNavItemClick = useCallback((item) => {
+    // Update the selected navigation item
+    setSelectedNavItem(item);
+    // Set the loading state to true
+    setIsLoading(true);
+  }, []);
+
+  // Effect to reset the loading state when the pathname changes
+  useEffect(() => {
+    // Set the loading state to false
+    setIsLoading(false);
+  }, [pathname]);
+
+  // Ref to store the default state of the form
   const defaultState = useRef({
     emailFieldValue: "dharma@jadedpixel.com",
     nameFieldValue: "Jaded Pixel",
   });
+  // Ref to store the skip-to-content target element
   const skipToContentRef = useRef(null);
 
+  // State variables for managing various UI elements
   const [toastActive, setToastActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -53,6 +94,7 @@ function FrameExample() {
   const [supportSubject, setSupportSubject] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
 
+  // Callback functions to handle form field changes
   const handleSubjectChange = useCallback(
     (value) => setSupportSubject(value),
     [],
@@ -61,43 +103,66 @@ function FrameExample() {
     (value) => setSupportMessage(value),
     [],
   );
+  // Callback function to handle discarding form changes
   const handleDiscard = useCallback(() => {
+    // Reset the form fields to their default values
     setEmailFieldValue(defaultState.current.emailFieldValue);
     setNameFieldValue(defaultState.current.nameFieldValue);
+    // Set the dirty state to false
     setIsDirty(false);
   }, []);
+  // Callback function to handle saving form changes
   const handleSave = useCallback(() => {
+    // Update the default state with the current form values
     defaultState.current.nameFieldValue = nameFieldValue;
     defaultState.current.emailFieldValue = emailFieldValue;
 
+    // Set the dirty state to false
     setIsDirty(false);
+    // Activate the toast message
     setToastActive(true);
+    // Update the store name with the saved name
     setStoreName(defaultState.current.nameFieldValue);
   }, [emailFieldValue, nameFieldValue]);
+  // Callback function to handle changes in the name field
   const handleNameFieldChange = useCallback((value) => {
+    // Update the name field value
     setNameFieldValue(value);
+    // Set the dirty state to true if the value is not empty
     value && setIsDirty(true);
   }, []);
+  // Callback function to handle changes in the email field
   const handleEmailFieldChange = useCallback((value) => {
+    // Update the email field value
     setEmailFieldValue(value);
+    // Set the dirty state to true if the value is not empty
     value && setIsDirty(true);
   }, []);
+  // Callback function to handle dismissing search results
   const handleSearchResultsDismiss = useCallback(() => {
+    // Deactivate the search and clear the search value
     setSearchActive(false);
     setSearchValue("");
   }, []);
+  // Callback function to handle changes in the search field
   const handleSearchFieldChange = useCallback((value) => {
+    // Update the search value
     setSearchValue(value);
+    // Activate the search if the value is not empty
     setSearchActive(value.length > 0);
   }, []);
+  // Callback function to toggle the toast message
   const toggleToastActive = useCallback(
     () => setToastActive((toastActive) => !toastActive),
     [],
   );
+  // Callback function to toggle the user menu
   const toggleUserMenuActive = useCallback(
     () => setUserMenuActive((userMenuActive) => !userMenuActive),
     [],
   );
+
+  // Callback function to toggle the mobile navigation
   const toggleMobileNavigationActive = useCallback(
     () =>
       setMobileNavigationActive(
@@ -105,25 +170,26 @@ function FrameExample() {
       ),
     [],
   );
-  const toggleIsLoading = useCallback(
-    () => setIsLoading((isLoading) => !isLoading),
-    [],
-  );
+
+  // Callback function to toggle the modal
   const toggleModalActive = useCallback(
     () => setModalActive((modalActive) => !modalActive),
     [],
   );
 
+  // Markup for the toast message
   const toastMarkup = toastActive ? (
     <Toast onDismiss={toggleToastActive} content="Changes saved" />
   ) : null;
 
+  // Actions for the user menu
   const userMenuActions = [
     {
       items: [{ content: "Community forums" }],
     },
   ];
 
+  // Markup for the contextual save bar
   const contextualSaveBarMarkup = isDirty ? (
     <ContextualSaveBar
       message="Unsaved changes"
@@ -136,6 +202,7 @@ function FrameExample() {
     />
   ) : null;
 
+  // Markup for the user menu
   const userMenuMarkup = (
     <TopBar.UserMenu
       actions={userMenuActions}
@@ -147,6 +214,7 @@ function FrameExample() {
     />
   );
 
+  // Markup for the search results
   const searchResultsMarkup = (
     <ActionList
       items={[
@@ -156,6 +224,7 @@ function FrameExample() {
     />
   );
 
+  // Markup for the search field
   const searchFieldMarkup = (
     <TopBar.SearchField
       onChange={handleSearchFieldChange}
@@ -164,6 +233,7 @@ function FrameExample() {
     />
   );
 
+  // Markup for the top bar
   const topBarMarkup = (
     <TopBar
       showNavigationToggle
@@ -176,62 +246,89 @@ function FrameExample() {
     />
   );
 
+  // Markup for the navigation
   const navigationMarkup = (
     <Navigation location="/">
       <Navigation.Section
         items={[
           {
-            label: "Back to Shopify",
-            icon: ArrowLeftMinor,
-          },
-        ]}
-      />
-      <Navigation.Section
-        separator
-        title="Jaded Pixel App"
-        items={[
-          {
-            label: "Dashboard",
-            icon: HomeMajor,
-            onClick: toggleIsLoading,
+            url: "/admin",
+            label: "Home",
+            icon: HomeMinor,
+            onClick: () => handleNavItemClick("admin"),
+            selected: selectedNavItem === "admin",
           },
           {
-            label: "Jaded Pixel Orders",
-            icon: OrdersMajor,
-            onClick: toggleIsLoading,
+            url: "/admin/orders",
+            label: "Orders",
+            icon: OrdersMinor,
+            onClick: () => handleNavItemClick("orders"),
+            selected: selectedNavItem === "orders",
+          },
+          {
+            url: "/admin/products",
+            label: "Products",
+            icon: ProductsMinor,
+            onClick: () => handleNavItemClick("products"),
+            selected: selectedNavItem === "products",
+          },
+          {
+            url: "/admin/collections",
+            icon: CollectionsMajor,
+            label: "Collections",
+            onClick: () => handleNavItemClick("collections"),
+            selected: selectedNavItem === "collections",
+          },
+          {
+            url: "/admin/products/inventory",
+            icon: InventoryMajor,
+            label: "Inventory",
+            onClick: () => handleNavItemClick("inventory"),
+            selected: selectedNavItem === "inventory",
+          },
+          {
+            url: "/admin/customers",
+            label: "Customers",
+            icon: CustomersFilledMinor,
+            onClick: () => handleNavItemClick("customers"),
+            selected: selectedNavItem === "customers",
           },
         ]}
-        action={{
-          icon: ConversationMinor,
-          accessibilityLabel: "Contact support",
-          onClick: toggleModalActive,
-        }}
       />
     </Navigation>
   );
 
+  // Markup for the loading indicator
   const loadingMarkup = isLoading ? <Loading /> : null;
 
+  // Target element for the skip-to-content link
   const skipToContentTarget = (
     <a id="SkipToContentTarget" ref={skipToContentRef} tabIndex={-1} />
   );
 
+  // Markup for the actual page content
   const actualPageMarkup = (
     <Page title="Account">
       <Layout>
+        {/* Skip-to-content target */}
         {skipToContentTarget}
+        {/* Annotated section for account details */}
         <Layout.AnnotatedSection
           title="Account details"
           description="Jaded Pixel will use this as your account information."
         >
+          {/* Card for the account details form */}
           <LegacyCard sectioned>
+            {/* Form layout for the account details fields */}
             <FormLayout>
+              {/* Text field for the full name */}
               <TextField
                 label="Full name"
                 value={nameFieldValue}
                 onChange={handleNameFieldChange}
                 autoComplete="name"
               />
+              {/* Text field for the email */}
               <TextField
                 type="email"
                 label="Email"
@@ -246,6 +343,7 @@ function FrameExample() {
     </Page>
   );
 
+  // Markup for the loading page
   const loadingPageMarkup = (
     <SkeletonPage>
       <Layout>
@@ -261,8 +359,10 @@ function FrameExample() {
     </SkeletonPage>
   );
 
+  // Conditional rendering of the page based on loading state
   const pageMarkup = isLoading ? loadingPageMarkup : actualPageMarkup;
 
+  // Markup for the contact support modal
   const modalMarkup = (
     <Modal
       open={modalActive}
@@ -275,12 +375,14 @@ function FrameExample() {
     >
       <Modal.Section>
         <FormLayout>
+          {/* Text field for the support subject */}
           <TextField
             label="Subject"
             value={supportSubject}
             onChange={handleSubjectChange}
             autoComplete="off"
           />
+          {/* Text field for the support message */}
           <TextField
             label="Message"
             value={supportMessage}
@@ -293,6 +395,7 @@ function FrameExample() {
     </Modal>
   );
 
+  // Logo configuration for the frame
   const logo = {
     width: 86,
     topBarSource:
@@ -302,60 +405,36 @@ function FrameExample() {
     accessibilityLabel: "Shopify",
   };
 
+  // Render the admin layout
   return (
-    <div style={{ height: "500px" }}>
-      <AppProvider
-        i18n={{
-          Polaris: {
-            Avatar: {
-              label: "Avatar",
-              labelWithInitials: "Avatar with initials {initials}",
-            },
-            ContextualSaveBar: {
-              save: "Save",
-              discard: "Discard",
-            },
-            TextField: {
-              characterCount: "{count} characters",
-            },
-            TopBar: {
-              toggleMenuLabel: "Toggle menu",
-
-              SearchField: {
-                clearButtonLabel: "Clear",
-                search: "Search",
-              },
-            },
-            Modal: {
-              iFrameTitle: "body markup",
-            },
-            Frame: {
-              skipToContent: "Skip to content",
-              navigationLabel: "Navigation",
-              Navigation: {
-                closeMobileNavigationLabel: "Close navigation",
-              },
-            },
-          },
-        }}
-      >
-        <Frame
-          logo={logo}
-          topBar={topBarMarkup}
-          navigation={navigationMarkup}
-          showMobileNavigation={mobileNavigationActive}
-          onNavigationDismiss={toggleMobileNavigationActive}
-          skipToContentTarget={skipToContentRef}
-        >
-          {contextualSaveBarMarkup}
-          {loadingMarkup}
-          {pageMarkup}
-          {toastMarkup}
-          {modalMarkup}
-        </Frame>
-      </AppProvider>
-    </div>
+    <html lang="en">
+      <body>
+        {/* App provider for Polaris components */}
+        <AppProvider linkComponent={LinkWrapper}>
+          {/* Frame for the admin interface */}
+          <Frame
+            logo={logo}
+            topBar={topBarMarkup}
+            navigation={navigationMarkup}
+            showMobileNavigation={mobileNavigationActive}
+            onNavigationDismiss={toggleMobileNavigationActive}
+            skipToContentTarget={skipToContentRef}
+          >
+            {/* Contextual save bar for unsaved changes */}
+            {contextualSaveBarMarkup}
+            {/* Loading indicator */}
+            {loadingMarkup}
+            {/* Child components */}
+            {children}
+            {/* Toast message */}
+            {toastMarkup}
+            {/* Contact support modal */}
+            {modalMarkup}
+          </Frame>
+        </AppProvider>
+      </body>
+    </html>
   );
 }
 
-export default FrameExample;
+export default AdminLayout;

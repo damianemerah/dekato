@@ -11,7 +11,6 @@ import { signOut } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 import { useUserStore } from "@/store/store";
-import logo from "@/public/assets/logo.png";
 import { oswald } from "@/font";
 // import { useAppContext } from "./AppContext";
 
@@ -24,7 +23,6 @@ function Header() {
       <header
         // ref={headerRef}
         className={`${oswald.className} flex items-center justify-between bg-slate-950 px-12 py-3 text-white max-md:flex-wrap max-md:px-5`}
-        className={`flex justify-between items-center px-12 py-3 text-white bg-slate-950 max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex items-center justify-between gap-10 whitespace-nowrap py-1 text-sm font-medium uppercase">
           <Image
@@ -53,7 +51,6 @@ function Header() {
           </ul>
         </div>
         <div className="relative mx-10 flex flex-1 items-center">
-        <div className="relative flex flex-1 items-center mx-10 max-w-xl">
           <input
             type="text"
             placeholder="Search..."
@@ -76,8 +73,6 @@ function Header() {
 
         <div className="flex items-center justify-center gap-5 whitespace-nowrap text-xs tracking-normal">
           <div className="flex flex-col items-center justify-center">
-        <div className="flex gap-8 justify-center items-center text-xs tracking-normal whitespace-nowrap">
-          <div className="flex flex-col items-center justify-center gap-1">
             <Image
               alt="cat"
               width="100%"
@@ -123,7 +118,7 @@ function Header() {
         />
         <p>FREE SHIPPING ON ORDERS ABOVE ₦150,000</p>
         <button
-          className="p-4 bg-black text-white"
+          className="bg-black p-4 text-white"
           onClick={async () => {
             await signOut({ callbackUrl: "/signin" });
             toast.success("You have signed out successfully");
