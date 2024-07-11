@@ -24,10 +24,10 @@ import {
 } from "@shopify/polaris";
 
 import {
-  QuestionMarkMajor,
-  PlusMinor,
-  DragHandleMinor,
-  DeleteMajor,
+  QuestionCircleIcon,
+  PlusIcon,
+  DragHandleIcon,
+  DeleteIcon,
 } from "@shopify/polaris-icons";
 
 import usePopover from "../../hooks/usePopover";
@@ -127,7 +127,10 @@ function AddProduct() {
   const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
 
   const fileUpload = !files.length && (
-    <DropZone.FileUpload actionHint="Accepts images, videos" />
+    <DropZone.FileUpload
+      actionTitle="Add file"
+      actionHint="Accepts images, videos"
+    />
   );
 
   const uploadedFiles = files.length > 0 && (
@@ -262,7 +265,7 @@ function AddProduct() {
                               handleTogglePopover("compareAt")
                             }
                           >
-                            <Icon source={QuestionMarkMajor} tone="base" />
+                            <Icon source={QuestionCircleIcon} tone="base" />
                           </div>
                         }
                         onClose={() => handleTogglePopover("compareAt")}
@@ -339,7 +342,7 @@ function AddProduct() {
                                 </Text>
                               </div>
                               <button className="col-start-1 cursor-grab">
-                                <Icon source={DragHandleMinor} tone="base" />
+                                <Icon source={DragHandleIcon} tone="base" />
                               </button>
                               <div className="col-start-2">
                                 <Autocomplete
@@ -365,7 +368,7 @@ function AddProduct() {
                                 className="col-start-3"
                                 onClick={handleDeleteOption(optionIndex)}
                               >
-                                <Icon source={DeleteMajor} tone="base" />
+                                <Icon source={DeleteIcon} tone="base" />
                               </button>
                             </div>
                             <div className="mb-4">
@@ -385,7 +388,7 @@ function AddProduct() {
                                   >
                                     <button className="col-start-1 hidden cursor-grab justify-self-end">
                                       <Icon
-                                        source={DragHandleMinor}
+                                        source={DragHandleIcon}
                                         tone="base"
                                       />
                                     </button>
@@ -407,7 +410,7 @@ function AddProduct() {
                                       />
                                     </div>
                                     <button className="col-start-3 hidden justify-self-start">
-                                      <Icon source={DeleteMajor} tone="base" />
+                                      <Icon source={DeleteIcon} tone="base" />
                                     </button>
                                   </div>
                                 ))}
@@ -429,7 +432,7 @@ function AddProduct() {
                           size="slim"
                           textAlign="left"
                           onClick={handleAddOption}
-                          icon={PlusMinor}
+                          icon={PlusIcon}
                         >
                           Add another option
                         </Button>
@@ -444,7 +447,7 @@ function AddProduct() {
                     onClick={handleToggle}
                     ariaExpanded={open}
                     ariaControls="basic-collapsible"
-                    icon={PlusMinor}
+                    icon={PlusIcon}
                   >
                     Add options like size or colors
                   </Button>

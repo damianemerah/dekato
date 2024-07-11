@@ -1,5 +1,4 @@
-import LinkWrapper from './LinkWrapper';
-import TopBarMarkup from './TopBar';
-import VariantsTable from './VariantsTable';
+import LinkWrapper from "./LinkWrapper";
+import VariantsTable from "./VariantsTable";
 
-export { LinkWrapper, TopBarMarkup, VariantsTable as VariantsTableComponent };
+export { LinkWrapper, VariantsTable as VariantsTableComponent };
