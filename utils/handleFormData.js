@@ -14,6 +14,8 @@ export const handleFormData = async (formData, Model, id) => {
   const videos = formData.getAll("video");
   const data = formData.get("data");
 
+  console.log(data, "data⭐⭐");
+
   files.push(...images, ...videos);
 
   //parse data
@@ -54,6 +56,7 @@ export const handleFormData = async (formData, Model, id) => {
   }
 
   //upload files to s3
+  console.log(files, "filesss🔥🔥🔥");
 
   const fileNames = files.length > 0 ? await uploadFiles(files) : [];
 

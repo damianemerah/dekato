@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import Product from "./product.js";
-import User from "./user.js";
+// import Product from "./product.js";
+// import User from "./user.js";
 
 const cartItemSchema = new mongoose.Schema({
-  product: {
+  productId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
     required: true,

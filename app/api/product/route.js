@@ -11,8 +11,8 @@ import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function POST(req) {
   try {
-    await protect();
-    await restrictTo("admin");
+    // await protect();
+    // await restrictTo("admin");
     await dbConnect();
 
     const formData = await req.formData();
@@ -37,7 +37,13 @@ export async function GET(req) {
 
     const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 
-    const feature = new APIFeatures(Product.find(), searchParams)
+    const feature = new APIFeatures(
+      Product.find().populate({
+        path: "category",
+        select: "slug",
+      }),
+      searchParams
+    )
       .filter()
       .sort()
       .limitFields()

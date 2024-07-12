@@ -3,21 +3,25 @@ import Image from "next/image";
 import Link from "next/link";
 import menu from "@/public/assets/icons/menu.svg";
 import heart from "@/public/assets/icons/heart-white.svg";
-import user from "@/public/assets/icons/user.svg";
+import userIcon from "@/public/assets/icons/user.svg";
 import localShip from "@/public/assets/icons/local_shipping.svg";
 import cart from "@/public/assets/icons/cart.svg";
 import logo from "@/public/assets/icons/dekato.png";
-import { oswald } from "@/font";
+import { signOut } from "next-auth/react";
+import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/store";
 // import { useAppContext } from "./AppContext";
 
 function Header() {
   // const { setShow, show, headerRef } = useAppContext();
+  const user = useUserStore((state) => state.user);
 
   return (
     <div>
       <header
         // ref={headerRef}
-        className={`${oswald.className} flex justify-between items-center px-12 py-3 text-white bg-slate-950 max-md:flex-wrap max-md:px-5`}
+        className={`flex justify-between items-center px-12 py-3 text-white bg-slate-950 max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex gap-10 justify-between items-center py-1 text-sm font-medium uppercase whitespace-nowrap">
           <Image
@@ -45,7 +49,7 @@ function Header() {
             <li className="p-1">Men</li>
           </ul>
         </div>
-        <div className="relative flex flex-1 items-center mx-10">
+        <div className="relative flex flex-1 items-center mx-10 max-w-xl">
           <input
             type="text"
             placeholder="Search..."
@@ -66,19 +70,20 @@ function Header() {
           </button>
         </div>
 
-        <div className="flex gap-5 justify-center items-center text-xs tracking-normal whitespace-nowrap">
-          <div className="flex flex-col items-center justify-center">
+        <div className="flex gap-8 justify-center items-center text-xs tracking-normal whitespace-nowrap">
+          <div className="flex flex-col items-center justify-center gap-1">
             <Image
               alt="cat"
               width="100%"
               height="100%"
               loading="lazy"
-              src={user}
+              src={userIcon}
               className="self-center"
             />
-            <div className="mt-1">LOGIN</div>
+            {user && <p>Hi, {user.firstname}</p>}
+            {!user && <Link href="/signin">LOGIN</Link>}
           </div>
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-1">
             <Image
               alt="cat"
               width="100%"
@@ -87,9 +92,9 @@ function Header() {
               src={heart}
               className="self-center shadow-sm"
             />
-            <div className="mt-1">WISHLIST</div>
+            <p>Wishlist</p>
           </div>
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-1">
             <Image
               width="100%"
               height="100%"
@@ -98,7 +103,7 @@ function Header() {
               src={cart}
               className="self-center shadow-lg"
             />
-            <div className="mt-1">cart</div>
+            <div>cart</div>
           </div>
         </div>
       </header>
@@ -111,6 +116,15 @@ function Header() {
           className="mr-2"
         />
         <p>FREE SHIPPING ON ORDERS ABOVE ₦150,000</p>
+        <button
+          className="p-4 bg-black text-white"
+          onClick={async () => {
+            await signOut({ callbackUrl: "/signin" });
+            toast.success("You have signed out successfully");
+          }}
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );

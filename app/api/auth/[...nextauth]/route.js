@@ -4,6 +4,7 @@ import FacebookProvider from "next-auth/providers/facebook";
 import dbConnect from "@/utils/mongoConnection";
 import User from "@/models/user";
 import NextAuth from "next-auth";
+import { signIn } from "next-auth/react";
 
 export const OPTIONS = {
   session: {
@@ -43,6 +44,8 @@ export const OPTIONS = {
         token.role = user.role;
       }
 
+      console.log("Token🔥", token);
+
       return token;
     },
     async session({ session, token }) {
@@ -50,8 +53,17 @@ export const OPTIONS = {
         ...token,
       };
 
+      console.log("Session🔥", session);
+
       return session;
     },
+    // signIn: async (user, account, profile) => {
+    //   console.log("User🔥", user);
+    //   console.log("Account🔥", account);
+    //   console.log("Profile🔥", profile);
+
+    //   return true;
+    // },
   },
   pages: {
     signIn: "/signin",

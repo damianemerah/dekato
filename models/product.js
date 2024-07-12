@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
-import dbConnect from "@/utils/mongoConnection";
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -61,6 +60,8 @@ productSchema.index({ price: 1, slug: 1 });
 
 productSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
+  //might throw error
+  this.cat = this.category.slug;
   next();
 });
 

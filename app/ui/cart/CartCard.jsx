@@ -1,15 +1,20 @@
 import Image from "next/image";
 import image10 from "@/public/assets/image10.png";
 import { inter } from "@/font";
+import { useCartStore } from "@/store/store";
+import { useEffect } from "react";
+import heart from "@/public/assets/icons/heart.svg";
+import edit from "@/public/assets/icons/edit.svg";
+import del from "@/public/assets/icons/delete.svg";
 
-export default function CartCard({
+const CartCard = ({
   heart,
   edit,
   del,
   showIcon = true,
   showButton = true,
   className,
-}) {
+}) => {
   return (
     <div
       className={`${className} flex items-start gap-3 py-5 border-b border-b-gray-100`}
@@ -72,6 +77,34 @@ export default function CartCard({
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+export default function CartCards() {
+  const user = useCartStore((state) => state.user);
+  const cart = useCartStore((state) => state.cart);
+  const setCart = useCartStore((state) => state.setCart);
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  useEffect(() => {
+    if (user) {
+      console.log(user.id, "user id");
+      const fetchCart = async () => {
+        const res = await fetch(`/api/cart/${user.id}`);
+        const data = await res.json();
+        setCart(data.data);
+      };
+      fetchCart();
+    }
+  }, [user, setCart]);
+
+  return (
+    <div>
+      {cart?.item?.map((item, index) => (
+        <CartCard key={index} heart={heart} edit={edit} del={del} />
+      ))}
+      <CartCard heart={heart} edit={edit} del={del} />
     </div>
   );
 }

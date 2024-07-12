@@ -1,5 +1,5 @@
 import Image from "next/image";
-import image7 from "../public/assets/image7.png";
+import image7 from "@/public/assets/image7.png";
 import { Button } from "./Button";
 
 export default function Wishlist() {

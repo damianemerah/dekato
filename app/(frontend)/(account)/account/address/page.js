@@ -1,3 +1,4 @@
+import { Button } from "@/app/ui/Button";
 import React from "react";
 
 export default function Address() {
@@ -7,6 +8,7 @@ export default function Address() {
         Shipping Address
       </h1>
       <div>
+        <Button>Add new Address</Button>
         <div>
           <p className="text-xs mb-2">Default Shipping Address</p>
           <p>John Doe</p>

@@ -5,7 +5,7 @@ const path = require("path");
 
 //AWS-SES
 
-module.exports = class Email {
+export default class Email {
   constructor(user, url) {
     this.to = user.email;
     this.firstName = user.firstname || "Customer";
@@ -68,4 +68,4 @@ module.exports = class Email {
       "Your password reset token (valid for only 10 minutes)"
     );
   }
-};
+}

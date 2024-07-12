@@ -4,7 +4,6 @@ import User from "@/models/user";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
-import { validate } from "uuid";
 
 export async function GET(req, { params }) {
   try {
@@ -17,7 +16,7 @@ export async function GET(req, { params }) {
     const user = await User.findById(userId);
     if (!user) throw new AppError("No user found with that ID", 404);
 
-    const userAddress = await Address.find({ user: userId });
+    const userAddress = await Address.find({ userId });
 
     if (!userAddress) throw new AppError("No address found for this user", 404);
 

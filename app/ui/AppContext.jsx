@@ -1,11 +1,23 @@
 "use client";
 
 import { createContext, useState, useContext, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/store";
 
 const AppContext = createContext();
 
 export default function AppProvider({ children }) {
   const [show, setShow] = useState(false);
+  const { data: session } = useSession();
+  const setUser = useUserStore((state) => state.setUser);
+
+  useEffect(() => {
+    if (session?.user) {
+      setUser(session.user);
+    } else {
+      setUser(null);
+    }
+  }, [session, setUser]);
 
   return (
     <AppContext.Provider

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import User from "./user";
-import Product from "./product";
+// import User from "./user";
+// import Product from "./product";
 
 const wishlistSchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
     required: true,

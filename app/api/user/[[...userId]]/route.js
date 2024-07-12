@@ -7,8 +7,10 @@ import filterObj from "@/utils/filterObj";
 import { Cart } from "@/models/cart";
 import Wishlist from "@/models/wishlist";
 import { protect, restrictTo } from "@/utils/checkPermission";
+import Email from "@/utils/email";
 
 export async function POST(req) {
+  console.log("Create User🔥🔥🔥", req.nextUrl.origin);
   try {
     await dbConnect();
 
@@ -27,14 +29,15 @@ export async function POST(req) {
     const user = await User.create(filterField);
 
     if (user) {
-      await Cart.create({ user: user._id, item: [] });
-      await Wishlist.create({ user: user._id, product: [] });
+      console.log("🎈🎈", user);
+      await Cart.create({ userId: user._id, item: [] });
+      await Wishlist.create({ userId: user._id, product: [] });
     }
 
     //send welcome email
-    // await new Email(user, url).sendWelcome();
+    await new Email(user, url).sendWelcome();
 
-    return NextResponse.json({ success: true, data: user }, { status: 201 });
+    return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.log(error, "AppError🔥🔥🔥");
     return handleAppError(error, req);
@@ -46,8 +49,7 @@ export async function GET(req, { params }) {
     await dbConnect();
     const userId = params.userId;
 
-    const user = await User.findById(userId).populate("address");
-
+    const user = await User.findById(userId);
     if (!user) {
       throw new AppError("No user found with that ID", 404);
     }

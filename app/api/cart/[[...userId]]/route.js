@@ -50,7 +50,7 @@ export async function POST(req) {
     await dbConnect();
 
     const body = await req.json();
-    const { userId, item } = body;
+    const { userId, item: newItem } = body;
     const user = await User.findById(userId);
     let existingProduct;
 
@@ -59,20 +59,20 @@ export async function POST(req) {
     }
 
     // Check if product exists or variant exists
-    if (item.variantId) {
+    if (newItem.variantId) {
       existingProduct = await Product.findOne({
-        _id: item.product,
-        "variant._id": item.variantId,
+        _id: newItem.productId,
+        "variant._id": newItem.variantId,
       });
     } else {
-      existingProduct = await Product.findOne({ _id: item.product });
+      existingProduct = await Product.findOne({ _id: newItem.productId });
     }
 
     if (!existingProduct) {
       throw new AppError("Product or variant not found", 404);
     }
 
-    checkQuantity(item, existingProduct);
+    checkQuantity(newItem, existingProduct);
 
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new AppError("Cart not found", 404);
@@ -82,19 +82,19 @@ export async function POST(req) {
       userId,
     }).populate({
       path: "item",
-      match: { product: item.product },
+      match: { productId: newItem.productId },
     });
 
     if (existingItem) {
       // check if variant already exists
       if (
-        item.variantId &&
+        newItem.variantId &&
         !existingItem.item.some(
-          (cartItem) => cartItem.variantId === item.variantId
+          (cartItem) => cartItem.variantId === newItem.variantId
         )
       ) {
         //check quantity
-        const cartItem = await CartItem.create(item);
+        const cartItem = await CartItem.create(newItem);
         existingItem.item.push(cartItem);
         await existingItem.save();
 
@@ -107,12 +107,12 @@ export async function POST(req) {
           { status: 201 }
         );
       }
-      // Check if item already exists in cart
+      // Check if original item already exists in cart
       else if (
-        !item.variantId &&
+        !newItem.variantId &&
         existingItem.item.every((cartItem) => cartItem.variantId)
       ) {
-        const cartItem = await CartItem.create(item);
+        const cartItem = await CartItem.create(newItem);
         existingItem.item.push(cartItem);
         await existingItem.save();
 
@@ -125,8 +125,10 @@ export async function POST(req) {
           { status: 201 }
         );
       }
-    } else {
-      const cartItem = await CartItem.create(item);
+    }
+    // new item
+    else {
+      const cartItem = await CartItem.create(newItem);
       cart.item.push(cartItem);
       await cart.save();
       return NextResponse.json(
@@ -135,6 +137,7 @@ export async function POST(req) {
       );
     }
 
+    // Item exists in cart
     return NextResponse.json(
       { success: true, length: cart.item.length, data: cart },
       { status: 201 }
@@ -173,7 +176,7 @@ export async function PATCH(req) {
       });
     } else {
       existingProduct = await Product.findOne({
-        _id: cartItem.product,
+        _id: cartItem.productId,
       });
     }
 

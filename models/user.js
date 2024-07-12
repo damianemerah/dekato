@@ -2,9 +2,8 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 import crypto from "crypto";
-import Address from "./address.js";
-import Wishlist from "./wishlist.js";
-import Cart from "./cart.js";
+// import Wishlist from "./wishlist.js";
+// import Cart from "./cart.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -26,7 +25,6 @@ const userSchema = new mongoose.Schema(
       validate: [validator.isEmail, "Please provide a valid email"],
       trim: true,
     },
-    address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
     emailVerified: { type: Boolean, default: false },
     role: {
       type: String,
@@ -37,10 +35,10 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Please provide a password"],
-      validate: [
-        validator.isStrongPassword,
-        "Password must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 number and 1 symbol",
-      ],
+      validator: function (value) {
+        return validator.isLength(value, { min: 8 });
+      },
+      message: "Password must be at least 8 characters long",
       select: false,
     },
     passwordConfirm: {
@@ -67,7 +65,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre(/^find/, function (next) {
-  this.find({ active: { $ne: false } }).populate("address");
+  this.find({ active: { $ne: false } });
   next();
 });
 

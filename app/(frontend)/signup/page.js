@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import fbIcon from "@/public/assets/icons/fb-icon.svg";
 import google from "@/public/assets/icons/google.svg";
+import viewIcon from "@/public/assets/icons/view.svg";
+import viewOff from "@/public/assets/icons/view-off.svg";
+import toast from "react-hot-toast";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +17,8 @@ const SignUp = () => {
     password: "",
     passwordConfirm: "",
   });
+
+  const [viewPassword, setViewPassword] = useState(false);
 
   const router = useRouter();
   useEffect(() => {
@@ -41,8 +46,10 @@ const SignUp = () => {
     console.log(result, "result🚀🚀🚀");
 
     if (result.ok) {
-      //redirect to /signin
       router.push("/signin");
+      toast.success(
+        "Sign up successful! Please check your email to verify your account."
+      );
       const data = await result.json();
       console.log(data, "data🚀🚀🚀");
     }
@@ -51,10 +58,10 @@ const SignUp = () => {
   return (
     <div className="flex_center my-16 mx-auto max-w-2xl px-20 py-10 border border-gray-300 rounded-lg shadow-md bg-white">
       <h2>Sign Up</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col mt-4 w-full gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col mt-4 w-full gap-3">
         <div className="flex-1 item__center shrink-0 grow-0 basis-1/2 gap-4">
           <div className="flex flex-col">
-            <label style={{ marginBottom: "8px" }} htmlFor="firstname">
+            <label className="block mb-1" htmlFor="firstname">
               Firstname
             </label>
             <input
@@ -67,7 +74,7 @@ const SignUp = () => {
             />
           </div>
           <div className="flex-1 flex flex-col">
-            <label style={{ marginBottom: "8px" }} htmlFor="lastname">
+            <label className="block mb-1" htmlFor="lastname">
               Lastname
             </label>
             <input
@@ -76,48 +83,71 @@ const SignUp = () => {
               name="lastname"
               value={formData.lastname}
               onChange={handleChange}
-              placeholder="Lastname"
               className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
             />
           </div>
         </div>
-        <label style={{ marginBottom: "8px" }} htmlFor="email">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Email"
-          className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
-        />
+        <div>
+          <label className="block mb-1" htmlFor="email">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+          />
+        </div>
 
-        <label style={{ marginBottom: "8px" }} htmlFor="password">
-          Password
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="Password"
-          className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
-        />
-        <label style={{ marginBottom: "8px" }} htmlFor="passwordConfirm">
-          Password Confirm
-        </label>
-        <input
-          type="password"
-          id="passwordConfirm"
-          name="passwordConfirm"
-          value={formData.passwordConfirm}
-          onChange={handleChange}
-          placeholder="Password Confirm"
-          className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
-        />
+        <div>
+          <label className="block mb-1" htmlFor="password">
+            Password
+          </label>
+          <div className="flex justify-between items-center bg-gray-100 rounded-md">
+            <input
+              type={viewPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+            />
+            <Image
+              className="pr-2.5 cursor-pointer"
+              src={viewPassword ? viewIcon : viewOff}
+              width={30}
+              height={30}
+              alt="View password"
+              onClick={() => setViewPassword(!viewPassword)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block mb-1" htmlFor="passwordConfirm">
+            Password Confirm
+          </label>
+          <div className="flex justify-between items-center bg-gray-100 rounded-md">
+            <input
+              type={viewPassword ? "text" : "password"}
+              id="passwordConfirm"
+              name="passwordConfirm"
+              value={formData.passwordConfirm}
+              onChange={handleChange}
+              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+            />
+            <Image
+              className="pr-2.5 cursor-pointer"
+              src={viewPassword ? viewIcon : viewOff}
+              width={30}
+              height={30}
+              alt="View password"
+              onClick={() => setViewPassword(!viewPassword)}
+            />
+          </div>
+        </div>
 
         <button
           type="submit"

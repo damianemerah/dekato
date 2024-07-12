@@ -1,31 +1,30 @@
 import Image from "next/image";
 import Link from "next/link";
-import image3 from "@/public/assets/image3.png";
 import { oswald, inter } from "@/font";
 
-export default function ProductCard() {
+export default function ProductCard({ product, className }) {
   return (
     <Link
       href="#"
-      className={`flex flex-col w-64 mr-3 mb-3 ${oswald.className} animate_hover`}
+      className={`flex flex-col w-[230px] mr-3 mb-3 ${oswald.className} animate_hover bg-white ${className} rounded-md`}
     >
-      <div className="flex justify-center shrink-0 overflow-hidden relative ">
+      <div className="overflow-hidden relative flex items-center justify-center">
         <Image
-          src={image3}
-          width="100%"
-          height="100%"
+          src={product?.image[0]}
+          width={230}
+          height={230}
           alt="product image"
-          className="block object-cover"
+          className="object-cover"
         />
       </div>
-      <div className="p-2">
+      <div className="p-2.5">
         <p className={`${inter.className} opacity-50 text-xs uppercase `}>
-          Product Category
+          {product.cat}
         </p>
-        <p className="text-lg font-light mb-2">
-          Angels malu zip jeans slim black used
+        <p className="text-lg leading-6 font-light mb-2 overflow-ellipsis line-clamp-2">
+          {product.description}
         </p>
-        <p>₦13,900 EUR</p>
+        <p>₦{product.price}</p>
       </div>
     </Link>
   );
