@@ -1,4 +1,4 @@
-import { inter } from "@/font";
+import { roboto } from "@/font";
 import "@/style/globals.css";
 import Provider from "@/app/ui/Provider";
 import Header from "@/app/ui/Header";
@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <Provider>
-        <body className={`${inter.className}`}>
+        <body className={`${roboto.className} antialiased`}>
           <AppProvider>
             <Header />
             <ToastContainer position="top-center" />
