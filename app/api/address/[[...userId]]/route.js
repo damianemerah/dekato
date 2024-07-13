@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/mongoConnection";
+import dbConnect from "@/lib/mongoConnection";
 import Address from "@/models/address";
 import User from "@/models/user";
 import { NextResponse } from "next/server";

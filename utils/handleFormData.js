@@ -1,5 +1,5 @@
 import AppError from "@/utils/errorClass";
-import { uploadFiles, deleteFiles } from "@/utils/s3Func";
+import { uploadFiles, deleteFiles } from "@/lib/s3Func";
 
 //Model here is designed to be only Product model
 export const handleFormData = async (formData, Model, id) => {

@@ -7,6 +7,7 @@ import SubPageCampaign from "@/app/ui/SubPageCampaign";
 import Galley from "@/app/ui/home/Galley";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
+import ProductList from "@/app/ui/ProductList";
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
       <Campaign />
       <div className="py-10 px-5">
         <h2 className="mb-7">YOU MAY ALSO LIKE</h2>
-        <ProductCard />
+        <ProductList cat="men" />
       </div>
       <div className={`flex items-center justify-center mb-10 gap-5`}>
         <div className="block w-1/2 flex-1 self-stretch">

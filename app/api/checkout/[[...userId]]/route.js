@@ -2,7 +2,7 @@ import Order from "@/models/order";
 import Address from "@/models/address";
 import { Product } from "@/models/product";
 import { Cart } from "@/models/cart";
-import dbConnect from "@/utils/mongoConnection";
+import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";

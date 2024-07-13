@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
-import dbConnect from "@/utils/mongoConnection";
+import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
 import NextAuth from "next-auth";
 import { signIn } from "next-auth/react";
@@ -44,7 +44,7 @@ export const OPTIONS = {
         token.role = user.role;
       }
 
-      console.log("Token🔥", token);
+      // console.log("Token🔥", token);
 
       return token;
     },
@@ -53,7 +53,7 @@ export const OPTIONS = {
         ...token,
       };
 
-      console.log("Session🔥", session);
+      // console.log("Session🔥", session);
 
       return session;
     },

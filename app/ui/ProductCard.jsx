@@ -21,10 +21,10 @@ export default function ProductCard({ product, className }) {
         <p className={`${inter.className} opacity-50 text-xs uppercase `}>
           {product.cat}
         </p>
-        <p className="text-lg leading-6 font-light mb-2 overflow-ellipsis line-clamp-2">
-          {product.description}
+        <p className="text-lg leading-5 font-light mb-2 overflow-ellipsis line-clamp-2">
+          {product.name}
         </p>
-        <p>₦{product.price}</p>
+        <p className="text-primary">₦{product.price}</p>
       </div>
     </Link>
   );

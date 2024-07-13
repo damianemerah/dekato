@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/mongoConnection";
+import dbConnect from "@/lib/mongoConnection";
 import { Product } from "@/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
@@ -6,13 +6,13 @@ import APIFeatures from "@/utils/apiFeatures";
 import AppError from "@/utils/errorClass";
 import { handleFormData } from "@/utils/handleFormData";
 import Category from "@/models/category";
-import { deleteFiles } from "@/utils/s3Func";
+import { deleteFiles } from "@/lib/s3Func";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
 export async function POST(req) {
   try {
-    // await protect();
-    // await restrictTo("admin");
+    await protect();
+    await restrictTo("admin");
     await dbConnect();
 
     const formData = await req.formData();
@@ -37,13 +37,7 @@ export async function GET(req) {
 
     const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 
-    const feature = new APIFeatures(
-      Product.find().populate({
-        path: "category",
-        select: "slug",
-      }),
-      searchParams
-    )
+    const feature = new APIFeatures(Product.find(), searchParams)
       .filter()
       .sort()
       .limitFields()
@@ -81,7 +75,7 @@ export async function PATCH(req) {
       existingProduct.variant.map((variant) => [
         variant._id.toString(),
         variant,
-      ])
+      ]),
     );
 
     // Update existing variants and collect new variants

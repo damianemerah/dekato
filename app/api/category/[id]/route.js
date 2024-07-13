@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/mongoConnection";
+import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";

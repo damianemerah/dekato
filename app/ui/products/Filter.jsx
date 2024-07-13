@@ -7,8 +7,10 @@ export default function Filter() {
     console.log(name, value);
   };
 
+  //  query string /men?min=5000&max=10000&color=red
+
   return (
-    <div className="flex items-center justify-end gap-10 mr-10 mb-3">
+    <div className="mb-3 mr-10 flex items-center justify-end gap-10">
       <div className="flex items-center">
         <h3 className="mr-2">Filter By:</h3>
         <div className="flex items-center gap-1">
@@ -22,7 +24,7 @@ export default function Filter() {
               step={1000}
               onChange={handleChange}
               min={1000}
-              className="w-20 p-1 border border-black rounded-md"
+              className="w-20 rounded-md border border-black p-1"
             />
           </div>
           <p>-</p>
@@ -34,15 +36,15 @@ export default function Filter() {
               placeholder="max"
               step={1000}
               onChange={handleChange}
-              className="w-20 p-1 border border-black rounded-md"
+              className="w-20 rounded-md border border-black p-1"
             />
           </div>
         </div>
       </div>
-      <div className=" flex items-center">
+      <div className="flex items-center">
         <h3 className="mr-2">Sort By:</h3>
         <select
-          className="border border-gray-950 p-2 rounded-full"
+          className="rounded-full border border-gray-950 p-2"
           name="sortBy"
           id="sortBy"
         >

@@ -8,8 +8,6 @@ import localShip from "@/public/assets/icons/local_shipping.svg";
 import cart from "@/public/assets/icons/cart.svg";
 import logo from "@/public/assets/icons/dekato.png";
 import { signOut } from "next-auth/react";
-import { toast } from "react-toastify";
-import { useSession } from "next-auth/react";
 import { useUserStore } from "@/store/store";
 // import { useAppContext } from "./AppContext";
 
@@ -21,9 +19,9 @@ function Header() {
     <div>
       <header
         // ref={headerRef}
-        className={`flex justify-between items-center px-12 py-3 text-white bg-slate-950 max-md:flex-wrap max-md:px-5`}
+        className={`flex items-center justify-between bg-slate-950 px-12 py-3 text-white max-md:flex-wrap max-md:px-5`}
       >
-        <div className="flex gap-10 justify-between items-center py-1 text-sm font-medium uppercase whitespace-nowrap">
+        <div className="flex items-center justify-between gap-10 whitespace-nowrap py-1 text-sm font-medium uppercase">
           <Image
             // onClick={() => setShow(!show)}
             alt="cat"
@@ -31,7 +29,7 @@ function Header() {
             width={100}
             height={100}
             src={menu}
-            className="cursor-pointer shrink-0 self-stretch w-8 aspect-square"
+            className="aspect-square w-8 shrink-0 cursor-pointer self-stretch"
           />
           <Link href="/">
             <Image
@@ -40,7 +38,7 @@ function Header() {
               height="100%"
               loading="lazy"
               src={logo}
-              className="shrink-0 self-stretch my-auto max-w-full aspect-[5] fill-white w-[101px]"
+              className="my-auto aspect-[5] w-[101px] max-w-full shrink-0 self-stretch fill-white"
             />
           </Link>
 
@@ -49,15 +47,15 @@ function Header() {
             <li className="p-1">Men</li>
           </ul>
         </div>
-        <div className="relative flex flex-1 items-center mx-10 max-w-xl">
+        <div className="relative mx-10 flex max-w-xl flex-1 items-center">
           <input
             type="text"
             placeholder="Search..."
-            className="px-4 py-2 rounded-full bg-white text-black outline-none w-full"
+            className="w-full rounded-full bg-white px-4 py-2 text-black outline-none"
           />
           <button type="button">
             <svg
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black"
+              className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-black"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -70,7 +68,7 @@ function Header() {
           </button>
         </div>
 
-        <div className="flex gap-8 justify-center items-center text-xs tracking-normal whitespace-nowrap">
+        <div className="flex items-center justify-center gap-8 whitespace-nowrap text-xs tracking-normal">
           <div className="flex flex-col items-center justify-center gap-1">
             <Image
               alt="cat"
@@ -107,7 +105,7 @@ function Header() {
           </div>
         </div>
       </header>
-      <div className="text-center bg-white text-black py-2 px-8 flex justify-center self-center">
+      <div className="flex justify-center self-center bg-white px-8 py-2 text-center text-black">
         <Image
           src={localShip}
           width="100%"
@@ -117,9 +115,9 @@ function Header() {
         />
         <p>FREE SHIPPING ON ORDERS ABOVE ₦150,000</p>
         <button
-          className="p-4 bg-black text-white"
+          className="bg-black p-4 text-white"
           onClick={async () => {
-            await signOut({ callbackUrl: "/signin" });
+            await signOut();
             toast.success("You have signed out successfully");
           }}
         >

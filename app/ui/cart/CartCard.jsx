@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image";
 import image10 from "@/public/assets/image10.png";
 import { inter } from "@/font";

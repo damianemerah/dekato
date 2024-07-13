@@ -3,7 +3,7 @@ import User from "@/models/user";
 import { Product } from "@/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
-import dbConnect from "@/utils/mongoConnection";
+import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
 import checkQuantity from "@/utils/checkQuantity";
 import _ from "lodash";
