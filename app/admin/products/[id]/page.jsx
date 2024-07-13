@@ -34,7 +34,7 @@ import usePopover from "../../hooks/usePopover";
 import { VariantsTableComponent } from "@/app/admin/components";
 import { ProductOrganization } from "@/app/admin/ui/products/new";
 
-function AddProduct() {
+function Product() {
   //State
   const [files, setFiles] = useState([]);
   const [titleValue, setTitleValue] = useState("");
@@ -195,7 +195,7 @@ function AddProduct() {
   return (
     <Page
       backAction={{ content: "Products", url: "/admin/products" }}
-      title="Add Product"
+      title="#17394"
     >
       <InlineGrid columns={{ xs: 1, lg: "2fr 1fr" }} gap="400">
         <BlockStack gap="400">
@@ -484,4 +484,4 @@ function AddProduct() {
   );
 }
 
-export default AddProduct;
+export default Product;

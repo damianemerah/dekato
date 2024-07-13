@@ -18,21 +18,26 @@ import {
   SkeletonBodyText,
   SkeletonDisplayText,
   SkeletonPage,
-  BlockStack,
+  TextContainer,
   TextField,
   Toast,
   TopBar,
 } from "@shopify/polaris";
 import {
-  OrderFilledIcon,
-  ProductFilledIcon,
-  HomeFilledIcon,
-  CollectionFilledIcon,
-  PersonFilledIcon,
-  InventoryFilledIcon,
+  OrdersMinor,
+  ProductsMinor,
+  HomeMinor,
+  CollectionsMajor,
+  CustomersFilledMinor,
+  InventoryMajor,
+  ArrowLeftMinor,
+  HomeMajor,
+  OrdersMajor,
+  ConversationMinor,
 } from "@shopify/polaris-icons";
 
 import { LinkWrapper } from "./components";
+import Link from "next/link";
 
 function AdminLayout({ children }) {
   // Loading component and active navlink style
@@ -249,34 +254,34 @@ function AdminLayout({ children }) {
           {
             url: "/admin",
             label: "Home",
-            icon: HomeFilledIcon,
+            icon: HomeMinor,
             onClick: () => handleNavItemClick("admin"),
             selected: selectedNavItem === "admin",
           },
           {
             url: "/admin/orders",
             label: "Orders",
-            icon: OrderFilledIcon,
+            icon: OrdersMinor,
             onClick: () => handleNavItemClick("orders"),
             selected: selectedNavItem === "orders",
           },
           {
             url: "/admin/products",
             label: "Products",
-            icon: ProductFilledIcon,
+            icon: ProductsMinor,
             onClick: () => handleNavItemClick("products"),
             selected: selectedNavItem === "products",
           },
           {
             url: "/admin/collections",
-            icon: CollectionFilledIcon,
+            icon: CollectionsMajor,
             label: "Collections",
             onClick: () => handleNavItemClick("collections"),
             selected: selectedNavItem === "collections",
           },
           {
             url: "/admin/products/inventory",
-            icon: InventoryFilledIcon,
+            icon: InventoryMajor,
             label: "Inventory",
             onClick: () => handleNavItemClick("inventory"),
             selected: selectedNavItem === "inventory",
@@ -284,7 +289,7 @@ function AdminLayout({ children }) {
           {
             url: "/admin/customers",
             label: "Customers",
-            icon: PersonFilledIcon,
+            icon: CustomersFilledMinor,
             onClick: () => handleNavItemClick("customers"),
             selected: selectedNavItem === "customers",
           },
@@ -344,10 +349,10 @@ function AdminLayout({ children }) {
       <Layout>
         <Layout.Section>
           <LegacyCard sectioned>
-            <BlockStack>
+            <TextContainer>
               <SkeletonDisplayText size="small" />
               <SkeletonBodyText lines={9} />
-            </BlockStack>
+            </TextContainer>
           </LegacyCard>
         </Layout.Section>
       </Layout>
@@ -392,11 +397,12 @@ function AdminLayout({ children }) {
 
   // Logo configuration for the frame
   const logo = {
-    url: "/",
     width: 86,
-    topBarSource: "https://i.imgur.com/arAvlhb.png",
-    contextualSaveBarSource: "https://i.imgur.com/arAvlhb.png",
-    accessibilityLabel: "Dekato",
+    topBarSource:
+      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
+    contextualSaveBarSource:
+      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
+    accessibilityLabel: "Shopify",
   };
 
   // Render the admin layout
