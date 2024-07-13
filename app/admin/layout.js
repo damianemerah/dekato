@@ -392,12 +392,11 @@ function AdminLayout({ children }) {
 
   // Logo configuration for the frame
   const logo = {
+    url: "/",
     width: 86,
-    topBarSource:
-      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
-    contextualSaveBarSource:
-      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
-    accessibilityLabel: "Shopify",
+    topBarSource: "https://i.imgur.com/arAvlhb.png",
+    contextualSaveBarSource: "https://i.imgur.com/arAvlhb.png",
+    accessibilityLabel: "Dekato",
   };
 
   // Render the admin layout

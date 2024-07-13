@@ -73,14 +73,6 @@ function NewCustomer() {
           </BlockStack>
         </Card>
       </BlockStack>
-      {/* <BlockStack gap={{ xs: '400', md: '200' }}>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'></BlockStack>
-          </Card>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'></BlockStack>
-          </Card>
-        </BlockStack> */}
       {/* </InlineGrid> */}
     </Page>
   );
