@@ -8,7 +8,7 @@
 }
 
 h2 {
-  @apply text-2xl font-bold mb-2;
+  @apply mb-2 text-2xl font-bold;
 }
 
 h1,
@@ -17,11 +17,11 @@ h2 {
 }
 
 .flex__center {
-  @apply flex justify-center items-center;
+  @apply flex items-center justify-center;
 }
 
 .flex__btw {
-  @apply flex justify-between items-center;
+  @apply flex items-center justify-between;
 }
 
 .item__center {
@@ -38,7 +38,7 @@ a:link {
 }
 
 .center {
-  @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+  @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform;
 }
 
 .heading_bd::after,
