@@ -3,7 +3,7 @@ import User from "@/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
-import filterObj from "@/utils/filterObj";
+import {filterObj} from "@/utils/filterObj";
 import { Cart } from "@/models/cart";
 import Wishlist from "@/models/wishlist";
 import { protect, restrictTo } from "@/utils/checkPermission";

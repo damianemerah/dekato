@@ -2,7 +2,7 @@ import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
-import { handleFormData } from "@/utils/handleFormData";
+import { handleFormData } from "@/utils/handleForm";
 import AppError from "@/utils/errorClass";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
@@ -22,20 +22,20 @@ export async function POST(req) {
       const parent = await Category.findByIdAndUpdate(
         body.parent,
         { $push: { children: category._id } },
-        { new: true }
+        { new: true },
       ).select("slug");
 
       if (!parent) {
         return NextResponse.json(
           { success: false, error: "Parent category not found" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
 
     return NextResponse.json(
       { success: true, data: category },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -62,7 +62,7 @@ export async function GET(req) {
         success: true,
         data: category,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -92,7 +92,7 @@ export async function PATCH(req) {
 
     return NextResponse.json(
       { success: true, data: category },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -128,7 +128,7 @@ export async function DELETE(req) {
       // If parent ID is not null, set parent of orphaned children to deleted category's parent
       await Category.updateMany(
         { _id: { $in: orphanedChildrenIds } },
-        { $set: { parent: deletedCategory.parent } }
+        { $set: { parent: deletedCategory.parent } },
       );
     }
 

@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
-import checkQuantity from "@/utils/checkQuantity";
+import getQuantity from "@/utils/getQuantity";
 import _ from "lodash";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
@@ -30,13 +30,13 @@ export async function GET(req, { params }) {
       });
       return NextResponse.json(
         { success: true, length: newCart.item.length, data: newCart },
-        { status: 201 }
+        { status: 201 },
       );
     }
 
     return NextResponse.json(
       { success: true, length: cart.item.length, data: cart },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -72,7 +72,7 @@ export async function POST(req) {
       throw new AppError("Product or variant not found", 404);
     }
 
-    checkQuantity(newItem, existingProduct);
+    getQuantity(newItem, existingProduct);
 
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new AppError("Cart not found", 404);
@@ -90,7 +90,7 @@ export async function POST(req) {
       if (
         newItem.variantId &&
         !existingItem.item.some(
-          (cartItem) => cartItem.variantId === newItem.variantId
+          (cartItem) => cartItem.variantId === newItem.variantId,
         )
       ) {
         //check quantity
@@ -104,7 +104,7 @@ export async function POST(req) {
             length: existingItem.item.length,
             data: existingItem,
           },
-          { status: 201 }
+          { status: 201 },
         );
       }
       // Check if original item already exists in cart
@@ -122,7 +122,7 @@ export async function POST(req) {
             length: existingItem.item.length,
             data: existingItem,
           },
-          { status: 201 }
+          { status: 201 },
         );
       }
     }
@@ -133,14 +133,14 @@ export async function POST(req) {
       await cart.save();
       return NextResponse.json(
         { success: true, length: cart.item.length, data: cart },
-        { status: 201 }
+        { status: 201 },
       );
     }
 
     // Item exists in cart
     return NextResponse.json(
       { success: true, length: cart.item.length, data: cart },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -182,7 +182,7 @@ export async function PATCH(req) {
 
     if (!existingProduct) throw new AppError("Product not found", 404);
 
-    checkQuantity(body, existingProduct);
+    getQuantity(body, existingProduct);
 
     //quantity and body.quantity is not the same, idk why
     if (quantity && quantity > 0 && typeof quantity === "number") {
@@ -196,12 +196,12 @@ export async function PATCH(req) {
         {
           $pull: { item: itemId },
         },
-        { new: true }
+        { new: true },
       );
 
       return NextResponse.json(
         { success: true, data: updatedCart },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -210,7 +210,7 @@ export async function PATCH(req) {
         { cartId },
         {
           $set: { checked: selectAll },
-        }
+        },
       );
     }
 
@@ -219,7 +219,7 @@ export async function PATCH(req) {
 
     return NextResponse.json(
       { success: true, data: updatedCart },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -253,7 +253,7 @@ export async function DELETE(req) {
           length: cart.item.length,
           data: cart,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -265,7 +265,7 @@ export async function DELETE(req) {
 
     // Check if item exists in cart
     const existingItemIndex = cart.item.findIndex(
-      (item) => item._id.toString() === itemId
+      (item) => item._id.toString() === itemId,
     );
 
     if (existingItemIndex !== -1) {
@@ -273,7 +273,7 @@ export async function DELETE(req) {
       await cart.save();
       return NextResponse.json(
         { success: true, length: cart.item.length, data: cart },
-        { status: 200 }
+        { status: 200 },
       );
     } else {
       throw new AppError("Item not found", 404);

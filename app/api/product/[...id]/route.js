@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
 import { startSession } from "mongoose";
-import checkQuantity from "@/utils/checkQuantity";
+import getComputedStyleQuantity from "@/utils/getQuantity";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
@@ -30,7 +30,6 @@ export async function GET(req, { params }) {
 
 //Single product order
 export async function POST(req, { params }) {
-  await protect();
   await restrictTo("admin", "user");
   await dbConnect();
   const session = await startSession();
@@ -65,7 +64,7 @@ export async function POST(req, { params }) {
       });
     }
 
-    checkQuantity(singleProduct, product);
+    getComputedStyleQuantity(singleProduct, product);
 
     if (shippingMethod.toLowerCase() === "delivery" && !address) {
       throw new AppError("Address is required for delivery", 400);
@@ -73,7 +72,7 @@ export async function POST(req, { params }) {
 
     if (shippingMethod.toLowerCase() === "delivery") {
       const userAddress = await Address.findOne({ user: userId }).session(
-        session
+        session,
       );
 
       if (!userAddress) {
@@ -84,7 +83,7 @@ export async function POST(req, { params }) {
     const amount = Math.ceil(
       singleProduct.variantId
         ? variant.price || product.price * singleProduct.quantity
-        : product.price * singleProduct.quantity
+        : product.price * singleProduct.quantity,
     );
 
     const orderData = {
@@ -124,7 +123,7 @@ export async function POST(req, { params }) {
 
     return NextResponse.json(
       { success: true, data: { payment, order: createdOrder } },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.log(error);

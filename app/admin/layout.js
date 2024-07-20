@@ -1,8 +1,8 @@
-'use client';
-import { useState, useCallback, useRef } from 'react';
+"use client";
+import { useState, useCallback, useRef } from "react";
 
-import '@shopify/polaris/build/esm/styles.css';
-import './admin.css';
+import "@shopify/polaris/build/esm/styles.css";
+import "./admin.css";
 import {
   AppProvider,
   Frame,
@@ -11,22 +11,22 @@ import {
   ActionList,
   ContextualSaveBar,
   Toast,
-} from '@shopify/polaris';
-import en from '@shopify/polaris/locales/en.json';
-import { LinkWrapper, TopBarMarkup } from './components';
+} from "@shopify/polaris";
+import en from "@shopify/polaris/locales/en.json";
+import { LinkWrapper, TopBarMarkup } from "./components";
 import {
   HomeMinor,
   OrdersFilledMinor,
   ProductsFilledMinor,
   CustomersFilledMinor,
-} from '@shopify/polaris-icons';
-import { usePathname } from 'next/navigation';
+} from "@shopify/polaris-icons";
+import { usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
 
-  const paths = pathname.split('/').filter(Boolean);
-  const selected = paths.length > 0 ? paths[paths.length - 1] : 'home';
+  const paths = pathname.split("/").filter(Boolean);
+  const selected = paths.length > 0 ? paths[paths.length - 1] : "home";
 
   const [selectedNavItem, setSelectedNavItem] = useState(selected);
   const [exclude, setExclude] = useState(null);
@@ -43,8 +43,8 @@ export default function AdminLayout({ children }) {
   //TopBar
 
   const defaultState = useRef({
-    emailFieldValue: 'dharma@jadedpixel.com',
-    nameFieldValue: 'Jaded Pixel',
+    emailFieldValue: "dharma@jadedpixel.com",
+    nameFieldValue: "Jaded Pixel",
   });
   const skipToContentRef = useRef(null);
 
@@ -52,18 +52,18 @@ export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [userMenuActive, setUserMenuActive] = useState(false);
   // const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
   // const [modalActive, setModalActive] = useState(false);
   const [nameFieldValue, setNameFieldValue] = useState(
-    defaultState.current.nameFieldValue
+    defaultState.current.nameFieldValue,
   );
   const [emailFieldValue, setEmailFieldValue] = useState(
-    defaultState.current.emailFieldValue
+    defaultState.current.emailFieldValue,
   );
   const [storeName, setStoreName] = useState(
-    defaultState.current.nameFieldValue
+    defaultState.current.nameFieldValue,
   );
   // const [supportSubject, setSupportSubject] = useState('');
   // const [supportMessage, setSupportMessage] = useState('');
@@ -99,7 +99,7 @@ export default function AdminLayout({ children }) {
   // }, []);
   const handleSearchResultsDismiss = useCallback(() => {
     setSearchActive(false);
-    setSearchValue('');
+    setSearchValue("");
   }, []);
   const handleSearchFieldChange = useCallback((value) => {
     setSearchValue(value);
@@ -107,18 +107,18 @@ export default function AdminLayout({ children }) {
   }, []);
   const toggleToastActive = useCallback(
     () => setToastActive((toastActive) => !toastActive),
-    []
+    [],
   );
   const toggleUserMenuActive = useCallback(
     () => setUserMenuActive((userMenuActive) => !userMenuActive),
-    []
+    [],
   );
   const toggleMobileNavigationActive = useCallback(
     () =>
       setMobileNavigationActive(
-        (mobileNavigationActive) => !mobileNavigationActive
+        (mobileNavigationActive) => !mobileNavigationActive,
       ),
-    []
+    [],
   );
   // const toggleIsLoading = useCallback(
   //   () => setIsLoading((isLoading) => !isLoading),
@@ -135,7 +135,7 @@ export default function AdminLayout({ children }) {
 
   const userMenuActions = [
     {
-      items: [{ content: 'Community forums' }],
+      items: [{ content: "Community forums" }],
     },
   ];
 
@@ -154,9 +154,9 @@ export default function AdminLayout({ children }) {
   const userMenuMarkup = (
     <TopBar.UserMenu
       actions={userMenuActions}
-      name='Dharma'
+      name="Dharma"
       detail={storeName}
-      initials='D'
+      initials="D"
       open={userMenuActive}
       onToggle={toggleUserMenuActive}
     />
@@ -165,8 +165,8 @@ export default function AdminLayout({ children }) {
   const searchResultsMarkup = (
     <ActionList
       items={[
-        { content: 'Shopify help center' },
-        { content: 'Community forums' },
+        { content: "Shopify help center" },
+        { content: "Community forums" },
       ]}
     />
   );
@@ -175,7 +175,7 @@ export default function AdminLayout({ children }) {
     <TopBar.SearchField
       onChange={handleSearchFieldChange}
       value={searchValue}
-      placeholder='Search'
+      placeholder="Search"
     />
   );
 
@@ -195,73 +195,73 @@ export default function AdminLayout({ children }) {
 
   const navigationItems = [
     {
-      url: '/admin',
-      excludePaths: ['#'],
-      label: 'Home',
+      url: "/admin",
+      excludePaths: ["#"],
+      label: "Home",
       icon: HomeMinor,
-      onClick: () => handleNavItemClick('home'),
-      selected: selectedNavItem === 'home',
-      excludePaths: exclude === 'home' ? [] : ['/home'],
+      onClick: () => handleNavItemClick("home"),
+      selected: selectedNavItem === "home",
+      excludePaths: exclude === "home" ? [] : ["/home"],
     },
     {
-      url: '/admin/orders',
-      excludePaths: ['#'],
-      label: 'Orders',
+      url: "/admin/orders",
+      excludePaths: ["#"],
+      label: "Orders",
       icon: OrdersFilledMinor,
-      badge: '15',
-      onClick: () => handleNavItemClick('orders'),
-      selected: selectedNavItem === 'orders',
-      excludePaths: exclude === 'orders' ? [] : ['/orders'],
+      badge: "15",
+      onClick: () => handleNavItemClick("orders"),
+      selected: selectedNavItem === "orders",
+      excludePaths: exclude === "orders" ? [] : ["/orders"],
     },
     {
-      url: '/admin/products',
-      label: 'Products',
+      url: "/admin/products",
+      label: "Products",
       icon: ProductsFilledMinor,
       selected: true,
-      badge: '20',
-      onClick: () => handleNavItemClick('products'),
-      selected: selectedNavItem === 'products',
-      excludePaths: exclude === 'products' ? [] : ['/products'],
+      badge: "20",
+      onClick: () => handleNavItemClick("products"),
+      selected: selectedNavItem === "products",
+      excludePaths: exclude === "products" ? [] : ["/products"],
       subNavigationItems: [
         {
-          url: '/admin/collections',
-          excludePaths: ['#'],
+          url: "/admin/collections",
+          excludePaths: ["#"],
           disabled: false,
-          label: 'Collections',
-          onClick: () => handleSubItemClick('collections'),
-          excludePaths: exclude === 'collections' ? [] : ['/collections'],
+          label: "Collections",
+          onClick: () => handleSubItemClick("collections"),
+          excludePaths: exclude === "collections" ? [] : ["/collections"],
         },
         {
-          url: '/admin/inventory',
+          url: "/admin/products/inventory",
           disabled: false,
-          label: 'Inventory',
-          onClick: () => handleSubItemClick('inventory'),
-          excludePaths: exclude === 'inventory' ? [] : ['/inventory'],
+          label: "Inventory",
+          onClick: () => handleSubItemClick("inventory"),
+          excludePaths: exclude === "inventory" ? [] : ["/inventory"],
         },
       ],
     },
     {
-      url: '/admin/customers',
-      excludePaths: ['#'],
-      label: 'Customers',
+      url: "/admin/customers",
+      excludePaths: ["#"],
+      label: "Customers",
       icon: CustomersFilledMinor,
-      onClick: () => handleNavItemClick('customers'),
-      selected: selectedNavItem === 'customers',
-      excludePaths: exclude === 'customers' ? [] : ['/customers'],
+      onClick: () => handleNavItemClick("customers"),
+      selected: selectedNavItem === "customers",
+      excludePaths: exclude === "customers" ? [] : ["/customers"],
     },
   ];
 
   const logo = {
     width: 86,
     topBarSource:
-      'https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png',
+      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
     contextualSaveBarSource:
-      'https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png',
-    accessibilityLabel: 'Shopify',
+      "https://cdn.shopify.com/s/files/1/2376/3301/files/Shopify_Secondary_Inverted.png",
+    accessibilityLabel: "Shopify",
   };
 
   return (
-    <html lang='en'>
+    <html lang="en">
       <body>
         <AppProvider linkComponent={LinkWrapper} i18n={en}>
           <Frame

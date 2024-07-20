@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import AppError from "@/utils/errorClass";
-import { handleFormData } from "@/utils/handleFormData";
+import { handleFormData } from "@/utils/handleForm";
 import Category from "@/models/category";
 import { deleteFiles } from "@/lib/s3Func";
 import { protect, restrictTo } from "@/utils/checkPermission";
@@ -57,7 +57,6 @@ export async function GET(req) {
 
 export async function PATCH(req) {
   try {
-    await protect();
     await restrictTo("admin");
     await dbConnect();
     //remove params from the functions

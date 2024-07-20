@@ -7,7 +7,7 @@ import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
 import { startSession } from "mongoose";
-import checkQuantity from "@/utils/checkQuantity";
+import getQuantity from "@/utils/getQuantity";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
@@ -47,7 +47,7 @@ export async function GET(req, { params }) {
 
     return NextResponse.json(
       { success: true, data: checkoutData },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -95,7 +95,7 @@ export async function POST(req) {
         throw new AppError("Product or variant not found", 404);
       }
       console.log("checking quantity🕊️ 🕊️");
-      checkQuantity(item, existingProduct);
+      getQuantity(item, existingProduct);
     }
 
     if (!checkoutItems || checkoutItems.length === 0) {
@@ -105,7 +105,7 @@ export async function POST(req) {
     const amount = Math.ceil(
       checkoutItems.reduce((acc, item) => {
         return acc + item.price * item.quantity;
-      }, 0)
+      }, 0),
     );
 
     //check if address is user's address
@@ -116,7 +116,7 @@ export async function POST(req) {
 
     if (shippingMethod.toLowerCase() === "delivery") {
       const userAddress = await Address.findOne({ user: userId }).session(
-        session
+        session,
       );
 
       if (!userAddress) {
@@ -162,7 +162,7 @@ export async function POST(req) {
 
     return NextResponse.json(
       { success: true, data: { payment, order: createdOrder } },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     await session.abortTransaction();

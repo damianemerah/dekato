@@ -11,7 +11,7 @@ const cartItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   price: { type: Number, required: true },
   quantity: { type: Number, default: 1 },
-  checked: { type: Boolean },
+  checked: { type: Boolean, default: true },
   color: String,
   size: String,
   variantId: String,

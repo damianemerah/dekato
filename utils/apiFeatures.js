@@ -11,20 +11,6 @@ class APIFeatures {
 
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    console.log(queryObj, "QueryObj🚀🔥");
-
-    // Decode the 'price' field if present
-    // if (queryObj.price) {
-    //   queryObj.price = JSON.parse(decodeURIComponent(queryObj.price));
-    //   console.log(queryObj.price, "Price🚀11🔥");
-    // }
-
-    // //Advanced filtering
-    // let queryStr = JSON.stringify(queryObj);
-    // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    // console.log(queryStr, "QueryStr🚀🔥");
-
-    // this.query = this.query.find(JSON.parse(queryStr));
     this.query = this.query.find(queryObj);
     return this;
   }

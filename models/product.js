@@ -33,7 +33,6 @@ const productSchema = new mongoose.Schema({
   },
   cat: {
     type: String,
-    required: true,
   },
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
@@ -56,13 +55,26 @@ const productSchema = new mongoose.Schema({
   },
 });
 
-productSchema.index({ price: 1, slug: 1 });
+productSchema.index({
+  price: 1,
+  slug: 1,
+  cat: 1,
+  tag: 1,
+  name: "text",
+});
 
-productSchema.pre("save", function (next) {
+productSchema.pre("save", async function (next) {
   this.slug = slugify(this.name, { lower: true });
-  //might throw error
-  this.cat = this.category.slug;
-  next();
+
+  if (this.isModified("category")) {
+    await this.populate("category");
+    if (this.category && this.category.slug) {
+      this.cat = this.category.slug;
+    } else {
+      const error = new Error("Category slug is missing");
+      return next(error);
+    }
+  }
 });
 
 export const Product =

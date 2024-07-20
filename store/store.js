@@ -3,8 +3,22 @@ import { persist } from "zustand/middleware";
 
 export const useUserStore = create((set) => ({
   user: null,
+  address: [],
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
+  setAddress: (address) => set({ address }),
+  addAddress: (address) =>
+    set((state) => ({ address: [...state.address, address] })),
+  removeAddress: (id) =>
+    set((state) => ({
+      address: state.address.filter((address) => address.id !== id),
+    })),
+  updateAddress: (updatedAddress) =>
+    set((state) => ({
+      address: state.address.map((address) =>
+        address.id === updatedAddress.id ? updatedAddress : address,
+      ),
+    })),
 }));
 
 export const useCartStore = create(
@@ -24,13 +38,6 @@ export const useCartStore = create(
     },
   ),
 );
-
-export const useProductsStore = create((set) => ({
-  products: [],
-  addProduct: (product) =>
-    set((state) => ({ products: [...state.products, product] })),
-  // other product-related actions
-}));
 
 export const useProductStore = create(
   (set) => ({
@@ -52,4 +59,28 @@ export const useProductStore = create(
   {
     name: "product-storage",
   },
+);
+
+export const useCategoryStore = create(
+  persist(
+    (set) => ({
+      categories: [],
+      setCategories: (categories) => set({ categories }),
+      addCategory: (category) =>
+        set((state) => ({ categories: [...state.categories, category] })),
+      removeCategory: (id) =>
+        set((state) => ({
+          categories: state.categories.filter((category) => category.id !== id),
+        })),
+      updateCategory: (updatedCategory) =>
+        set((state) => ({
+          categories: state.categories.map((category) =>
+            category.id === updatedCategory.id ? updatedCategory : category,
+          ),
+        })),
+    }),
+    {
+      name: "category-storage",
+    },
+  ),
 );
