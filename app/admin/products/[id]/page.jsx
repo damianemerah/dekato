@@ -14,13 +14,13 @@ import {
   Thumbnail,
   Text,
   Icon,
-  Popover,
   Grid,
   Collapsible,
   Button,
   Autocomplete,
   PageActions,
   Select,
+  Tooltip,
 } from "@shopify/polaris";
 
 import {
@@ -29,8 +29,6 @@ import {
   DragHandleIcon,
   DeleteIcon,
 } from "@shopify/polaris-icons";
-
-import usePopover from "../../hooks/usePopover";
 import { VariantsTableComponent } from "@/app/admin/components";
 import { ProductOrganization } from "@/app/admin/ui/products/new";
 
@@ -157,8 +155,6 @@ function Product() {
     </LegacyStack>
   );
 
-  const { handleTogglePopover, isPopoverActive } = usePopover();
-
   const optionsList = useMemo(
     () => [
       { value: "Size", label: "Size" },
@@ -253,30 +249,13 @@ function Product() {
                     prefix="₦"
                     placeholder="0.00"
                     suffix={
-                      <Popover
-                        id="compare-at_price"
-                        active={isPopoverActive("compareAt")}
-                        activator={
-                          <div
-                            onMouseEnter={() =>
-                              handleTogglePopover("compareAt")
-                            }
-                            onMouseLeave={() =>
-                              handleTogglePopover("compareAt")
-                            }
-                          >
-                            <Icon source={QuestionCircleIcon} tone="base" />
-                          </div>
-                        }
-                        onClose={() => handleTogglePopover("compareAt")}
+                      <Tooltip
+                        content="To display a markdown, enter a value higher than
+                            your price. Shown with a strikethrough."
+                        dismissOnMouseOut
                       >
-                        <div className="max-w-64">
-                          <Card>
-                            To display a markdown, enter a value higher than
-                            your price. Often shown with a strikethrough.
-                          </Card>
-                        </div>
-                      </Popover>
+                        <Icon source={QuestionCircleIcon} tone="base" />
+                      </Tooltip>
                     }
                   />
                 </Grid.Cell>

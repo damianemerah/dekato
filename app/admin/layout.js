@@ -3,23 +3,15 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import en from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
+import "@/style/globals.css";
+import "./admin.css";
 import {
   ActionList,
   AppProvider,
-  LegacyCard,
   ContextualSaveBar,
-  FormLayout,
   Frame,
-  Layout,
   Loading,
-  Modal,
   Navigation,
-  Page,
-  SkeletonBodyText,
-  SkeletonDisplayText,
-  SkeletonPage,
-  BlockStack,
-  TextField,
   Toast,
   TopBar,
 } from "@shopify/polaris";
@@ -76,7 +68,6 @@ function AdminLayout({ children }) {
   const [searchValue, setSearchValue] = useState("");
   const [userMenuActive, setUserMenuActive] = useState(false);
   const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
-  const [modalActive, setModalActive] = useState(false);
   const [nameFieldValue, setNameFieldValue] = useState(
     defaultState.current.nameFieldValue,
   );
@@ -86,18 +77,7 @@ function AdminLayout({ children }) {
   const [storeName, setStoreName] = useState(
     defaultState.current.nameFieldValue,
   );
-  const [supportSubject, setSupportSubject] = useState("");
-  const [supportMessage, setSupportMessage] = useState("");
 
-  // Callback functions to handle form field changes
-  const handleSubjectChange = useCallback(
-    (value) => setSupportSubject(value),
-    [],
-  );
-  const handleMessageChange = useCallback(
-    (value) => setSupportMessage(value),
-    [],
-  );
   // Callback function to handle discarding form changes
   const handleDiscard = useCallback(() => {
     // Reset the form fields to their default values
@@ -120,20 +100,7 @@ function AdminLayout({ children }) {
     setStoreName(defaultState.current.nameFieldValue);
   }, [emailFieldValue, nameFieldValue]);
   // Callback function to handle changes in the name field
-  const handleNameFieldChange = useCallback((value) => {
-    // Update the name field value
-    setNameFieldValue(value);
-    // Set the dirty state to true if the value is not empty
-    value && setIsDirty(true);
-  }, []);
-  // Callback function to handle changes in the email field
-  const handleEmailFieldChange = useCallback((value) => {
-    // Update the email field value
-    setEmailFieldValue(value);
-    // Set the dirty state to true if the value is not empty
-    value && setIsDirty(true);
-  }, []);
-  // Callback function to handle dismissing search results
+
   const handleSearchResultsDismiss = useCallback(() => {
     // Deactivate the search and clear the search value
     setSearchActive(false);
@@ -163,12 +130,6 @@ function AdminLayout({ children }) {
       setMobileNavigationActive(
         (mobileNavigationActive) => !mobileNavigationActive,
       ),
-    [],
-  );
-
-  // Callback function to toggle the modal
-  const toggleModalActive = useCallback(
-    () => setModalActive((modalActive) => !modalActive),
     [],
   );
 
@@ -296,100 +257,6 @@ function AdminLayout({ children }) {
   // Markup for the loading indicator
   const loadingMarkup = isLoading ? <Loading /> : null;
 
-  // Target element for the skip-to-content link
-  const skipToContentTarget = (
-    <a id="SkipToContentTarget" ref={skipToContentRef} tabIndex={-1} />
-  );
-
-  // Markup for the actual page content
-  const actualPageMarkup = (
-    <Page title="Account">
-      <Layout>
-        {/* Skip-to-content target */}
-        {skipToContentTarget}
-        {/* Annotated section for account details */}
-        <Layout.AnnotatedSection
-          title="Account details"
-          description="Jaded Pixel will use this as your account information."
-        >
-          {/* Card for the account details form */}
-          <LegacyCard sectioned>
-            {/* Form layout for the account details fields */}
-            <FormLayout>
-              {/* Text field for the full name */}
-              <TextField
-                label="Full name"
-                value={nameFieldValue}
-                onChange={handleNameFieldChange}
-                autoComplete="name"
-              />
-              {/* Text field for the email */}
-              <TextField
-                type="email"
-                label="Email"
-                value={emailFieldValue}
-                onChange={handleEmailFieldChange}
-                autoComplete="email"
-              />
-            </FormLayout>
-          </LegacyCard>
-        </Layout.AnnotatedSection>
-      </Layout>
-    </Page>
-  );
-
-  // Markup for the loading page
-  const loadingPageMarkup = (
-    <SkeletonPage>
-      <Layout>
-        <Layout.Section>
-          <LegacyCard sectioned>
-            <BlockStack>
-              <SkeletonDisplayText size="small" />
-              <SkeletonBodyText lines={9} />
-            </BlockStack>
-          </LegacyCard>
-        </Layout.Section>
-      </Layout>
-    </SkeletonPage>
-  );
-
-  // Conditional rendering of the page based on loading state
-  const pageMarkup = isLoading ? loadingPageMarkup : actualPageMarkup;
-
-  // Markup for the contact support modal
-  const modalMarkup = (
-    <Modal
-      open={modalActive}
-      onClose={toggleModalActive}
-      title="Contact support"
-      primaryAction={{
-        content: "Send",
-        onAction: toggleModalActive,
-      }}
-    >
-      <Modal.Section>
-        <FormLayout>
-          {/* Text field for the support subject */}
-          <TextField
-            label="Subject"
-            value={supportSubject}
-            onChange={handleSubjectChange}
-            autoComplete="off"
-          />
-          {/* Text field for the support message */}
-          <TextField
-            label="Message"
-            value={supportMessage}
-            onChange={handleMessageChange}
-            autoComplete="off"
-            multiline
-          />
-        </FormLayout>
-      </Modal.Section>
-    </Modal>
-  );
-
   // Logo configuration for the frame
   const logo = {
     url: "/",
@@ -404,7 +271,7 @@ function AdminLayout({ children }) {
     <html lang="en">
       <body>
         {/* App provider for Polaris components */}
-        <AppProvider linkComponent={LinkWrapper}>
+        <AppProvider linkComponent={LinkWrapper} i18n={en}>
           {/* Frame for the admin interface */}
           <Frame
             logo={logo}
@@ -422,8 +289,6 @@ function AdminLayout({ children }) {
             {children}
             {/* Toast message */}
             {toastMarkup}
-            {/* Contact support modal */}
-            {modalMarkup}
           </Frame>
         </AppProvider>
       </body>

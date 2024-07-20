@@ -2,7 +2,6 @@
 
 import {
   Badge,
-  Card,
   ChoiceList,
   IndexFilters,
   useSetIndexFiltersMode,
@@ -16,13 +15,13 @@ import {
   Box,
 } from "@shopify/polaris";
 
+import { DeleteIcon } from "@shopify/polaris-icons";
+
 import { useState, useCallback } from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 
 function Products() {
-  const router = useRouter();
-
   // Function to format labels for filter selections
   function disambiguateLabel(key, value) {
     switch (key) {
@@ -203,6 +202,33 @@ function Products() {
     handleQueryValueRemove();
   }, [handleStatusRemove, handleQueryValueRemove, handleTypeRemove]);
 
+  const promotedBulkActions = [
+    {
+      content: "Set as draft",
+      onAction: () => console.log("Todo: implement set as draft"),
+    },
+  ];
+  const bulkActions = [
+    {
+      content: "Add tags",
+      onAction: () => console.log("Todo: implement bulk add tags"),
+    },
+    {
+      content: "Remove tags",
+      onAction: () => console.log("Todo: implement bulk remove tags"),
+    },
+    {
+      content: "Archive products",
+      onAction: () => console.log("Todo: implement archive products"),
+    },
+    {
+      icon: DeleteIcon,
+      destructive: true,
+      content: "Delete products",
+      onAction: () => console.log("Todo: implement bulk delete"),
+    },
+  ];
+
   // Filter definitions for the filter bar
   const filters = [
     {
@@ -333,10 +359,7 @@ function Products() {
 
   // Create table row markup for each product
   const rowMarkup = products.map(
-    (
-      { id, product, price, tone, status, inventory, category, type, vendor },
-      index,
-    ) => (
+    ({ id, product, status, inventory, category, type, vendor }, index) => (
       <IndexTable.Row
         id={id}
         key={id}
@@ -435,6 +458,8 @@ function Products() {
             selectedItemsCount={
               allResourcesSelected ? "All" : selectedResources.length
             }
+            bulkActions={bulkActions}
+            promotedBulkActions={promotedBulkActions}
             onSelectionChange={handleSelectionChange}
             sortable={[false, true, true, true, true, true, true]}
             headings={[

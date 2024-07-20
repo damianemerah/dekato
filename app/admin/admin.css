@@ -10,7 +10,7 @@
       5rem,
       auto
     );
-  grid-template-areas: 'col-2 col-3 col-4';
+  grid-template-areas: "col-2 col-3 col-4";
 }
 
 .order_overview {
@@ -30,8 +30,8 @@
   .order_details-grid {
     grid-template-columns: minmax(6.25rem, 6fr) max-content;
     grid-template-areas:
-      'col-2 col-4'
-      'col-3 .';
+      "col-2 col-4"
+      "col-3 .";
   }
 }
 
@@ -62,4 +62,13 @@
 
 .right {
   text-align: right;
+}
+
+.dropzone-placeholder {
+  height: full;
+  border: var(--p-border-width-025) dashed var(--p-color-border-tertiary);
+  border-radius: var(--p-border-radius-200);
+  background-color: var(--p-color-bg-surface-secondary);
+  padding: var(--p-space-200);
+  aspect-ratio: 1;
 }
