@@ -29,7 +29,7 @@ import {
 
 import { VariantsTableComponent } from "@/app/admin/components";
 import { ProductOrganization } from "@/app/admin/ui/products/new";
-import { FileUpload } from "@/app/admin/ui/products/FileUpload";
+import { FileUpload } from "@/app/admin/ui/products/file-upload";
 
 function AddProduct() {
   //State
