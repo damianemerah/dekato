@@ -9,6 +9,7 @@ import cart from "@/public/assets/icons/cart.svg";
 import logo from "@/public/assets/icons/dekato.png";
 import { signOut } from "next-auth/react";
 import { useUserStore } from "@/store/store";
+import { oswald } from "@/font";
 // import { useAppContext } from "./AppContext";
 
 function Header() {
@@ -19,7 +20,7 @@ function Header() {
     <div>
       <header
         // ref={headerRef}
-        className={`flex items-center justify-between bg-slate-950 px-12 py-3 text-white max-md:flex-wrap max-md:px-5`}
+        className={`${oswald.className} flex items-center justify-between bg-slate-950 px-12 py-3 text-white max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex items-center justify-between gap-10 whitespace-nowrap py-1 text-sm font-medium uppercase">
           <Image
@@ -47,7 +48,7 @@ function Header() {
             <li className="p-1">Men</li>
           </ul>
         </div>
-        <div className="relative mx-10 flex max-w-xl flex-1 items-center">
+        <div className="relative mx-10 flex flex-1 items-center">
           <input
             type="text"
             placeholder="Search..."
@@ -68,8 +69,8 @@ function Header() {
           </button>
         </div>
 
-        <div className="flex items-center justify-center gap-8 whitespace-nowrap text-xs tracking-normal">
-          <div className="flex flex-col items-center justify-center gap-1">
+        <div className="flex items-center justify-center gap-5 whitespace-nowrap text-xs tracking-normal">
+          <div className="flex flex-col items-center justify-center">
             <Image
               alt="cat"
               width="100%"

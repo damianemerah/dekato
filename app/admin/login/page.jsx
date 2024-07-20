@@ -44,24 +44,24 @@ export default function FrameExample() {
   const [mobileNavigationActive, setMobileNavigationActive] = useState(false);
   const [modalActive, setModalActive] = useState(false);
   const [nameFieldValue, setNameFieldValue] = useState(
-    defaultState.current.nameFieldValue
+    defaultState.current.nameFieldValue,
   );
   const [emailFieldValue, setEmailFieldValue] = useState(
-    defaultState.current.emailFieldValue
+    defaultState.current.emailFieldValue,
   );
   const [storeName, setStoreName] = useState(
-    defaultState.current.nameFieldValue
+    defaultState.current.nameFieldValue,
   );
   const [supportSubject, setSupportSubject] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
 
   const handleSubjectChange = useCallback(
     (value) => setSupportSubject(value),
-    []
+    [],
   );
   const handleMessageChange = useCallback(
     (value) => setSupportMessage(value),
-    []
+    [],
   );
   const handleDiscard = useCallback(() => {
     setEmailFieldValue(defaultState.current.emailFieldValue);
@@ -94,26 +94,26 @@ export default function FrameExample() {
   }, []);
   const toggleToastActive = useCallback(
     () => setToastActive((toastActive) => !toastActive),
-    []
+    [],
   );
   const toggleUserMenuActive = useCallback(
     () => setUserMenuActive((userMenuActive) => !userMenuActive),
-    []
+    [],
   );
   const toggleMobileNavigationActive = useCallback(
     () =>
       setMobileNavigationActive(
-        (mobileNavigationActive) => !mobileNavigationActive
+        (mobileNavigationActive) => !mobileNavigationActive,
       ),
-    []
+    [],
   );
   const toggleIsLoading = useCallback(
     () => setIsLoading((isLoading) => !isLoading),
-    []
+    [],
   );
   const toggleModalActive = useCallback(
     () => setModalActive((modalActive) => !modalActive),
-    []
+    [],
   );
 
   const toastMarkup = toastActive ? (

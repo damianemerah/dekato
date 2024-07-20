@@ -1,15 +1,13 @@
-'use client';
+"use client";
 import {
   ActionList,
   Avatar,
   Badge,
-  Bleed,
   BlockStack,
   Box,
   Button,
   Card,
   Divider,
-  Grid,
   TextField,
   Icon,
   InlineGrid,
@@ -18,29 +16,19 @@ import {
   Popover,
   ResourceItem,
   ResourceList,
-  TextContainer,
   Banner,
   Checkbox,
   FormLayout,
-  SkeletonBodyText,
-  SkeletonDisplayText,
   Tag,
-  Link,
   Text,
-  Thumbnail,
-} from '@shopify/polaris';
+} from "@shopify/polaris";
 
 import {
-  EditMajor,
-  DuplicateMinor,
-  ArchiveMinor,
-  PrintMinor,
-  CancelMinor,
-  MobileHorizontalDotsMajor,
-  ShipmentMajor,
-  MarkPaidMinor,
-} from '@shopify/polaris-icons';
-import { useCallback, useState } from 'react';
+  EditIcon,
+  MenuHorizontalIcon,
+  DeliveryIcon,
+} from "@shopify/polaris-icons";
+import { useCallback, useState } from "react";
 
 // This example is for guidance purposes. Copying it will come with caveats.
 function Fullfillment() {
@@ -48,22 +36,22 @@ function Fullfillment() {
   const toggleActive = useCallback(() => setActive((active) => !active), []);
   return (
     <Page
-      backAction={{ content: 'Products', url: '/admin/orders' }}
-      title='Fulfill item'
+      backAction={{ content: "Products", url: "/admin/orders" }}
+      title="Fulfill item"
       secondaryActions={[
         {
-          content: 'Print packing slip',
-          onAction: () => alert('print packing slip'),
+          content: "Print packing slip",
+          onAction: () => alert("print packing slip"),
         },
       ]}
     >
-      <InlineGrid columns={{ xs: 1, lg: '2fr 1fr' }} gap='400'>
-        <Box gap='400'>
+      <InlineGrid columns={{ xs: 1, lg: "2fr 1fr" }} gap="400">
+        <Box gap="400">
           <LegacyCard>
             <LegacyCard.Header
               title={
-                <Text as='h2' variant='headingSm'>
-                  <Badge tone='success' size='large' icon={ShipmentMajor}>
+                <Text as="h2" variant="headingSm">
+                  <Badge tone="success" size="large" icon={DeliveryIcon}>
                     Fulfilled
                   </Badge>
                 </Text>
@@ -73,21 +61,21 @@ function Fullfillment() {
                 active={active}
                 activator={
                   <Button
-                    accessibilityLabel='Add variant'
-                    variant='plain'
+                    accessibilityLabel="Add variant"
+                    variant="plain"
                     onClick={toggleActive}
                   >
-                    <Icon source={MobileHorizontalDotsMajor} tone='base' />
+                    <Icon source={MenuHorizontalIcon} tone="base" />
                   </Button>
                 }
                 onClose={toggleActive}
               >
                 <ActionList
-                  actionRole='menuitem'
+                  actionRole="menuitem"
                   items={[
-                    { content: 'Print packing slip' },
+                    { content: "Print packing slip" },
                     {
-                      content: 'Cancel fulfillment',
+                      content: "Cancel fulfillment",
                       onAction: () => {},
                       destructive: true,
                     },
@@ -96,51 +84,51 @@ function Fullfillment() {
               </Popover>
             </LegacyCard.Header>
             <Box
-              paddingInline='400'
-              paddingBlockStart='200'
-              paddingBlockEnd='400'
+              paddingInline="400"
+              paddingBlockStart="200"
+              paddingBlockEnd="400"
             >
               <Box
-                borderColor='border'
-                borderWidth='025'
-                borderRadius='200'
-                overflowX='hidden'
-                overflowY='hidden'
+                borderColor="border"
+                borderWidth="025"
+                borderRadius="200"
+                overflowX="hidden"
+                overflowY="hidden"
               >
                 <Box
-                  padding='300'
-                  borderColor='border'
-                  borderBlockEndWidth='025'
+                  padding="300"
+                  borderColor="border"
+                  borderBlockEndWidth="025"
                 >
                   Add variants if this product comes in multiple versions, like
                   different sizes or colors.
                 </Box>
                 <ResourceList
-                  resourceName={{ singular: 'order', plural: 'orders' }}
+                  resourceName={{ singular: "order", plural: "orders" }}
                   items={[
                     {
-                      id: '145',
-                      url: '#',
+                      id: "145",
+                      url: "#",
                       avatarSource:
-                        'https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg',
-                      name: 'VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)',
-                      sku: '9504957',
+                        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
+                      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
+                      sku: "9504957",
                       qty: 1,
-                      price: '200',
+                      price: "200",
                       size: 9,
-                      color: 'black',
+                      color: "black",
                     },
                     {
-                      id: '145',
-                      url: '#',
+                      id: "145",
+                      url: "#",
                       avatarSource:
-                        'https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg',
-                      name: 'Tucan scarf',
-                      sku: '0404957',
+                        "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
+                      name: "Tucan scarf",
+                      sku: "0404957",
                       qty: 1,
-                      price: '500',
+                      price: "500",
                       size: 9,
-                      color: 'white',
+                      color: "white",
                     },
                   ]}
                   renderItem={(item) => {
@@ -163,20 +151,20 @@ function Fullfillment() {
                         media={
                           <Avatar
                             customer
-                            size='lg'
+                            size="lg"
                             name={name}
                             source={avatarSource}
                           />
                         }
                         accessibilityLabel={`View details for ${name}`}
                       >
-                        <div className='flex flex-row flex-wrap gap-3 justify-between'>
-                          <div className='basis-1/2'>
-                            <BlockStack gap='100'>
+                        <div className="flex flex-row flex-wrap justify-between gap-3">
+                          <div className="basis-1/2">
+                            <BlockStack gap="100">
                               <Text
-                                variant='bodyMd'
-                                fontWeight='medium'
-                                as='h3'
+                                variant="bodyMd"
+                                fontWeight="medium"
+                                as="h3"
                                 breakWord={true}
                               >
                                 {name}
@@ -187,25 +175,25 @@ function Fullfillment() {
                                 </Tag>
                               </Text>
 
-                              <Text tone='subdued' variant='bodySm'>
+                              <Text tone="subdued" variant="bodySm">
                                 SKU: {sku}
                               </Text>
                             </BlockStack>
                           </div>
-                          <div className='basis-auto grid'>
-                            <span className='sm:justify-self-end'>
+                          <div className="grid basis-auto">
+                            <span className="sm:justify-self-end">
                               kg {qty}
                             </span>
                           </div>
-                          <div className='basis-32'>
+                          <div className="basis-32">
                             <TextField
-                              label='Price'
+                              label="Price"
                               labelHidden
-                              type='number'
-                              value={'5'}
+                              type="number"
+                              value={"5"}
                               onChange={() => {}}
-                              suffix='of 1'
-                              autoComplete='off'
+                              suffix="of 1"
+                              autoComplete="off"
                               add
                               va
                             />
@@ -219,12 +207,12 @@ function Fullfillment() {
             </Box>
 
             <Box
-              paddingInline='400'
-              paddingBlockStart='200'
-              paddingBlockEnd='400'
+              paddingInline="400"
+              paddingBlockStart="200"
+              paddingBlockEnd="400"
             >
-              <BlockStack gap='200'>
-                <Text variant='headingSm' as='h6'>
+              <BlockStack gap="200">
+                <Text variant="headingSm" as="h6">
                   Tracking information
                 </Text>
                 <Banner onDismiss={() => {}}>
@@ -238,35 +226,35 @@ function Fullfillment() {
                 <FormLayout>
                   <FormLayout.Group>
                     <TextField
-                      label='Tracking number'
+                      label="Tracking number"
                       onChange={() => {}}
-                      autoComplete='off'
+                      autoComplete="off"
                     />
                     <TextField
-                      label='Shipping carrier'
+                      label="Shipping carrier"
                       onChange={() => {}}
-                      autoComplete='off'
+                      autoComplete="off"
                     />
                   </FormLayout.Group>
                 </FormLayout>
               </BlockStack>
             </Box>
             <Box
-              paddingInline='400'
-              paddingBlockStart='200'
-              paddingBlockEnd='400'
+              paddingInline="400"
+              paddingBlockStart="200"
+              paddingBlockEnd="400"
             >
               <Box
-                paddingBlockStart='200'
-                borderColor='border'
-                borderBlockStartWidth='025'
+                paddingBlockStart="200"
+                borderColor="border"
+                borderBlockStartWidth="025"
               >
-                <BlockStack gap='200'>
-                  <Text variant='headingSm' as='h6'>
+                <BlockStack gap="200">
+                  <Text variant="headingSm" as="h6">
                     Notify customer of shipment
                   </Text>
                   <Checkbox
-                    label='Send shipment details to your customer now'
+                    label="Send shipment details to your customer now"
                     checked={true}
                     onChange={() => {}}
                   />
@@ -276,23 +264,23 @@ function Fullfillment() {
           </LegacyCard>
         </Box>
 
-        <BlockStack gap='400'>
-          <Card roundedAbove='sm'>
-            <BlockStack gap='400'>
-              <BlockStack gap='200'>
-                <InlineGrid columns='1fr auto'>
-                  <Text as='h3' variant='headingSm' fontWeight='medium'>
+        <BlockStack gap="400">
+          <Card roundedAbove="sm">
+            <BlockStack gap="400">
+              <BlockStack gap="200">
+                <InlineGrid columns="1fr auto">
+                  <Text as="h3" variant="headingSm" fontWeight="medium">
                     Shipping address
                   </Text>
                   <Button
-                    variant='plain'
+                    variant="plain"
                     onClick={() => {}}
-                    accessibilityLabel='Edit'
+                    accessibilityLabel="Edit"
                   >
-                    <Icon source={EditMajor} tone='base' />
+                    <Icon source={EditIcon} tone="base" />
                   </Button>
                 </InlineGrid>
-                <Text as='p' variant='bodyMd'>
+                <Text as="p" variant="bodyMd">
                   Tyler Ware <br /> 3508 Pharetra. Av.
                   <br /> 42621 Nantes <br /> Paraguay
                   <br /> +59546811470
@@ -301,22 +289,22 @@ function Fullfillment() {
             </BlockStack>
           </Card>
 
-          <Card roundedAbove='sm'>
-            <BlockStack gap='200'>
-              <Text as='h2' variant='headingSm'>
+          <Card roundedAbove="sm">
+            <BlockStack gap="200">
+              <Text as="h2" variant="headingSm">
                 Summary
               </Text>
-              <BlockStack gap='200'>
-                <Text as='p' variant='bodyMd' tone='subdued'>
+              <BlockStack gap="200">
+                <Text as="p" variant="bodyMd" tone="subdued">
                   Fullfilling from Dekato Shop
                   <br /> {2} of {2} items
                 </Text>
               </BlockStack>
               <Divider />
               <Button
-                variant='primary'
+                variant="primary"
                 onClick={() => {}}
-                accessibilityLabel='Fullfill items'
+                accessibilityLabel="Fullfill items"
               >
                 Fullfill items
               </Button>

@@ -1,53 +1,37 @@
 "use client";
+import React, { useState, useCallback } from "react";
+import { IndexFilters, ChoiceList } from "@shopify/polaris";
+import { useSetIndexFiltersMode } from "@shopify/polaris";
+import { disambiguateLabel, isEmpty, sleep } from "@/app/admin/utils";
 
-import {
-  Card,
-  ChoiceList,
-  IndexFilters,
-  useSetIndexFiltersMode,
-  useIndexResourceState,
-  IndexTable,
-  Page,
-  Thumbnail,
-  Button,
-} from "@shopify/polaris";
-import Link from "next/link";
+export default function ProductsIndexFilter() {
+  const [itemStrings, setItemStrings] = useState([
+    "All",
+    "Active",
+    "Draft",
+    "Archived",
+  ]);
+  const [selected, setSelected] = useState(0);
+  const [sortSelected, setSortSelected] = useState(["product asc"]);
+  const { mode, setMode } = useSetIndexFiltersMode();
+  const [tone, setStatus] = useState(undefined);
+  const [type, setType] = useState(undefined);
+  const [queryValue, setQueryValue] = useState("");
 
-import { useState, useCallback } from "react";
-
-// This example is for guidance purposes. Copying it will come with caveats.
-function Collections() {
-  function disambiguateLabel(key, value) {
-    switch (key) {
-      case "type":
-        return value.map((val) => `type: ${val}`).join(", ");
-      case "tone":
-        return value.map((val) => `tone: ${val}`).join(", ");
-      default:
-        return value;
-    }
-  }
-  function isEmpty(value) {
-    if (Array.isArray(value)) {
-      return value.length === 0;
-    } else {
-      return value === "" || value == null;
-    }
-  }
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const [itemStrings, setItemStrings] = useState(["All"]);
   const deleteView = (index) => {
     const newItemStrings = [...itemStrings];
     newItemStrings.splice(index, 1);
     setItemStrings(newItemStrings);
     setSelected(0);
   };
+
   const duplicateView = async (name) => {
     setItemStrings([...itemStrings, name]);
     setSelected(itemStrings.length);
     await sleep(1);
     return true;
   };
+
   const tabs = itemStrings.map((item, index) => ({
     content: item,
     index,
@@ -94,13 +78,14 @@ function Collections() {
             },
           ],
   }));
-  const [selected, setSelected] = useState(0);
+
   const onCreateNewView = async (value) => {
     await sleep(500);
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);
     return true;
   };
+
   const sortOptions = [
     { label: "Product", value: "product asc", directionLabel: "Ascending" },
     { label: "Product", value: "product desc", directionLabel: "Descending" },
@@ -111,13 +96,13 @@ function Collections() {
     { label: "Vendor", value: "vendor asc", directionLabel: "Ascending" },
     { label: "Vendor", value: "vendor desc", directionLabel: "Descending" },
   ];
-  const [sortSelected, setSortSelected] = useState(["product asc"]);
-  const { mode, setMode } = useSetIndexFiltersMode();
+
   const onHandleCancel = () => {};
   const onHandleSave = async () => {
     await sleep(1);
     return true;
   };
+
   const primaryAction =
     selected === 0
       ? {
@@ -132,9 +117,7 @@ function Collections() {
           disabled: false,
           loading: false,
         };
-  const [tone, setStatus] = useState(undefined);
-  const [type, setType] = useState(undefined);
-  const [queryValue, setQueryValue] = useState("");
+
   const handleStatusChange = useCallback((value) => setStatus(value), []);
   const handleTypeChange = useCallback((value) => setType(value), []);
   const handleFiltersQueryChange = useCallback(
@@ -149,6 +132,7 @@ function Collections() {
     handleTypeRemove();
     handleQueryValueRemove();
   }, [handleStatusRemove, handleQueryValueRemove, handleTypeRemove]);
+
   const filters = [
     {
       key: "tone",
@@ -188,6 +172,7 @@ function Collections() {
       shortcut: true,
     },
   ];
+
   const appliedFilters = [];
   if (tone && !isEmpty(tone)) {
     const key = "tone";
@@ -205,121 +190,32 @@ function Collections() {
       onRemove: handleTypeRemove,
     });
   }
-  const collections = [
-    {
-      id: "1020",
-      title: "1ZPRESSO | J-MAX Manual Coffee Grinder",
-      products: "12",
-      productConditions: "Espresso Shot Coffee",
-    },
-    {
-      id: "1018",
-      title: "Acaia Pearl Set",
-      products: "12",
-      productConditions: "Espresso Shot Coffee",
-    },
-    {
-      id: "1016",
-      title: "AeroPress Go Brewer",
-      products: "12",
-      productConditions: "Espresso Shot Coffee",
-    },
-    {
-      id: "1015",
-      title: "Canadiano Brewer",
-      products: "12",
-      productConditions: "Espresso Shot Coffee",
-    },
-    {
-      id: "1014",
-      title: "Canadiano Brewer White Ash",
-      products: "12",
-      productConditions: "Espresso Shot Coffee",
-    },
-  ];
-  const resourceName = {
-    singular: "collection",
-    plural: "collections",
-  };
-  const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(collections);
-  const rowMarkup = collections.map(
-    ({ id, title, products, productConditions }, index) => (
-      <IndexTable.Row
-        id={id}
-        key={id}
-        selected={selectedResources.includes(id)}
-        position={index}
-      >
-        <IndexTable.Cell>
-          <Thumbnail
-            source={"https://picsum.photos/50?random=" + String(index)}
-            size="small"
-            alt={"product thumbnail" + title}
-          />
-        </IndexTable.Cell>
-        <IndexTable.Cell>{title}</IndexTable.Cell>
-        <IndexTable.Cell>{products}</IndexTable.Cell>
-        <IndexTable.Cell>{productConditions}</IndexTable.Cell>
-      </IndexTable.Row>
-    ),
-  );
+
   return (
-    <Page
-      fullWidth
-      title={"Collections"}
-      primaryAction={
-        <Link href="/admin/collections/new">
-          <Button variant="primary">Create collection</Button>
-        </Link>
-      }
-    >
-      <Card padding="0">
-        <IndexFilters
-          sortOptions={sortOptions}
-          sortSelected={sortSelected}
-          queryValue={queryValue}
-          queryPlaceholder="Searching in all"
-          onQueryChange={handleFiltersQueryChange}
-          onQueryClear={() => {}}
-          onSort={setSortSelected}
-          primaryAction={primaryAction}
-          cancelAction={{
-            onAction: onHandleCancel,
-            disabled: false,
-            loading: false,
-          }}
-          tabs={tabs}
-          selected={selected}
-          onSelect={setSelected}
-          canCreateNewView
-          onCreateNewView={onCreateNewView}
-          filters={filters}
-          appliedFilters={appliedFilters}
-          onClearAll={handleFiltersClearAll}
-          mode={mode}
-          setMode={setMode}
-        />
-        <IndexTable
-          resourceName={resourceName}
-          itemCount={collections.length}
-          selectedItemsCount={
-            allResourcesSelected ? "All" : selectedResources.length
-          }
-          onSelectionChange={handleSelectionChange}
-          sortable={[false, true, true, true, true, true, true]}
-          headings={[
-            { title: "" },
-            { title: "Title" },
-            { title: "Products" },
-            { title: "Products conditions" },
-          ]}
-        >
-          {rowMarkup}
-        </IndexTable>
-      </Card>
-    </Page>
+    <IndexFilters
+      sortOptions={sortOptions}
+      sortSelected={sortSelected}
+      queryValue={queryValue}
+      queryPlaceholder="Searching in all"
+      onQueryChange={handleFiltersQueryChange}
+      onQueryClear={() => {}}
+      onSort={setSortSelected}
+      primaryAction={primaryAction}
+      cancelAction={{
+        onAction: onHandleCancel,
+        disabled: false,
+        loading: false,
+      }}
+      tabs={tabs}
+      selected={selected}
+      onSelect={setSelected}
+      canCreateNewView
+      onCreateNewView={onCreateNewView}
+      filters={filters}
+      appliedFilters={appliedFilters}
+      onClearAll={handleFiltersClearAll}
+      mode={mode}
+      setMode={setMode}
+    />
   );
 }
-
-export default Collections;

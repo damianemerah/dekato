@@ -19,12 +19,12 @@ export default function ProductCard({ product, className }) {
       </div>
       <div className="p-2.5">
         <p className={`${inter.className} text-xs uppercase opacity-50`}>
-          {product.cat}
+          {product?.cat}
         </p>
-        <p className="mb-2 line-clamp-2 overflow-ellipsis text-lg font-light leading-5">
-          {product.name}
+        <p className="mb-2 line-clamp-2 overflow-ellipsis text-lg font-light leading-6">
+          {product?.description}
         </p>
-        <p className="text-primary">₦{product.price}</p>
+        <p>₦{product?.price}</p>
       </div>
     </Link>
   );
