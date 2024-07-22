@@ -26,21 +26,27 @@ const productSchema = new mongoose.Schema({
   },
   image: [String],
   video: [String],
-  category: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Category",
-    required: true,
-  },
-  cat: {
-    type: String,
-  },
+  category: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+  ],
+  cat: [
+    {
+      type: String,
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
   tag: [String],
   variant: [
     {
-      color: String,
-      size: String,
+      options: {
+        type: Map,
+        of: String,
+      },
       price: Number,
       quantity: { type: Number, required: true },
       image: String,
@@ -68,13 +74,15 @@ productSchema.pre("save", async function (next) {
 
   if (this.isModified("category")) {
     await this.populate("category");
-    if (this.category && this.category.slug) {
-      this.cat = this.category.slug;
+    if (this.category && this.category.length > 0) {
+      this.cat = this.category.map((cat) => cat.slug);
     } else {
-      const error = new Error("Category slug is missing");
+      const error = new Error("At least one category slug is required");
       return next(error);
     }
   }
+
+  next();
 });
 
 export const Product =

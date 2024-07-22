@@ -39,28 +39,6 @@ function Products() {
       type: "Accessories",
       vendor: "Espresso Shot Coffee",
     },
-    {
-      id: "1015",
-      price: "$200",
-      product: "Canadiano Brewer",
-      status: "Active",
-      tone: <Badge tone="success">Active</Badge>,
-      inventory: "890 in stock for 50 variants",
-      category: "Brew Merch",
-      type: "Dress",
-      vendor: "Espresso Shot Coffee",
-    },
-    {
-      id: "1014",
-      price: "200",
-      product: "Canadiano Brewer White Ash",
-      status: "Active",
-      tone: <Badge tone="success">Active</Badge>,
-      inventory: "890 in stock for 50 variants",
-      category: "Brew Gear",
-      type: "Accessories",
-      vendor: "Espresso Shot Coffee",
-    },
   ];
 
   return (

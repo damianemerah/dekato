@@ -1,427 +1,204 @@
 "use client";
-import { useState, useCallback, useMemo } from "react";
-import {
-  Page,
-  InlineGrid,
-  BlockStack,
-  Card,
-  Box,
-  Divider,
-  Bleed,
-  TextField,
-  Text,
-  Icon,
-  Grid,
-  Collapsible,
-  Button,
-  Autocomplete,
-  PageActions,
-  Select,
-  Tooltip,
-} from "@shopify/polaris";
+import ImageUpload from "@/app/admin/ui/products/MediaUpload";
+import { Button, ButtonPrimary } from "@/app/ui/Button";
+import { roboto } from "@/style/font";
+import { useEffect, useState } from "react";
+import VariantsSection from "@/app/admin/ui/products/ProductVariantForm";
+import styles from "@/app/admin/products/new/AddProduct.module.css";
+import upIcon from "@/public/assets/icons/up.svg";
+import downIcon from "@/public/assets/icons/down.svg";
+import Image from "next/image";
+import arrowBack from "@/public/assets/icons/arrow_back.svg";
+import Link from "next/link";
 
-import {
-  QuestionCircleIcon,
-  PlusIcon,
-  DragHandleIcon,
-  DeleteIcon,
-} from "@shopify/polaris-icons";
+export default function Page() {
+  const [files, setFiles] = useState([]);
+  const [isToggle, setIsToggle] = useState(false);
+  const [showCatOptions, setShowCatOptions] = useState(false);
+  const [selectedCat, setSelectedCat] = useState([]);
 
-import { VariantsTableComponent } from "@/app/admin/components";
-import { ProductOrganization } from "@/app/admin/ui/products/new";
-import { FileUpload } from "@/app/admin/ui/products/file-upload";
+  useEffect(() => {
+    const toggleElement = document.getElementById("toggle");
+    const handleChange = (e) => {
+      setIsToggle(e.target.checked);
+    };
+    toggleElement.addEventListener("change", handleChange);
+    return () => {
+      toggleElement.removeEventListener("change", handleChange);
+    };
+  }, []);
 
-function AddProduct() {
-  //State
-  const [titleValue, setTitleValue] = useState("");
-  const [descriptionValue, setDescriptionValue] = useState("");
-  const [priceValue, setPriceValue] = useState("");
-  const [compareAtPriceValue, setCompareAtPriceValue] = useState("");
-  const [quantityValue, setQuantityValue] = useState("1");
-  const [options, setOptions] = useState([]);
-
-  const [open, setOpen] = useState(false);
-
-  const [defaultPlaceholders, setDefaultPlaceholders] = useState({
-    Color: "Black",
-    Size: "Medium",
-    Material: "Leather",
-    Style: "Classic",
-  });
-
-  //Event Handlers
-  const handleTitleChange = useCallback(
-    (newValue) => setTitleValue(newValue),
-    [],
-  );
-  const handleDescriptionChange = useCallback(
-    (newValue) => setDescriptionValue(newValue),
-    [],
-  );
-  const handlePriceChange = useCallback(
-    (newValue) => setPriceValue(newValue),
-    [],
-  );
-  const handleCompareAtPriceChange = useCallback(
-    (newValue) => setCompareAtPriceValue(newValue),
-    [],
-  );
-  const handleQuantityChange = useCallback(
-    (newValue) => setQuantityValue(newValue),
-    [],
-  );
-
-  const handleAddOption = () => {
-    setOptions([...options, { name: "", values: [""] }]);
+  const handleFormSubmit = (formData) => {
+    console.log("Medias", formData.getAll("media"));
   };
 
-  const handleOptionNameChange = (index) => (newValue) => {
-    const newOptions = [...options];
-    newOptions[index].name = newValue;
-    setOptions(newOptions);
-
-    // Set the default placeholder based on the selected option name
-    const newDefaultPlaceholder = { ...defaultPlaceholders };
-    newDefaultPlaceholder[newValue] = defaultPlaceholders[newValue] || "";
-    setDefaultPlaceholders(newDefaultPlaceholder);
+  const handleFilesChange = (newFiles) => {
+    setFiles(newFiles);
   };
-
-  const handleOptionValueChange = (optionIndex, valueIndex) => (newValue) => {
-    const newOptions = [...options];
-    newOptions[optionIndex].values[valueIndex] = newValue;
-    setOptions(newOptions);
-
-    // Check if the current option value being edited is the last one
-    if (
-      valueIndex === options[optionIndex].values.length - 1 &&
-      newValue !== ""
-    ) {
-      // Add a new empty option value field
-      newOptions[optionIndex].values.push("");
-      setOptions(newOptions);
-    }
-  };
-
-  const handleToggle = () => {
-    // If there are no options yet, add a new empty option field
-    if (options.length === 0) {
-      setOptions([...options, { name: "", values: [""] }]);
-      setOpen(true); // Collapse immediately after adding the new option
-    } else {
-      setOpen((open) => !open);
-    }
-
-    console.log(options);
-  };
-
-  const optionsList = useMemo(
-    () => [
-      { value: "Size", label: "Size" },
-      {
-        value: "Color",
-        label: "Color",
-      },
-      {
-        value: "Material",
-        label: "Material",
-      },
-      { value: "Style", label: "Style" },
-    ],
-    [],
-  );
-
-  const handleDeleteOption = (optionIndex) => () => {
-    const newOptions = [...options];
-    newOptions.splice(optionIndex, 1);
-    setOptions(newOptions);
-    console.log(newOptions);
-    console.log(options);
-  };
-
-  const [selected, setSelected] = useState("active");
-
-  const handleSelectChange = useCallback((value) => setSelected(value), []);
-
-  const statusOptions = [
-    { label: "Active", value: "active" },
-    { label: "Draft", value: "draft" },
-  ];
 
   return (
-    <Page
-      backAction={{ content: "Products", url: "/admin/products" }}
-      title="Add Product"
-    >
-      <form>
-        <InlineGrid columns={{ xs: 1, lg: "2fr 1fr" }} gap="400">
-          <BlockStack gap="400">
-            <Card roundedAbove="sm">
-              <BlockStack gap="400">
-                <TextField
-                  label="Title"
-                  placeholder="Short sleeve t-shirt"
-                  value={titleValue}
-                  onChange={handleTitleChange}
-                  autoComplete="off"
+    <div className={`${roboto.className} mx-auto max-w-screen-lg px-5`}>
+      <div className="flex items-center py-6">
+        <Link href="/admin/products">
+          <Image src={arrowBack} alt="Go back icon" className="mr-4" />
+        </Link>
+        <h2 className="text-xl font-medium">Add product</h2>
+      </div>
+      <form
+        action={handleFormSubmit}
+        className="grid grid-cols-1 gap-4 lg:grid-cols-3"
+      >
+        <div className="lg:col-span-2">
+          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
+            <div className="mb-4">
+              <label
+                htmlFor="title"
+                className="mb-1 block text-xxs font-bold tracking-wider text-primary"
+              >
+                TITLE
+              </label>
+              <input
+                type="text"
+                name="title"
+                id="title"
+                autoComplete="off"
+                placeholder="Short sleeve t-shirt"
+                className="block w-full rounded-md px-3 py-[6px] text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="description"
+                className="mb-1 block text-xxs font-bold tracking-wider text-primary"
+              >
+                DESCRIPTION
+              </label>
+              <textarea
+                name="description"
+                id="description"
+                placeholder="A short sleeve t-shirt made from organic cotton."
+                className="block h-28 w-full resize-none rounded-md px-3 py-[6px] text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              ></textarea>
+            </div>
+          </div>
+          <ImageUpload onFilesChange={handleFilesChange} />
+          <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow-shadowSm">
+            <div>
+              <label
+                htmlFor="price"
+                className="mb-1 block text-xxs font-bold tracking-wider text-primary"
+              >
+                PRICE
+              </label>
+              <input
+                type="number"
+                name="price"
+                id="price"
+                autoComplete="off"
+                placeholder="100"
+                className="block w-full rounded-md px-3 py-[6px] text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="stock"
+                className="mb-1 block text-xxs font-bold tracking-wider text-primary"
+              >
+                COMPARE PRICE
+              </label>
+              <input
+                type="number"
+                name="stock"
+                id="stock"
+                autoComplete="off"
+                placeholder="100"
+                className="block w-full rounded-md px-3 py-[6px] text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              />
+            </div>
+          </div>
+          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
+            <label
+              className="mb-1 block text-xxs font-bold tracking-wider text-primary"
+              htmlFor="quantity"
+            >
+              INVENTORY
+            </label>
+            <h3 className="mb-1 block text-sm text-slate-700">Quantity</h3>
+            <input
+              type="number"
+              name="quantity"
+              id="quantity"
+              autoComplete="off"
+              placeholder="100"
+              className="block w-full rounded-md px-3 py-[6px] text-sm shadow-shadowSm hover:border hover:border-grayOutline md:w-1/2"
+            />
+          </div>
+          <VariantsSection />
+        </div>
+        <div className="">
+          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
+            <div className="flex w-full items-center justify-center">
+              <ButtonPrimary
+                type="submit"
+                className="grow-1 mr-4 flex-1 rounded-md bg-slate-900 px-16 py-2.5 text-white"
+              >
+                Save changes
+              </ButtonPrimary>
+              <div className="text-lg font-bold text-primary">. . .</div>
+            </div>
+            <hr className="my-3 opacity-60" />
+            <div className="flex items-center">
+              <div className={styles["toggle-checkbox-wrapper"]}>
+                <input
+                  type="checkbox"
+                  id="toggle"
+                  className={styles["hidden-checkbox"]}
                 />
-                <TextField
-                  label="Description"
-                  value={descriptionValue}
-                  onChange={handleDescriptionChange}
-                  multiline={4}
-                  autoComplete="off"
-                />
-              </BlockStack>
-            </Card>
-            <Card roundedAbove="sm">
-              <FileUpload />
-            </Card>
-            <Card roundedAbove="sm">
-              <BlockStack gap="400">
-                <Text as="h2" variant="headingSm">
-                  Pricing
-                </Text>
-                <Grid>
-                  <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
-                    <TextField
-                      label="Price"
-                      value={priceValue}
-                      onChange={handlePriceChange}
-                      autoComplete="off"
-                      prefix="₦"
-                      placeholder="0.00"
-                    />
-                  </Grid.Cell>
-                  <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
-                    <TextField
-                      label="Compare-at price"
-                      value={compareAtPriceValue}
-                      onChange={handleCompareAtPriceChange}
-                      autoComplete="off"
-                      prefix="₦"
-                      placeholder="0.00"
-                      suffix={
-                        <Tooltip
-                          content="To display a markdown, enter a value higher than
-                            your price. Shown with a strikethrough."
-                          dismissOnMouseOut
-                        >
-                          <Icon source={QuestionCircleIcon} tone="base" />
-                        </Tooltip>
-                      }
-                    />
-                  </Grid.Cell>
-                </Grid>
-              </BlockStack>
-            </Card>
+                <div
+                  className={styles["toggle-checkbox"]}
+                  onClick={() => document.getElementById("toggle").click()}
+                >
+                  <div className={styles["toggle-thumb"]}></div>
+                </div>
+              </div>
+              <span className="ml-4 inline-block text-xxs font-bold tracking-wider opacity-70">
+                {isToggle ? "ACTIVE" : "INACTIVE"}
+              </span>
+            </div>
+          </div>
+          <div className="rounded-lg bg-white shadow-shadowSm">
+            <div className="p-4">
+              <h3
+                htmlFor="category"
+                className="mb-1 block text-xxs font-bold tracking-wider text-primary"
+              >
+                CATEGORY
+              </h3>
+              <div
+                className="relative flex items-center justify-between rounded-lg p-3 shadow-shadowSm hover:border hover:border-grayOutline"
+                onClick={() => setShowCatOptions(!showCatOptions)}
+              >
+                <span className="opacity-50">Choose category</span>
+                <Image src={showCatOptions ? upIcon : downIcon} alt="Up icon" />
 
-            {/* Inventory */}
-            <Card roundedAbove="sm">
-              <BlockStack gap="400">
-                <Text as="h2" variant="headingSm">
-                  Inventory
-                </Text>
-                <Grid>
-                  <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
-                    <TextField
-                      label="Quantity"
-                      type="number"
-                      value={quantityValue}
-                      onChange={handleQuantityChange}
-                      autoComplete="off"
-                      min={0}
-                    />
-                  </Grid.Cell>
-                </Grid>
-              </BlockStack>
-            </Card>
-
-            {/* Variants */}
-            <Card roundedAbove="sm" padding={0}>
-              <Box padding={400}>
-                <BlockStack gap="400">
-                  <Text as="h2" variant="headingSm">
-                    Variants
-                  </Text>
-                  {options.length > 0 && (
-                    <Collapsible
-                      open={open}
-                      id="basic-collapsible"
-                      transition={{
-                        duration: "500ms",
-                        timingFunction: "ease-in-out",
-                      }}
+                <div
+                  className={`${showCatOptions ? "block" : "hidden"} absolute left-0 right-0 top-full overflow-hidden rounded-lg bg-white shadow-shadowSm`}
+                >
+                  <div className="flex items-center px-4 py-2 hover:bg-gray-100">
+                    <input type="checkbox" id="men" className="mr-3 h-4 w-4" />
+                    <label
+                      htmlFor="men"
+                      className="flex-1 text-base font-medium"
                     >
-                      <Box
-                        borderColor="border"
-                        borderWidth="025"
-                        borderRadius="200"
-                      >
-                        <ul>
-                          {options.map((option, optionIndex) => (
-                            <li key={optionIndex}>
-                              {optionIndex !== 0 && (
-                                <Box
-                                  borderColor="border"
-                                  borderBlockStartWidth="025"
-                                ></Box>
-                              )}
-                              <div className="grid grid-cols-variant gap-x-3 gap-y-1 p-4">
-                                <div className="col-start-2">
-                                  <Text as="p" variant="bodyMd">
-                                    Option name
-                                  </Text>
-                                </div>
-                                <button className="col-start-1 cursor-grab">
-                                  <Icon source={DragHandleIcon} tone="base" />
-                                </button>
-                                <div className="col-start-2">
-                                  <Autocomplete
-                                    options={optionsList}
-                                    selected={option.name}
-                                    onSelect={handleOptionNameChange(
-                                      optionIndex,
-                                    )}
-                                    textField={
-                                      <Autocomplete.TextField
-                                        onChange={handleOptionNameChange(
-                                          optionIndex,
-                                        )}
-                                        label="Option name"
-                                        labelHidden
-                                        ariaExpanded={true}
-                                        value={`${option.name}`}
-                                        placeholder="Size"
-                                        autoComplete="off"
-                                      />
-                                    }
-                                  />
-                                </div>
-                                <button
-                                  className="col-start-3"
-                                  onClick={handleDeleteOption(optionIndex)}
-                                >
-                                  <Icon source={DeleteIcon} tone="base" />
-                                </button>
-                              </div>
-                              <div className="mb-4">
-                                <div className="flex flex-col gap-y-1">
-                                  <div className="grid grid-cols-variant gap-x-3 px-5">
-                                    <div className="col-start-2">
-                                      <Text as="p" variant="bodyMd">
-                                        Option value
-                                      </Text>
-                                    </div>
-                                  </div>
-
-                                  {option.values.map((value, valueIndex) => (
-                                    <div
-                                      className="grid grid-cols-variant gap-x-3 gap-y-1 px-5"
-                                      key={valueIndex}
-                                    >
-                                      <button className="col-start-1 hidden cursor-grab justify-self-end">
-                                        <Icon
-                                          source={DragHandleIcon}
-                                          tone="base"
-                                        />
-                                      </button>
-                                      <div className="col-start-2">
-                                        <TextField
-                                          label="Option value"
-                                          placeholder={
-                                            valueIndex > 0
-                                              ? "Add another value"
-                                              : defaultPlaceholders[option.name]
-                                          }
-                                          labelHidden
-                                          value={value}
-                                          onChange={handleOptionValueChange(
-                                            optionIndex,
-                                            valueIndex,
-                                          )}
-                                          autoComplete="off"
-                                        />
-                                      </div>
-                                      <button className="col-start-3 hidden justify-self-start">
-                                        <Icon source={DeleteIcon} tone="base" />
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="mt-4 grid grid-cols-variant gap-x-3 px-5">
-                                  <div className="col-start-2">
-                                    <Button>Done</Button>
-                                  </div>
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-
-                        <Divider />
-                        <div className="p-4">
-                          <Button
-                            variant="plain"
-                            size="slim"
-                            textAlign="left"
-                            onClick={handleAddOption}
-                            icon={PlusIcon}
-                          >
-                            Add another option
-                          </Button>
-                        </div>
-                      </Box>
-                    </Collapsible>
-                  )}
-                  {options.length === 0 && (
-                    <Button
-                      variant="plain"
-                      textAlign="left"
-                      onClick={handleToggle}
-                      ariaExpanded={open}
-                      ariaControls="basic-collapsible"
-                      icon={PlusIcon}
-                    >
-                      Add options like size or colors
-                    </Button>
-                  )}
-                </BlockStack>
-              </Box>
-
-              <Bleed marginInline={{}}>
-                <VariantsTableComponent />
-              </Bleed>
-            </Card>
-          </BlockStack>
-          <BlockStack gap={{ xs: "400", md: "200" }}>
-            <Card roundedAbove="sm">
-              <Text as="h2" variant="headingSm">
-                Status
-              </Text>
-              <Box paddingBlock="200">
-                <Select
-                  label="product status"
-                  labelHidden
-                  options={statusOptions}
-                  onChange={handleSelectChange}
-                  value={selected}
-                />
-              </Box>
-            </Card>
-            <ProductOrganization />
-          </BlockStack>
-        </InlineGrid>
-
-        <PageActions
-          primaryAction={
-            <Button variant="primary" submit onBlur={() => {}}>
-              Save
-            </Button>
-          }
-        />
+                      men
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
-    </Page>
+    </div>
   );
 }
-
-export default AddProduct;

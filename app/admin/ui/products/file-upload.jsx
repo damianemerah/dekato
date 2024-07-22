@@ -11,8 +11,9 @@ import {
 } from "@shopify/polaris";
 import { NoteIcon, PlusIcon } from "@shopify/polaris-icons";
 import Image from "next/image";
+import addIcon from "@/public/assets/icons/add.svg";
 
-export function FileUpload() {
+export default function FileUpload() {
   const [files, setFiles] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [openFileDialog, setOpenFileDialog] = useState(false);

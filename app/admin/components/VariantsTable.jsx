@@ -5,6 +5,7 @@ import {
   Text,
   Badge,
   useBreakpoints,
+  Card,
 } from "@shopify/polaris";
 import { DeleteIcon } from "@shopify/polaris-icons";
 import React from "react";
@@ -100,7 +101,7 @@ function VariantsTable() {
   ];
 
   return (
-    <LegacyCard>
+    <Card>
       <IndexTable
         condensed={useBreakpoints().smDown}
         resourceName={resourceName}
@@ -119,7 +120,7 @@ function VariantsTable() {
       >
         {rowMarkup}
       </IndexTable>
-    </LegacyCard>
+    </Card>
   );
 }
 

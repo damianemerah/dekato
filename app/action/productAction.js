@@ -76,6 +76,10 @@ export async function createProduct(formData) {
   await restrictTo("admin");
   await dbConnect();
 
+  console.log(formData, "Form Data:🚀💎💎💎");
+
+  return;
+
   const obj = await handleFormData(formData);
 
   const category = await Category.findById(obj.category);

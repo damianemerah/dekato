@@ -1,7 +1,7 @@
 import { Card, Text, TextField, Box } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 
-export function ProductOrganization() {
+export default function ProductOrganization() {
   const [value, setValue] = useState("");
 
   const handleChange = useCallback((newValue) => setValue(newValue), []);

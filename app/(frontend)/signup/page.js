@@ -7,7 +7,7 @@ import fbIcon from "@/public/assets/icons/fb-icon.svg";
 import google from "@/public/assets/icons/google.svg";
 import viewIcon from "@/public/assets/icons/view.svg";
 import viewOff from "@/public/assets/icons/view-off.svg";
-import toast from "react-hot-toast";
+import toast from "react-toastify";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -48,7 +48,7 @@ const SignUp = () => {
     if (result.ok) {
       router.push("/signin");
       toast.success(
-        "Sign up successful! Please check your email to verify your account."
+        "Sign up successful! Please check your email to verify your account.",
       );
       const data = await result.json();
       console.log(data, "data🚀🚀🚀");
@@ -56,12 +56,12 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex_center my-16 mx-auto max-w-2xl px-20 py-10 border border-gray-300 rounded-lg shadow-md bg-white">
+    <div className="flex_center mx-auto my-16 max-w-2xl rounded-lg border border-gray-300 bg-white px-20 py-10 shadow-md">
       <h2>Sign Up</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col mt-4 w-full gap-3">
-        <div className="flex-1 item__center shrink-0 grow-0 basis-1/2 gap-4">
+      <form onSubmit={handleSubmit} className="mt-4 flex w-full flex-col gap-3">
+        <div className="item__center flex-1 shrink-0 grow-0 basis-1/2 gap-4">
           <div className="flex flex-col">
-            <label className="block mb-1" htmlFor="firstname">
+            <label className="mb-1 block" htmlFor="firstname">
               Firstname
             </label>
             <input
@@ -70,11 +70,11 @@ const SignUp = () => {
               name="firstname"
               value={formData.firstname}
               onChange={handleChange}
-              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
           </div>
-          <div className="flex-1 flex flex-col">
-            <label className="block mb-1" htmlFor="lastname">
+          <div className="flex flex-1 flex-col">
+            <label className="mb-1 block" htmlFor="lastname">
               Lastname
             </label>
             <input
@@ -83,12 +83,12 @@ const SignUp = () => {
               name="lastname"
               value={formData.lastname}
               onChange={handleChange}
-              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
           </div>
         </div>
         <div>
-          <label className="block mb-1" htmlFor="email">
+          <label className="mb-1 block" htmlFor="email">
             Email
           </label>
           <input
@@ -97,25 +97,25 @@ const SignUp = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+            className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
           />
         </div>
 
         <div>
-          <label className="block mb-1" htmlFor="password">
+          <label className="mb-1 block" htmlFor="password">
             Password
           </label>
-          <div className="flex justify-between items-center bg-gray-100 rounded-md">
+          <div className="flex items-center justify-between rounded-md bg-gray-100">
             <input
               type={viewPassword ? "text" : "password"}
               id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
             <Image
-              className="pr-2.5 cursor-pointer"
+              className="cursor-pointer pr-2.5"
               src={viewPassword ? viewIcon : viewOff}
               width={30}
               height={30}
@@ -126,20 +126,20 @@ const SignUp = () => {
         </div>
 
         <div>
-          <label className="block mb-1" htmlFor="passwordConfirm">
+          <label className="mb-1 block" htmlFor="passwordConfirm">
             Password Confirm
           </label>
-          <div className="flex justify-between items-center bg-gray-100 rounded-md">
+          <div className="flex items-center justify-between rounded-md bg-gray-100">
             <input
               type={viewPassword ? "text" : "password"}
               id="passwordConfirm"
               name="passwordConfirm"
               value={formData.passwordConfirm}
               onChange={handleChange}
-              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
             <Image
-              className="pr-2.5 cursor-pointer"
+              className="cursor-pointer pr-2.5"
               src={viewPassword ? viewIcon : viewOff}
               width={30}
               height={30}
@@ -151,21 +151,17 @@ const SignUp = () => {
 
         <button
           type="submit"
-          className="bg-slate-900 text-white py-2.5 px-16 rounded-md mx-auto mt-4"
+          className="mx-auto mt-4 rounded-md bg-slate-900 px-16 py-2.5 text-white"
         >
           Sign Up
         </button>
       </form>
-      <p
-        className="
-       text-gray-500 text-center mt-4 flex__center gap-4
-      "
-      >
-        <span className="w-1/2 bg-gray-300 h-px"></span>
+      <p className="flex__center mt-4 gap-4 text-center text-gray-500">
+        <span className="h-px w-1/2 bg-gray-300"></span>
         <label className="text-nowrap">Or continue with</label>
-        <span className="w-1/2 bg-gray-300 h-px"></span>
+        <span className="h-px w-1/2 bg-gray-300"></span>
       </p>
-      <div className="flex__center gap-5 mt-4">
+      <div className="flex__center mt-4 gap-5">
         <Image src={google} width={52} height={52} alt="Google signin" />
         <Image src={fbIcon} width={48} height={48} alt="Facebook signin" />
       </div>
