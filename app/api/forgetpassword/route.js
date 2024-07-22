@@ -3,7 +3,7 @@ import User from "@/models/user";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
-import Email from "@/utils/email";
+import Email from "@/lib/email";
 
 export async function POST(req) {
   console.log("forgetPassword route called 🏃‍♀️");
@@ -27,7 +27,7 @@ export async function POST(req) {
 
     return NextResponse.json(
       { success: true, message: "Reset Token sent to your email" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     user.passwordResetToken = undefined;
