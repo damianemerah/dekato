@@ -1,3 +1,5 @@
+"use client";
+
 import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
 import ProductCard from "@/app/ui/ProductCard";
@@ -15,20 +17,18 @@ export default function Home() {
       <Hero />
       <HomeCategory />
       <Campaign />
-      <div className="py-10 px-5">
+      <div className="px-5 py-10">
         <h2 className="mb-7">YOU MAY ALSO LIKE</h2>
         <ProductList cat="men" />
       </div>
-      <div className={`flex items-center justify-center mb-10 gap-5`}>
+      <div className={`mb-10 flex items-center justify-center gap-5`}>
         <div className="block w-1/2 flex-1 self-stretch">
           <Image
             alt="cat"
-            className="max-h-full object-cover h-full"
+            className="h-full max-h-full object-cover"
             style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
             loading="lazy"
             src={image6}
-            width="100%"
-            height="auto"
           />
         </div>
         <SubPageCampaign

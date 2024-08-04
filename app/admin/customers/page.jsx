@@ -12,7 +12,7 @@ import {
 import { useState, useCallback } from 'react';
 
 function Customers() {
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const [itemStrings, setItemStrings] = useState([
     'All',
     'Unpaid',
@@ -39,7 +39,6 @@ function Customers() {
   const onHandleCancel = () => {};
 
   const onHandleSave = async () => {
-    await sleep(1);
     return true;
   };
 

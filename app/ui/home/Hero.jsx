@@ -3,8 +3,8 @@ import Link from "next/link";
 import image2 from "@/public/assets/image2.png";
 import image3 from "@/public/assets/image3.png";
 import heroBg from "@/public/assets/hero_bg.png";
-import arrowLeft from "@/public/assets/icons/arrow_left.svg";
-import arrowRight from "@/public/assets/icons/arrow_right.svg";
+import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
+import ArrowRight from "@/public/assets/icons/arrow_right.svg";
 import { oswald } from "@/font";
 import styles from "./Hero.module.css";
 
@@ -20,49 +20,37 @@ export default function Hero() {
       }}
       className={`${oswald.className}`}
     >
-      <div className="flex justify-center self-center absolute bottom-0 right-0 gap-3 mb-4 mr-4">
-        <button className="w-5 h-5">
-          <Image
-            className="w-full h-full"
-            src={arrowLeft}
-            width="100%"
-            height="auto"
-            alt="arrow"
-          />
+      <div className="absolute bottom-0 right-0 mb-4 mr-4 flex justify-center gap-3 self-center">
+        <button className="h-5 w-5">
+          <ArrowLeft className="h-full w-full" />
         </button>
-        <button className="w-5 h-5">
-          <Image
-            className="w-full h-full"
-            src={arrowRight}
-            width="100%"
-            height="auto"
-            alt="arrow"
-          />
+        <button className="h-5 w-5">
+          <ArrowRight />
         </button>
       </div>
 
-      <div className="flex justify-center items-center absolute bottom-0 left-0 mb-4 ml-4">
-        <button className={`w-3 h-3 mr-1 border border-black`}></button>
-        <button className={`w-3 h-3 mr-1 border border-black`}></button>
+      <div className="absolute bottom-0 left-0 mb-4 ml-4 flex items-center justify-center">
+        <button className={`mr-1 h-3 w-3 border border-black`}></button>
+        <button className={`mr-1 h-3 w-3 border border-black`}></button>
         <button
-          className={`${styles.hero__active} w-3 h-3 mr-1 border border-black`}
+          className={`${styles.hero__active} mr-1 h-3 w-3 border border-black`}
         ></button>
-        <button className={`w-3 h-3 mr-1 border border-black`}></button>
+        <button className={`mr-1 h-3 w-3 border border-black`}></button>
       </div>
 
-      <div className={`flex items-center justify-center px-16 py-16 `}>
-        <div className="heading_bd relative flex flex-col justify-center flex-grow-0 flex-shrink-0 basis-1/2 mr-4 p-8">
-          <h1 className="text-slate-950 mb-10 font-bold text-7xl leading-tight">
+      <div className={`flex items-center justify-center px-16 py-16`}>
+        <div className="heading_bd relative mr-4 flex flex-shrink-0 flex-grow-0 basis-1/2 flex-col justify-center p-8">
+          <h1 className="mb-10 text-7xl font-bold leading-tight text-slate-950">
             SUMMER SALE: Get 30% OFF On all dresses.
           </h1>
           <Link
             href="#"
-            className="text-black font-medium hover:no-underline self-start py-3 px-8 border-2 border-black"
+            className="self-start border-2 border-black px-8 py-3 font-medium text-black hover:no-underline"
           >
             SHOP NOW
           </Link>
         </div>
-        <div className="flex-1 flex justify-center border-dashed relative h-96">
+        <div className="relative flex h-96 flex-1 justify-center border-dashed">
           <div className="block w-1/2">
             <Image
               alt="cat"
@@ -70,19 +58,15 @@ export default function Hero() {
               style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
               loading="lazy"
               src={image2}
-              width="100%"
-              height="auto"
             />
           </div>
-          <div className="block w-1/2 transform scale-110 -translate-x-10">
+          <div className="block w-1/2 -translate-x-10 scale-110 transform">
             <Image
               alt="cat"
               className="max-h-full object-cover"
               style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
               loading="lazy"
               src={image3}
-              width="100%"
-              height="auto"
             />
           </div>
         </div>

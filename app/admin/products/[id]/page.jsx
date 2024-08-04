@@ -30,7 +30,7 @@ import {
   DeleteIcon,
 } from "@shopify/polaris-icons";
 import { VariantsTableComponent } from "@/app/admin/components";
-import { ProductOrganization } from "@/app/admin/ui/products/new";
+import { ProductOrganization } from "@/app/admin/ui/products/New";
 
 function Product() {
   //State

@@ -1,11 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import menu from "@/public/assets/icons/menu.svg";
-import heart from "@/public/assets/icons/heart-white.svg";
-import userIcon from "@/public/assets/icons/user.svg";
-import localShip from "@/public/assets/icons/local_shipping.svg";
-import cart from "@/public/assets/icons/cart.svg";
+import MenuIcon from "@/public/assets/icons/menu.svg";
+import HeartIcon from "@/public/assets/icons/heart-white.svg";
+import UserIcon from "@/public/assets/icons/user.svg";
+import ShippingIcon from "@/public/assets/icons/local_shipping.svg";
+import CartIcon from "@/public/assets/icons/cart.svg";
 import logo from "@/public/assets/icons/dekato.png";
 import { signOut } from "next-auth/react";
 import { useUserStore } from "@/store/store";
@@ -23,20 +23,10 @@ function Header() {
         className={`${oswald.className} flex items-center justify-between bg-slate-950 px-12 py-3 text-white max-md:flex-wrap max-md:px-5`}
       >
         <div className="flex items-center justify-between gap-10 whitespace-nowrap py-1 text-sm font-medium uppercase">
-          <Image
-            // onClick={() => setShow(!show)}
-            alt="cat"
-            loading="lazy"
-            width={100}
-            height={100}
-            src={menu}
-            className="aspect-square w-8 shrink-0 cursor-pointer self-stretch"
-          />
+          <MenuIcon className="h-6 w-6" />
           <Link href="/">
             <Image
               alt="cat"
-              width="100%"
-              height="100%"
               loading="lazy"
               src={logo}
               className="my-auto aspect-[5] w-[101px] max-w-full shrink-0 self-stretch fill-white"
@@ -70,50 +60,23 @@ function Header() {
         </div>
 
         <div className="flex items-center justify-center gap-5 whitespace-nowrap text-xs tracking-normal">
-          <div className="flex flex-col items-center justify-center">
-            <Image
-              alt="cat"
-              width="100%"
-              height="100%"
-              loading="lazy"
-              src={userIcon}
-              className="self-center"
-            />
+          <div className="flex flex-col items-center justify-center gap-1">
+            <UserIcon className="h-5 w-5 self-center shadow-sm" />
             {user && <p>Hi, {user.firstname}</p>}
-            {!user && <Link href="/signin">LOGIN</Link>}
+            {!user && <Link href="/signin">Login</Link>}
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
-            <Image
-              alt="cat"
-              width="100%"
-              height="100%"
-              loading="lazy"
-              src={heart}
-              className="self-center shadow-sm"
-            />
+            <HeartIcon className="h-5 w-5 self-center shadow-sm" />
             <p>Wishlist</p>
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
-            <Image
-              width="100%"
-              height="100%"
-              alt="cat"
-              loading="lazy"
-              src={cart}
-              className="self-center shadow-lg"
-            />
-            <div>cart</div>
+            <CartIcon className="h-5 w-5 self-center shadow-sm" />
+            <div>Cart</div>
           </div>
         </div>
       </header>
-      <div className="flex justify-center self-center bg-white px-8 py-2 text-center text-black">
-        <Image
-          src={localShip}
-          width="100%"
-          height="100%"
-          alt="icons"
-          className="mr-2"
-        />
+      <div className="flex items-center justify-center gap-3 bg-white px-8 py-2 text-center text-black">
+        <ShippingIcon className="text-2xl" />
         <p>FREE SHIPPING ON ORDERS ABOVE ₦150,000</p>
         <button
           className="bg-black p-4 text-white"

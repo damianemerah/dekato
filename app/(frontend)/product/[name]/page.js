@@ -1,14 +1,16 @@
+import { oswald } from "@/font";
 import Image from "next/image";
+
+import ProductDetail from "@/app/ui/product/ProductDetail";
+import ProductCard from "@/app/ui/ProductCard";
+
 import image7 from "@/public/assets/image7.png";
 import image8 from "@/public/assets/image8.png";
 import image9 from "@/public/assets/image9.png";
-import x from "@/public/assets/icons/twitter.svg";
-import fb from "@/public/assets/icons/facebook.svg";
-import insta from "@/public/assets/icons/instagram.svg";
-import whatsapp from "@/public/assets/icons/whatsapp.svg";
-import { oswald } from "@/font";
-import ProductDetail from "@/app/ui/product/ProductDetail";
-import ProductCard from "@/app/ui/ProductCard";
+import XIcon from "@/public/assets/icons/twitter.svg";
+import FbIcon from "@/public/assets/icons/facebook.svg";
+import InstaIcon from "@/public/assets/icons/instagram.svg";
+import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 
 export default function CategoryPage() {
   return (
@@ -20,8 +22,6 @@ export default function CategoryPage() {
               <Image
                 className="block h-full w-full object-cover"
                 src={image7}
-                width="100%"
-                height="100%"
                 alt="Product image"
               />
             </div>
@@ -29,8 +29,6 @@ export default function CategoryPage() {
               <Image
                 className="block h-full w-full object-cover"
                 src={image8}
-                width="100%"
-                height="100%"
                 alt="Product image"
               />
             </div>
@@ -38,8 +36,6 @@ export default function CategoryPage() {
               <Image
                 className="block h-full w-full object-cover"
                 src={image9}
-                width="100%"
-                height="100%"
                 alt="Product image"
               />
             </div>
@@ -52,17 +48,15 @@ export default function CategoryPage() {
               <Image
                 className="block h-full w-full content-normal object-cover"
                 src={image7}
-                width="100%"
-                height="100%"
                 alt="Product image"
               />
             </div>
             <div className="mt-1 flex items-center justify-center gap-5">
               <p className="font-semibold">Share:</p>
-              <Image src={x} width={20} height={20} alt="icon" />
-              <Image src={fb} width={14.5} height={14.5} alt="icon" />
-              <Image src={insta} width={20} height={20} alt="icon" />
-              <Image src={whatsapp} width={20} height={20} alt="icon" />
+              <XIcon />
+              <FbIcon />
+              <InstaIcon />
+              <WhatsappIcon />
             </div>
           </div>
         </div>
@@ -79,8 +73,6 @@ export default function CategoryPage() {
                 <Image
                   className="h-11 w-11 rounded-md"
                   src={image9}
-                  width="100%"
-                  height="100%"
                   alt="Product image"
                 />
               </div>
@@ -88,8 +80,6 @@ export default function CategoryPage() {
                 <Image
                   className="h-11 w-11 rounded-md"
                   src={image9}
-                  width="100%"
-                  height="100%"
                   alt="Product image"
                 />
               </div>
@@ -97,8 +87,6 @@ export default function CategoryPage() {
                 <Image
                   className="h-11 w-11 rounded-md"
                   src={image9}
-                  width="100%"
-                  height="100%"
                   alt="Product image"
                 />
               </div>
@@ -144,12 +132,7 @@ export default function CategoryPage() {
               Add to Cart
             </button>
             <button className="col-span-2 flex items-center justify-center border-2 border-green-600 px-9 py-3 font-bold">
-              <Image
-                src={whatsapp}
-                width="100%"
-                height="100%"
-                alt="Product image"
-              />
+              <WhatsappIcon />
               <span className="ml-2">Contact us on WhatsApp</span>
             </button>
           </div>

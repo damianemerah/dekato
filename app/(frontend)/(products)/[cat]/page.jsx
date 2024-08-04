@@ -26,8 +26,6 @@ export default function Product({ params: { cat }, searchParams }) {
             style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
             loading="lazy"
             src={image6}
-            width="100%"
-            height="auto"
           />
         </div>
       </div>

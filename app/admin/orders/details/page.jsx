@@ -58,7 +58,7 @@ function OrderDetails() {
       title="#1033"
       titleMetadata={
         <>
-          <Badge progress="complete">Paid</Badge>{" "}
+          <Badge progress="complete">Paid</Badge>
           <Badge progress="complete">Fullfilled</Badge>
         </>
       }

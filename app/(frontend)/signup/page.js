@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import fbIcon from "@/public/assets/icons/fb-icon.svg";
-import google from "@/public/assets/icons/google.svg";
-import viewIcon from "@/public/assets/icons/view.svg";
-import viewOff from "@/public/assets/icons/view-off.svg";
+import FbIcon from "@/public/assets/icons/fb-icon.svg";
+import GoogleIcon from "@/public/assets/icons/google.svg";
+import ViewIcon from "@/public/assets/icons/view.svg";
+import ViewOff from "@/public/assets/icons/view-off.svg";
 import toast from "react-toastify";
 
 const SignUp = () => {
@@ -21,9 +21,6 @@ const SignUp = () => {
   const [viewPassword, setViewPassword] = useState(false);
 
   const router = useRouter();
-  useEffect(() => {
-    document.body.classList.add("bg-gray-100");
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -114,14 +111,17 @@ const SignUp = () => {
               onChange={handleChange}
               className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
-            <Image
-              className="cursor-pointer pr-2.5"
-              src={viewPassword ? viewIcon : viewOff}
-              width={30}
-              height={30}
-              alt="View password"
-              onClick={() => setViewPassword(!viewPassword)}
-            />
+            {viewPassword ? (
+              <ViewIcon
+                onClick={() => setViewPassword(!viewPassword)}
+                className="mr-3 w-5 cursor-pointer"
+              />
+            ) : (
+              <ViewOff
+                onClick={() => setViewPassword(!viewPassword)}
+                className="mr-3 w-5 cursor-pointer"
+              />
+            )}
           </div>
         </div>
 
@@ -138,14 +138,17 @@ const SignUp = () => {
               onChange={handleChange}
               className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
-            <Image
-              className="cursor-pointer pr-2.5"
-              src={viewPassword ? viewIcon : viewOff}
-              width={30}
-              height={30}
-              alt="View password"
-              onClick={() => setViewPassword(!viewPassword)}
-            />
+            {viewPassword ? (
+              <ViewIcon
+                onClick={() => setViewPassword(!viewPassword)}
+                className="mr-3 w-5 cursor-pointer"
+              />
+            ) : (
+              <ViewOff
+                onClick={() => setViewPassword(!viewPassword)}
+                className="mr-3 w-5 cursor-pointer"
+              />
+            )}
           </div>
         </div>
 
@@ -162,8 +165,8 @@ const SignUp = () => {
         <span className="h-px w-1/2 bg-gray-300"></span>
       </p>
       <div className="flex__center mt-4 gap-5">
-        <Image src={google} width={52} height={52} alt="Google signin" />
-        <Image src={fbIcon} width={48} height={48} alt="Facebook signin" />
+        <GoogleIcon className="inline-block text-4xl" />
+        <FbIcon className="inline-block text-4xl" />
       </div>
     </div>
   );
