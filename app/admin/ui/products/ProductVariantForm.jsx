@@ -1,7 +1,7 @@
 import { ButtonPrimary } from "@/app/ui/Button";
 import { useState } from "react";
 
-const VariantsSection = () => {
+const VariantsSection = ({ handleOpenSlider }) => {
   const handleAddVariant = () => {};
 
   const handleInputChange = (e) => {};
@@ -11,10 +11,13 @@ const VariantsSection = () => {
   return (
     <div className="mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-xxs mb-1 block font-bold tracking-wider text-primary">
+        <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
           VARIANT
         </h3>
-        <button className="text-xxs rounded-full bg-primary px-4 py-1 font-bold tracking-wider text-white">
+        <button
+          className="rounded-full bg-primary px-4 py-1 text-xxs font-bold tracking-[0.12em] text-white"
+          onClick={handleOpenSlider}
+        >
           EDIT
         </button>
       </div>
@@ -30,13 +33,13 @@ const VariantsSection = () => {
             <tr className="border-b border-gray-200 hover:bg-gray-50">
               <td className="px-6 py-3 text-left font-medium">Color</td>
               <td className="space-x-2 px-6 py-3 text-right">
-                <span className="text-xxs inline-block rounded-full bg-slate-300 px-3 py-0.5 font-bold opacity-90">
-                  RED
+                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
+                  REDs
                 </span>
-                <span className="text-xxs inline-block rounded-full bg-slate-300 px-3 py-0.5 font-bold opacity-90">
+                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
                   GREEN
                 </span>
-                <span className="text-xxs inline-block rounded-full bg-slate-300 px-3 py-0.5 font-bold opacity-90">
+                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
                   GOLD
                 </span>
               </td>
@@ -44,13 +47,13 @@ const VariantsSection = () => {
             <tr className="border-b border-gray-200 hover:bg-gray-50">
               <td className="px-6 py-3 text-left font-medium">Size</td>
               <td className="space-x-2 px-6 py-3 text-right">
-                <span className="text-xxs inline-block rounded-full bg-slate-300 px-3 py-0.5 font-bold opacity-90">
+                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
                   XL
                 </span>
-                <span className="text-xxs inline-block rounded-full bg-slate-300 px-3 py-0.5 font-bold opacity-90">
+                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
                   XXL
                 </span>
-                <span className="text-xxs inline-block rounded-full bg-slate-300 px-3 py-0.5 font-bold opacity-90">
+                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
                   3XL
                 </span>
               </td>

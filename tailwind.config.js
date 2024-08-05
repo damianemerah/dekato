@@ -22,7 +22,9 @@ module.exports = {
       },
       boxShadow: {
         shadowSm:
-          "0 0 1px rgba(40, 51, 65, .1), 0 1px 2px rgba(40, 51, 65, .1), 0 1px 3px rgba(40, 51, 65, .1)",
+          "0 0 1px rgba(25, 28, 29, 0.1), 0 1px 2px rgba(25, 28, 29, 0.1), 0 1px 3px rgba(25, 28, 29, 0.1)",
+        shadowBig:
+          "0 0 4px rgba(25, 28, 29, 0.1), 0 4px 12px rgba(25, 28, 29, 0.1), 4px 4px 16px rgba(240, 242, 242, 0.1), -4px 4px 16px rgba(130, 130, 130, 0.1), -4px -4px 16px rgba(196, 196, 196, 0.1), 4px -4px 16px rgba(25, 28, 29, 0.1);",
       },
       gridTemplateColumns: {
         variant: "2rem 1fr minmax(1.75rem, min-content)",

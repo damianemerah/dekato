@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import add from "@/public/assets/icons/add.svg";
-import remove from "@/public/assets/icons/minus.svg";
+import AddIcon from "@/public/assets/icons/add.svg";
+import CloseIcon from "@/public/assets/icons/minus.svg";
 import { useState } from "react";
 import { oswald } from "@/font";
 
@@ -24,31 +23,28 @@ export default function SideMenu() {
   ];
 
   return (
-    <div className="shrink-0 bg-white w-full basis-80 h-screen overflow-y-scroll">
+    <div className="h-screen w-full shrink-0 basis-80 overflow-y-scroll bg-white">
       {menuItems.map((menuItem) => (
         <div key={menuItem.id}>
-          <div className="flex justify-between items-center border-b w-full border-b-slate-200 mb-1">
+          <div className="mb-1 flex w-full items-center justify-between border-b border-b-slate-200">
             <h4 className={`mr-3 p-2 text-base ${oswald.className}`}>
               {menuItem.title}
             </h4>
-            <div className="w-3.5 h-3.5 flex justify-center items-center py-2">
-              <Image
-                onClick={() => toggleMenuItem(menuItem.id)}
-                src={openMenuItemIds.includes(menuItem.id) ? remove : add}
-                width={19}
-                height={19}
-                alt="dropdown icon"
-                className="cursor-pointer object-cover w-full h-auto block"
-              />
+            <div className="flex h-3.5 w-3.5 items-center justify-center py-2">
+              {openMenuItemIds.includes(menuItem.id) ? (
+                <CloseIcon onClick={() => toggleMenuItem(menuItem.id)} />
+              ) : (
+                <AddIcon onClick={() => toggleMenuItem(menuItem.id)} />
+              )}
             </div>
           </div>
           <ul
-            className={`uppercase list-none text-xs ${
+            className={`list-none text-xs uppercase ${
               openMenuItemIds.includes(menuItem.id) ? "block" : "hidden"
             }`}
           >
             {menuItem.items.map((item, index) => (
-              <li key={index} className="ml-6 mb-2">
+              <li key={index} className="mb-2 ml-6">
                 {item}
               </li>
             ))}

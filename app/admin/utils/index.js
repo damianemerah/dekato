@@ -1,3 +1,3 @@
-import { disambiguateLabel, isEmpty, sleep } from "./utils";
+import { disambiguateLabel, isEmpty } from "./utils";
 
-export { disambiguateLabel, isEmpty, sleep };
+export { disambiguateLabel, isEmpty };

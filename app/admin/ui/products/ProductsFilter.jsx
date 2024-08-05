@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from "react";
 import { IndexFilters, ChoiceList } from "@shopify/polaris";
 import { useSetIndexFiltersMode } from "@shopify/polaris";
-import { disambiguateLabel, isEmpty, sleep } from "@/app/admin/utils";
+import { disambiguateLabel, isEmpty } from "@/app/admin/utils";
 
 export default function ProductsIndexFilter() {
   const [itemStrings, setItemStrings] = useState([
@@ -28,7 +28,6 @@ export default function ProductsIndexFilter() {
   const duplicateView = async (name) => {
     setItemStrings([...itemStrings, name]);
     setSelected(itemStrings.length);
-    await sleep(1);
     return true;
   };
 
@@ -52,7 +51,6 @@ export default function ProductsIndexFilter() {
                   }
                   return item.content;
                 });
-                await sleep(1);
                 setItemStrings(newItemsStrings);
                 return true;
               },
@@ -60,7 +58,6 @@ export default function ProductsIndexFilter() {
             {
               type: "duplicate",
               onPrimaryAction: async (name) => {
-                await sleep(1);
                 duplicateView(name);
                 return true;
               },
@@ -71,7 +68,6 @@ export default function ProductsIndexFilter() {
             {
               type: "delete",
               onPrimaryAction: async () => {
-                await sleep(1);
                 deleteView(index);
                 return true;
               },
@@ -80,7 +76,6 @@ export default function ProductsIndexFilter() {
   }));
 
   const onCreateNewView = async (value) => {
-    await sleep(500);
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);
     return true;
@@ -99,7 +94,6 @@ export default function ProductsIndexFilter() {
 
   const onHandleCancel = () => {};
   const onHandleSave = async () => {
-    await sleep(1);
     return true;
   };
 

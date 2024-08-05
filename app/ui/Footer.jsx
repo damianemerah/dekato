@@ -1,75 +1,49 @@
 import * as React from "react";
 import Image from "next/image";
+
 import logoBig from "@/public/assets/icons/logo-lg.png";
-import security from "@/public/assets/icons/security.svg";
-import support_agent from "@/public/assets/icons/support_agent.svg";
-import local_shipping from "@/public/assets/icons/local_shipping.svg";
-import quality from "@/public/assets/icons/quality.svg";
 import cardFrame from "@/public/assets/frame77.png";
-import call from "@/public/assets/icons/call.svg";
-import facebook from "@/public/assets/icons/facebook.svg";
-import instagram from "@/public/assets/icons/instagram.svg";
-import whatsapp from "@/public/assets/icons/whatsapp.svg";
+
+import SecurityIcon from "@/public/assets/icons/security.svg";
+import SupportAgentIcon from "@/public/assets/icons/support_agent.svg";
+import LocalShippingIcon from "@/public/assets/icons/local_shipping.svg";
+import QualityIcon from "@/public/assets/icons/quality.svg";
+import CallIcon from "@/public/assets/icons/call.svg";
+import FacebookIcon from "@/public/assets/icons/facebook.svg";
+import InstagramIcon from "@/public/assets/icons/instagram.svg";
+import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 
 export default function Footer() {
   return (
     <div className="flex flex-col">
       <div className="flex w-full items-center justify-center bg-neutral-300 px-16 py-8 max-md:max-w-full max-md:px-5">
         <div className="mb-11 flex w-full max-w-[1228px] flex-col max-md:mb-10 max-md:max-w-full">
-          {/* <h2 className="self-center text-3xl font-semibold tracking-normal text-black">
+          {/* <h2 className="self-center text-5xl text-3xl font-semibold tracking-normal text-black">
             Why Shop With Us
           </h2> */}
           <div className="mt-16 max-md:mt-10 max-md:max-w-full">
             <div className="flex gap-5 max-md:flex-col max-md:gap-0">
               <div className="flex w-3/12 flex-col max-md:ml-0 max-md:w-full">
                 <div className="flex grow flex-col justify-center px-10 text-center text-lg font-semibold tracking-tight text-black max-md:mt-10 max-md:px-5">
-                  <Image
-                    alt="footer img"
-                    width={48}
-                    heigth={48}
-                    loading="lazy"
-                    src={quality}
-                    className="self-center"
-                  />
+                  <QualityIcon className="self-center text-5xl" />
                   <p className="mt-12 max-md:mt-10">Quality Assurance</p>
                 </div>
               </div>
               <div className="ml-5 flex w-3/12 flex-col max-md:ml-0 max-md:w-full">
                 <div className="flex grow flex-col justify-center px-14 text-center text-lg font-semibold tracking-tight text-black max-md:mt-10 max-md:px-5">
-                  <Image
-                    alt="footer img"
-                    width={48}
-                    heigth={48}
-                    loading="lazy"
-                    src={local_shipping}
-                    className="self-center"
-                  />
+                  <LocalShippingIcon className="self-center text-5xl" />
                   <p className="mt-12 max-md:mt-10">Free Shipping</p>
                 </div>
               </div>
               <div className="ml-5 flex w-3/12 flex-col max-md:ml-0 max-md:w-full">
                 <div className="flex grow flex-col justify-center px-12 text-center text-lg font-semibold tracking-tight text-black max-md:mt-10 max-md:px-5">
-                  <Image
-                    alt="footer img"
-                    width={48}
-                    heigth={48}
-                    loading="lazy"
-                    src={security}
-                    className="self-center"
-                  />
+                  <SecurityIcon className="self-center text-5xl" />
                   <p className="mt-12 max-md:mt-10">Secure Payment</p>
                 </div>
               </div>
               <div className="ml-5 flex w-3/12 flex-col max-md:ml-0 max-md:w-full">
                 <div className="flex grow flex-col justify-center px-10 text-center text-lg font-semibold tracking-tight text-black max-md:mt-10 max-md:px-5">
-                  <Image
-                    alt="footer img"
-                    width={48}
-                    heigth={48}
-                    loading="lazy"
-                    src={support_agent}
-                    className="self-center"
-                  />
+                  <SupportAgentIcon className="self-center text-5xl" />
                   <p className="mt-12 max-md:mt-10">Customer Support</p>
                 </div>
               </div>
@@ -80,20 +54,8 @@ export default function Footer() {
       <div className="flex w-full flex-col items-center justify-center bg-slate-800 px-16 py-16 max-md:max-w-full max-md:px-5">
         <div className="flex w-full items-center justify-center px-16 max-md:max-w-full max-md:px-5">
           <div className="mt-2.5 flex grow flex-col max-md:mt-10">
-            <Image
-              alt="footer logo"
-              width="100%"
-              heigth="100%"
-              loading="lazy"
-              src={logoBig}
-            />
-            <Image
-              alt="Bank cards"
-              width="100%"
-              heigth="100%"
-              loading="lazy"
-              src={cardFrame}
-            />
+            <Image alt="footer logo" loading="lazy" src={logoBig} />
+            <Image alt="Bank cards" loading="lazy" src={cardFrame} />
           </div>
           <div className="ml-5 flex w-[71%] flex-col max-md:ml-0 max-md:w-full">
             <div className="max-md:mt-10 max-md:max-w-full">
@@ -127,54 +89,19 @@ export default function Footer() {
                       Monday - Saturday from 8am - 8pm
                     </div>
                     <div className="mt-4 flex gap-2 whitespace-nowrap">
-                      <Image
-                        alt="footer img"
-                        width="100%"
-                        heigth="100%"
-                        loading="lazy"
-                        src={call}
-                        className="my-auto aspect-square w-3 shrink-0"
-                      />
+                      <CallIcon className="my-auto aspect-square w-3 shrink-0" />
                       <div>+2348023024687</div>
                     </div>
                     <div className="mt-1.5 flex gap-2 whitespace-nowrap">
-                      <Image
-                        alt="footer img"
-                        width="100%"
-                        heigth="100%"
-                        loading="lazy"
-                        src={call}
-                        className="my-auto aspect-square w-3 shrink-0"
-                      />
+                      <CallIcon className="my-auto aspect-square w-3 shrink-0" />
                       <div>+2348064737122</div>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-5 max-md:mt-10">
-                  <Image
-                    alt="facebook icon"
-                    width="100%"
-                    heigth="100%"
-                    loading="lazy"
-                    src={facebook}
-                    className="shrink-0 self-start"
-                  />
-                  <Image
-                    alt="Instagram icon"
-                    width="100%"
-                    heigth="100%"
-                    loading="lazy"
-                    src={instagram}
-                    className="shrink-0 self-start"
-                  />
-                  <Image
-                    alt="whatsapp icon"
-                    width="100%"
-                    heigth="100%"
-                    loading="lazy"
-                    src={whatsapp}
-                    className="shrink-0 self-start"
-                  />
+                  <FacebookIcon className="shrink-0 self-start" />
+                  <InstagramIcon className="shrink-0 self-start" />
+                  <WhatsappIcon className="shrink-0 self-start" />
                 </div>
               </div>
             </div>

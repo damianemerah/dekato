@@ -17,6 +17,3 @@ export function isEmpty(value) {
     return value === "" || value == null;
   }
 }
-
-// Helper function for simulating asynchronous operations
-export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

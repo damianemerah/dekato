@@ -14,7 +14,7 @@ export function Button({ children, className }) {
 export function ButtonPrimary({ children, className }) {
   return (
     <button
-      className={`bg-primary rounded-sm px-8 py-2 text-white hover:scale-105 active:scale-95 ${className}`}
+      className={`rounded-sm bg-primary px-8 py-2 text-white hover:scale-105 active:scale-95 ${className}`}
     >
       {children}
     </button>

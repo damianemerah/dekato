@@ -34,7 +34,7 @@ function Collections() {
       return value === "" || value == null;
     }
   }
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const [itemStrings, setItemStrings] = useState(["All"]);
   const deleteView = (index) => {
     const newItemStrings = [...itemStrings];
@@ -45,7 +45,6 @@ function Collections() {
   const duplicateView = async (name) => {
     setItemStrings([...itemStrings, name]);
     setSelected(itemStrings.length);
-    await sleep(1);
     return true;
   };
   const tabs = itemStrings.map((item, index) => ({
@@ -68,7 +67,6 @@ function Collections() {
                   }
                   return item.content;
                 });
-                await sleep(1);
                 setItemStrings(newItemsStrings);
                 return true;
               },
@@ -76,7 +74,6 @@ function Collections() {
             {
               type: "duplicate",
               onPrimaryAction: async (name) => {
-                await sleep(1);
                 duplicateView(name);
                 return true;
               },
@@ -87,7 +84,6 @@ function Collections() {
             {
               type: "delete",
               onPrimaryAction: async () => {
-                await sleep(1);
                 deleteView(index);
                 return true;
               },
@@ -96,7 +92,6 @@ function Collections() {
   }));
   const [selected, setSelected] = useState(0);
   const onCreateNewView = async (value) => {
-    await sleep(500);
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);
     return true;
@@ -115,7 +110,6 @@ function Collections() {
   const { mode, setMode } = useSetIndexFiltersMode();
   const onHandleCancel = () => {};
   const onHandleSave = async () => {
-    await sleep(1);
     return true;
   };
   const primaryAction =

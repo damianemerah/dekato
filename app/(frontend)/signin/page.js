@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
-import viewIcon from "@/public/assets/icons/view.svg";
-import viewOff from "@/public/assets/icons/view-off.svg";
+import ViewIcon from "@/public/assets/icons/view.svg";
+import ViewOff from "@/public/assets/icons/view-off.svg";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
@@ -32,11 +32,11 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex_center my-16 mx-auto max-w-2xl px-20 py-10 border border-gray-100 rounded-lg shadow-xl bg-white">
+    <div className="flex_center mx-auto my-16 max-w-2xl rounded-lg border border-gray-100 bg-white px-20 py-10 shadow-xl">
       <h2>Sign in</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col mt-4 w-full gap-4">
+      <form onSubmit={handleSubmit} className="mt-4 flex w-full flex-col gap-4">
         <div>
-          <label className="block mb-2" htmlFor="firstname">
+          <label className="mb-2 block" htmlFor="firstname">
             Email:
           </label>
           <input
@@ -44,34 +44,37 @@ export default function SignIn() {
             value={email}
             id="firstname"
             onChange={(e) => setEmail(e.target.value)}
-            className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+            className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
           />
         </div>
         <div>
-          <label className="block mb-2" htmlFor="firstname">
+          <label className="mb-2 block" htmlFor="firstname">
             Password:
           </label>
-          <div className="flex justify-between items-center bg-gray-100 rounded-md">
+          <div className="flex items-center justify-between rounded-md bg-gray-100">
             <input
               type={viewPassword ? "text" : "password"}
               value={password}
               id="password"
               onChange={(e) => setPassword(e.target.value)}
-              className="p-2.5 bg-gray-100 rounded-md w-full text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
             />
-            <Image
-              className="pr-2.5 cursor-pointer"
-              src={viewPassword ? viewIcon : viewOff}
-              width={30}
-              height={30}
-              alt="View password"
-              onClick={() => setViewPassword(!viewPassword)}
-            />
+            {viewPassword ? (
+              <ViewIcon
+                className="mr-2 w-5 cursor-pointer"
+                onClick={() => setViewPassword(!viewPassword)}
+              />
+            ) : (
+              <ViewOff
+                className="mr-2 w-5 cursor-pointer"
+                onClick={() => setViewPassword(!viewPassword)}
+              />
+            )}
           </div>
         </div>
         <button
           type="submit"
-          className="bg-slate-900 text-white py-2.5 px-16 rounded-md mx-auto mt-4"
+          className="mx-auto mt-4 rounded-md bg-slate-900 px-16 py-2.5 text-white"
         >
           Sign in
         </button>

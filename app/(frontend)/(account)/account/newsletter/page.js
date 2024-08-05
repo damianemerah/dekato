@@ -23,7 +23,7 @@ export default function Newsletter() {
                   id="newsletter"
                   name="newsletter"
                   type="checkbox"
-                  className="focus:ring-primary text-primary h-4 w-4 rounded"
+                  className="h-4 w-4 rounded text-primary focus:ring-primary"
                 />
               </div>
               <label for="newsletter">General Subscription</label>

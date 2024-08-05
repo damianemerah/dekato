@@ -4,7 +4,8 @@ import { useState, useCallback } from "react";
 export default function ProductOrganization() {
   const [value, setValue] = useState("");
 
-  const handleChange = useCallback((newValue) => setValue(newValue), []);
+  // const handleChange = useCallback((newValue) => setValue(newValue), []);
+  const handleChange = ((newValue) => setValue(newValue), []);
 
   return (
     <Card roundedAbove="sm">

@@ -1,8 +1,8 @@
 "use client";
 import { Badge, Box, Card, LegacyCard, Page } from "@shopify/polaris";
 
-import ProductsIndexFilter from "@/app/admin/ui/products/products-filter";
-import ProductsIndexTable from "@/app/admin/ui/products/products-table";
+import ProductsIndexFilter from "@/app/admin/ui/products/ProductsFilter";
+import ProductsIndexTable from "@/app/admin/ui/products/ProductsTable";
 
 function Products() {
   // Sample product data
