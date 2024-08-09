@@ -1,5 +1,4 @@
-import { Button, ButtonPrimary, ButtonSecondary } from "@/app/ui/Button";
-import React from "react";
+import { ButtonPrimary, ButtonSecondary } from "@/app/ui/Button";
 import AccountLayout from "../AccountLayout";
 import { oswald } from "@/style/font";
 

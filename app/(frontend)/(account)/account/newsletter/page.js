@@ -1,4 +1,3 @@
-import React from "react";
 import AccountLayout from "../AccountLayout";
 import { ButtonPrimary } from "@/app/ui/Button";
 import { oswald } from "@/style/font";

@@ -1,8 +1,8 @@
 import Image from "next/image";
 import image7 from "../../public/assets/image7.png";
-import { Button, ButtonPrimary } from "./Button";
+import { ButtonPrimary } from "./Button";
 import { oswald } from "@/style/font";
-import deleteIcon from "@/public/assets/icons/delete.svg";
+import DeleteIcon from "@/public/assets/icons/delete.svg";
 
 export default function Wishlist() {
   return (
@@ -20,10 +20,10 @@ export default function Wishlist() {
           <p className={`${oswald.className} text-lg leading-5`}>
             Denin Jeans for women women women
           </p>
-          <p className="text-grayText text-sm">$30, 000</p>
+          <p className="text-sm text-grayText">$30, 000</p>
         </div>
         <div className="flex items-center justify-between gap-1">
-          <div className="border-grayOutline flex h-8 w-8 items-center justify-center border-2 p-4">
+          <div className="flex h-8 w-8 items-center justify-center border-2 border-grayOutline p-4">
             1
           </div>
           <ButtonPrimary className="!px-4 font-oswald text-sm uppercase">
@@ -32,7 +32,7 @@ export default function Wishlist() {
         </div>
       </div>
       <button className="bg-grayBg p-1">
-        <Image src={deleteIcon} alt="Delete Icon" />
+        <DeleteIcon />
       </button>
     </div>
   );

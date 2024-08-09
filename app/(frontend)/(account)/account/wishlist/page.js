@@ -20,12 +20,12 @@ export default function WishlistPage() {
       </div>
       <div className="my-4 mt-10 flex items-center gap-2">
         <ButtonSecondary
-          className={`${oswald.className} bg-grayBg border-grayOutline text-grayText border-2 text-sm uppercase`}
+          className={`${oswald.className} border-2 border-grayOutline bg-grayBg text-sm uppercase text-grayText`}
         >
           Add all to cart
         </ButtonSecondary>
         <ButtonSecondary
-          className={`${oswald.className} bg-grayBg border-grayOutline text-grayText border-2 text-sm uppercase`}
+          className={`${oswald.className} border-2 border-grayOutline bg-grayBg text-sm uppercase text-grayText`}
         >
           Share Wishlist
         </ButtonSecondary>
