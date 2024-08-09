@@ -1,94 +1,147 @@
 "use client";
-import Image from "next/image";
+import { useSidebarStore, useUserStore } from "@/store/store";
 import Link from "next/link";
-import MenuIcon from "@/public/assets/icons/menu.svg";
-import HeartIcon from "@/public/assets/icons/heart-white.svg";
-import UserIcon from "@/public/assets/icons/user.svg";
-import ShippingIcon from "@/public/assets/icons/local_shipping.svg";
-import CartIcon from "@/public/assets/icons/cart.svg";
-import logo from "@/public/assets/icons/dekato.png";
+import Logo from "./dekato-logo.jsx";
+import SearchBox from "./searchbox.jsx";
 import { signOut } from "next-auth/react";
-import { useUserStore } from "@/store/store";
 import { oswald } from "@/font";
-// import { useAppContext } from "./AppContext";
 
 function Header() {
-  // const { setShow, show, headerRef } = useAppContext();
   const user = useUserStore((state) => state.user);
+  const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
 
   return (
-    <div>
+    // <header className="flex items-center justify-between p-4">
+    //   <div className="flex flex-1 justify-start">
+    //     {/* Left navigation items */}
+    //     <nav>
+    //       <ul className="flex space-x-4">
+    //         <li>Nav Item 1</li>
+    //         <li>Nav Item 2</li>
+    //         {/* Add more items as needed */}
+    //       </ul>
+    //     </nav>
+    //   </div>
+
+    //   <div className="flex justify-center">
+    //     {/* Logo */}
+    //     <div className="logo">
+    //       <Logo />
+    //     </div>
+    //   </div>
+
+    //   <div className="flex flex-1 justify-end">
+    //     {/* Right navigation items or more name items */}
+    //     <nav>
+    //       <ul className="flex space-x-4">
+    //         <li>More Item 1</li>
+    //         <li>More Item 2</li>
+    //         {/* Add more items as needed */}
+    //       </ul>
+    //     </nav>
+    //   </div>
+    // </header>
+
+    <>
       <header
-        // ref={headerRef}
-        className={`${oswald.className} flex items-center justify-between bg-slate-950 px-12 py-3 text-white max-md:flex-wrap max-md:px-5`}
+        className={`${oswald.className} fixed left-0 right-0 top-0 z-50 flex h-[60px] items-center justify-between bg-primary px-10 text-white`}
       >
-        <div className="flex items-center justify-between gap-10 whitespace-nowrap py-1 text-sm font-medium uppercase">
-          <MenuIcon className="h-6 w-6" />
-          <Link href="/">
-            <Image
-              alt="cat"
-              loading="lazy"
-              src={logo}
-              className="my-auto aspect-[5] w-[101px] max-w-full shrink-0 self-stretch fill-white"
-            />
-          </Link>
+        <div className="flex h-full flex-1 justify-start">
+          <div className="flex items-center gap-20">
+            <button onClick={toggleSidebar}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#fff"
+              >
+                <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" />
+              </svg>
+            </button>
+            <div className="flex h-full items-center gap-5 text-base uppercase">
+              <Link href="/shop/women/products">
+                <p className="border-b-2 border-white p-1">Women</p>
+              </Link>
+              <Link href="/shop/men/products">
+                <p className="p-1">Men</p>
+              </Link>
+            </div>
 
-          <ul className="flex gap-5">
-            <li className="border-b-2 border-white p-1">Women</li>
-            <li className="p-1">Men</li>
-          </ul>
+            <SearchBox />
+          </div>
         </div>
-        <div className="relative mx-10 flex flex-1 items-center">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full rounded-full bg-white px-4 py-2 text-black outline-none"
-          />
-          <button type="button">
-            <svg
-              className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-black"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+
+        <Link
+          href="/"
+          className="mx-20 flex flex-none items-center justify-center"
+        >
+          <Logo />
+        </Link>
+
+        <div className="flex flex-1 justify-end gap-8 text-sm tracking-normal">
+          {user && (
+            <Link
+              href="/signin"
+              className="flex items-center justify-center gap-1"
             >
-              <path
-                fillRule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#fff"
+              >
+                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+              </svg>
+              <p>Hi, {user.firstname}</p>
+            </Link>
+          )}
 
-        <div className="flex items-center justify-center gap-5 whitespace-nowrap text-xs tracking-normal">
-          <div className="flex flex-col items-center justify-center gap-1">
-            <UserIcon className="h-5 w-5 self-center shadow-sm" />
-            {user && <p>Hi, {user.firstname}</p>}
-            {!user && <Link href="/signin">Login</Link>}
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1">
-            <HeartIcon className="h-5 w-5 self-center shadow-sm" />
-            <p>Wishlist</p>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1">
-            <CartIcon className="h-5 w-5 self-center shadow-sm" />
-            <div>Cart</div>
-          </div>
+          {!user && (
+            <Link
+              href="/signin"
+              className="flex items-center justify-center gap-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#fff"
+              >
+                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z" />
+              </svg>
+              <span>login</span>
+            </Link>
+          )}
+
+          {/* Wishlist */}
+          <Link href="/signin" className="flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#fff"
+            >
+              <path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z" />
+            </svg>
+          </Link>
+          <Link href="/signin" className="flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#fff"
+            >
+              <path d="M240-80q-33 0-56.5-23.5T160-160v-480q0-33 23.5-56.5T240-720h80q0-66 47-113t113-47q66 0 113 47t47 113h80q33 0 56.5 23.5T800-640v480q0 33-23.5 56.5T720-80H240Zm0-80h480v-480h-80v80q0 17-11.5 28.5T600-520q-17 0-28.5-11.5T560-560v-80H400v80q0 17-11.5 28.5T360-520q-17 0-28.5-11.5T320-560v-80h-80v480Zm160-560h160q0-33-23.5-56.5T480-800q-33 0-56.5 23.5T400-720ZM240-160v-480 480Z" />
+            </svg>
+          </Link>
         </div>
       </header>
-      <div className="flex items-center justify-center gap-3 bg-white px-8 py-2 text-center text-black">
-        <ShippingIcon className="text-2xl" />
-        <p>FREE SHIPPING ON ORDERS ABOVE ₦150,000</p>
-        <button
-          className="bg-black p-4 text-white"
-          onClick={async () => {
-            await signOut();
-            toast.success("You have signed out successfully");
-          }}
-        >
-          Sign out
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 

@@ -84,3 +84,9 @@ export const useCategoryStore = create(
     },
   ),
 );
+
+export const useSidebarStore = create((set) => ({
+  isSidebarOpen: true,
+  toggleSidebar: () =>
+    set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+}));
