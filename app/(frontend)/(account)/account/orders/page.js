@@ -1,5 +1,4 @@
-import React from "react";
-import Link from "next/link";
+"use client";
 import OrderCard from "@/app/ui/account/orders/OrderCard";
 import AccountLayout from "../AccountLayout";
 import CartCard from "@/app/ui/cart/CartCard";

@@ -6,7 +6,7 @@ import FbIcon from "@/public/assets/icons/fb-icon.svg";
 import GoogleIcon from "@/public/assets/icons/google.svg";
 import ViewIcon from "@/public/assets/icons/view.svg";
 import ViewOff from "@/public/assets/icons/view-off.svg";
-import toast from "react-toastify";
+import { toast } from "react-toastify";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
