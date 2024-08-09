@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import FbIcon from "@/public/assets/icons/fb-icon.svg";
 import GoogleIcon from "@/public/assets/icons/google.svg";
 import ViewIcon from "@/public/assets/icons/view.svg";

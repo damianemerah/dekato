@@ -11,20 +11,22 @@ export function Button({ children, className }) {
   );
 }
 
-export function ButtonPrimary({ children, className }) {
+export function ButtonPrimary({ children, className, onClick }) {
   return (
     <button
       className={`rounded-sm bg-primary px-8 py-2 text-white hover:scale-105 active:scale-95 ${className}`}
+      onClick={onClick}
     >
       {children}
     </button>
   );
 }
 
-export function ButtonSecondary({ children, className }) {
+export function ButtonSecondary({ children, className, onClick }) {
   return (
     <button
       className={`rounded-sm bg-gray-200 px-3 py-1 hover:scale-105 active:scale-95 ${className}`}
+      onClick={onClick}
     >
       {children}
     </button>
