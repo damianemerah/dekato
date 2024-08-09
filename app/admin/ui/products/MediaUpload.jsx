@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import MediaUploadIcon from "@/public/assets/icons/media.svg";
 
 import AddIcon from "@/public/assets/icons/add.svg";
@@ -110,4 +110,4 @@ const MediaUpload = ({ onFilesChange, selectBtn, handleExistingFile }) => {
   );
 };
 
-export default MediaUpload;
+export default memo(MediaUpload);

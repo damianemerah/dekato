@@ -1,13 +1,34 @@
-import { ButtonPrimary } from "@/app/ui/Button";
-import { useState } from "react";
+import { memo } from "react";
+import { useVariantStore } from "@/app/admin/store/variantStore";
+
+function VariantRow() {
+  const variantOptions = useVariantStore((state) => state.variantOptions);
+  const variantIsSaved = useVariantStore((state) => state.variantIsSaved);
+  return (
+    <>
+      {variantIsSaved &&
+        variantOptions.map((group, i) => (
+          <tr className="border-b border-gray-200 hover:bg-gray-50" key={i}>
+            <td className="px-6 py-3 text-left font-medium">
+              {group.name.toUpperCase()}
+            </td>
+            <td className="space-x-2 px-6 py-3 text-right">
+              {group.values.map((value, index) => (
+                <span
+                  className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm"
+                  key={index}
+                >
+                  {value.toUpperCase()}
+                </span>
+              ))}
+            </td>
+          </tr>
+        ))}
+    </>
+  );
+}
 
 const VariantsSection = ({ handleOpenSlider }) => {
-  const handleAddVariant = () => {};
-
-  const handleInputChange = (e) => {};
-
-  const handleDeleteVariant = (index) => {};
-
   return (
     <div className="mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
@@ -30,34 +51,7 @@ const VariantsSection = ({ handleOpenSlider }) => {
             </tr>
           </thead>
           <tbody className="text-sm font-light text-gray-600">
-            <tr className="border-b border-gray-200 hover:bg-gray-50">
-              <td className="px-6 py-3 text-left font-medium">Color</td>
-              <td className="space-x-2 px-6 py-3 text-right">
-                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
-                  REDs
-                </span>
-                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
-                  GREEN
-                </span>
-                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
-                  GOLD
-                </span>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-50">
-              <td className="px-6 py-3 text-left font-medium">Size</td>
-              <td className="space-x-2 px-6 py-3 text-right">
-                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
-                  XL
-                </span>
-                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
-                  XXL
-                </span>
-                <span className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm">
-                  3XL
-                </span>
-              </td>
-            </tr>
+            <VariantRow />
           </tbody>
         </table>
       </div>
@@ -65,4 +59,4 @@ const VariantsSection = ({ handleOpenSlider }) => {
   );
 };
 
-export default VariantsSection;
+export default memo(VariantsSection);

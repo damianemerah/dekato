@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { usePathname } from "next/navigation";
 import en from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
@@ -270,12 +272,14 @@ function AdminLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <ToastContainer position="top-center" draggable />
+
         {/* App provider for Polaris components */}
         <AppProvider linkComponent={LinkWrapper} i18n={en}>
           {/* Frame for the admin interface */}
           <Frame
             logo={logo}
-            topBar={topBarMarkup}
+            // topBar={topBarMarkup}
             navigation={navigationMarkup}
             showMobileNavigation={mobileNavigationActive}
             onNavigationDismiss={toggleMobileNavigationActive}

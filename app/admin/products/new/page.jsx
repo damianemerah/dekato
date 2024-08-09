@@ -1,21 +1,19 @@
 "use client";
 import Link from "next/link";
 import { roboto } from "@/style/font";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 import ImageUpload from "@/app/admin/ui/products/MediaUpload";
 import AddSingleVariant from "@/app/admin/ui/products/AddSingleVariant";
-import { Button, ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/Button";
 import VariantsSection from "@/app/admin/ui/products/ProductVariantForm";
 import EditVariant from "@/app/admin/ui/products/EditVariant";
 
 import styles from "@/app/admin/products/new/AddProduct.module.css";
-import UpIcon from "@/public/assets/icons/up.svg";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
-import downIcon from "@/public/assets/icons/down.svg";
 import DropDownSelect from "@/app/admin/ui/DropDown";
 
-export default function Page() {
+export default memo(function Page() {
   const [files, setFiles] = useState([]);
   const [isToggle, setIsToggle] = useState(false);
   const [showCatOptions, setShowCatOptions] = useState(false);
@@ -39,18 +37,23 @@ export default function Page() {
   };
 
   const handleFilesChange = (newFiles) => {
+    console.log(newFiles, "newFiles");
     setFiles(newFiles);
   };
 
+  const handleToggleDropdown = () => {
+    setShowCatOptions(!showCatOptions);
+  };
   return (
     <div className="relative h-full">
-      <div className={`${roboto.className} mx-auto max-w-screen-lg px-5`}>
-        <div className="flex items-center py-6">
+      <div className={`${roboto.className} mx-auto px-10 py-20`}>
+        <div className="mb-12 flex items-center">
           <Link href="/admin/products">
             <BackIcon className="mr-4 cursor-pointer text-xl font-bold" />
           </Link>
-          <h2 className="text-xl font-medium">Add product</h2>
+          <h3 className="text-xl font-medium">Products</h3>
         </div>
+        <h2 className="mb-8 text-2xl font-medium tracking-wide">Add Product</h2>
         <form
           action={handleFormSubmit}
           className="grid grid-cols-1 gap-4 lg:grid-cols-3"
@@ -182,9 +185,10 @@ export default function Page() {
                 <DropDownSelect
                   showOptions={showCatOptions}
                   setShowOptions={setShowCatOptions}
-                  toggleDropdown={() => setShowCatOptions((prev) => !prev)}
+                  onClick={handleToggleDropdown}
                   options={["MEN"]}
                   hasCheckbox={true}
+                  variationName={"Category"}
                 />
               </div>
             </div>
@@ -202,4 +206,4 @@ export default function Page() {
       </div>
     </div>
   );
-}
+});
