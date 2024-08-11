@@ -11,37 +11,6 @@ function Header() {
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
 
   return (
-    // <header className="flex items-center justify-between p-4">
-    //   <div className="flex flex-1 justify-start">
-    //     {/* Left navigation items */}
-    //     <nav>
-    //       <ul className="flex space-x-4">
-    //         <li>Nav Item 1</li>
-    //         <li>Nav Item 2</li>
-    //         {/* Add more items as needed */}
-    //       </ul>
-    //     </nav>
-    //   </div>
-
-    //   <div className="flex justify-center">
-    //     {/* Logo */}
-    //     <div className="logo">
-    //       <Logo />
-    //     </div>
-    //   </div>
-
-    //   <div className="flex flex-1 justify-end">
-    //     {/* Right navigation items or more name items */}
-    //     <nav>
-    //       <ul className="flex space-x-4">
-    //         <li>More Item 1</li>
-    //         <li>More Item 2</li>
-    //         {/* Add more items as needed */}
-    //       </ul>
-    //     </nav>
-    //   </div>
-    // </header>
-
     <>
       <header
         className={`${oswald.className} fixed left-0 right-0 top-0 z-50 flex h-[60px] items-center justify-between bg-primary px-10 text-white`}

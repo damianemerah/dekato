@@ -1,5 +1,3 @@
-"use client";
-
 import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
 import ProductCard from "@/app/ui/ProductCard";
@@ -13,12 +11,12 @@ import ProductList from "@/app/ui/ProductList";
 
 export default function Home() {
   return (
-    <section className={`${oswald.className}`}>
+    <div className={`${oswald.className}`}>
       <Hero />
       <HomeCategory />
       <Campaign />
-      <div className="px-5 py-10">
-        <h2 className="mb-7">YOU MAY ALSO LIKE</h2>
+      <div className="">
+        <h2 className="p-6 pl-10 text-3xl">YOU MAY LIKE</h2>
         <ProductList cat="men" />
       </div>
       <div className={`mb-10 flex items-center justify-center gap-5`}>
@@ -37,6 +35,6 @@ export default function Home() {
         />
       </div>
       <Galley />
-    </section>
+    </div>
   );
 }

@@ -4,52 +4,42 @@ import Link from "next/link";
 export default function Campaign() {
   return (
     <div className={`${oswald.className} flex justify-center`}>
-      <div
-        className="relative"
-        style={{
-          backgroundImage: "url('/assets/image4.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          objectFit: "cover",
-          height: "670px",
-          width: "50%",
-        }}
-      >
-        <h2 className="center text-white">Festival Arrivals</h2>
-        <div className="flex justify-center items-center w-full absolute bottom-10 left-0">
-          <Link
-            href="#"
-            className="capitalize py-3 px-10 mr-8 bg-white text-black"
-          >
-            Shop men
-          </Link>
-          <Link href="#" className="capitalize py-3 px-10 bg-white text-black">
-            Shop women
-          </Link>
+      <div className="h-[670px] w-1/2 bg-[url('/assets/image4.png')] bg-cover bg-center">
+        <div className="flex h-full flex-col items-center justify-end gap-10 pb-20">
+          <h2 className="text-3xl text-white">New Arrivals</h2>
+          <div className="flex w-full items-center justify-center">
+            <Link
+              href="#"
+              className="mr-8 bg-white px-10 py-3 capitalize text-black"
+            >
+              Men
+            </Link>
+            <Link
+              href="#"
+              className="bg-white px-10 py-3 capitalize text-black"
+            >
+              Women
+            </Link>
+          </div>
         </div>
       </div>
-      <div
-        className="relative"
-        style={{
-          backgroundImage: "url('/assets/image5.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          objectFit: "cover",
-          height: "670px",
-          width: "50%",
-        }}
-      >
-        <h2 className="center text-white">Festival Arrivals</h2>
-        <div className="flex justify-center items-center w-full absolute bottom-10 left-0">
-          <Link
-            href="#"
-            className="capitalize py-3 px-10 mr-8 bg-white text-black"
-          >
-            Shop men
-          </Link>
-          <Link href="#" className="capitalize py-3 px-10 bg-white text-black">
-            Shop women
-          </Link>
+      <div className="h-[670px] w-1/2 bg-[url('/assets/image5.png')] bg-cover bg-center">
+        <div className="flex h-full flex-col items-center justify-end gap-10 pb-20">
+          <h2 className="text-3xl text-white">New Arrivals</h2>
+          <div className="flex w-full items-center justify-center">
+            <Link
+              href="#"
+              className="mr-8 bg-white px-10 py-3 capitalize text-black"
+            >
+              Men
+            </Link>
+            <Link
+              href="#"
+              className="bg-white px-10 py-3 capitalize text-black"
+            >
+              Women
+            </Link>
+          </div>
         </div>
       </div>
     </div>

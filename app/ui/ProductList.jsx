@@ -26,11 +26,11 @@ const ProductList = ({ cat, searchParams }) => {
   }, [setProducts, cat, searchParams]);
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-center bg-gray-100 p-4">
+    <>
       {products.map((product, index) => (
         <ProductCard key={index} product={product} className="self-stretch" />
       ))}
-    </div>
+    </>
   );
 };
 
