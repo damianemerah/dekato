@@ -57,7 +57,7 @@ export default memo(function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-10 mt-[60px] h-full w-[250px] text-black transition-transform duration-300 ${
+      className={`fixed left-0 top-0 z-10 mt-[60px] h-full w-[250px] bg-white text-black transition-transform duration-300 ${
         isSidebarOpen ? "visible translate-x-0" : "invisible -translate-x-full"
       } bg-white`}
     >
