@@ -38,17 +38,21 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
           Select options for product variants
         </h2>
         <div className="mb-6 flex w-full items-center justify-center gap-4">
-          {variantOptions.map((option, index) => (
+          {variantOptions?.map((option, index) => {
+            console.log(showVarOptions[index], "option");
+            return (
             <DropDownSelect
               key={index}
               showOptions={showVarOptions[index]}
-              setShowOptions={setShowVarOptions[index]}
+                // setShowOptions={setShowVarOptions[index]}
               onClick={() => toggleDropdown(index)}
-              options={variantOptions[index]?.values}
+                options={option?.values}
               className="min-w-44 max-w-[250px] bg-white"
-              variationName={variantOptions[index]?.name}
+                variationName={option.name}
+                selectedVariantVal={"red"}
             />
-          ))}
+            );
+          })}
         </div>
 
         <ImageUpload onFilesChange={handleFilesChange} selectBtn={true} />
