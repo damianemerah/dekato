@@ -3,7 +3,7 @@ import React from "react";
 import Header from "@/app/ui/Header";
 import PromoBar from "@/app/ui/promo-bar";
 import Sidebar from "@/app/ui/sidebar";
-import Footer from "@/app/ui/Footer";
+import Footer from "@/app/ui/footer";
 import { useSidebarStore } from "@/store/store";
 
 const LayoutWrapper = ({ children }) => {

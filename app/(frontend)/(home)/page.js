@@ -16,10 +16,12 @@ export default function Home() {
       <HomeCategory />
       <Campaign />
       <div className="">
-        <h2 className="p-6 pl-10 text-3xl">YOU MAY LIKE</h2>
-        <ProductList cat="men" />
+        <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
+        <div className="mb-14 flex w-full items-center justify-center gap-5 px-3">
+          <ProductList cat="men" />
+        </div>
       </div>
-      <div className={`mb-10 flex items-center justify-center gap-5`}>
+      <div className={`mb-14 flex items-center justify-center gap-5`}>
         <div className="block w-1/2 flex-1 self-stretch">
           <Image
             alt="cat"
@@ -29,6 +31,7 @@ export default function Home() {
             src={image6}
           />
         </div>
+
         <SubPageCampaign
           className="border-black"
           heading_bg="after:bg-black before:bg-black"
