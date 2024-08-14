@@ -67,6 +67,10 @@ a:link {
   animation: productCard 0.3s both;
 }
 
+.footer_items {
+  @apply flex flex-col gap-2 font-roboto text-sm font-medium leading-6 text-neutral-400;
+}
+
 @keyframes productCard {
   0% {
     box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);

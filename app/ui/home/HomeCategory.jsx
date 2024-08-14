@@ -25,8 +25,8 @@ export default function HomeCategory() {
   };
 
   return (
-    <div className={`mt-4 px-6 py-5 ${oswald.className}`}>
-      <div className="ml-2 flex flex-col gap-1">
+    <div className={`mb-8 mt-4 px-6 py-5 ${oswald.className}`}>
+      <div className="ml-8 flex flex-col gap-1">
         <h2 className="text-3xl">Selected Category</h2>
         <div className="mb-6 flex items-center gap-6">
           <p className="text-[13px] font-normal">Filter by:</p>
