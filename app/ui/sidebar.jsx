@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import { useSidebarStore, useCategoryStore } from "@/store/store";
 import { oswald } from "@/font";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { getCategories } from "@/app/action/categoryAction";
 import AddIcon from "@/public/assets/icons/add.svg";
 import MinusIcon from "@/public/assets/icons/minus.svg";
@@ -15,7 +15,7 @@ const fetchCategories = async (slug) => {
   return await getCategories(slug);
 };
 
-export default function Sidebar() {
+export default memo(function Sidebar() {
   const curUICategory = useCartStore((state) => state.curUICategory);
   const setCategory = useCategoryStore((state) => state.setCategory);
   const categories = useCategoryStore((state) => state.categories);
@@ -99,4 +99,4 @@ export default function Sidebar() {
       </nav>
     </aside>
   );
-}
+});

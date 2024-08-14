@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import ImageUpload from "@/app/admin/ui/products/MediaUpload";
 import { createCategory, getAllCategories } from "@/app/action/categoryAction";
 import { ButtonPrimary } from "@/app/ui/Button";
@@ -9,7 +9,7 @@ import DropDownSelect from "@/app/admin/ui/DropDown";
 import { useCategoryStore } from "@/store/store";
 import useSWR from "swr";
 
-export default function NewCollection() {
+export default memo(function NewCollection() {
   const [files, setFiles] = useState([]);
   const [showCatOptions, setShowCatOptions] = useState(false);
 
@@ -128,4 +128,4 @@ export default function NewCollection() {
       </div>
     </form>
   );
-}
+});

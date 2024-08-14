@@ -8,6 +8,7 @@ import handleAppError from "@/utils/appError";
 
 // Function to generate breadcrumbs using aggregation
 export async function generateBreadcrumbs(categoryId) {
+  await dbConnect();
   const result = await Category.aggregate([
     {
       $match: { _id: mongoose.Types.ObjectId(categoryId) },
@@ -59,9 +60,7 @@ export async function generateBreadcrumbs(categoryId) {
 
 export async function getAllCategories() {
   await dbConnect();
-  const categoryDoc = await Category.find().select(
-    "-__v -children.parent -parent",
-  );
+  const categoryDoc = await Category.find({});
 
   const categories = categoryDoc.map((category) => {
     const { _id, children, parent, ...rest } = category.toObject();
@@ -70,8 +69,6 @@ export async function getAllCategories() {
       ...rest,
     };
   });
-
-  console.log(categories[0], "CATEGORIES🌐🌐🌐");
 
   return categories;
 }

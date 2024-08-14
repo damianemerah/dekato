@@ -6,14 +6,16 @@ import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
 import ProductList from "@/app/ui/ProductList";
 import { useCartStore } from "@/store/store";
+import { memo, useEffect } from "react";
 
-export default function CategoryProducts({ cat, searchParams }) {
+export default memo(function CategoryProducts({ cat, searchParams }) {
   const setCurUICategory = useCartStore((state) => state.setCurUICategory);
 
-  if (cat) {
-    console.log("cat11111", cat);
-    setCurUICategory(cat.toLowerCase());
-  }
+  useEffect(() => {
+    if (cat) {
+      setCurUICategory(cat.toLowerCase());
+    }
+  }, [cat, setCurUICategory]);
 
   return (
     <div>
@@ -40,4 +42,4 @@ export default function CategoryProducts({ cat, searchParams }) {
       </div>
     </div>
   );
-}
+});
