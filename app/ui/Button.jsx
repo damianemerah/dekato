@@ -11,11 +11,12 @@ export function Button({ children, className }) {
   );
 }
 
-export function ButtonPrimary({ children, className, onClick }) {
+export function ButtonPrimary({ children, className, onClick, type }) {
   return (
     <button
-      className={`rounded-sm bg-primary px-8 py-2 text-white hover:scale-105 active:scale-95 ${className}`}
+      className={`rounded-sm bg-primary px-8 py-2 text-white active:scale-95 ${className}`}
       onClick={onClick}
+      type={type}
     >
       {children}
     </button>

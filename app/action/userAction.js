@@ -5,9 +5,9 @@ import User from "@/models/user";
 import { Cart } from "@/models/cart";
 import Wishlist from "@/models/wishlist";
 import { restrictTo } from "@/utils/checkPermission";
-import Email from "@/utils/email";
+import Email from "@/lib/email";
 import Address from "@/models/address";
-import {filterObj} from "@/utils/filterObj";
+import { filterObj } from "@/utils/filterObj";
 
 export async function createUser(formData) {
   await dbConnect();
@@ -37,13 +37,17 @@ export async function getUser(userId) {
   await dbConnect();
   restrictTo("admin");
 
-  const user = await User.findById(userId);
+  const userData = await User.findById(userId);
 
-  if (!user) {
+  if (!userData) {
     throw new Error("No user found with that ID");
   }
 
-  return user;
+  const user = userData.toObject();
+
+  // Rename _id to id and convert to string
+  const { _id, ...rest } = user;
+  return { id: _id.toString(), ...rest };
 }
 
 export async function updateUserInfo(userId, formData) {

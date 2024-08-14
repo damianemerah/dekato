@@ -4,7 +4,6 @@ import FacebookProvider from "next-auth/providers/facebook";
 import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
 import NextAuth from "next-auth";
-import { signIn } from "next-auth/react";
 
 export const OPTIONS = {
   session: {
@@ -17,53 +16,54 @@ export const OPTIONS = {
       name: "Credentials",
       credentials: {},
       async authorize(credentials, req) {
-        const { email, password } = credentials;
+        try {
+          const { email, password } = credentials;
 
-        await dbConnect();
+          await dbConnect();
 
-        const user = await User.findOne({ email: email }).select("+password");
-        if (!user) {
-          throw new Error("User with that email not found");
+          const user = await User.findOne({ email: email }).select("+password");
+          if (!user) {
+            throw new Error("User with that email not found");
+          }
+
+          if (!(await user.correctPassword(password, user?.password))) {
+            throw new Error("Invalid credentials");
+          }
+
+          return user;
+        } catch (error) {
+          console.error("Error in authentication", error);
+          throw new Error("Authentication failed");
         }
-
-        if (!(await user.correctPassword(password, user?.password))) {
-          throw new Error("Invalid credentials");
-        }
-
-        return user;
       },
+      // GoogleProvider({
+      //   clientId: process.env.GOOGLE_CLIENT_ID,
+      //   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // }),
+      // FacebookProvider({
+      //   clientId: process.env.FACEBOOK_CLIENT_ID,
+      //   clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+      // }),
     }),
   ],
   callbacks: {
     async jwt({ token, _, user }) {
       if (user) {
         token.id = user._id;
-        token.email = user.email;
-        token.firstname = user.firstname;
-        token.lastname = user.lastname;
         token.role = user.role;
       }
-
-      // console.log("Token🔥", token);
 
       return token;
     },
     async session({ session, token }) {
       session.user = {
-        ...token,
+        id: token.id,
+        role: token.role,
+        email: token.email, // Optional, if needed
       };
-
-      // console.log("Session🔥", session);
 
       return session;
     },
-    // signIn: async (user, account, profile) => {
-    //   console.log("User🔥", user);
-    //   console.log("Account🔥", account);
-    //   console.log("Profile🔥", profile);
-
-    //   return true;
-    // },
   },
   pages: {
     signIn: "/signin",

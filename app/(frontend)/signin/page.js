@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import Image from "next/image";
 import ViewIcon from "@/public/assets/icons/view.svg";
 import ViewOff from "@/public/assets/icons/view-off.svg";
 import { useRouter } from "next/navigation";
@@ -36,19 +35,20 @@ export default function SignIn() {
       <h2>Sign in</h2>
       <form onSubmit={handleSubmit} className="mt-4 flex w-full flex-col gap-4">
         <div>
-          <label className="mb-2 block" htmlFor="firstname">
+          <label className="mb-2 block" htmlFor="email">
             Email:
           </label>
           <input
             type="email"
             value={email}
-            id="firstname"
+            id="email"
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+            required
           />
         </div>
         <div>
-          <label className="mb-2 block" htmlFor="firstname">
+          <label className="mb-2 block" htmlFor="password">
             Password:
           </label>
           <div className="flex items-center justify-between rounded-md bg-gray-100">
@@ -58,6 +58,7 @@ export default function SignIn() {
               id="password"
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+              required
             />
             {viewPassword ? (
               <ViewIcon

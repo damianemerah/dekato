@@ -21,7 +21,7 @@ const productSchema = new mongoose.Schema({
       return this.discount;
     },
   },
-  currentPrice: {
+  discountPrice: {
     type: Number,
   },
   image: [String],
@@ -73,13 +73,23 @@ productSchema.pre("save", async function (next) {
   this.slug = slugify(this.name, { lower: true });
 
   if (this.isModified("category")) {
-    await this.populate("category");
-    if (this.category && this.category.length > 0) {
-      this.cat = this.category.map((cat) => cat.slug);
-    } else {
-      const error = new Error("At least one category slug is required");
+    try {
+      await this.populate("category");
+      if (this.category && this.category.length > 0) {
+        this.cat = this.category.map((cat) => cat.slug);
+      } else {
+        throw new Error("At least one category slug is required");
+      }
+    } catch (error) {
       return next(error);
     }
+  }
+
+  // Set currentPrice based on discount
+  if (this.discount > 0 && this.discountDuration > Date.now()) {
+    this.discountPrice = this.price - this.discount;
+  } else {
+    this.discountPrice = this.price;
   }
 
   next();

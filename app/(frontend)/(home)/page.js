@@ -2,7 +2,6 @@
 
 import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
-import ProductCard from "@/app/ui/ProductCard";
 import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
 import SubPageCampaign from "@/app/ui/SubPageCampaign";
@@ -10,8 +9,11 @@ import Galley from "@/app/ui/home/Galley";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
 import ProductList from "@/app/ui/ProductList";
+import { useCartStore } from "@/store/store";
 
 export default function Home() {
+  const setCurUICategory = useCartStore((state) => state.setCurUICategory);
+  setCurUICategory("home");
   return (
     <section className={`${oswald.className}`}>
       <Hero />

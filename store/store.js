@@ -21,23 +21,18 @@ export const useUserStore = create((set) => ({
     })),
 }));
 
-export const useCartStore = create(
-  persist(
-    (set) => ({
-      cart: [],
-      isFetched: false,
-      setCart: (cart) => set({ cart, isFetched: true }),
-      addToCart: (item) => set((state) => ({ cart: [...state.cart, item] })),
-      removeFromCart: (id) =>
-        set((state) => ({
-          cart: state.cart.filter((item) => item.id !== id),
-        })),
-    }),
-    {
-      name: "cart-storage",
-    },
-  ),
-);
+export const useCartStore = create((set) => ({
+  cart: [],
+  isFetched: false,
+  setCart: (cart) => set({ cart, isFetched: true }),
+  addToCart: (item) => set((state) => ({ cart: [...state.cart, item] })),
+  removeFromCart: (id) =>
+    set((state) => ({
+      cart: state.cart.filter((item) => item.id !== id),
+    })),
+  curUICategory: "",
+  setCurUICategory: (curUICategory) => set({ curUICategory }),
+}));
 
 export const useProductStore = create(
   (set) => ({
@@ -65,7 +60,12 @@ export const useCategoryStore = create(
   persist(
     (set) => ({
       categories: [],
-      setCategories: (categories) => set({ categories }),
+      allCategories: [],
+      setAllCategories: (allCategories) =>
+        set({
+          allCategories: Array.isArray(allCategories) ? allCategories : [],
+        }),
+      setCategory: (categories) => set({ categories }),
       addCategory: (category) =>
         set((state) => ({ categories: [...state.categories, category] })),
       removeCategory: (id) =>

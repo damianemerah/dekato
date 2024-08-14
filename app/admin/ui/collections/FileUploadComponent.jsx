@@ -3,6 +3,7 @@
 import { DropZone, LegacyStack, Thumbnail, Text } from "@shopify/polaris";
 import { NoteIcon } from "@shopify/polaris-icons";
 import { useState, useCallback } from "react";
+//REMOVE FILE UPLOAD COMPONENT
 
 function DropZoneExample() {
   const [files, setFiles] = useState([]);

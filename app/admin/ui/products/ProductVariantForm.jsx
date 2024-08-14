@@ -1,9 +1,9 @@
 import { memo } from "react";
-import { useVariantStore } from "@/app/admin/store/variantStore";
+import { useAdminStore } from "@/app/admin/store/variantStore";
 
 function VariantRow() {
-  const variantOptions = useVariantStore((state) => state.variantOptions);
-  const variantIsSaved = useVariantStore((state) => state.variantIsSaved);
+  const variantOptions = useAdminStore((state) => state.variantOptions);
+  const variantIsSaved = useAdminStore((state) => state.variantIsSaved);
   return (
     <>
       {variantIsSaved &&

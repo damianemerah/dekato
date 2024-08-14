@@ -1,5 +1,5 @@
-import { useState, memo, useCallback } from "react";
-import { useVariantStore } from "../../store/variantStore";
+import { useState, memo, useCallback, useEffect } from "react";
+import { useAdminStore } from "../../store/variantStore";
 import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
 import { toast } from "react-toastify";
@@ -26,71 +26,33 @@ export default memo(function EditVariant({
   setOpenSlider,
   openSlider,
   handleOpenSlider2,
+  handleEditSingleVariant,
 }) {
-  const [activeGroup, setActiveGroup] = useState({ id: null });
+  const [activeVariant, setActiveVariant] = useState({ id: null });
 
-  const variants = useVariantStore((state) => state.variants);
-  const setVariants = useVariantStore((state) => state.setVariants);
-  const updateVariant = useVariantStore((state) => state.updateVariant);
-  const setVariantIsSaved = useVariantStore((state) => state.setVariantIsSaved);
-  const setEditVariantWithId = useVariantStore(
-    (state) => state.setEditVariantWithId,
-  );
-  const variantOptions = useVariantStore((state) => state.variantOptions);
-  const addVariantOptions = useVariantStore((state) => state.addVariantOptions);
-  const updateVariantOptionName = useVariantStore(
-    (state) => state.updateVariantOptionName,
-  );
-  const updateVariantOptionValues = useVariantStore(
-    (state) => state.updateVariantOptionValues,
-  );
-  const removeVariantOption = useVariantStore(
-    (state) => state.removeVariantOption,
-  );
-  const removeVariantOptionValue = useVariantStore(
-    (state) => state.removeVariantOptionValue,
-  );
+  const variants = useAdminStore((state) => state.variants);
+  const removeVariant = useAdminStore((state) => state.removeVariant);
+  const setVariants = useAdminStore((state) => state.setVariants);
+  const updateVariant = useAdminStore((state) => state.updateVariant);
+  const setVariantIsSaved = useAdminStore((state) => state.setVariantIsSaved);
+  const variantOptions = useAdminStore((state) => state.variantOptions);
+  const addVariantOptions = useAdminStore((state) => state.addVariantOptions);
 
-  const handleAddGroup = useCallback(() => {
-    addVariantOptions({ id: uuidv4(), name: "", values: [] });
-  }, [addVariantOptions]);
-
-  const handleGroupNameChange = useCallback(
-    (id, value) => {
-      updateVariantOptionName(id, value);
-    },
-    [updateVariantOptionName],
-  );
-
-  const handleValueChange = useCallback(
-    (e, groupId) => {
-      updateVariantOptionValues(e, groupId);
-      console.log(variantOptions);
-    },
-    [updateVariantOptionValues, variantOptions],
-  );
-
-  const handleRemoveGroup = useCallback(
-    (id) => {
-      removeVariantOption(id);
-    },
-    [removeVariantOption],
-  );
-
-  const handleRemoveGroupItem = useCallback(
-    (groupId, index) => {
-      removeVariantOptionValue(groupId, index);
-    },
-    [removeVariantOptionValue],
-  );
-
-  const handleGroupAction = useCallback((id) => {
-    setActiveGroup((prev) => (prev.id === id ? { id: null } : { id }));
-  }, []);
+  useEffect(() => {
+    return () => {
+      variants.forEach((variant) => {
+        if (variant.imageURL) {
+          console.log("Revoking URL for variant:", variant);
+          URL.revokeObjectURL(variant.imageURL);
+        } else {
+          console.log("No URL to revoke for variant:", variant);
+        }
+      });
+    };
+  }, [variants]);
 
   const handleCreateBulkVariant = useCallback(
     (attributes) => {
-      // Base case: when no more attributes to process, return an empty combination
       try {
         if (attributes.length === 0) {
           return [{}];
@@ -148,6 +110,7 @@ export default memo(function EditVariant({
     if (variants.length === 0) return;
     setVariantIsSaved(true);
     setOpenSlider(false);
+    toast.success("Variants saved successfully");
   }, [variants, setVariantIsSaved, setOpenSlider]);
 
   return (
@@ -163,22 +126,19 @@ export default memo(function EditVariant({
           <h2 className="text-xl font-medium text-primary">Group</h2>
           <ButtonPrimary
             className="flex items-center gap-1.5 !rounded-full !px-4 !py-1.5"
-            onClick={handleAddGroup}
+            onClick={() =>
+              addVariantOptions({
+                id: uuidv4(),
+                name: "",
+                values: [],
+              })
+            }
           >
             <AddIcon className="text-xxs font-extrabold text-white" />
             Add
           </ButtonPrimary>
         </div>
-        <VariantGroupTable
-          variantOptions={variantOptions}
-          handleGroupNameChange={handleGroupNameChange}
-          handleRemoveGroupItem={handleRemoveGroupItem}
-          handleValueChange={handleValueChange}
-          handleGroupAction={handleGroupAction}
-          activeGroup={activeGroup}
-          handleRemoveGroup={handleRemoveGroup}
-          setActiveGroup={setActiveGroup}
-        />
+        <VariantGroupTable variantOptions={variantOptions} />
       </div>
       <div className="p-6">
         <div className="mb-6 flex items-center justify-between">
@@ -214,31 +174,41 @@ export default memo(function EditVariant({
               </tr>
             </thead>
             <tbody className="text-sm font-light text-gray-600">
-              {variants.map((variant, index) => (
+              {variants?.map((variant, index) => (
                 <tr
                   className="border-b border-gray-200 hover:bg-gray-50"
                   key={index}
                 >
                   <td className="px-6 py-3 text-left font-medium">
                     <div
-                      className="h-12 w-12 overflow-hidden rounded-md"
-                      onClick={() => setEditVariantWithId(variant.id)}
+                      className="h-12 w-12 cursor-pointer overflow-hidden rounded-md"
+                      onClick={() => handleEditSingleVariant(variant.id)}
                     >
-                      <Image
-                        src={Image6}
-                        alt="product image"
-                        width={100}
-                        height={100}
-                        className="h-full w-full object-cover"
-                      />
+                      {variant?.image ? (
+                        <Image
+                          src={variant.image}
+                          alt="product image"
+                          width={100}
+                          height={100}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src={Image6}
+                          alt="product image"
+                          width={100}
+                          height={100}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
                     </div>
                   </td>
                   <td className="py-3 text-left">
-                    {console.log(variant)}
                     <div className="flex flex-wrap items-center justify-start gap-x-1 gap-y-1.5 rounded-md">
                       {Object.entries(variant).map(
                         ([key, value], i) =>
                           key !== "id" &&
+                          key !== "image" &&
                           key !== "price" &&
                           key !== "quantity" && (
                             <div
@@ -277,29 +247,56 @@ export default memo(function EditVariant({
                     />
                   </td>
                   <td className="pr-6 text-right">
-                    <button className="align-middle text-xl font-bold tracking-wider text-primary">
-                      ...
-                    </button>
+                    <div className="relative inline-block text-xl font-bold tracking-wider text-primary">
+                      <span
+                        className=""
+                        onClick={() =>
+                          setActiveVariant((prev) =>
+                            prev.id === variant.id
+                              ? { id: null }
+                              : { id: variant.id },
+                          )
+                        }
+                      >
+                        ...
+                      </span>
+                      {activeVariant.id === variant.id && (
+                        <div className="absolute bottom-3.5 left-1/2 flex -translate-x-1/2 flex-col items-start justify-center rounded-md border border-grayOutline bg-white shadow-shadowSm">
+                          <button
+                            className="left-full top-0 z-50 border-b border-b-grayOutline border-opacity-50 px-1.5 py-1 text-xs font-medium tracking-wide text-red-400"
+                            onClick={() => removeVariant(variant.id)}
+                          >
+                            Remove
+                          </button>
+                          <button
+                            className="px-1.5 py-1 text-xs font-medium tracking-wide"
+                            onClick={() => setActiveVariant({ id: null })}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="fixed bottom-0 right-0 mr-5 flex items-center justify-end gap-6 py-4">
-            <button
-              className="text-[15px] font-bold tracking-wider"
-              onClick={() => setOpenSlider(false)}
-            >
-              Cancel
-            </button>
-            <ButtonPrimary
-              className="!rounded-md !px-3.5 py-4"
-              onClick={handleSaveVariant}
-            >
-              Save changes
-            </ButtonPrimary>
-          </div>
         </div>
+      </div>
+      <div className="sticky top-full z-[25] flex min-h-24 w-full items-center justify-end gap-6 bg-white shadow-shadowSm">
+        <button
+          className="text-[15px] font-bold tracking-wider"
+          onClick={() => setOpenSlider(false)}
+        >
+          Cancel
+        </button>
+        <ButtonPrimary
+          className="!rounded-md !px-3.5 py-4"
+          onClick={handleSaveVariant}
+        >
+          Save changes
+        </ButtonPrimary>
       </div>
     </ModalWrapper>
   );

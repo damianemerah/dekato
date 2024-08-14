@@ -11,23 +11,25 @@ export const handleFormData = async (formData, Model, id) => {
   let existingProd;
 
   //check if image is uploaded
-  if (!formData.has("image") && obj.image.length === 0) {
+
+  const media = formData.getAll("media");
+
+  if (
+    media.length === 0 ||
+    media.some((file) => !file.type.startsWith("image/"))
+  ) {
     throw new AppError("Please upload image", 400);
   }
 
-  const images = formData.getAll("image");
-  const videos = formData.getAll("video");
-
-  console.log(images, "images🚀🚀🚀");
+  const images = media.filter((file) => file.type.startsWith("image/"));
+  const videos = media.filter((file) => file.type.startsWith("video/"));
 
   // add other form data to obj
   for (const [key, value] of formData.entries()) {
-    if (key !== "image" && key !== "video") {
+    if (key !== "media") {
       obj[key] = value;
     }
   }
-
-  console.log(obj, "obj🚀🚀🚀");
 
   images.forEach((file) => {
     if (typeof file === "string") {
@@ -69,7 +71,6 @@ export const handleFormData = async (formData, Model, id) => {
     }
   }
 
-  console.log(filesToUpload.length > 0, filesToUpload, "filesToUpload🔥🔥🔥");
   //upload files to s3
   const fileNames =
     filesToUpload.length > 0 ? await uploadFiles(filesToUpload) : [];
@@ -83,8 +84,6 @@ export const handleFormData = async (formData, Model, id) => {
     ...obj.video,
     ...fileNames.filter((file) => file.includes("com/video/")),
   ];
-
-  console.log(obj, "filesss🔥🔥🔥");
 
   return obj;
 };

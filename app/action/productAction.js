@@ -7,8 +7,6 @@ import Category from "@/models/category";
 import { protect, restrictTo } from "@/utils/checkPermission";
 import dbConnect from "@/lib/mongoConnection";
 import { includePriceObj } from "@/utils/searchWithPrice";
-import { update } from "lodash";
-import { z } from "zod";
 import { formDataToObject } from "@/utils/filterObj";
 
 const getProductVariants = async (productIds) => {
@@ -42,7 +40,6 @@ const getProductVariants = async (productIds) => {
 // const variants = await getProductVariants(productIds);
 
 export async function getAllProducts(cat, searchParams = {}) {
-  console.log("Search Params:🚀💎💎💎", searchParams);
   try {
     searchParams.cat = cat;
     const newSearchParams = includePriceObj(searchParams);
@@ -65,7 +62,6 @@ export async function getAllProducts(cat, searchParams = {}) {
       }
     }
 
-    console.log(products, "products🚀🚀🚀");
     return products;
   } catch (error) {
     return error;
@@ -75,10 +71,6 @@ export async function getAllProducts(cat, searchParams = {}) {
 export async function createProduct(formData) {
   await restrictTo("admin");
   await dbConnect();
-
-  console.log(formData, "Form Data:🚀💎💎💎");
-
-  return;
 
   const obj = await handleFormData(formData);
 
@@ -90,15 +82,11 @@ export async function createProduct(formData) {
 
   if (!product) throw new Error("Product not created");
 
-  console.log(product, "product🚀🚀🚀");
-
   return product;
 }
 
 //Entire product object is being updated
 export async function updateProduct(id, formData) {
-  console.log("Form Data:🚀💎💎💎", formData);
-
   await restrictTo("admin");
   await dbConnect();
 
