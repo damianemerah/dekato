@@ -60,17 +60,21 @@ export async function generateBreadcrumbs(categoryId) {
 
 export async function getAllCategories() {
   await dbConnect();
-  const categoryDoc = await Category.find({});
 
-  const categories = categoryDoc.map((category) => {
-    const { _id, children, parent, ...rest } = category.toObject();
-    return {
+  try {
+    const categories = await Category.find(
+      {},
+      "name description image slug createdAt",
+    ).lean();
+
+    return categories.map(({ _id, ...rest }) => ({
       id: _id.toString(),
       ...rest,
-    };
-  });
-
-  return categories;
+    }));
+  } catch (err) {
+    const error = handleAppError(err);
+    throw Error(error.message || "Something went wrong");
+  }
 }
 
 export async function getCategories(slug) {

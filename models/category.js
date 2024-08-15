@@ -17,10 +17,16 @@ const categorySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+categorySchema.index({ parent: 1, slug: 1 });
+
 // Automatically generate slug before saving
 categorySchema.pre("save", function (next) {
   if (!this.slug) {
-    this.slug = slugify(this.name, { lower: true });
+    try {
+      this.slug = slugify(this.name, { lower: true });
+    } catch (err) {
+      return next(new Error("Error generating slug"));
+    }
   }
   next();
 });
