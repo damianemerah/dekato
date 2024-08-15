@@ -1,5 +1,3 @@
-const { options } = require("joi");
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -24,6 +22,15 @@ const nextConfig = {
     });
 
     return config;
+  },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/home",
+        permanent: true,
+      },
+    ];
   },
 };
 

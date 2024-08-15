@@ -4,7 +4,7 @@ import dbConnect from "@/lib/mongoConnection";
 
 const getAllCategories = async () => {
   await dbConnect();
-  const categories = await Category.find({}).select("slug");
+  const categories = await Category.find({}).select("slug").lean();
 
   console.log(categories, "categories🔥🔥🔥");
   return categories.map((category) => category.slug);
@@ -13,18 +13,11 @@ const getAllCategories = async () => {
 export async function generateStaticParams() {
   const categories = await getAllCategories();
 
-  console.log(
-    categories.map((category) => ({
-      cat: category,
-    })),
-    "categories⭐⭐❤️❤️",
-  );
-
-  return categories.map((category) => ({
-    cat: category,
+  return categories.map((slug) => ({
+    cat: slug,
   }));
 }
 
-export default function Product({ params: { cat }, searchParams }) {
+export default async function Product({ params: { cat }, searchParams }) {
   return <CategoryProducts cat={cat} searchParams={searchParams} />;
 }
