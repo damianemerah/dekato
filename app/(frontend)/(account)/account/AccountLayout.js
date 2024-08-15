@@ -8,8 +8,6 @@ import { oswald } from "@/style/font";
 export default function AccountLayout({ children, title, breadcrumbs }) {
   const pathname = usePathname();
 
-  console.log(pathname);
-
   const links = [
     {
       href: "/account",

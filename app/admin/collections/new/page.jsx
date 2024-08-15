@@ -31,7 +31,6 @@ export default memo(function NewCollection() {
     {
       revalidateOnFocus: false,
       onSuccess: (fetchedData) => {
-        console.log(fetchedData, "Fetched Data🌃🌃");
         setAllCategories(fetchedData);
       },
     },

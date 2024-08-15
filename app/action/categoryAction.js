@@ -112,11 +112,6 @@ export async function getCategories(slug) {
     };
   });
 
-  console.log(
-    categories.flatMap((cat) => [cat, ...cat.children]),
-    "CHILDREN🌐🌐🌐",
-  );
-
   return categories;
 }
 
@@ -126,13 +121,11 @@ export async function createCategory(formData) {
 
   try {
     const body = await handleFormData(formData);
-    console.log("Creating category🎈📁📁✔️", body, formData.getAll("parent"));
     const categoryDoc = await Category.create(body);
     const category = categoryDoc.toObject();
 
     // If parent category is provided, add the category to the parent's children array
     if (category && body.parent) {
-      console.log("Updating parent category📁📁✔️");
       const parentDoc = await Category.findByIdAndUpdate(
         body.parent,
         { $push: { children: category._id } },
@@ -142,8 +135,6 @@ export async function createCategory(formData) {
       if (!parentDoc) {
         throw new Error("Parent category not found");
       }
-
-      console.log("Parent category updated✔️", parentDoc);
 
       category.parent = parentDoc._id.toString();
     }

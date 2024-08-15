@@ -10,7 +10,6 @@ import { protect, restrictTo } from "@/utils/checkPermission";
 import Email from "@/lib/email";
 
 export async function POST(req) {
-  console.log("Create User🔥🔥🔥", req.nextUrl.origin);
   try {
     await dbConnect();
 
@@ -29,7 +28,6 @@ export async function POST(req) {
     const user = await User.create(filterField);
 
     if (user) {
-      console.log("🎈🎈", user);
       await Cart.create({ userId: user._id, item: [] });
       await Wishlist.create({ userId: user._id, product: [] });
     }
@@ -86,8 +84,6 @@ export async function DELETE(req) {
     await dbConnect();
     const { id } = await req.json();
     const user = await User.findByIdAndUpdate(id, { active: false });
-
-    console.log("🎈🎈", user);
 
     if (!user) throw new AppError("No user found with that ID", 404);
 

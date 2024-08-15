@@ -39,7 +39,6 @@ const SignUp = () => {
       },
     });
 
-    console.log(result, "result🚀🚀🚀");
 
     if (result.ok) {
       router.push("/signin");

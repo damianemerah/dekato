@@ -18,7 +18,6 @@ const ProductList = ({ cat, searchParams }) => {
         setProducts(productData);
       } catch (error) {
         toast.error("Error fetching products: " + error.message);
-        console.log(error);
       }
     };
 

@@ -21,7 +21,7 @@ export async function GET(req, { params }) {
 
     return NextResponse.json(
       { success: true, data: wishlist },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -41,7 +41,7 @@ export async function POST(req) {
     if (!product)
       return NextResponse.json(
         { success: false, message: "Product not found" },
-        { status: 404 }
+        { status: 404 },
       );
 
     const wishlist = await Wishlist.findOne({
@@ -49,7 +49,6 @@ export async function POST(req) {
     });
 
     if (!wishlist) {
-      console.log("Creating new wishlist for user 😥😥😥");
       const newWishlist = await Wishlist.create({
         user: userId,
         product: [productId],
@@ -61,7 +60,7 @@ export async function POST(req) {
           length: newWishlist.product.length,
           data: newWishlist,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
     // Convert the products array to a Set to enforce uniqueness
@@ -72,13 +71,11 @@ export async function POST(req) {
     wishlist.product = Array.from(productsSet);
     await wishlist.save();
 
-    console.log("Product added to wishlist:", productId);
     return NextResponse.json(
       { success: true, length: wishlist.product.length, data: wishlist },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
-    console.log(error.message, "error🚀🚀");
     return handleAppError(error, req);
   }
 }
@@ -102,13 +99,13 @@ export async function DELETE(req) {
     if (!wishlist) {
       return NextResponse.json(
         { success: false, message: "Wishlist not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Remove the productId from the product array
     wishlist.product = wishlist.product.filter(
-      (product) => product._id.toString() !== productId
+      (product) => product._id.toString() !== productId,
     );
 
     // Save the updated wishlist
@@ -116,7 +113,7 @@ export async function DELETE(req) {
 
     return NextResponse.json(
       { success: true, data: wishlist },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return handleAppError(error, req);
