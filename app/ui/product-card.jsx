@@ -7,7 +7,7 @@ export default function ProductCard({ product }) {
     : product.price;
 
   return (
-    <div className="relative w-full max-w-sm bg-white">
+    <div className="relative w-full max-w-80 bg-white">
       <div className="relative h-[350px] w-full overflow-hidden">
         <Image
           src={product.image}

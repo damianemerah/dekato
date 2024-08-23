@@ -1,6 +1,5 @@
-import Hero from "@/app/ui/home/Hero-copy";
+import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
-import ProductCard from "@/app/ui/product-card";
 import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
 import SubPageCampaign from "@/app/ui/SubPageCampaign";
@@ -11,7 +10,7 @@ import RecommendedProducts from "@/app/ui/recommended-products";
 
 export default function Home() {
   return (
-    <div className={`${oswald.className}`}>
+    <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
       <HomeCategory />
       <Campaign />
