@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useState, useEffect } from "react";
 import useSWR from "swr";
 import Header from "@/app/ui/Header";
 import PromoBar from "@/app/ui/promo-bar";
@@ -40,16 +40,25 @@ const LayoutWrapper = ({ children }) => {
       },
     },
   );
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1250);
+    };
+
+    handleResize(); // Set the initial state
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <>
       <Header />
-      <div className="flex">
+      <div className="flex justify-end">
         <Sidebar />
         <div
-          className={`flex-1 pt-[60px] transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "ml-[250px]" : "ml-0"
-          }`}
+          className={`pt-[60px] transition-all duration-300 ease-in-out ${isSidebarOpen && !isMobile ? "w-[calc(100%-250px)]" : "w-[100%]"}`}
         >
           <PromoBar />
           <div className="min-h-screen">{children}</div>

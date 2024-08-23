@@ -7,13 +7,13 @@ export default function ProductCard({ product }) {
     : product.price;
 
   return (
-    <div className="relative w-full max-w-sm flex-1 bg-white">
+    <div className="relative w-full max-w-sm bg-white">
       <div className="relative h-[350px] w-full overflow-hidden">
         <Image
           src={product.image}
           alt={product.name}
-          layout="fill"
-          objectFit="cover"
+          fill={true}
+          className="object-cover"
         />
         {product.discount && (
           <div className="absolute left-2 top-2 bg-black px-2 py-1 text-sm text-white">
