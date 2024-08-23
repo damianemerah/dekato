@@ -13,7 +13,7 @@ h2 {
 
 h1,
 h2 {
-  @apply text-slate-950;
+  @apply text-zinc-950;
 }
 
 .flex__center {
@@ -128,4 +128,12 @@ input[type="password"]::-webkit-clear-button {
   visibility: hidden;
   cursor: not-allowed;
   pointer-events: none; /* Prevent click events */
+}
+
+.swiper-pagination-bullet {
+  @apply mr-1 h-3 w-3 rounded-none border-2 border-black bg-transparent opacity-100;
+}
+
+.swiper-pagination-bullet-active {
+  @apply h-4 w-4 bg-black;
 }
