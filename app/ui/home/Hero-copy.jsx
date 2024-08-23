@@ -1,3 +1,4 @@
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import image2 from "@/public/assets/image2.png";
@@ -6,6 +7,9 @@ import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
 import ArrowRight from "@/public/assets/icons/arrow_right.svg";
 import { oswald } from "@/font";
 import styles from "./Hero.module.css";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
 
 export default function Hero() {
   return (

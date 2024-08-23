@@ -1,13 +1,13 @@
-import Hero from "@/app/ui/home/Hero";
+import Hero from "@/app/ui/home/Hero-copy";
 import HomeCategory from "@/app/ui/home/HomeCategory";
-import ProductCard from "@/app/ui/ProductCard";
+import ProductCard from "@/app/ui/product-card";
 import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
 import SubPageCampaign from "@/app/ui/SubPageCampaign";
 import Galley from "@/app/ui/home/Galley";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
-import ProductList from "@/app/ui/ProductList";
+import RecommendedProducts from "@/app/ui/recommended-products";
 
 export default function Home() {
   return (
@@ -17,8 +17,8 @@ export default function Home() {
       <Campaign />
       <div className="">
         <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
-        <div className="mb-14 flex w-full items-center justify-center gap-5 px-3">
-          <ProductList cat="men" />
+        <div className="mb-10">
+          <RecommendedProducts cat="men" />
         </div>
       </div>
       <div className={`mb-14 flex items-center justify-center gap-5`}>

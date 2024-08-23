@@ -171,7 +171,7 @@ export default function Footer() {
         <Paystack width={123.48} height={22} />
       </div>
       {/* Copyright */}
-      <div className="flex border-t border-gray-700 px-10 pb-4 pt-8 text-center text-sm text-neutral-400">
+      <div className="flex border-t border-gray-700 px-10 pb-8 pt-4 text-center text-sm text-neutral-400">
         <p className={`${roboto.className}`}>© 2024 dekato-outfit.com</p>
       </div>
     </footer>
