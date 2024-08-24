@@ -58,7 +58,7 @@ const LayoutWrapper = ({ children }) => {
       <div className="flex justify-end">
         <Sidebar />
         <div
-          className={`pt-[60px] transition-all duration-300 ease-in-out ${isSidebarOpen && !isMobile ? "w-[calc(100%-250px)]" : "w-[100%]"}`}
+          className={`transition-all duration-300 ease-in-out ${isSidebarOpen && !isMobile ? "w-[calc(100%-250px)]" : "w-[100%]"}`}
         >
           <PromoBar />
           <div className="min-h-screen">{children}</div>

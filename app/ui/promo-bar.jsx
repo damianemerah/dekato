@@ -2,7 +2,7 @@ import React from "react";
 
 const PromoBar = () => {
   return (
-    <div className="flex items-center justify-center space-x-2 bg-white p-3 text-sm font-semibold">
+    <div className="sticky top-[60px] z-50 flex items-center justify-center space-x-2 bg-white p-3 text-sm font-semibold">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         height="24px"

@@ -154,28 +154,11 @@ export default memo(function Sidebar() {
                       className="flex items-center justify-between uppercase"
                     >
                       {item.label}
-                      <span>
-                        {expandedItem === item.label ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="20px"
-                            viewBox="0 -960 960 960"
-                            width="20px"
-                            fill="#000"
-                          >
-                            <path d="M200-440v-80h560v80H200Z" />
-                          </svg>
-                        ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="20px"
-                            viewBox="0 -960 960 960"
-                            width="20px"
-                            fill="#000"
-                          >
-                            <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-                          </svg>
-                        )}
+                      <span className="relative flex h-6 w-6 items-center justify-center">
+                        <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
+                        <span
+                          className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${expandedItem === item.label ? "rotate-0" : "rotate-90"}`}
+                        />
                       </span>
                     </div>
                     <ul
