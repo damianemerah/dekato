@@ -2,7 +2,6 @@
 
 import React, { memo, useCallback } from "react";
 import useSWR from "swr";
-import Header from "@/app/ui/Header";
 import PromoBar from "@/app/ui/promo-bar";
 import Sidebar from "@/app/ui/sidebar";
 import Footer from "@/app/ui/Footer";
@@ -42,21 +41,16 @@ const LayoutWrapper = ({ children }) => {
   );
 
   return (
-    <>
-      <Header />
-      <div className="flex">
-        <Sidebar />
-        <div
-          className={`flex-1 pt-[60px] transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "ml-[250px]" : "ml-0"
-          }`}
-        >
-          <PromoBar />
-          <div className="min-h-screen">{children}</div>
-          <Footer />
-        </div>
+    <div className="flex">
+      <Sidebar />
+      <div
+        className={`transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-full flex-1" : "w-full"}`}
+      >
+        <PromoBar />
+        <div className="min-h-screen w-full">{children}</div>
+        <Footer />
       </div>
-    </>
+    </div>
   );
 };
 

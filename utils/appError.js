@@ -26,6 +26,16 @@ const sendErrorProd = (err) => {
     message = `Duplicate field value ${value}, please use another value`;
   }
 
+  // not internet connection
+
+  if (
+    err.message.includes("Network Error") ||
+    err.message.includes("timeout") ||
+    err.name === "MongoNetworkError"
+  ) {
+    message = "Please check your internet connection";
+  }
+
   if (err.name === "CastError") {
     message = `Invalid ${err.path}: ${err.value}`;
   }

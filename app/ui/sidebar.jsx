@@ -24,7 +24,7 @@ export default memo(function Sidebar() {
   const [expandedItems, setExpandedItems] = useState({});
   // Use SWR to fetch categories based on the current UI category (slug)
   const { data: categoryData, error: categoryError } = useSWR(
-    curUICategory ? `/api/categories/${curUICategory}` : null,
+    curUICategory ? `/categories/${curUICategory}` : null,
     () => fetchCategories(curUICategory),
     {
       revalidateOnFocus: false,
@@ -34,6 +34,7 @@ export default memo(function Sidebar() {
     },
   );
 
+  // Expand all categories by default
   useEffect(() => {
     if (categories) {
       const allExpanded = categories.reduce((acc, category) => {
@@ -57,8 +58,10 @@ export default memo(function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-10 mt-[60px] h-full w-[250px] text-black transition-transform duration-300 ${
-        isSidebarOpen ? "visible translate-x-0" : "invisible -translate-x-full"
+      className={`h-full text-black transition-[transform,visible,invisible] duration-300 ${
+        isSidebarOpen
+          ? "visible w-[250px] translate-x-0"
+          : "invisible w-0 -translate-x-full"
       } bg-white`}
     >
       <nav>
@@ -66,7 +69,7 @@ export default memo(function Sidebar() {
           {categories.map((category) => (
             <div key={category.id}>
               <li
-                className={`cursor-pointer px-4 ${expandedItems[category.id] ? "pb-2 pt-5" : "py-5"}`}
+                className={`cursor-pointer px-4 py-5 ${expandedItems[category.id] && category.children.length > 0 && "pb-2"}`}
                 onClick={() => toggleExpand(category.id)}
               >
                 <div className="flex items-center justify-between">
@@ -82,7 +85,7 @@ export default memo(function Sidebar() {
               </li>
               {category.children.length > 0 && (
                 <ul
-                  className={`ml-3 pl-4 pt-2 transition-all duration-300 ease-in-out ${
+                  className={`ml-3 pb-2 pl-4 transition-all duration-300 ease-in-out ${
                     expandedItems[category.id] ? "block" : "hidden"
                   }`}
                 >

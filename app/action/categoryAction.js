@@ -64,11 +64,15 @@ export async function getAllCategories() {
   try {
     const categories = await Category.find(
       {},
-      "name description image slug createdAt",
-    ).lean();
+      "name description image slug createdAt parent",
+    )
+      .populate("productCount")
+      .populate("parent", "name")
+      .lean();
 
-    return categories.map(({ _id, ...rest }) => ({
+    return categories.map(({ _id, parent, ...rest }) => ({
       id: _id.toString(),
+      parent: parent ? parent.name : null,
       ...rest,
     }));
   } catch (err) {
@@ -120,7 +124,9 @@ export async function createCategory(formData) {
   await dbConnect();
 
   try {
+    console.log(formData, "formData🎈🎈😎");
     const body = await handleFormData(formData);
+
     const categoryDoc = await Category.create(body);
     const category = categoryDoc.toObject();
 
@@ -147,11 +153,13 @@ export async function createCategory(formData) {
   }
 }
 
-export async function updateCategory(id, formData) {
+export async function updateCategory(formData) {
   await restrictTo("admin");
   await dbConnect();
   try {
-    const body = await handleFormData(formData, Category, id);
+    const id = formData.get("id");
+    console.log(id, "id🎈🎈😎");
+    const body = await handleFormData(formData, "Category", id);
     const categoryDoc = await Category.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

@@ -1,6 +1,6 @@
 import Order from "@/models/order";
 import Address from "@/models/address";
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import { Cart } from "@/models/cart";
 import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";

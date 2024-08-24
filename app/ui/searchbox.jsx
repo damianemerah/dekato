@@ -2,11 +2,11 @@ import React from "react";
 
 const SearchBox = () => {
   return (
-    <div className="relative">
+    <div className="relative min-w-72">
       <input
         type="text"
         placeholder="Search..."
-        className="h-8 bg-white px-4 py-2 text-black outline-none"
+        className="h-8 w-full bg-white px-4 py-2 text-black outline-none"
       />
       <button
         type="button"

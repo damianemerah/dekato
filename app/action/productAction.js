@@ -1,6 +1,6 @@
 "use server";
 
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import APIFeatures from "@/utils/apiFeatures";
 import { handleFormData } from "@/utils/handleForm";
 import Category from "@/models/category";
@@ -8,6 +8,39 @@ import { protect, restrictTo } from "@/utils/checkPermission";
 import dbConnect from "@/lib/mongoConnection";
 import { includePriceObj } from "@/utils/searchWithPrice";
 import { formDataToObject } from "@/utils/filterObj";
+import handleAppError from "@/utils/appError";
+
+function arrayToMap(arr) {
+  const map = new Map();
+
+  for (const item of arr) {
+    const key = JSON.stringify(item);
+    map.set(key, item);
+  }
+  return map;
+}
+
+const setupIndexes = async () => {
+  try {
+    await dbConnect();
+
+    // Create indexes
+    await Product.collection.createIndex({
+      name: "text",
+      description: "text",
+      tag: "text",
+    });
+    await Product.collection.createIndex({ cat: 1 });
+    await Product.collection.createIndex({ price: 1 });
+    await Product.collection.createIndex({ slug: 1 });
+
+    console.log("Indexes created successfully.");
+  } catch (error) {
+    console.error("Error creating indexes:", error);
+  }
+};
+
+// setupIndexes();
 
 const getProductVariants = async (productIds) => {
   try {
@@ -39,8 +72,54 @@ const getProductVariants = async (productIds) => {
 // const productIds = products.map((product) => product._id);
 // const variants = await getProductVariants(productIds);
 
+export async function getAdminProduct() {
+  try {
+    await dbConnect();
+
+    const products = await Product.find()
+      .sort({ createdAt: -1 })
+      .populate("category", "name")
+      .lean();
+
+    const formattedProducts = products.map((product) => {
+      const { _id, category, variant, ...rest } = product;
+
+      const formattedProduct = {
+        id: _id.toString(),
+        ...rest,
+      };
+
+      if (category) {
+        formattedProduct.category = category.map((c) => {
+          const { _id, ...rest } = c;
+
+          console.log("Category🚀💎", { id: _id.toString(), ...rest });
+          return { id: _id.toString(), ...rest };
+        });
+      }
+
+      if (variant) {
+        formattedProduct.variant = variant.map((v) => {
+          const { _id, ...rest } = v;
+          return { id: _id.toString(), ...rest };
+        });
+      }
+
+      return formattedProduct;
+    });
+
+    console.log(formattedProducts, "formattedProducts🚀");
+
+    return formattedProducts;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
+
 export async function getAllProducts(cat, searchParams = {}) {
   try {
+    console.log("Cat🐯", cat, searchParams, "searchParams✔️");
     searchParams.cat = cat;
     const newSearchParams = includePriceObj(searchParams);
 
@@ -63,26 +142,48 @@ export async function getAllProducts(cat, searchParams = {}) {
     }
 
     return products;
-  } catch (error) {
-    return error;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
 
 export async function createProduct(formData) {
-  await restrictTo("admin");
-  await dbConnect();
+  try {
+    await restrictTo("admin");
+    await dbConnect();
 
-  const obj = await handleFormData(formData);
+    const obj = await handleFormData(formData);
+    const category = await Category.findById(obj.category);
 
-  const category = await Category.findById(obj.category);
+    if (!category) throw new Error("Category not found");
 
-  if (!category) throw new Error("Category not found");
+    const productDoc = await Product.create(obj);
 
-  const product = await Product.create(obj);
+    if (!productDoc) throw new Error("Product not created");
 
-  if (!product) throw new Error("Product not created");
+    const product = productDoc.toObject();
+    const { category: productCategories, _id, ...rest } = product.toObject();
 
-  return product;
+    if (product.variant) {
+      const variants = product.variant.map((variant) => {
+        const { _id, ...rest } = variant;
+
+        console.log("Variant🚀", { id: _id.toString(), ...rest });
+
+        return { id: _id.toString(), ...rest };
+      });
+      //what is _id here
+      return { id: _id.toString(), ...rest, variant: variants };
+    }
+
+    console.log(product, "product🚀😎");
+
+    return { id: _id.toString(), ...rest };
+  } catch (err) {
+    const error = handleAppError(err);
+    return { status: error.status, message: error.message };
+  }
 }
 
 //Entire product object is being updated
@@ -162,7 +263,7 @@ export async function searchProduct(searchQuery) {
   const products = await Product.find({
     $or: [
       { $text: { $search: searchQuery } }, // Full-text search on 'name'
-      { tags: { $in: terms } }, // Match any tag in 'tags' array
+      { tag: { $in: terms } }, // Match any tag in 'tags' array
       { cat: regex }, // Match any category that contains the search terms
     ],
   });

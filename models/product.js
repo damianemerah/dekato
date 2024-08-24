@@ -1,10 +1,15 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import Category from "@/models/category";
 
 const productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  price: { type: Number, required: true },
+  name: { type: String, required: true, trim: true },
+  description: { type: String, required: true, trim: true },
+  price: {
+    type: Number,
+    required: true,
+    min: [0, "Price must be a positive number"],
+  },
   discount: {
     type: Number,
     validate: {
@@ -48,11 +53,15 @@ const productSchema = new mongoose.Schema({
         of: String,
       },
       price: Number,
-      quantity: { type: Number, required: true },
+      quantity: { type: Number },
       image: String,
     },
   ],
-  quantity: { type: Number, required: true },
+  quantity: {
+    type: Number,
+    required: true,
+    min: [0, "Quantity must be a positive number"],
+  },
   sold: { type: Number, default: 0 },
   status: {
     type: String,
@@ -61,22 +70,18 @@ const productSchema = new mongoose.Schema({
   },
 });
 
-productSchema.index({
-  price: 1,
-  slug: 1,
-  cat: 1,
-  tag: 1,
-  name: "text",
-});
-
 productSchema.pre("save", async function (next) {
   this.slug = slugify(this.name, { lower: true });
 
   if (this.isModified("category")) {
     try {
-      await this.populate("category");
-      if (this.category && this.category.length > 0) {
-        this.cat = this.category.map((cat) => cat.slug);
+      // Fetch slugs without populating full documents
+      const categories = await Category.find({
+        _id: { $in: this.category },
+      }).select("slug");
+
+      if (categories && categories.length > 0) {
+        this.cat = categories.map((cat) => cat.slug);
       } else {
         throw new Error("At least one category slug is required");
       }
@@ -95,5 +100,7 @@ productSchema.pre("save", async function (next) {
   next();
 });
 
-export const Product =
+const Product =
   mongoose.models.Product || mongoose.model("Product", productSchema);
+
+export default Product;
