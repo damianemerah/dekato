@@ -13,7 +13,7 @@ function Header() {
   return (
     <>
       <header
-        className={`${oswald.className} fixed left-0 right-0 top-0 z-50 flex h-[60px] items-center justify-between bg-primary px-10 text-white`}
+        className={`${oswald.className} sticky top-0 z-50 flex h-[60px] w-full items-center justify-between bg-primary px-10 text-white`}
       >
         <div className="flex h-full flex-1 justify-start">
           <div className="flex items-center gap-20">
