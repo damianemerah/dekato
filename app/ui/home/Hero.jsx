@@ -73,7 +73,7 @@ export default function Hero() {
           <div className={`flex items-center justify-center px-16 py-16`}>
             <div className="heading_bd relative mr-4 flex flex-shrink-0 flex-grow-0 basis-1/2 flex-col justify-center p-8">
               <h1 className="mb-10 text-4xl font-bold leading-tight text-slate-950 md:text-6xl lg:text-7xl">
-                Discover the Latest Collection of Women's Wear.
+                Discover the Latest Collection of Women&apos;s Wear.
               </h1>
               <Link
                 href="#"

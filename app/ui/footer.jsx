@@ -147,7 +147,7 @@ export default function Footer() {
               </div>
             </div>
             <div className="flex flex-col items-start">
-              <label for="newsletter" className="hover:text-white">
+              <label htmlFor="newsletter" className="hover:text-white">
                 Subscribe to our newsletter
               </label>
               <input
