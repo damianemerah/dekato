@@ -1,6 +1,6 @@
 import Image from "next/image";
 import image7 from "../../public/assets/image7.png";
-import { ButtonPrimary } from "./Button";
+import { ButtonPrimary } from "./button";
 import { oswald } from "@/style/font";
 import DeleteIcon from "@/public/assets/icons/delete.svg";
 

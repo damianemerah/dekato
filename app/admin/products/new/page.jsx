@@ -5,7 +5,7 @@ import { useEffect, useState, memo, useRef } from "react";
 
 import ImageUpload from "@/app/admin/ui/products/MediaUpload";
 import AddSingleVariant from "@/app/admin/ui/products/AddSingleVariant";
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import VariantsSection from "@/app/admin/ui/products/ProductVariantForm";
 import EditVariant from "@/app/admin/ui/products/EditVariant";
 import { useAdminStore } from "@/app/admin/store/variantStore";

@@ -37,6 +37,9 @@ module.exports = {
       fontSize: {
         xxs: "10px",
       },
+      transitionProperty: {
+        height: "height",
+      },
     },
   },
   plugins: [],
