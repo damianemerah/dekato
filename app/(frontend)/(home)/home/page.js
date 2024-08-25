@@ -1,5 +1,4 @@
 "use client";
-
 import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
 import Campaign from "@/app/ui/home/Campaign";
