@@ -1,15 +1,38 @@
 import { create } from "zustand";
 import EditVariant from "../ui/products/EditVariant";
 
-export const useVariantStore = create((set) => ({
+export const useAdminStore = create((set) => ({
   variants: [],
 
   setVariants: (variants) => set({ variants }),
   updateVariant: (variantId, newVariant) =>
+    set((state) => {
+      const updatedVariants = state.variants.map((variant) => {
+        if (variant.id === variantId) {
+          if (newVariant.image instanceof File) {
+            if (variant.imageURL) {
+              URL.revokeObjectURL(variant.imageURL);
+            }
+            newVariant.image = URL.createObjectURL(newVariant.image);
+            console.log("New Variant Image", newVariant.image instanceof File);
+            console.log("Updated Variants🎉🎉🎉");
+          }
+          return { ...variant, ...newVariant };
+        }
+        return variant;
+      });
+
+      return {
+        variants: updatedVariants,
+      };
+    }),
+
+  addVariant: (variant) =>
+    set((state) => ({ variants: [...state.variants, variant] })),
+
+  removeVariant: (id) =>
     set((state) => ({
-      variants: state.variants.map((variant) =>
-        variant.id === variantId ? { ...variant, ...newVariant } : variant,
-      ),
+      variants: state.variants.filter((variant) => variant.id !== id),
     })),
 
   variantOptions: [],
@@ -28,15 +51,20 @@ export const useVariantStore = create((set) => ({
     set((state) => {
       if (e.key === "Enter" || e.key === ",") {
         const value = e.target.value.split(",")[0].trim();
-        if (value.length > 0) {
+        try {
+          if (value.length > 0) {
+            return {
+              variantOptions: state.variantOptions.map((option) =>
+                option.id === groupId
+                  ? { ...option, values: [...option.values, value] }
+                  : option,
+              ),
+            };
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
           e.target.value = "";
-          return {
-            variantOptions: state.variantOptions.map((option) =>
-              option.id === groupId
-                ? { ...option, values: [...option.values, value] }
-                : option,
-            ),
-          };
         }
       }
       return state;
@@ -63,6 +91,6 @@ export const useVariantStore = create((set) => ({
   actionType: "",
   setActionType: (actionType) => set({ actionType }),
   setVariantIsSaved: (variantIsSaved) => set({ variantIsSaved }),
-  EditVariantWithId: null,
-  setEditVariantWithId: (id) => set({ EditVariantWithId: id }),
+  editVariantWithId: null,
+  setEditVariantWithId: (editVariantWithId) => set({ editVariantWithId }),
 }));

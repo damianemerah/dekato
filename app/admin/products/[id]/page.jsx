@@ -23,6 +23,8 @@ import {
   Tooltip,
 } from "@shopify/polaris";
 
+//REMOVE PAGE ENTIRELY
+
 import {
   QuestionCircleIcon,
   PlusIcon,

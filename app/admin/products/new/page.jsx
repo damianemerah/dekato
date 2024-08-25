@@ -1,25 +1,36 @@
 "use client";
 import Link from "next/link";
 import { roboto } from "@/style/font";
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useRef } from "react";
 
 import ImageUpload from "@/app/admin/ui/products/MediaUpload";
 import AddSingleVariant from "@/app/admin/ui/products/AddSingleVariant";
 import { ButtonPrimary } from "@/app/ui/Button";
 import VariantsSection from "@/app/admin/ui/products/ProductVariantForm";
 import EditVariant from "@/app/admin/ui/products/EditVariant";
-
-import styles from "@/app/admin/products/new/AddProduct.module.css";
-import BackIcon from "@/public/assets/icons/arrow_back.svg";
+import { useAdminStore } from "@/app/admin/store/variantStore";
 import DropDownSelect from "@/app/admin/ui/DropDown";
+import BackIcon from "@/public/assets/icons/arrow_back.svg";
+import styles from "@/app/admin/products/new/AddProduct.module.css";
+import { useCategoryStore } from "@/store/store";
+import { createProduct } from "@/app/action/productAction";
 
 export default memo(function Page() {
   const [files, setFiles] = useState([]);
   const [isToggle, setIsToggle] = useState(false);
   const [showCatOptions, setShowCatOptions] = useState(false);
-  const [selectedCat, setSelectedCat] = useState([]);
   const [openSlider1, setOpenSlider1] = useState(false);
   const [openSlider2, setOpenSlider2] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const allCategories = useCategoryStore((state) => state.allCategories);
+
+  const setEditVariantWithId = useAdminStore(
+    (state) => state.setEditVariantWithId,
+  );
+
+  const editVariantWithId = useAdminStore((state) => state.editVariantWithId);
+  const updateVariant = useAdminStore((state) => state.updateVariant);
 
   useEffect(() => {
     const toggleElement = document.getElementById("toggle");
@@ -33,17 +44,39 @@ export default memo(function Page() {
   }, []);
 
   const handleFormSubmit = (formData) => {
-    console.log("Medias", formData.getAll("media"));
+    console.log("Form Data", formData);
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.clearFiles();
+    }
   };
 
   const handleFilesChange = (newFiles) => {
-    console.log(newFiles, "newFiles");
     setFiles(newFiles);
   };
 
   const handleToggleDropdown = () => {
     setShowCatOptions(!showCatOptions);
   };
+
+  const handleEditSingleVariant = (id) => {
+    setOpenSlider2(true);
+    setEditVariantWithId(id);
+  };
+
+  const handleSaveSingleVariant = (file) => {
+    if (editVariantWithId && file) {
+      updateVariant(editVariantWithId, { image: file });
+
+      setOpenSlider2(false);
+    } else {
+      console.log("Add new variant or no file selected");
+    }
+  };
+
   return (
     <div className="relative h-full">
       <div className={`${roboto.className} mx-auto px-10 py-20`}>
@@ -92,7 +125,7 @@ export default memo(function Page() {
                 ></textarea>
               </div>
             </div>
-            <ImageUpload onFilesChange={handleFilesChange} />
+            <ImageUpload onFilesChange={handleFilesChange} ref={fileInputRef} />
             <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow-shadowSm">
               <div>
                 <label
@@ -142,7 +175,12 @@ export default memo(function Page() {
                 className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline md:w-1/2"
               />
             </div>
-            <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
+            <VariantsSection
+              handleOpenSlider={(e) => {
+                e.preventDefault();
+                return setOpenSlider1(true);
+              }}
+            />
           </div>
           <div className="">
             <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
@@ -184,11 +222,13 @@ export default memo(function Page() {
                 </h3>
                 <DropDownSelect
                   showOptions={showCatOptions}
-                  setShowOptions={setShowCatOptions}
                   onClick={handleToggleDropdown}
-                  options={["MEN"]}
+                  options={allCategories || []}
                   hasCheckbox={true}
                   variationName={"Category"}
+                  handleSelectedOption={(option, name) =>
+                    console.log("option Page📅", option, name)
+                  }
                 />
               </div>
             </div>
@@ -198,10 +238,12 @@ export default memo(function Page() {
           openSlider={openSlider1}
           setOpenSlider={setOpenSlider1}
           handleOpenSlider2={() => setOpenSlider2(true)}
+          handleEditSingleVariant={handleEditSingleVariant}
         />
         <AddSingleVariant
           openSlider={openSlider2}
           setOpenSlider={setOpenSlider2}
+          handleSaveSingleVariant={handleSaveSingleVariant}
         />
       </div>
     </div>

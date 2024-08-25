@@ -13,7 +13,7 @@ import {
 } from "@shopify/polaris";
 import Link from "next/link";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 
 // This example is for guidance purposes. Copying it will come with caveats.
 function Collections() {
@@ -316,4 +316,4 @@ function Collections() {
   );
 }
 
-export default Collections;
+export default memo(Collections);

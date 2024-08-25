@@ -1,17 +1,22 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import DeleteIcon from "@/public/assets/icons/remove.svg";
-import { useVariantStore } from "../../store/variantStore";
+import { useAdminStore } from "@/app/admin/store/variantStore";
 
-export default memo(function VariantGroupTable({
-  variantOptions,
-  handleGroupNameChange,
-  handleRemoveGroupItem,
-  handleValueChange,
-  handleGroupAction,
-  activeGroup,
-  setActiveGroup,
-  handleRemoveGroup,
-}) {
+export default memo(function VariantGroupTable({ variantOptions }) {
+  const [activeGroup, setActiveGroup] = useState({ id: null });
+
+  const removeVariantOption = useAdminStore(
+    (state) => state.removeVariantOption,
+  );
+  const updateVariantOptionName = useAdminStore(
+    (state) => state.updateVariantOptionName,
+  );
+  const updateVariantOptionValues = useAdminStore(
+    (state) => state.updateVariantOptionValues,
+  );
+  const removeVariantOptionValue = useAdminStore(
+    (state) => state.removeVariantOptionValue,
+  );
   return (
     <div className="rounded-lg border border-gray-200">
       <table className="min-w-full bg-white">
@@ -37,7 +42,7 @@ export default memo(function VariantGroupTable({
                   placeholder="Group name (example: Size, Color, Material)"
                   className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
                   onChange={(e) =>
-                    handleGroupNameChange(group.id, e.target.value)
+                    updateVariantOptionName(group.id, e.target.value)
                   }
                 />
               </td>
@@ -52,7 +57,9 @@ export default memo(function VariantGroupTable({
                       <button className="h-3 w-3 rounded-full bg-primary">
                         <DeleteIcon
                           className="cursor-pointer text-xs text-white"
-                          onClick={() => handleRemoveGroupItem(group.id, index)}
+                          onClick={() =>
+                            removeVariantOptionValue(group.id, index)
+                          }
                         />
                       </button>
                     </span>
@@ -64,7 +71,7 @@ export default memo(function VariantGroupTable({
                     autoComplete="off"
                     placeholder="Group name (example: Size, Color, Material)"
                     className="block rounded-md px-3 py-0.5 text-xs hover:bg-gray-50 focus:outline-none"
-                    onKeyUp={(e) => handleValueChange(e, group.id)}
+                    onKeyUp={(e) => updateVariantOptionValues(e, group.id)}
                   />
                 </label>
               </td>
@@ -72,7 +79,11 @@ export default memo(function VariantGroupTable({
                 <div className="relative inline-block text-xl font-bold tracking-wider text-primary">
                   <span
                     className=""
-                    onClick={() => handleGroupAction(group.id)}
+                    onClick={() =>
+                      setActiveGroup((prev) =>
+                        prev.id === group.id ? { id: null } : { id: group.id },
+                      )
+                    }
                   >
                     ...
                   </span>
@@ -80,7 +91,7 @@ export default memo(function VariantGroupTable({
                     <div className="absolute bottom-3.5 left-1/2 flex -translate-x-1/2 flex-col items-start justify-center rounded-md border border-grayOutline bg-white shadow-shadowSm">
                       <button
                         className="left-full top-0 z-50 border-b border-b-grayOutline border-opacity-50 px-1.5 py-1 text-xs font-medium tracking-wide text-red-400"
-                        onClick={() => handleRemoveGroup(group.id)}
+                        onClick={() => removeVariantOption(group.id)}
                       >
                         Remove
                       </button>

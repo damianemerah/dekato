@@ -1,152 +1,102 @@
 "use client";
-// import React, { useEffect, useRef } from "react";
-import { useSidebarStore } from "@/store/store";
-import { oswald } from "@/font";
-import { useState } from "react";
 
-export default function Sidebar() {
-  const sidebarItems = [
-    {
-      label: "SALE",
-      children: [
-        { label: "SALE MEN", href: "/shop/men/products" },
-        { label: "SALE WOMEN", href: "/shop/women/products" },
-      ],
-    },
-    {
-      label: "NEW ARRIVALS",
-      href: "/shop/new-arrivals/products",
-    },
-    {
-      label: "MEN",
-      children: [
-        { label: "T-shirts", href: "/shop/men/t-shirts" },
-        { label: "Shirts", href: "/shop/men/shirts" },
-        { label: "Pants", href: "/shop/men/pants" },
-        { label: "Shoes", href: "/shop/men/shoes" },
-      ],
-    },
-    {
-      label: "WOMEN",
-      children: [
-        { label: "Dresses", href: "/shop/women/dresses" },
-        { label: "Tops", href: "/shop/women/tops" },
-        { label: "Skirts", href: "/shop/women/skirts" },
-        { label: "Shoes", href: "/shop/women/shoes" },
-      ],
-    },
-    {
-      label: "JEANS",
-      href: "/shop/jeans/products",
-    },
-    {
-      label: "KIDSWEAR",
-      children: [
-        { label: "Boys", href: "/shop/kids/boys" },
-        { label: "Girls", href: "/shop/kids/girls" },
-      ],
-    },
-    {
-      label: "SECONDHAND",
-      href: "/shop/secondhand/products",
-    },
-  ];
+import useSWR from "swr";
+import { useSidebarStore, useCategoryStore } from "@/store/store";
+import { oswald } from "@/font";
+import { useState, useEffect, memo } from "react";
+import { getCategories } from "@/app/action/categoryAction";
+import AddIcon from "@/public/assets/icons/add.svg";
+import MinusIcon from "@/public/assets/icons/minus.svg";
+import { useCartStore } from "@/store/store";
+import Link from "next/link";
+
+// Fetch categories from your server action
+const fetchCategories = async (slug) => {
+  return await getCategories(slug);
+};
+
+export default memo(function Sidebar() {
+  const curUICategory = useCartStore((state) => state.curUICategory);
+  const setCategory = useCategoryStore((state) => state.setCategory);
+  const categories = useCategoryStore((state) => state.categories);
 
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
-  const [expandedItem, setExpandedItem] = useState(null);
+  const [expandedItems, setExpandedItems] = useState({});
+  // Use SWR to fetch categories based on the current UI category (slug)
+  const { data: categoryData, error: categoryError } = useSWR(
+    curUICategory ? `/api/categories/${curUICategory}` : null,
+    () => fetchCategories(curUICategory),
+    {
+      revalidateOnFocus: false,
+      onSuccess: (fetchedData) => {
+        setCategory(fetchedData);
+      },
+    },
+  );
 
-  const toggleExpand = (label) => {
-    if (expandedItem === label) {
-      setExpandedItem(null);
-    } else {
-      setExpandedItem(label);
+  useEffect(() => {
+    if (categories) {
+      const allExpanded = categories.reduce((acc, category) => {
+        acc[category.id] = true;
+        return acc;
+      }, {});
+      setExpandedItems(allExpanded);
     }
+  }, [categories]);
+
+  const toggleExpand = (categoryId) => {
+    setExpandedItems((prevExpandedItems) => ({
+      ...prevExpandedItems,
+      [categoryId]: !prevExpandedItems[categoryId],
+    }));
   };
 
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (navRef.current && !navRef.current.contains(event.target)) {
-  //       // useSidebarStore.setState({ isSidebarOpen: false });
-  //       console.log("clicked outside", isSidebarOpen);
-  //     }
-  //   };
-  //   document.addEventListener("click", handleClickOutside);
+  if (categoryError)
+    return <div>Failed to load categories: {categoryError.message}</div>;
+  if (!categoryData) return <div>Loading categories...</div>;
 
-  //   return () => {
-  //     document.removeEventListener("click", handleClickOutside);
-  //   };
-  // }, []);
-
-  // const navRef = useRef(null);
   return (
     <aside
       className={`fixed left-0 top-0 z-10 mt-[60px] h-full w-[250px] text-black transition-transform duration-300 ${
         isSidebarOpen ? "visible translate-x-0" : "invisible -translate-x-full"
-      }`}
-
-      // ref={navRef}
+      } bg-white`}
     >
       <nav>
         <ul className={`${oswald.className} divide-y`}>
-          {sidebarItems.map((item, index) => (
-            <li key={index} className="px-4 py-5">
-              {item.children ? (
-                <>
-                  <div
-                    onClick={() => toggleExpand(item.label)}
-                    className="flex items-center justify-between uppercase"
-                  >
-                    {item.label}
-                    <span>
-                      {expandedItem === item.label ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="20px"
-                          viewBox="0 -960 960 960"
-                          width="20px"
-                          fill="#000"
-                        >
-                          <path d="M200-440v-80h560v80H200Z" />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="20px"
-                          viewBox="0 -960 960 960"
-                          width="20px"
-                          fill="#000"
-                        >
-                          <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-                        </svg>
-                      )}
-                    </span>
-                  </div>
-                  <ul
-                    className={`transition-all duration-300 ease-in-out ${
-                      expandedItem === item.label ? "block" : "hidden"
-                    }`}
-                  >
-                    {item.children.map((child, childIndex) => (
-                      <li key={childIndex} className="p-2 text-sm">
-                        <a href={child.href} className="">
-                          {child.label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <a
-                  href={item.href}
-                  className="flex items-center justify-between"
+          {categories.map((category) => (
+            <div key={category.id}>
+              <li
+                className={`cursor-pointer px-4 ${expandedItems[category.id] ? "pb-2 pt-5" : "py-5"}`}
+                onClick={() => toggleExpand(category.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <Link href={`/${category.slug}`} className="uppercase">
+                    {category.name}
+                  </Link>
+                  {category.children.length > 0 && (
+                    <div className="cursor-pointer">
+                      {expandedItems[category.id] ? <MinusIcon /> : <AddIcon />}
+                    </div>
+                  )}
+                </div>
+              </li>
+              {category.children.length > 0 && (
+                <ul
+                  className={`ml-3 pl-4 pt-2 transition-all duration-300 ease-in-out ${
+                    expandedItems[category.id] ? "block" : "hidden"
+                  }`}
                 >
-                  {item.label}
-                </a>
+                  {category.children.map((child) => (
+                    <li key={child.id} className="py-1 text-sm capitalize">
+                      <Link href={`/${child.slug}`}>{child.name}</Link>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </li>
+            </div>
           ))}
         </ul>
       </nav>
     </aside>
   );
-}
+});

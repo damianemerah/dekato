@@ -1,42 +1,14 @@
-import { NextResponse } from "next/server";
-
-const sendErrorDev = (err, req) => {
-  if (req.nextUrl.pathname.startsWith("/api")) {
-    console.error(
-      "ERROR:: 💥",
-      NextResponse.json(
-        {
-          error: err,
-          status: err.status,
-          message: err.message,
-          stack: err.stack,
-        },
-        { status: err.statusCode }
-      )
-    );
-    return NextResponse.json(
-      {
-        error: err,
-        status: err.status,
-        message: err.message,
-        stack: err.stack,
-      },
-      { status: err.statusCode }
-    );
-  } else {
-    return NextResponse.json(
-      {
-        error: err,
-        status: "error",
-        message: "Something went wrong",
-      },
-      { status: 400 }
-    );
-  }
+const sendErrorDev = (err) => {
+  console.log(err.code, err.name, err.message.includes("E11000"), err);
+  return {
+    error: err,
+    status: err.status,
+    message: err.message,
+    stack: err.stack,
+  };
 };
 
-const sendErrorProd = (err, res) => {
-  // Operational, trusted error: send message to client
+const sendErrorProd = (err) => {
   let message;
 
   if (
@@ -64,35 +36,27 @@ const sendErrorProd = (err, res) => {
   }
 
   if (err.isOperational) {
-    console.log("🔥🔥🔥🌐", err.isOperational);
-    return NextResponse.json(
-      {
-        status: err.status,
-        message: message || err.message,
-      },
-      { status: err.statusCode }
-    );
+    return {
+      status: err.status,
+      message: message || err.message,
+    };
   }
-  // Programming or other unknown error: don't leak error details
-  // 1) Log error
-  console.error("ERROR 💥", err);
-  // 2) Send generic message
-  return NextResponse.json(
-    {
-      status: "error",
-      message: "Something went wrong" + err.message,
-    },
-    { status: 500 }
-  );
+
+  console.error("ERROR 💥", err.message.includes("E11000"), err);
+
+  return {
+    status: "error",
+    message: err.message,
+  };
 };
 
-module.exports = (err, req) => {
+export default function handleAppError(err) {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
   if (process.env.NODE_ENV === "development") {
-    return sendErrorDev(err, req);
+    return sendErrorDev(err);
   } else if (process.env.NODE_ENV === "production") {
     return sendErrorProd(err);
   }
-};
+}
