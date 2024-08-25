@@ -9,6 +9,7 @@ import dbConnect from "@/lib/mongoConnection";
 import { includePriceObj } from "@/utils/searchWithPrice";
 import { formDataToObject } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
+import { revalidatePath } from "next/cache";
 
 function arrayToMap(arr) {
   const map = new Map();
@@ -153,17 +154,14 @@ export async function createProduct(formData) {
     await restrictTo("admin");
     await dbConnect();
 
-    const obj = await handleFormData(formData);
-    const category = await Category.findById(obj.category);
-
-    if (!category) throw new Error("Category not found");
+    const id = formData.get("category");
+    const obj = await handleFormData(formData, Category, id);
 
     const productDoc = await Product.create(obj);
-
     if (!productDoc) throw new Error("Product not created");
 
     const product = productDoc.toObject();
-    const { category: productCategories, _id, ...rest } = product.toObject();
+    const { category: productCategories, _id, ...rest } = product;
 
     if (product.variant) {
       const variants = product.variant.map((variant) => {
@@ -173,16 +171,15 @@ export async function createProduct(formData) {
 
         return { id: _id.toString(), ...rest };
       });
-      //what is _id here
       return { id: _id.toString(), ...rest, variant: variants };
     }
 
-    console.log(product, "product🚀😎");
+    revalidatePath("/admin/products");
 
     return { id: _id.toString(), ...rest };
   } catch (err) {
     const error = handleAppError(err);
-    return { status: error.status, message: error.message };
+    throw new Error(error.message || "An error occurred");
   }
 }
 

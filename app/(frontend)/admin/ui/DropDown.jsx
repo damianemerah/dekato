@@ -10,7 +10,6 @@ export default memo(function DropDownSelect({
   variationName,
   selectedVariantVal,
   handleSelectedOption,
-  type,
 }) {
   const [showOptions, setShowOptions] = useState(initialShowOptions);
   const dropdownRef = useRef(null);

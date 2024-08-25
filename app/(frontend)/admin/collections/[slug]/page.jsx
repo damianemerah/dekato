@@ -7,6 +7,7 @@ import { ButtonPrimary } from "@/app/ui/Button";
 import { toast } from "react-toastify";
 import DropDownSelect from "@/app/(frontend)/admin/ui/DropDown";
 import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
+import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 
 export default memo(function NewCollection({ params }) {
   const slug = params.slug;
@@ -23,7 +24,6 @@ export default memo(function NewCollection({ params }) {
   const setAllCategories = useCategoryStore((state) => state.setAllCategories);
 
   useEffect(() => {
-    console.log("SLUG PAGE");
     if (slug !== "new" && allCategories.length > 0) {
       const selectedCategory = allCategories.find(
         (category) => category.slug === slug,
@@ -48,25 +48,33 @@ export default memo(function NewCollection({ params }) {
       setActionType("create");
       setSelectedOption(null);
     } else {
-      console.log("undefined route");
+      window.location.href = "/admin/collections";
     }
   }, [slug, allCategories]);
 
   // Handle form submission
   const handleCreateCategory = async (formData, type) => {
     try {
-      formData.delete("media");
-      fileList.forEach((file) => {
-        formData.append("media", file.originFileObj || file.url);
+      const medias = getFiles(fileList);
+      console.log(medias);
+      medias.images.forEach((file) => {
+        formData.append("image", file);
+      });
+      medias.videos.forEach((file) => {
+        formData.append("video", file);
       });
 
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ", " + pair[1]);
-      }
-
       if (type === "edit") {
-        const updatedCategory = await updateCategory(selectedOption, formData);
+        const id = allCategories.find(
+          (category) => category.slug === selectedOption,
+        ).id;
+        formData.append("id", id);
+
+        const updatedCategory = await updateCategory(formData);
+
         toast.success("Category updated");
+        titleRef.current.value = "";
+        descriptionRef.current.value = "";
         setAllCategories(
           allCategories.map((category) =>
             category.slug === selectedOption ? updatedCategory : category,
@@ -77,16 +85,13 @@ export default memo(function NewCollection({ params }) {
 
       const newCategory = await createCategory(formData);
       toast.success("Category created");
+      titleRef.current.value = "";
+      descriptionRef.current.value = "";
       setAllCategories([...allCategories, newCategory]);
       setFileList([]);
     } catch (error) {
       toast.error(error.message);
     }
-  };
-
-  const handleRemove = (file) => {
-    const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
-    setFileList(updatedFileList);
   };
 
   if (!allCategories) return <div>Loading...</div>;
@@ -144,7 +149,6 @@ export default memo(function NewCollection({ params }) {
               multiple={false}
               fileList={fileList}
               setFileList={setFileList}
-              handleRemove={handleRemove}
               defaultFileList={defaultFileList}
             />
           </div>

@@ -13,31 +13,15 @@ export const handleFormData = async (formData, Model, id) => {
   const filesToDelete = [];
   let existingProd;
 
-  //check if image is uploaded
+  const images = formData.getAll("image");
+  const videos = formData.getAll("video");
 
-  const media = formData.getAll("media");
-  console.log("media🚀🚀⭐⭐", media[0]);
-
-  if (
-    media.length === 0 ||
-    media.some(
-      (file) =>
-        !file.type.startsWith("image/") && !file.type.startsWith("video/"),
-    )
-  ) {
+  if (images.length === 0 && videos.length === 0) {
     throw new AppError("Please upload image", 400);
   }
 
-  const images = media.filter((file) => file.type.startsWith("image/"));
-  const videos = media.filter((file) => file.type.startsWith("video/"));
-
   // add other form data to obj
   for (const [key, value] of formData.entries()) {
-    if (key.startsWith("variantImage")) {
-      const index = key.match(/\d+/)[0];
-      // check if image is uploaded (URL) to be implemented
-      variantsFilesToUpload[index] = value;
-    }
     if (key.startsWith("variantData")) {
       const index = key.match(/\d+/)[0];
       const data = JSON.parse(value);
@@ -47,15 +31,22 @@ export const handleFormData = async (formData, Model, id) => {
         obj.variant[index] = { ...obj.variant[index], ...data };
       }
     }
-    if (key !== "media" && key !== "category") {
+    if (key.startsWith("variantImage")) {
+      const index = key.match(/\d+/)[0];
+      if (typeof value === "string") {
+        obj.variant[index] = { ...obj.variant[index], image: value };
+      }
+      variantsFilesToUpload[index] = value;
+    }
+    if (key !== "image" && key !== "video" && key !== "category") {
       obj[key] = value;
     }
+    //category is an array
     if (key === "category") {
       obj.category.push(value);
     }
   }
 
-  console.log("obj⭐⭐⭐", obj.category);
   images.forEach((file) => {
     if (typeof file === "string") {
       obj.image.push(file);
@@ -76,7 +67,7 @@ export const handleFormData = async (formData, Model, id) => {
   if (Model && id) {
     existingProd = await Model.findById(id);
     if (!existingProd) {
-      throw new AppError("Product not found", 404);
+      throw new AppError(`${Model} not found`, 404);
     }
   }
 

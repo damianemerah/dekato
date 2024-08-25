@@ -17,15 +17,20 @@ import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import styles from "./AddProduct.module.css";
 import { createProduct } from "@/app/action/productAction";
 import { message } from "antd";
+import { getFiles } from "@/app/(frontend)/admin/utils/utils";
+import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 
-export default memo(function Page() {
-  const [files, setFiles] = useState([]);
+export default memo(function Page({ params }) {
+  const slug = params.slug;
+  const [fileList, setFileList] = useState([]);
+  const [defaultFileList, setDefaultFileList] = useState([]);
   const [isToggle, setIsToggle] = useState(false);
   const [showCatOptions, setShowCatOptions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [openSlider1, setOpenSlider1] = useState(false);
   const [openSlider2, setOpenSlider2] = useState(false);
-  const fileInputRef = useRef(null);
+
+  const toggleRef = useRef(null);
 
   const allCategories = useCategoryStore((state) => state.allCategories);
   const setEditVariantWithId = useAdminStore(
@@ -33,25 +38,28 @@ export default memo(function Page() {
   );
   const variants = useAdminStore((state) => state.variants);
 
-  useEffect(() => {
-    const toggleElement = document.getElementById("toggle");
-    const handleChange = (e) => {
-      setIsToggle(e.target.checked);
-    };
-    toggleElement.addEventListener("change", handleChange);
-    return () => {
-      toggleElement.removeEventListener("change", handleChange);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const toggleElement = toggleRef.current;
+  //   const handleChange = (e) => {
+  //     setIsToggle(e.target.checked);
+  //   };
+  //   toggleElement.addEventListener("change", handleChange);
+  //   return () => {
+  //     toggleElement.removeEventListener("change", handleChange);
+  //   };
+  // }, []);
 
   const handleFormSubmit = async (formData) => {
     try {
-      if (files.length > 0) {
-        formData.delete("media");
-        files.forEach((file) => {
-          formData.append("media", file);
-        });
-      }
+      const medias = getFiles(fileList);
+      console.log(medias);
+      medias.images.forEach((file) => {
+        formData.append("image", file);
+      });
+      medias.videos.forEach((file) => {
+        formData.append("video", file);
+      });
+
       if (!formData.get("category")) {
         throw new Error("Category is required");
       }
@@ -159,11 +167,14 @@ export default memo(function Page() {
                 ></textarea>
               </div>
             </div>
-            <ImageUpload
-              onFilesChange={handleFilesChange}
-              ref={fileInputRef}
-              multiple={true}
-            />
+            <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+              <MediaUpload
+                multiple={true}
+                fileList={fileList}
+                setFileList={setFileList}
+                defaultFileList={defaultFileList}
+              />
+            </div>
             <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow-shadowSm">
               <div>
                 <label
@@ -237,6 +248,8 @@ export default memo(function Page() {
               <div className="flex items-center">
                 <div className={styles["toggle-checkbox-wrapper"]}>
                   <input
+                    ref={toggleRef}
+                    onChange={() => setIsToggle(!isToggle)}
                     type="checkbox"
                     id="toggle"
                     className={styles["hidden-checkbox"]}

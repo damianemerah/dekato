@@ -14,7 +14,6 @@ const MediaUpload = ({
   multiple = true,
   fileList,
   setFileList,
-  handleRemove,
   defaultFileList,
 }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -24,7 +23,7 @@ const MediaUpload = ({
     if (defaultFileList.length > 0 && fileList.length === 0) {
       setFileList(defaultFileList);
     }
-  }, [defaultFileList]);
+  }, [defaultFileList, fileList.length, setFileList]);
 
   const handlePreview = async (file) => {
     if (!file.url && !file.preview) {
@@ -39,6 +38,11 @@ const MediaUpload = ({
       newFileList = newFileList.slice(-1);
     }
     setFileList(newFileList);
+  };
+
+  const handleRemove = (file) => {
+    const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
+    setFileList(updatedFileList);
   };
 
   const uploadButton = (
@@ -72,6 +76,7 @@ const MediaUpload = ({
             afterOpenChange: (visible) => !visible && setPreviewImage(""),
           }}
           src={previewImage}
+          alt="Preview"
         />
       )}
     </>

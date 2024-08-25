@@ -4,7 +4,9 @@ import React, { useState, memo } from "react";
 import { Button, Flex, Table, Dropdown, Space } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import Image from "next/image";
-import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
+import { getAdminProduct } from "@/app/action/productAction";
+import { useProductStore } from "@/app/(frontend)/admin/store/adminStore";
+import useSWR from "swr";
 import Link from "next/link";
 
 const columns = [
@@ -26,31 +28,37 @@ const columns = [
     dataIndex: "name",
   },
   {
-    title: "Products",
+    title: "Status",
+    dataIndex: "status",
+  },
+  {
+    title: "Inventory",
     dataIndex: "productCount",
   },
   {
-    title: "Parent Collection",
-    dataIndex: "parent",
+    title: "Category",
+    dataIndex: "category",
   },
+
   {
     title: "Action",
     dataIndex: "action",
     render: (_, record) => {
       console.log(record, "record");
-      return <Action slug={record.slug} />;
+      return <Action id={record.key} />;
     },
   },
 ];
 
-const Action = memo(function Action({ slug }) {
+const Action = memo(function Action({ id }) {
   const items = [
     {
       label: (
         <Link
           target="_blank"
           rel="noopener noreferrer"
-          href={`/admin/collections/${slug}`}
+          href={`/admin/products/${id}`}
+          className="!text-blue-500"
         >
           Edit
         </Link>
@@ -58,24 +66,20 @@ const Action = memo(function Action({ slug }) {
       key: "0",
     },
     {
-      label: (
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://www.aliyun.com"
-        >
-          2nd menu item
-        </a>
-      ),
-      key: "1",
-    },
-    {
       type: "divider",
     },
     {
-      label: "3rd menu item（disabled）",
-      key: "3",
-      disabled: true,
+      label: (
+        <p
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => alert("delete")}
+          className="text-red-500"
+        >
+          Delete
+        </p>
+      ),
+      key: "1",
     },
   ];
   return (
@@ -86,7 +90,7 @@ const Action = memo(function Action({ slug }) {
     >
       <a onClick={(e) => e.preventDefault()}>
         <Space>
-          Hover me
+          Action
           <DownOutlined />
         </Space>
       </a>
@@ -94,23 +98,27 @@ const Action = memo(function Action({ slug }) {
   );
 });
 
-const Collections = () => {
+const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const collections = useCategoryStore((state) => state.allCategories);
-
-  const dataSource = collections.map((item) => {
-    return {
-      key: item.id,
-      image: item.image[0],
-      name: item.name,
-      productCount: item.productCount,
-      parent: item.parent,
-      slug: item.slug,
-      action: <Action slug={item.slug} />,
-    };
+  const products = useProductStore((state) => state.products);
+  const setProducts = useProductStore((state) => state.setProducts);
+  useSWR("/admin/products", () => getAdminProduct(), {
+    onSuccess: (products) => {
+      return setProducts(products);
+    },
   });
+
+  const dataSource = products.map((item) => ({
+    key: item.id,
+    image: item.image[0],
+    name: item.name,
+    status: item.status,
+    productCount: item.quantity,
+    category: item.cat.join(", "),
+    action: <Action />,
+  }));
 
   const start = () => {
     setLoading(true);
@@ -151,4 +159,4 @@ const Collections = () => {
   );
 };
 
-export default Collections;
+export default memo(ProductsList);

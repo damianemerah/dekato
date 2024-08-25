@@ -1,6 +1,9 @@
 import { memo, useCallback, useState, useEffect, useRef } from "react";
 import DropDownSelect from "@/app/(frontend)/admin/ui/DropDown";
+import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import ImageUpload from "@/app/(frontend)/admin/ui/products/MediaUpload";
+import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
+
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 
 import DeleteIcon from "@/public/assets/icons/remove.svg";
@@ -14,6 +17,14 @@ export default memo(function AddSingleVariant({
   openSlider,
   // handleSaveSingleVariant,
 }) {
+  const [fileList, setFileList] = useState([]);
+  const [defaultFileList, setDefaultFileList] = useState([]);
+  // {
+  //   uid: selectedCategory?.id,
+  //   name: "image.png",
+  //   status: "done",
+  //   url: selectedCategory.image[0],
+  // },
   const variantOptions = useAdminStore((state) => state.variantOptions);
   const [showVarOptions, setShowVarOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -67,6 +78,8 @@ export default memo(function AddSingleVariant({
 
   const handleSelectedFile = (files) => {
     setSelectedFile(files[0]);
+    console.log(files, "files");
+    setFileList(files[0]);
   };
 
   const toggleDropdown = useCallback((index) => {
@@ -181,7 +194,6 @@ export default memo(function AddSingleVariant({
             />
           ))}
         </div>
-
         <ImageUpload
           ref={fileInputRef}
           onFilesChange={handleSelectedFile}
@@ -189,6 +201,15 @@ export default memo(function AddSingleVariant({
           multiple={false}
           varImg="variantImage"
         />
+
+        <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+          <MediaUpload
+            multiple={false}
+            fileList={fileList}
+            setFileList={setFileList}
+            defaultFileList={defaultFileList}
+          />
+        </div>
         <div className="flex items-center gap-4 py-2">
           <div className="flex w-full flex-col items-start gap-1.5">
             <label htmlFor="quantity">Quantity</label>
