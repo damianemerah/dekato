@@ -4,7 +4,7 @@ import ImageUpload from "@/app/admin/ui/products/MediaUpload";
 import { useAdminStore } from "@/app/admin/store/variantStore";
 
 import DeleteIcon from "@/public/assets/icons/remove.svg";
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import ModalWrapper from "./ModalWrapper";
 
 export default memo(function AddSingleVariant({

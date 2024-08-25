@@ -1,5 +1,5 @@
 import AccountLayout from "../AccountLayout";
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import { oswald } from "@/style/font";
 
 export default function Newsletter() {

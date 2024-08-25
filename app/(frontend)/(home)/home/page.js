@@ -1,8 +1,10 @@
+"use client";
+
 import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
 import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
-import SubPageCampaign from "@/app/ui/SubPageCampaign";
+import SubPageCampaign from "@/app/ui/page-campaign";
 import Galley from "@/app/ui/home/Galley";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";

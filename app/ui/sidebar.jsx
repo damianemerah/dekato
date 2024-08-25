@@ -1,13 +1,8 @@
 "use client";
-// import React, { useEffect, useRef } from "react";
-import { useSidebarStore } from "@/store/store";
-import { oswald } from "@/font";
-import { useEffect, useState } from "react";
-
-import useSWR from "swr";
+import React, { useEffect, useState, useRef, memo } from "react";
 import { useSidebarStore, useCategoryStore } from "@/store/store";
 import { oswald } from "@/font";
-import { useState, useEffect, memo } from "react";
+import useSWR from "swr";
 import { getCategories } from "@/app/action/categoryAction";
 import AddIcon from "@/public/assets/icons/add.svg";
 import MinusIcon from "@/public/assets/icons/minus.svg";
@@ -20,23 +15,70 @@ const fetchCategories = async (slug) => {
 };
 
 export default memo(function Sidebar() {
-  const curUICategory = useCartStore((state) => state.curUICategory);
-  const setCategory = useCategoryStore((state) => state.setCategory);
-  const categories = useCategoryStore((state) => state.categories);
-
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
-  const [expandedItems, setExpandedItems] = useState({});
-  // Use SWR to fetch categories based on the current UI category (slug)
-  const { data: categoryData, error: categoryError } = useSWR(
-    curUICategory ? `/api/categories/${curUICategory}` : null,
-    () => fetchCategories(curUICategory),
+  const sidebarItems = [
     {
-      revalidateOnFocus: false,
-      onSuccess: (fetchedData) => {
-        setCategory(fetchedData);
-      },
+      label: "SALE",
+      children: [
+        { label: "SALE MEN", href: "/men/products" },
+        { label: "SALE WOMEN", href: "/women/products" },
+      ],
     },
-  );
+    {
+      label: "NEW ARRIVALS",
+      href: "/new-arrivals/products",
+    },
+    {
+      label: "MEN",
+      children: [
+        { label: "T-shirts", href: "/men/t-shirts" },
+        { label: "Shirts", href: "/men/shirts" },
+        { label: "Pants", href: "/men/pants" },
+        { label: "Shoes", href: "/men/shoes" },
+      ],
+    },
+    {
+      label: "WOMEN",
+      children: [
+        { label: "Dresses", href: "/women/dresses" },
+        { label: "Tops", href: "/women/tops" },
+        { label: "Skirts", href: "/women/skirts" },
+        { label: "Shoes", href: "/women/shoes" },
+      ],
+    },
+    {
+      label: "JEANS",
+      href: "/jeans/products",
+    },
+    {
+      label: "KIDSWEAR",
+      children: [
+        { label: "Boys", href: "/kids/boys" },
+        { label: "Girls", href: "/kids/girls" },
+      ],
+    },
+    {
+      label: "SECONDHAND",
+      href: "/secondhand/products",
+    },
+  ];
+  // const curUICategory = useCartStore((state) => state.curUICategory);
+  // const setCategory = useCategoryStore((state) => state.setCategory);
+  // const categories = useCategoryStore((state) => state.categories);
+
+  // const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
+  // const [expandedItems, setExpandedItems] = useState({});
+  // // Use SWR to fetch categories based on the current UI category (slug)
+  // const { data: categoryData, error: categoryError } = useSWR(
+  //   curUICategory ? `/api/categories/${curUICategory}` : null,
+  //   () => fetchCategories(curUICategory),
+  //   {
+  //     revalidateOnFocus: false,
+  //     onSuccess: (fetchedData) => {
+  //       setCategory(fetchedData);
+  //     },
+  //   },
+  // );
+  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
   const openSidebar = useSidebarStore((state) => state.openSidebar);
@@ -62,26 +104,34 @@ export default memo(function Sidebar() {
 
   const [expandedItem, setExpandedItem] = useState(null);
 
-  useEffect(() => {
-    if (categories) {
-      const allExpanded = categories.reduce((acc, category) => {
-        acc[category.id] = true;
-        return acc;
-      }, {});
-      setExpandedItems(allExpanded);
-    }
-  }, [categories]);
+  // useEffect(() => {
+  //   if (categories) {
+  //     const allExpanded = categories.reduce((acc, category) => {
+  //       acc[category.id] = true;
+  //       return acc;
+  //     }, {});
+  //     setExpandedItems(allExpanded);
+  //   }
+  // }, [categories]);
 
-  const toggleExpand = (categoryId) => {
-    setExpandedItems((prevExpandedItems) => ({
-      ...prevExpandedItems,
-      [categoryId]: !prevExpandedItems[categoryId],
-    }));
+  // const toggleExpand = (categoryId) => {
+  //   setExpandedItems((prevExpandedItems) => ({
+  //     ...prevExpandedItems,
+  //     [categoryId]: !prevExpandedItems[categoryId],
+  //   }));
+  // };
+
+  const toggleExpand = (label) => {
+    if (expandedItem === label) {
+      setExpandedItem(null);
+    } else {
+      setExpandedItem(label);
+    }
   };
 
-  if (categoryError)
-    return <div>Failed to load categories: {categoryError.message}</div>;
-  if (!categoryData) return <div>Loading categories...</div>;
+  // if (categoryError)
+  //   return <div>Failed to load categories: {categoryError.message}</div>;
+  // if (!categoryData) return <div>Loading categories...</div>;
 
   // return (
   //   <aside
@@ -126,7 +176,8 @@ export default memo(function Sidebar() {
   //       </ul>
   //     </nav>
   //   </aside>
-  
+  // );
+
   return (
     <>
       {isMobile && isSidebarOpen && (

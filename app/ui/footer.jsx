@@ -10,7 +10,7 @@ import InstagramIcon from "@/public/assets/icons/Instagram.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { oswald, roboto } from "@/style/font";
 import Logo from "./dekato-logo";
-import { Button } from "./Button";
+import { Button } from "./button";
 
 export default function Footer() {
   return (

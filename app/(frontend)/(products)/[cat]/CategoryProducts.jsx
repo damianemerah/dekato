@@ -1,10 +1,10 @@
 "use client";
 
-import Filter from "@/app/ui/products/Filter";
-import SubPageCampaign from "@/app/ui/SubPageCampaign";
+import Filter from "@/app/ui/products/filter";
+import SubPageCampaign from "@/app/ui/page-campaign";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
-import ProductList from "@/app/ui/ProductList";
+import ProductList from "@/app/ui/products-list";
 import { useCartStore } from "@/store/store";
 import { memo, useEffect } from "react";
 
@@ -18,9 +18,15 @@ export default memo(function CategoryProducts({ cat, searchParams }) {
   }, [cat, setCurUICategory]);
 
   return (
-    <div>
+    <>
+      <div className="flex w-full items-center justify-center bg-gray-100 py-14 uppercase">
+        <h1 className="text-3xl font-semibold">Women Selected Styles</h1>
+      </div>
       <Filter />
-      <ProductList cat={cat} searchParams={searchParams} />
+      <div className="px-8 py-12">
+        <ProductList cat={cat} searchParams={searchParams} />
+      </div>
+
       <div
         className={`mb-10 flex items-center justify-center gap-5 bg-black text-white`}
       >
@@ -30,6 +36,7 @@ export default memo(function CategoryProducts({ cat, searchParams }) {
             heading_bg="after:bg-white before:bg-white"
           />
         </div>
+
         <div className="block w-1/2 flex-1 self-stretch">
           <Image
             alt="cat"
@@ -40,6 +47,6 @@ export default memo(function CategoryProducts({ cat, searchParams }) {
           />
         </div>
       </div>
-    </div>
+    </>
   );
 });

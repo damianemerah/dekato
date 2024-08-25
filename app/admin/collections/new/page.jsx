@@ -3,7 +3,7 @@
 import { useState, useRef, memo } from "react";
 import ImageUpload from "@/app/admin/ui/products/MediaUpload";
 import { createCategory, getAllCategories } from "@/app/action/categoryAction";
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import { toast } from "react-toastify";
 import DropDownSelect from "@/app/admin/ui/DropDown";
 import { useCategoryStore } from "@/store/store";

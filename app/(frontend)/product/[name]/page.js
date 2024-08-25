@@ -8,8 +8,8 @@ import image7 from "@/public/assets/image7.png";
 import image8 from "@/public/assets/image8.png";
 import image9 from "@/public/assets/image9.png";
 import XIcon from "@/public/assets/icons/twitter.svg";
-import FbIcon from "@/public/assets/icons/facebook.svg";
-import InstaIcon from "@/public/assets/icons/instagram.svg";
+import FbIcon from "@/public/assets/icons/facebook-share.svg";
+import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 
 export default function CategoryPage() {
@@ -119,7 +119,7 @@ export default function CategoryPage() {
                 <button className="block px-4 text-2xl">+</button>
               </div>
             </div>
-            <div lassName="flex flex-col justify-center">
+            <div className="flex flex-col justify-center">
               <p className="mb-2 text-base font-medium">Total</p>
               <p className="font-semibold">50,000 EUR</p>
             </div>

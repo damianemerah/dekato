@@ -40,26 +40,6 @@ export default function Filter() {
     toggleDropdown("sort");
   };
 
-  const pushFiltersToRouter = () => {
-    const query = {};
-
-    Object.keys(selectedFilters).forEach((key) => {
-      if (selectedFilters[key].length) {
-        query[key] = selectedFilters[key].join(",");
-      }
-    });
-
-    router.push({
-      pathname: "/men",
-      query,
-    });
-  };
-
-  useEffect(() => {
-    pushFiltersToRouter();
-    console.log(selectedFilters);
-  }, [selectedFilters]);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {

@@ -2,10 +2,10 @@
 
 import React, { memo, useCallback, useState, useEffect } from "react";
 import useSWR from "swr";
-import Header from "@/app/ui/Header";
+import Header from "@/app/ui/header";
 import PromoBar from "@/app/ui/promo-bar";
 import Sidebar from "@/app/ui/sidebar";
-import Footer from "@/app/ui/Footer";
+import Footer from "@/app/ui/footer";
 import { useSidebarStore, useUserStore } from "@/store/store";
 import { useSession } from "next-auth/react";
 import { getUser } from "@/app/action/userAction";
@@ -18,7 +18,6 @@ const fetchUser = async (userId) => {
 
 const LayoutWrapper = ({ children }) => {
   const { data: session } = useSession();
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const setUser = useUserStore((state) => state.setUser);
 
   // Use a memoized fetcher to avoid unnecessary re-renders
@@ -40,6 +39,8 @@ const LayoutWrapper = ({ children }) => {
       },
     },
   );
+
+  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
