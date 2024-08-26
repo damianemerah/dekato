@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Galley() {
   return (
-    <div className="mb-10">
+    <div className="mb-10 px-5">
       <div className="mb-10 text-center">
         <h2>FOLLOW OUR INSTAGRAM</h2>
         <p>

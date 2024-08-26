@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { Page, Layout, LegacyCard } from '@shopify/polaris';
-import React from 'react';
+import { Page, Layout, LegacyCard } from "@shopify/polaris";
+import React from "react";
 
 const Products = () => {
   return (
     <Page fullWidth>
       <Layout>
         <Layout.Section>
-          <LegacyCard title='Order details' sectioned>
+          <LegacyCard title="Order details" sectioned>
             <p>
               Use to follow a normal section with a secondary section to create
               a 2/3 + 1/3 layout on detail pages (such as individual product or
@@ -17,8 +17,8 @@ const Products = () => {
             </p>
           </LegacyCard>
         </Layout.Section>
-        <Layout.Section variant='oneThird'>
-          <LegacyCard title='Tags' sectioned>
+        <Layout.Section variant="oneThird">
+          <LegacyCard title="Tags" sectioned>
             <p>Add tags to your order.</p>
           </LegacyCard>
         </Layout.Section>

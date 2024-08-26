@@ -4,6 +4,13 @@ import Provider from "@/app/ui/Provider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
+import "@/style/globals.css";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

@@ -1,4 +1,4 @@
-import { ButtonSecondary } from "@/app/ui/Button";
+import { ButtonSecondary } from "@/app/ui/button";
 import Wishlist from "@/app/ui/Wishlist";
 import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
 

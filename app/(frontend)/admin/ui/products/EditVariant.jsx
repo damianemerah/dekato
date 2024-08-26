@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
 import { message } from "antd";
 
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import ModalWrapper from "./ModalWrapper";
 import DeleteIcon from "@/public/assets/icons/remove.svg";
 import AddIcon from "@/public/assets/icons/add.svg";

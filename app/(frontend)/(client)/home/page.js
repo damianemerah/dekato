@@ -1,29 +1,30 @@
 "use client";
-
 import Hero from "@/app/ui/home/Hero";
 import HomeCategory from "@/app/ui/home/HomeCategory";
 import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
-import SubPageCampaign from "@/app/ui/SubPageCampaign";
+import SubPageCampaign from "@/app/ui/page-campaign";
 import Galley from "@/app/ui/home/Galley";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
-import ProductList from "@/app/ui/ProductList";
 import { useCartStore } from "@/store/store";
+import RecommendedProducts from "@/app/ui/recommended-products";
 
 export default function Home() {
   const setCurUICategory = useCartStore((state) => state.setCurUICategory);
   setCurUICategory("home");
   return (
-    <div className={`${oswald.className}`}>
+    <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
       <HomeCategory />
       <Campaign />
-      <div className="px-5 py-10">
-        <h2 className="mb-7">YOU MAY ALSO LIKE</h2>
-        <ProductList cat="men" />
+      <div className="">
+        <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
+        <div className="mb-10">
+          <RecommendedProducts cat="men" />
+        </div>
       </div>
-      <div className={`mb-10 flex items-center justify-center gap-5`}>
+      <div className={`mb-14 flex items-center justify-center gap-5`}>
         <div className="block w-1/2 flex-1 self-stretch">
           <Image
             alt="cat"
@@ -33,6 +34,7 @@ export default function Home() {
             src={image6}
           />
         </div>
+
         <SubPageCampaign
           className="border-black"
           heading_bg="after:bg-black before:bg-black"

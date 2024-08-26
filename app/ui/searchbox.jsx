@@ -6,7 +6,7 @@ const SearchBox = () => {
       <input
         type="text"
         placeholder="Search..."
-        className="h-8 w-full bg-white px-4 py-2 text-black outline-none"
+        className="h-8 bg-white px-4 py-2 text-black outline-none placeholder:text-sm"
       />
       <button
         type="button"

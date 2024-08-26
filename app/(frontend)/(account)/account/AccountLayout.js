@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Breadcrumbs from "@/app/ui/breadcrumbs";
 import { oswald } from "@/style/font";
-import Header from "@/app/ui/Header";
 
 export default function AccountLayout({ children, title, breadcrumbs }) {
   const pathname = usePathname();
@@ -38,8 +37,6 @@ export default function AccountLayout({ children, title, breadcrumbs }) {
 
   return (
     <>
-      <Header />
-
       <div className="flex flex-col items-center justify-center gap-4 py-3">
         <Breadcrumbs breadcrumbs={breadcrumbs} />
         <h1 className={`${oswald.className} mt-7 text-4xl antialiased`}>
