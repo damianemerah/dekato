@@ -1,4 +1,4 @@
-import Header from "@/app/ui/Header";
+import Header from "@/app/ui/header";
 import LayoutWrapper from "@/app/ui/layout-wrapper";
 
 export default function RootLayout({ children }) {

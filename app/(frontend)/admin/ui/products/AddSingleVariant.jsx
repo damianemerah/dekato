@@ -7,7 +7,7 @@ import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 
 import DeleteIcon from "@/public/assets/icons/remove.svg";
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import { v4 as uuidv4 } from "uuid";
 import ModalWrapper from "./ModalWrapper";
 import { message } from "antd";

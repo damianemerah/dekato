@@ -5,7 +5,7 @@ import { useEffect, useState, memo, useRef } from "react";
 
 import ImageUpload from "@/app/(frontend)/admin/ui/products/MediaUpload";
 import AddSingleVariant from "@/app/(frontend)/admin/ui/products/AddSingleVariant";
-import { ButtonPrimary } from "@/app/ui/Button";
+import { ButtonPrimary } from "@/app/ui/button";
 import VariantsSection from "@/app/(frontend)/admin/ui/products/ProductVariantForm";
 import EditVariant from "@/app/(frontend)/admin/ui/products/EditVariant";
 import {
