@@ -133,24 +133,26 @@ const Collections = () => {
   };
   const hasSelected = selectedRowKeys.length > 0;
   return (
-    <Flex gap="middle" vertical className="p-6">
-      <Flex align="center" gap="middle">
-        <Button
-          type="primary"
-          onClick={start}
-          disabled={!hasSelected}
-          loading={loading}
-        >
-          Reload
-        </Button>
-        {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+    <>
+      <Flex gap="middle" vertical className="p-6">
+        <Flex align="center" gap="middle">
+          <Button
+            type="primary"
+            onClick={start}
+            disabled={!hasSelected}
+            loading={loading}
+          >
+            Reload
+          </Button>
+          {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+        </Flex>
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={dataSource || []}
+        />
       </Flex>
-      <Table
-        rowSelection={rowSelection}
-        columns={columns}
-        dataSource={dataSource || []}
-      />
-    </Flex>
+    </>
   );
 };
 
