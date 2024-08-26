@@ -23,7 +23,7 @@ const MediaUpload = ({
     if (defaultFileList.length > 0 && fileList.length === 0) {
       setFileList(defaultFileList);
     }
-  }, [defaultFileList, fileList.length, setFileList]);
+  }, [defaultFileList, fileList?.length, setFileList]);
 
   const handlePreview = async (file) => {
     if (!file.url && !file.preview) {
@@ -63,7 +63,7 @@ const MediaUpload = ({
         onRemove={handleRemove}
         defaultFileList={defaultFileList}
       >
-        {fileList.length >= 8 ? null : uploadButton}
+        {fileList?.length >= 8 ? null : uploadButton}
       </Upload>
       {previewImage && (
         <Image
