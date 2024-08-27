@@ -1,6 +1,6 @@
 import { Cart, CartItem } from "@/models/cart";
 import User from "@/models/user";
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import getQuantity from "@/utils/getQuantity";
 import _ from "lodash";

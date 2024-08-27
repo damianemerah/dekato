@@ -6,28 +6,44 @@ export const handleFormData = async (formData, Model, id) => {
   const obj = {};
   obj.image = [];
   obj.video = [];
+  obj.category = [];
+  obj.variant = [];
   const filesToUpload = [];
+  const variantsFilesToUpload = [];
   const filesToDelete = [];
   let existingProd;
 
-  //check if image is uploaded
+  const images = formData.getAll("image");
+  const videos = formData.getAll("video");
 
-  const media = formData.getAll("media");
-
-  if (
-    media.length === 0 ||
-    media.some((file) => !file.type.startsWith("image/"))
-  ) {
+  if (images.length === 0 && videos.length === 0) {
     throw new AppError("Please upload image", 400);
   }
 
-  const images = media.filter((file) => file.type.startsWith("image/"));
-  const videos = media.filter((file) => file.type.startsWith("video/"));
-
   // add other form data to obj
   for (const [key, value] of formData.entries()) {
-    if (key !== "media") {
+    if (key.startsWith("variantData")) {
+      const index = key.match(/\d+/)[0];
+      const data = JSON.parse(value);
+      if (!obj.variant[index]) {
+        obj.variant[index] = { ...data };
+      } else {
+        obj.variant[index] = { ...obj.variant[index], ...data };
+      }
+    }
+    if (key.startsWith("variantImage")) {
+      const index = key.match(/\d+/)[0];
+      if (typeof value === "string") {
+        obj.variant[index] = { ...obj.variant[index], image: value };
+      }
+      variantsFilesToUpload[index] = value;
+    }
+    if (key !== "image" && key !== "video" && key !== "category") {
       obj[key] = value;
+    }
+    //category is an array
+    if (key === "category") {
+      obj.category.push(value);
     }
   }
 
@@ -51,7 +67,7 @@ export const handleFormData = async (formData, Model, id) => {
   if (Model && id) {
     existingProd = await Model.findById(id);
     if (!existingProd) {
-      throw new AppError("Product not found", 404);
+      throw new AppError(`${Model} not found`, 404);
     }
   }
 
@@ -84,6 +100,22 @@ export const handleFormData = async (formData, Model, id) => {
     ...obj.video,
     ...fileNames.filter((file) => file.includes("com/video/")),
   ];
+
+  //upload variant images
+  const variantImages = await Promise.all(
+    variantsFilesToUpload.map(async (file) => {
+      if (file.size > 0) {
+        return await uploadFiles([file]);
+      }
+    }),
+  );
+
+  obj.variant = obj.variant.map((variant, index) => {
+    if (variantImages[index]) {
+      return { ...variant, image: variantImages[index][0] };
+    }
+    return variant;
+  });
 
   return obj;
 };

@@ -57,34 +57,23 @@ export const useProductStore = create(
   },
 );
 
-export const useCategoryStore = create(
-  persist(
-    (set) => ({
-      categories: [],
-      allCategories: [],
-      setAllCategories: (allCategories) =>
-        set({
-          allCategories: Array.isArray(allCategories) ? allCategories : [],
-        }),
-      setCategory: (categories) => set({ categories }),
-      addCategory: (category) =>
-        set((state) => ({ categories: [...state.categories, category] })),
-      removeCategory: (id) =>
-        set((state) => ({
-          categories: state.categories.filter((category) => category.id !== id),
-        })),
-      updateCategory: (updatedCategory) =>
-        set((state) => ({
-          categories: state.categories.map((category) =>
-            category.id === updatedCategory.id ? updatedCategory : category,
-          ),
-        })),
-    }),
-    {
-      name: "category-storage",
-    },
-  ),
-);
+export const useCategoryStore = create((set) => ({
+  categories: [],
+
+  setCategory: (categories) => set({ categories }),
+  addCategory: (category) =>
+    set((state) => ({ categories: [...state.categories, category] })),
+  removeCategory: (id) =>
+    set((state) => ({
+      categories: state.categories.filter((category) => category.id !== id),
+    })),
+  updateCategory: (updatedCategory) =>
+    set((state) => ({
+      categories: state.categories.map((category) =>
+        category.id === updatedCategory.id ? updatedCategory : category,
+      ),
+    })),
+}));
 
 export const useSidebarStore = create(
   persist(

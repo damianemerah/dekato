@@ -1,4 +1,4 @@
-import AccountLayout from "../AccountLayout";
+import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
 import { ButtonPrimary } from "@/app/ui/button";
 import { oswald } from "@/style/font";
 

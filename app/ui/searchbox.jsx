@@ -2,7 +2,7 @@ import React from "react";
 
 const SearchBox = () => {
   return (
-    <div className="relative">
+    <div className="relative min-w-72">
       <input
         type="text"
         placeholder="Search..."

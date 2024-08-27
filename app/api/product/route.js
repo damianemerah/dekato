@@ -1,5 +1,5 @@
 import dbConnect from "@/lib/mongoConnection";
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";

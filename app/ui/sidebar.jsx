@@ -85,6 +85,7 @@ export default memo(function Sidebar() {
 
   const [isMobile, setIsMobile] = useState(false);
 
+  // Expand all categories by default
   useEffect(() => {
     const handleResize = () => {
       const isBelowThreshold = window.innerWidth < 1250;

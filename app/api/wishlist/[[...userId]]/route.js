@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import Wishlist from "@/models/wishlist";
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
 import { protect, restrictTo } from "@/utils/checkPermission";

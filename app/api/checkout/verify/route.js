@@ -1,5 +1,5 @@
 import Order from "@/models/order";
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import { Cart, CartItem } from "@/models/cart";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
@@ -13,7 +13,7 @@ async function updateProductQuantity(order) {
 
     if (item.variantId) {
       const variantIndex = product.variant.findIndex(
-        (index) => index._id.toString() === item.variantId
+        (index) => index._id.toString() === item.variantId,
       );
       console.log("variantIndex💎🚀", product.variant[variantIndex]);
       product.variant[variantIndex].quantity -= item.quantity;
@@ -30,7 +30,7 @@ async function updateProductQuantity(order) {
     await Cart.updateOne(
       { user: userId },
       { $pull: { item: item._id } },
-      { new: true }
+      { new: true },
     );
 
     await product.save();
@@ -42,7 +42,7 @@ async function updateProductQuantitySingle(order) {
 
   if (order.singleProduct.variantId) {
     const variantIndex = product.variant.findIndex(
-      (index) => index._id.toString() === order.singleProduct.variantId
+      (index) => index._id.toString() === order.singleProduct.variantId,
     );
     console.log("variantIndex💎🚀", product.variant[variantIndex]);
     product.variant[variantIndex].quantity -= order.singleProduct.quantity;
@@ -104,7 +104,7 @@ export async function POST(req) {
         message: "Payment verified",
         data: order,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.log(error, "ERROR💎💎💎");

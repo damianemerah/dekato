@@ -10,11 +10,13 @@
     "prod": "next build && next start"
   },
   "dependencies": {
+    "@ant-design/nextjs-registry": "^1.0.1",
     "@aws-sdk/client-s3": "^3.490.0",
     "@aws-sdk/client-ses": "^3.511.0",
     "@sendgrid/mail": "^8.1.0",
     "@shopify/polaris": "^13.6.1",
     "@svgr/webpack": "^8.1.0",
+    "antd": "^5.20.2",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "formidable": "^3.5.1",
@@ -23,7 +25,7 @@
     "lodash": "^4.17.21",
     "mitt": "^3.0.1",
     "mongoose": "^8.0.3",
-    "next": "^14.2.3",
+    "next": "^14.2.6",
     "next-auth": "^4.24.5",
     "nodemailer": "^6.9.7",
     "paystack": "^2.0.1",

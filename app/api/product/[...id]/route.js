@@ -1,5 +1,5 @@
 import dbConnect from "@/lib/mongoConnection";
-import { Product } from "@/models/product";
+import Product from "@/models/product";
 import Address from "@/models/address";
 import Order from "@/models/order";
 import User from "@/models/user";

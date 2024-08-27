@@ -1,5 +1,5 @@
 import OrderCard from "@/app/ui/account/orders/OrderCard";
-import AccountLayout from "../AccountLayout";
+import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
 
 export default function Orders() {
   const breadcrumbs = [

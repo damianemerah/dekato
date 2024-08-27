@@ -1,6 +1,7 @@
 import { ButtonSecondary } from "@/app/ui/button";
 import Wishlist from "@/app/ui/Wishlist";
-import AccountLayout from "../AccountLayout";
+import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
+
 import { oswald } from "@/style/font";
 
 export default function WishlistPage() {
