@@ -1,9 +1,5 @@
 import * as React from "react";
-import Image from "next/image";
 import Checkmark from "@/public/assets/icons/check.svg?url";
-import Mastercard from "@/public/assets/icons/mastercard.svg";
-import Verve from "@/public/assets/icons/verve.svg";
-import Visa from "@/public/assets/icons/visa.svg";
 import Paystack from "@/public/assets/icons/paystack.svg";
 import FacebookIcon from "@/public/assets/icons/Facebook.svg";
 import InstagramIcon from "@/public/assets/icons/Instagram.svg";

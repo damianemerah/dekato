@@ -1,5 +1,4 @@
 import { roboto } from "@/font";
-import "@/style/globals.css";
 import Provider from "@/app/ui/Provider";
 
 // Import Swiper styles
