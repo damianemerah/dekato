@@ -9,7 +9,7 @@ import XIcon from "@/public/assets/icons/twitter.svg";
 import FbIcon from "@/public/assets/icons/facebook-share.svg";
 import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import { ButtonPrimary } from "@/app/ui/button";
+import { Button, ButtonPrimary } from "@/app/ui/button";
 
 const CollapsibleSection = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +36,7 @@ const CollapsibleSection = ({ title, children }) => {
           height: isOpen ? contentRef.current.scrollHeight : 0,
         }}
       >
-        <div className="px-2 pb-4">{children}</div>
+        <div className="px-2 pb-4 font-light">{children}</div>
       </div>
     </li>
   );
@@ -44,115 +44,127 @@ const CollapsibleSection = ({ title, children }) => {
 
 export default function ProductDetail() {
   const product = {
+    id: 1,
+    category: "TOP WOMEN",
     name: "Women Black Checked Fit and Flare Dress",
     images: ["/assets/image7.png", "/assets/image8.png", "/assets/image9.png"],
     color: "Black",
-    sizes: ["S", "M", "L", "XL", "XXL", "XXXL", "4XL"],
-    price: "50,000 EUR",
+    sizes: ["S", "M", "L", "XL", "XXL", "4XL"],
+    price: "50000.00",
     quantity: 1,
+    discount: 30,
   };
+
+  const discountedPrice = product.discount
+    ? (product.price * (100 - product.discount)) / 100
+    : product.price;
+
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   return (
     <>
-      <div className="relative mb-20 flex w-full max-w-[960px] justify-center space-x-4">
-        <div className="flex shrink-0">
-          {/* Thumbnail Swiper */}
-          <div className="mr-3 flex flex-col gap-2 self-start">
-            <Swiper
-              onSwiper={setThumbsSwiper}
-              spaceBetween={10}
-              slidesPerView={3} // Adjust number of thumbnails per view
-              freeMode={true}
-              watchSlidesProgress={true}
-              modules={[FreeMode, Thumbs]}
-              direction="vertical"
-              className="h-fit"
-            >
-              {product.images.map((image, index) => (
-                <SwiperSlide key={index} className="!h-14 !w-12">
-                  <Image
-                    className="block h-full w-full object-cover"
-                    src={image}
-                    alt={`Thumbnail ${index + 1}`}
-                    width={64}
-                    height={64}
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
+      <div className="relative mb-20 flex w-full max-w-[960px] justify-center">
+        <div className="sticky bottom-0 top-24 float-left h-fit w-[66.64%] px-3">
+          <div className="flex">
+            {/* Thumbnail Swiper */}
+            <div className="mr-3 flex flex-col gap-2 self-start">
+              <Swiper
+                onSwiper={setThumbsSwiper}
+                spaceBetween={10}
+                slidesPerView={3}
+                freeMode={true}
+                watchSlidesProgress={true}
+                modules={[FreeMode, Thumbs]}
+                direction="vertical"
+                className="h-fit"
+              >
+                {product.images.map((image, index) => (
+                  <SwiperSlide key={index} className="!h-14 !w-12">
+                    <Image
+                      className="block h-full w-full object-cover"
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      fill
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+            {/* Main Image Swiper */}
+            <div className="relative max-w-lg overflow-hidden">
+              <Swiper
+                spaceBetween={10}
+                thumbs={{ swiper: thumbsSwiper }}
+                modules={[FreeMode, Thumbs]}
+                className="mainSwiper h-full max-w-lg"
+              >
+                {product.images.map((image, index) => (
+                  <SwiperSlide key={index}>
+                    <Image
+                      className="block h-full w-full object-cover"
+                      src={image}
+                      alt={`Main image ${index + 1}`}
+                      width={512}
+                      height={650}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
 
-          {/* Main Image Swiper */}
-          <div className="relative h-[650px] w-full max-w-lg overflow-hidden">
-            <Swiper
-              spaceBetween={10}
-              thumbs={{ swiper: thumbsSwiper }}
-              modules={[FreeMode, Thumbs]}
-              className="mainSwiper h-full max-w-lg"
-            >
-              {product.images.map((image, index) => (
-                <SwiperSlide key={index}>
-                  <Image
-                    className="block h-full w-full object-cover"
-                    src={image}
-                    alt={`Main image ${index + 1}`}
-                    width={550}
-                    height={550}
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-
-            <div className="mt-1 flex items-center justify-center gap-5">
-              <p className="font-semibold">Share:</p>
-              <XIcon />
-              <FbIcon />
-              <InstaIcon />
-              <WhatsappIcon />
+              <div className="mt-1 flex items-center justify-center gap-5">
+                <p className="font-semibold">Share:</p>
+                <XIcon />
+                <FbIcon />
+                <InstaIcon />
+                <WhatsappIcon />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="w-full max-w-80 flex-1 space-y-4">
+        <div className="float-left mt-6 block w-[33.3332%] max-w-80 flex-1 space-y-4 px-3">
           <h3 className="text-2xl font-normal">{product.name}</h3>
-          <p className="text-lg font-semibold">{product.price}</p>
+          {product.discount && (
+            <div className="flex items-center gap-2">
+              <p className="text-base font-semibold text-gray-500 line-through">
+                ₦{product.price}
+              </p>
+              <p className="text-lg font-semibold text-[#12A100]">
+                ₦{discountedPrice}
+              </p>
+            </div>
+          )}
+          {!product.discount && (
+            <p className="text-lg font-semibold">₦{product.price}</p>
+          )}
 
           <div className="">
-            <p className="mb-2 text-base font-medium">
+            <p className={`${oswald.className} mb-2 text-base font-medium`}>
               Color: <span>{product.color}</span>
             </p>
-            <div className="flex items-center gap-2">
-              {product.images.map((image, index) => (
-                <div
-                  key={index}
-                  className="rounded-md border-2 border-black p-0.5"
-                >
-                  <Image
-                    className="h-11 w-11 rounded-md"
-                    src={image}
-                    alt={`Product image ${index + 1}`}
-                    width={44}
-                    height={44}
-                  />
-                </div>
-              ))}
+            <div className="flex gap-2">
+              <span className="h-8 w-8 rounded-full border border-black bg-red-600 p-1"></span>
+              <span className="h-8 w-8 rounded-full border border-black bg-black p-1"></span>
+              <span className="h-8 w-8 rounded-full border border-black bg-white p-1"></span>
             </div>
           </div>
 
           <div className="">
-            <p className="mb-2 text-base font-medium">
-              Size: <span>M</span>
+            <p className={`${oswald.className} mb-2 text-base font-medium`}>
+              Size:
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-1">
               {product.sizes.map((size, index) => (
-                <p key={index} className="border px-2.5 py-1">
+                <p
+                  key={index}
+                  className="texy-sm flex h-10 w-10 items-center justify-center border border-black"
+                >
                   {size}
                 </p>
               ))}
             </div>
           </div>
 
-          <div>
+          <div className={`${oswald.className} space-y-2`}>
             <div className="flex items-center justify-center gap-2">
               <ButtonPrimary className="w-full flex-1">
                 Add to bag
@@ -169,10 +181,10 @@ export default function ProductDetail() {
                 </svg>
               </button>
             </div>
-            <button className="col-span-2 mt-1 flex h-[44px] w-full flex-1 items-center justify-center border-2 border-green-600 px-9 font-bold">
+            <Button className="flex h-[44px] w-full items-center justify-center border-2 border-green-500 px-9 uppercase hover:bg-transparent hover:text-green-500">
               <WhatsappIcon />
-              <span className="ml-2">Contact us on WhatsApp</span>
-            </button>
+              <span className="ml-2">Order on WhatsApp</span>
+            </Button>
           </div>
 
           <div>
