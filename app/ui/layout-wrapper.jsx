@@ -8,7 +8,7 @@ import Footer from "@/app/ui/footer";
 import { useSidebarStore, useUserStore } from "@/store/store";
 import { useSession } from "next-auth/react";
 import { getUser } from "@/app/action/userAction";
-import { toast } from "react-toastify";
+import { message } from "antd";
 
 // Global Fetcher function for SWR
 const fetchUser = async (userId) => {
@@ -34,7 +34,7 @@ const LayoutWrapper = ({ children }) => {
         setUser(fetchedUser);
       },
       onError: (error) => {
-        toast.error("Failed to log in. Please try again.");
+        message.error("Failed to log in. Please try again.");
       },
     },
   );

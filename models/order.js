@@ -13,7 +13,7 @@ const singleProductSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.ObjectId, ref: "User" },
+  userId: { type: mongoose.Schema.ObjectId, ref: "User" },
   cartItem: [
     {
       type: mongoose.Schema.Types.ObjectId,

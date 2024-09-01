@@ -73,14 +73,18 @@ export async function getAllCategories() {
       "name description image slug createdAt parent",
     )
       .populate("productCount")
-      .populate("parent", "name")
+      .populate("parent", "name _id slug")
       .lean();
 
-    return categories.map(({ _id, parent, ...rest }) => ({
-      id: _id.toString(),
-      parent: parent ? parent.name : null,
-      ...rest,
-    }));
+    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
+      const { _id: pid, ...p } = parent || {};
+      return {
+        id: _id.toString(),
+        parent: parent ? { id: pid.toString(), ...p } : null,
+        ...rest,
+      };
+    });
+    return formattedCat;
   } catch (err) {
     const error = handleAppError(err);
     throw Error(error.message || "Something went wrong");
@@ -156,6 +160,8 @@ export async function createCategory(formData) {
     }
 
     const { _id, ...rest } = category;
+
+    revalidatePath(`/admin/collections/${category.slug}`);
     return { id: _id.toString(), ...rest };
   } catch (err) {
     const error = handleAppError(err);
@@ -169,6 +175,7 @@ export async function updateCategory(formData) {
   try {
     const id = formData.get("id");
     const body = await handleFormData(formData, Category, id);
+
     const categoryDoc = await Category.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

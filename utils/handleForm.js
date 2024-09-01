@@ -1,5 +1,6 @@
 import AppError from "@/utils/errorClass";
 import { uploadFiles, deleteFiles } from "@/lib/s3Func";
+import Category from "@/models/category";
 
 //Model here is designed to be only Product model
 export const handleFormData = async (formData, Model, id) => {
@@ -12,11 +13,20 @@ export const handleFormData = async (formData, Model, id) => {
   const variantsFilesToUpload = [];
   const filesToDelete = [];
   let existingProd;
-
+  console.log(formData.get("image"), "🚀🚀FORMDATA🚀🚀");
   const images = formData.getAll("image");
+
   const videos = formData.getAll("video");
 
-  if (images.length === 0 && videos.length === 0) {
+  const status = formData.get("status");
+
+  if (status === "active") {
+    if (!formData.get("category")) {
+      throw new AppError("Category is required", 400);
+    }
+  }
+
+  if (images?.length === 0 && videos?.length === 0 && status === "active") {
     throw new AppError("Please upload image", 400);
   }
 
@@ -82,14 +92,14 @@ export const handleFormData = async (formData, Model, id) => {
 
     filesToDelete.push(...imagesToDelete, ...videosToDelete);
 
-    if (filesToDelete.length > 0) {
+    if (filesToDelete?.length > 0) {
       await deleteFiles(filesToDelete);
     }
   }
 
   //upload files to s3
   const fileNames =
-    filesToUpload.length > 0 ? await uploadFiles(filesToUpload) : [];
+    filesToUpload?.length > 0 ? await uploadFiles(filesToUpload) : [];
 
   obj.image = [
     ...obj.image,
@@ -116,6 +126,12 @@ export const handleFormData = async (formData, Model, id) => {
     }
     return variant;
   });
+
+  if (Model === Category) {
+    if (!obj.parent) {
+      obj.parent = null;
+    }
+  }
 
   return obj;
 };

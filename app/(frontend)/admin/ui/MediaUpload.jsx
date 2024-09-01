@@ -1,26 +1,22 @@
 import React, { memo, useEffect, useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { Image, Upload } from "antd";
-
-const getBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
+import { getBase64 } from "../utils/utils";
+import { set } from "lodash";
 
 const MediaUpload = ({
   multiple = true,
   fileList,
   setFileList,
   defaultFileList,
+  setDefaultFileList,
 }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
 
   useEffect(() => {
-    if (defaultFileList.length > 0 && fileList.length === 0) {
+    console.log("defaultFileList", defaultFileList);
+    if (defaultFileList?.length > 0 && fileList?.length === 0) {
       setFileList(defaultFileList);
     }
   }, [defaultFileList, fileList?.length, setFileList]);
@@ -41,7 +37,10 @@ const MediaUpload = ({
   };
 
   const handleRemove = (file) => {
+    console.log("file", file);
     const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
+
+    setDefaultFileList(updatedFileList);
     setFileList(updatedFileList);
   };
 

@@ -3,18 +3,32 @@ import slugify from "slugify";
 import Category from "@/models/category";
 
 const productSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  description: { type: String, required: true, trim: true },
+  name: {
+    type: String,
+    required: function () {
+      return this.status !== "draft";
+    },
+    trim: true,
+  },
+  description: {
+    type: String,
+    required: function () {
+      return this.status !== "draft";
+    },
+    trim: true,
+  },
   price: {
     type: Number,
-    required: true,
-    min: [0, "Price must be a positive number"],
+    required: function () {
+      return this.status !== "draft";
+    },
+    min: 0,
   },
   discount: {
     type: Number,
     validate: {
       validator: function (val) {
-        return val < this.price;
+        return this.status === "draft" || val < this.price;
       },
       message: "Discount price ({VALUE}) should be below this regular price",
     },
@@ -23,7 +37,7 @@ const productSchema = new mongoose.Schema({
   discountDuration: {
     type: Date,
     required: function () {
-      return this.discount;
+      return this.status !== "draft" && this.discount > 0;
     },
   },
   discountPrice: {
@@ -35,14 +49,15 @@ const productSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.ObjectId,
       ref: "Category",
-      required: true,
+      required: [
+        function () {
+          return this.status !== "draft";
+        },
+        "Product must belong to a category",
+      ],
     },
   ],
-  cat: [
-    {
-      type: String,
-    },
-  ],
+  cat: [String],
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
   tag: [String],
@@ -59,14 +74,16 @@ const productSchema = new mongoose.Schema({
   ],
   quantity: {
     type: Number,
-    required: true,
+    required: function () {
+      return this.status !== "draft";
+    },
     min: [0, "Quantity must be a positive number"],
   },
   sold: { type: Number, default: 0 },
   status: {
     type: String,
     default: "draft",
-    enum: ["draft", "active", "archived"],
+    enum: ["draft", "active", "archive"],
   },
 });
 
@@ -75,7 +92,6 @@ productSchema.pre("save", async function (next) {
 
   if (this.isModified("category")) {
     try {
-      // Fetch slugs without populating full documents
       const categories = await Category.find({
         _id: { $in: this.category },
       }).select("slug");
@@ -83,14 +99,15 @@ productSchema.pre("save", async function (next) {
       if (categories && categories.length > 0) {
         this.cat = categories.map((cat) => cat.slug);
       } else {
-        throw new Error("At least one category slug is required");
+        if (this.status !== "draft") {
+          throw new Error("At least one category slug is required");
+        }
       }
     } catch (error) {
       return next(error);
     }
   }
 
-  // Set currentPrice based on discount
   if (this.discount > 0 && this.discountDuration > Date.now()) {
     this.discountPrice = this.price - this.discount;
   } else {

@@ -10,6 +10,7 @@ import { includePriceObj } from "@/utils/searchWithPrice";
 import { formDataToObject } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
 import { revalidatePath } from "next/cache";
+import { deleteFiles } from "@/lib/s3Func";
 
 function arrayToMap(arr) {
   const map = new Map();
@@ -34,8 +35,6 @@ const setupIndexes = async () => {
     await Product.collection.createIndex({ cat: 1 });
     await Product.collection.createIndex({ price: 1 });
     await Product.collection.createIndex({ slug: 1 });
-
-    console.log("Indexes created successfully.");
   } catch (error) {
     console.error("Error creating indexes:", error);
   }
@@ -94,7 +93,6 @@ export async function getAdminProduct() {
         formattedProduct.category = category.map((c) => {
           const { _id, ...rest } = c;
 
-          console.log("Category🚀💎", { id: _id.toString(), ...rest });
           return { id: _id.toString(), ...rest };
         });
       }
@@ -109,8 +107,6 @@ export async function getAdminProduct() {
       return formattedProduct;
     });
 
-    console.log(formattedProducts, "formattedProducts🚀");
-
     return formattedProducts;
   } catch (err) {
     const error = handleAppError(err);
@@ -120,7 +116,6 @@ export async function getAdminProduct() {
 
 export async function getAllProducts(cat, searchParams = {}) {
   try {
-    console.log("Cat🐯", cat, searchParams, "searchParams✔️");
     searchParams.cat = cat;
     const newSearchParams = includePriceObj(searchParams);
 
@@ -167,8 +162,6 @@ export async function createProduct(formData) {
       const variants = product.variant.map((variant) => {
         const { _id, ...rest } = variant;
 
-        console.log("Variant🚀", { id: _id.toString(), ...rest });
-
         return { id: _id.toString(), ...rest };
       });
       return { id: _id.toString(), ...rest, variant: variants };
@@ -184,73 +177,116 @@ export async function createProduct(formData) {
 }
 
 //Entire product object is being updated
-export async function updateProduct(id, formData) {
+export async function updateProduct(formData) {
   await restrictTo("admin");
   await dbConnect();
 
-  // Find the existing product
-  if (!id) throw new AppError("Product not found", 404);
-  const productToUpdate = await handleFormData(formData, Product, id);
-  const existingProduct = await Product.findById(id);
-  if (!existingProduct) throw new AppError("Product not found", 404);
+  try {
+    const id = formData.get("id");
+    // Find the existing product
+    if (!id) throw new AppError("Product not found", 404);
+    const productToUpdate = await handleFormData(formData, Product, id);
 
-  // Create a map of existing variant IDs to their corresponding variant objects
-
-  if (productToUpdate.variant) {
-    const existingVariantsMap = new Map(
-      existingProduct.variant.map((variant) => [
-        variant._id.toString(),
-        variant,
-      ]),
-    );
-
-    // Update existing variants and collect new variants
-    const updatedVariants = productToUpdate.variant.map((newVariant) => {
-      const existingVariant = existingVariantsMap.get(newVariant._id);
-      if (existingVariant) {
-        // Merge existing and new variant fields
-        return { ...existingVariant.toObject(), ...newVariant };
-      } else {
-        // New variant, add it as is
-        return newVariant;
+    Object.entries(productToUpdate).forEach(([key, value]) => {
+      if (key.startsWith("variantData") || key.startsWith("variantImage")) {
+        delete productToUpdate[key];
       }
     });
 
-    // Replace the variant array with the updated and new variants
-    productToUpdate.variant = updatedVariants;
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) throw new AppError("Product not found", 404);
+
+    // Create a map of existing variant IDs to their corresponding variant objects
+    if (productToUpdate.variant) {
+      const existingVariantsMap = new Map(
+        existingProduct.variant.map((variant) => [
+          variant._id.toString(),
+          variant,
+        ]),
+      );
+
+      // Update existing variants and collect new variants
+      const updatedVariants = productToUpdate.variant.map((newVariant) => {
+        const existingVariant = existingVariantsMap.get(newVariant._id);
+        if (existingVariant) {
+          if (!newVariant.image) {
+            const { image, ...restOfVariant } = existingVariant.toObject();
+            return { ...restOfVariant, ...newVariant };
+          }
+          return { ...existingVariant.toObject(), ...newVariant };
+        } else {
+          return newVariant;
+        }
+      });
+
+      // Replace the variant array with the updated and new variants
+      productToUpdate.variant = updatedVariants;
+    }
     // Update the product
-    const product = await Product.findByIdAndUpdate(id, updatedVariants, {
+    const productData = await Product.findByIdAndUpdate(id, productToUpdate, {
       new: true,
       runValidators: true,
     });
 
-    return product;
+    const {
+      _id,
+      category: productCategories,
+      variant,
+      ...rest
+    } = productData.toObject();
+
+    const productVariant = variant.map((v) => {
+      const { _id, ...rest } = v;
+      return { id: _id.toString(), ...rest };
+    });
+
+    const productCategory = productCategories.map((c) => ({
+      id: c._id.toString(),
+    }));
+
+    revalidatePath(`/admin/products/${id}`);
+
+    return {
+      id: _id.toString(),
+      ...rest,
+      variant: productVariant,
+      category: productCategory,
+    };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message || "An error occurred");
   }
-
-  const product = await Product.findByIdAndUpdate(id, productToUpdate, {
-    new: true,
-    runValidators: true,
-  });
-
-  return product;
 }
 
 export const deleteProduct = async (id) => {
-  await restrictTo("admin");
-  await dbConnect();
+  try {
+    await restrictTo("admin");
+    await dbConnect();
 
-  const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findByIdAndDelete(id);
 
-  if (!product) {
-    throw new Error("Product not found");
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    product?.image.length && (await deleteFiles(product.image));
+
+    if (product.video && product.video.length > 0) {
+      await deleteFiles(product.video);
+    }
+
+    if (product.variant && product.variant.length > 0) {
+      const variantImages = product.variant.map((variant) => variant.image);
+      variantImages.length && (await deleteFiles(variantImages));
+    }
+
+    revalidatePath("/admin/products");
+
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message || "An error occurred");
   }
-
-  await deleteFiles(product.image);
-  if (product.video && product.video.length > 0) {
-    await deleteFiles(product.video);
-  }
-
-  return null;
 };
 
 export async function searchProduct(searchQuery) {

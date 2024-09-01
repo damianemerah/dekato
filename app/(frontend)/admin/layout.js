@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import { usePathname } from "next/navigation";
 import en from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
@@ -31,6 +30,7 @@ import {
 } from "@shopify/polaris-icons";
 
 import { LinkWrapper } from "./components";
+import { set } from "lodash";
 
 function AdminLayout({ children }) {
   // Loading component and active navlink style
@@ -283,8 +283,6 @@ function AdminLayout({ children }) {
   // Render the admin layout
   return (
     <div>
-      <ToastContainer position="top-center" draggable />
-
       {/* App provider for Polaris components */}
       <AntdRegistry>
         <AppProvider linkComponent={LinkWrapper} i18n={en}>

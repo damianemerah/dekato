@@ -10,6 +10,8 @@ import { useProductStore } from "@/app/(frontend)/admin/store/adminStore";
 import useSWR from "swr";
 import image6 from "@/public/assets/no-image.webp";
 import Link from "next/link";
+import { getAllUsers, getUser } from "@/app/action/userAction";
+import { useSession } from "next-auth/react";
 
 const { confirm } = Modal;
 
@@ -60,25 +62,37 @@ const Action = memo(function Action({ id, handleDelete }) {
 const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { data } = useSession();
+  const { user } = data || {};
 
+  const { data: userData } = useSWR(user?.id, getUser);
+
+  if (userData) {
+    console.log(userData, "userData🎈");
+  }
   const {
     data: products,
     mutate,
     isLoading,
   } = useSWR("/admin/products", () => getAdminProduct());
 
-  const { data: collections } = useSWR(
-    "/api/allCategories",
-    getAllCategories,
-  );
+  const { data: collections } = useSWR("/api/allCategories", getAllCategories);
 
-  const dataSource = products?.map((item) => ({
+  const { data: users } = useSWR("/api/users", getAllUsers);
+
+  useEffect(() => {
+    if (users) {
+      console.log(users, "usersMap");
+    }
+  }, [users]);
+
+  const dataSource = users?.map((item) => ({
     key: item.id,
-    image: item.image[0],
-    name: item.name,
-    status: item.status,
-    productCount: item.quantity,
-    category: item.cat.join(", "),
+    customer: item.firstname + " " + item.lastname,
+    email: item.email,
+    location: item.address[0]?.city,
+    orders: item.cat.join(", "),
+    amountSpent: "price",
     action: <Action />,
   }));
 
@@ -111,24 +125,8 @@ const ProductsList = () => {
 
   const columns = [
     {
-      title: "Image",
-      dataIndex: "image",
-      render: (_, record) => {
-        const imageSrc = record?.image ? record.image : image6;
-        return (
-          <Image
-            src={imageSrc}
-            alt={record.name}
-            width={50}
-            height={50}
-            className="h-[50px] w-[50px] rounded-lg object-cover"
-          />
-        );
-      },
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
+      title: "Customer",
+      dataIndex: "customer",
       filters: dataSource
         ?.filter((item) => item.name)
         .map((item) => ({
@@ -139,17 +137,17 @@ const ProductsList = () => {
       onFilter: (value, record) => record.name.includes(value),
     },
     {
-      title: "Status",
-      dataIndex: "status",
+      title: "Email",
+      dataIndex: "email",
     },
     {
-      title: "Inventory",
-      dataIndex: "productCount",
+      title: "Location",
+      dataIndex: "location",
       sorter: (a, b) => a.quantity - b.quantity,
     },
     {
-      title: "Category",
-      dataIndex: "category",
+      title: "Orders",
+      dataIndex: "orders",
       filters: collections?.map((item) => ({
         text: item?.name ? item.name : "",
         value: item?.name ? item.name : "",
@@ -159,6 +157,11 @@ const ProductsList = () => {
         console.log(value, "value");
         return record?.category.includes(value);
       },
+    },
+    {
+      title: "Amount Spent",
+      dataIndex: "amountSpent",
+      sorter: (a, b) => a.price - b.price,
     },
 
     {

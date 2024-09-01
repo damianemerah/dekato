@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import ViewIcon from "@/public/assets/icons/view.svg";
 import ViewOff from "@/public/assets/icons/view-off.svg";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { message } from "antd";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -23,10 +23,10 @@ export default function SignIn() {
     });
 
     if (result?.error) {
-      toast.error(result.error);
+      message.error(result.error);
     } else {
       router.push("/");
-      toast.success("Sign in successful!");
+      message.success("Sign in successful!");
     }
   };
 

@@ -2,28 +2,27 @@ import { memo } from "react";
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 
 function VariantRow() {
-  const variantOptions = useAdminStore((state) => state.variantOptions);
-  const variantIsSaved = useAdminStore((state) => state.variantIsSaved);
+  const curVariantOptions = useAdminStore((state) => state.curVariantOptions);
+
   return (
     <>
-      {variantIsSaved &&
-        variantOptions.map((group, i) => (
-          <tr className="border-b border-gray-200 hover:bg-gray-50" key={i}>
-            <td className="px-6 py-3 text-left font-medium">
-              {group.name.toUpperCase()}
-            </td>
-            <td className="space-x-2 px-6 py-3 text-right">
-              {group.values.map((value, index) => (
-                <span
-                  className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm"
-                  key={index}
-                >
-                  {value.toUpperCase()}
-                </span>
-              ))}
-            </td>
-          </tr>
-        ))}
+      {curVariantOptions.map((group, i) => (
+        <tr className="border-b border-gray-200 hover:bg-gray-50" key={i}>
+          <td className="px-6 py-3 text-left font-medium">
+            {group.name.toUpperCase()}
+          </td>
+          <td className="space-x-2 px-6 py-3 text-right">
+            {group.values.map((value, index) => (
+              <span
+                className="inline-block rounded-full px-3 py-0.5 text-xxs font-bold shadow-shadowSm"
+                key={index}
+              >
+                {value.toUpperCase()}
+              </span>
+            ))}
+          </td>
+        </tr>
+      ))}
     </>
   );
 }
@@ -37,7 +36,10 @@ const VariantsSection = ({ handleOpenSlider }) => {
         </h3>
         <button
           className="rounded-full bg-primary px-4 py-1 text-xxs font-bold tracking-[0.12em] text-white"
-          onClick={handleOpenSlider}
+          onClick={(e) => {
+            e.preventDefault();
+            handleOpenSlider();
+          }}
         >
           EDIT
         </button>

@@ -17,32 +17,26 @@ export default memo(function EditVariant({
   openSlider,
   handleOpenSlider2,
   handleEditSingleVariant,
+  actionType,
 }) {
   const [activeVariant, setActiveVariant] = useState({ id: null });
 
   const variants = useAdminStore((state) => state.variants);
-  const removeVariant = useAdminStore((state) => state.removeVariant);
   const setVariants = useAdminStore((state) => state.setVariants);
+  const removeVariant = useAdminStore((state) => state.removeVariant);
   const updateVariant = useAdminStore((state) => state.updateVariant);
   const setVariantIsSaved = useAdminStore((state) => state.setVariantIsSaved);
   const variantOptions = useAdminStore((state) => state.variantOptions);
   const addVariantOptions = useAdminStore((state) => state.addVariantOptions);
-
-  useEffect(() => {
-    return () => {
-      variants.forEach((variant) => {
-        if (variant.imageURL) {
-          URL.revokeObjectURL(variant.imageURL);
-        }
-        // else {
-        //   console.log("No URL to revoke for variant:", variant);
-        // }
-      });
-    };
-  }, [variants]);
+  const setCurVariantOptions = useAdminStore(
+    (state) => state.setCurVariantOptions,
+  );
+  const curVariantOptions = useAdminStore((state) => state.curVariantOptions);
+  const setVariantOptions = useAdminStore((state) => state.setVariantOptions);
 
   const handleCreateBulkVariant = useCallback(
     (data, index = 0, currentVariant = {}, result = []) => {
+      // Base case: when all attributes are processed
       if (index === data.length) {
         result.push({
           id: uuidv4(),
@@ -56,23 +50,26 @@ export default memo(function EditVariant({
 
       values.forEach((value) => {
         currentVariant[name] = value;
-        handleCreateBulkVariant(data, index + 1, currentVariant, result);
-        delete currentVariant[name]; // Clean up for the next iteration
-      });
 
-      setVariants(result);
-      setVariantIsSaved(false);
+        handleCreateBulkVariant(data, index + 1, { ...currentVariant }, result);
+      });
 
       return result;
     },
-    [setVariants, setVariantIsSaved],
+    [],
   );
+
+  useEffect(() => {
+    if (actionType === "edit" && curVariantOptions.length) {
+      setVariantOptions(curVariantOptions);
+    }
+  }, [actionType, curVariantOptions, setVariantOptions]);
 
   const handleInputChange = useCallback(
     (e, index, field) => {
       const { value } = e.target;
       if (isNaN(value) || value < 0) {
-        message.warn("Please enter a valid number.");
+        message.warning("Please enter a valid number.");
         return;
       }
       updateVariant(variants[index].id, { [field]: value });
@@ -83,9 +80,17 @@ export default memo(function EditVariant({
   const handleSaveVariant = useCallback(() => {
     if (variants.length === 0) return;
     setVariantIsSaved(true);
+    setCurVariantOptions(variantOptions);
+
     setOpenSlider(false);
     message.success("Variants saved");
-  }, [variants, setVariantIsSaved, setOpenSlider]);
+  }, [
+    variants,
+    setVariantIsSaved,
+    setOpenSlider,
+    setCurVariantOptions,
+    variantOptions,
+  ]);
 
   return (
     <ModalWrapper openSlider={openSlider} setOpenSlider={setOpenSlider}>
@@ -127,7 +132,11 @@ export default memo(function EditVariant({
             </ButtonPrimary>
             <ButtonPrimary
               className="flex items-center gap-1 !rounded-full !bg-slate-500 !px-4 !py-1.5"
-              onClick={() => handleCreateBulkVariant(variantOptions)}
+              onClick={() => {
+                const result = handleCreateBulkVariant(variantOptions);
+                setVariants(result);
+                setVariantIsSaved(false);
+              }}
             >
               <ListIcon className="scale-125 text-xl" />
               Bulk Add
@@ -148,110 +157,119 @@ export default memo(function EditVariant({
               </tr>
             </thead>
             <tbody className="text-sm font-light text-gray-600">
-              {variants?.map((variant, index) => (
-                <tr
-                  className="border-b border-gray-200 hover:bg-gray-50"
-                  key={index}
-                >
-                  <td className="px-6 py-3 text-left font-medium">
-                    <div
-                      className="h-12 w-12 cursor-pointer overflow-hidden rounded-md"
-                      onClick={() => handleEditSingleVariant(variant.id)}
-                    >
-                      {variant?.imageURL ? (
-                        <Image
-                          src={variant.imageURL}
-                          alt="product image"
-                          width={100}
-                          height={100}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Image
-                          src={Image6}
-                          alt="product image"
-                          width={100}
-                          height={100}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 text-left">
-                    <div className="flex flex-wrap items-center justify-start gap-x-1 gap-y-1.5 rounded-md">
-                      {Object.entries(variant?.options).map(
-                        ([key, value], i) => (
-                          <div
-                            className="cursor-pointer rounded-full text-sm"
-                            key={i}
-                          >
-                            <span className="rounded-l-full bg-slate-500 p-1.5 text-xxs font-semibold uppercase tracking-widest text-white">
-                              {key}
-                            </span>
-                            <span className="rounded-r-full bg-slate-100 p-1.5 text-xxs font-semibold uppercase tracking-widest text-primary">
-                              {value}
-                            </span>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  </td>
-                  <td className="">
-                    <input
-                      type="number"
-                      value={variant?.quantity || ""}
-                      name="quantity"
-                      autoComplete="off"
-                      placeholder="Quantity"
-                      className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
-                      onChange={(e) => handleInputChange(e, index, "quantity")}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      name="price"
-                      value={variant?.price || ""}
-                      autoComplete="off"
-                      placeholder="Price"
-                      className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
-                      onChange={(e) => handleInputChange(e, index, "price")}
-                    />
-                  </td>
-                  <td className="pr-6 text-right">
-                    <div className="relative inline-block text-xl font-bold tracking-wider text-primary">
-                      <span
-                        className=""
-                        onClick={() =>
-                          setActiveVariant((prev) =>
-                            prev.id === variant.id
-                              ? { id: null }
-                              : { id: variant.id },
-                          )
-                        }
+              {variants?.length > 0 &&
+                variants?.map((variant, index) => (
+                  <tr
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                    key={index}
+                  >
+                    <td className="px-6 py-3 text-left font-medium">
+                      <div
+                        className="h-12 w-12 cursor-pointer overflow-hidden rounded-md"
+                        onClick={() => handleEditSingleVariant(variant.id)}
                       >
-                        ...
-                      </span>
-                      {activeVariant.id === variant.id && (
-                        <div className="absolute bottom-3.5 left-1/2 flex -translate-x-1/2 flex-col items-start justify-center rounded-md border border-grayOutline bg-white shadow-shadowSm">
-                          <button
-                            className="left-full top-0 z-50 border-b border-b-grayOutline border-opacity-50 px-1.5 py-1 text-xs font-medium tracking-wide text-red-400"
-                            onClick={() => removeVariant(variant.id)}
-                          >
-                            Remove
-                          </button>
-                          <button
-                            className="px-1.5 py-1 text-xs font-medium tracking-wide"
-                            onClick={() => setActiveVariant({ id: null })}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {typeof variant?.imageURL === "string" ? (
+                          <Image
+                            src={variant.imageURL}
+                            alt="product image"
+                            width={100}
+                            height={100}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Image
+                            src={
+                              typeof variant.image === "string"
+                                ? variant.image
+                                : Image6
+                            }
+                            alt="product image"
+                            width={100}
+                            height={100}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3 text-left">
+                      <div className="flex flex-wrap items-center justify-start gap-x-1 gap-y-1.5 rounded-md">
+                        {/* {console.log(variant?.options, "🚀🚀OPTIONS🚀🚀")} */}
+                        {variant?.options &&
+                          Object.entries(variant?.options).map(
+                            ([key, value], i) => (
+                              <div
+                                className="cursor-pointer rounded-full text-sm"
+                                key={i}
+                              >
+                                <span className="rounded-l-full bg-slate-500 p-1.5 text-xxs font-semibold uppercase tracking-widest text-white">
+                                  {key}
+                                </span>
+                                <span className="rounded-r-full bg-slate-100 p-1.5 text-xxs font-semibold uppercase tracking-widest text-primary">
+                                  {value}
+                                </span>
+                              </div>
+                            ),
+                          )}
+                      </div>
+                    </td>
+                    <td className="">
+                      <input
+                        type="number"
+                        value={variant?.quantity || ""}
+                        name="quantity"
+                        autoComplete="off"
+                        placeholder="Quantity"
+                        className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "quantity")
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        name="price"
+                        value={variant?.price || ""}
+                        autoComplete="off"
+                        placeholder="Price"
+                        className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
+                        onChange={(e) => handleInputChange(e, index, "price")}
+                      />
+                    </td>
+                    <td className="pr-6 text-right">
+                      <div className="relative inline-block text-xl font-bold tracking-wider text-primary">
+                        <span
+                          className=""
+                          onClick={() =>
+                            setActiveVariant((prev) =>
+                              prev.id === variant.id
+                                ? { id: null }
+                                : { id: variant.id },
+                            )
+                          }
+                        >
+                          ...
+                        </span>
+                        {activeVariant.id === variant.id && (
+                          <div className="absolute bottom-3.5 left-1/2 flex -translate-x-1/2 flex-col items-start justify-center rounded-md border border-grayOutline bg-white shadow-shadowSm">
+                            <button
+                              className="left-full top-0 z-50 border-b border-b-grayOutline border-opacity-50 px-1.5 py-1 text-xs font-medium tracking-wide text-red-400"
+                              onClick={() => removeVariant(variant.id)}
+                            >
+                              Remove
+                            </button>
+                            <button
+                              className="px-1.5 py-1 text-xs font-medium tracking-wide"
+                              onClick={() => setActiveVariant({ id: null })}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

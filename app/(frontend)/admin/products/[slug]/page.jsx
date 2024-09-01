@@ -1,58 +1,168 @@
 "use client";
 import Link from "next/link";
 import { roboto } from "@/style/font";
-import { useEffect, useState, memo, useRef } from "react";
-
-import ImageUpload from "@/app/(frontend)/admin/ui/products/MediaUpload";
+import { useState, memo, useRef, useEffect, useCallback } from "react";
 import AddSingleVariant from "@/app/(frontend)/admin/ui/products/AddSingleVariant";
-import { ButtonPrimary } from "@/app/ui/button";
 import VariantsSection from "@/app/(frontend)/admin/ui/products/ProductVariantForm";
 import EditVariant from "@/app/(frontend)/admin/ui/products/EditVariant";
 import {
   useAdminStore,
   useCategoryStore,
+  useProductStore,
 } from "@/app/(frontend)/admin/store/adminStore";
-import DropDownSelect from "@/app/(frontend)/admin/ui/DropDown";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
-import styles from "./AddProduct.module.css";
-import { createProduct } from "@/app/action/productAction";
-import { message } from "antd";
+import {
+  createProduct,
+  getAdminProduct,
+  updateProduct,
+} from "@/app/action/productAction";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
+import { Switch, Modal, message } from "antd";
+import useSWR from "swr";
+import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
+import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
+import { getAllCategories } from "@/app/action/categoryAction";
+
+const { confirm } = Modal;
+
+//generate variantOptions
+const generateVariantOptions = (variants) => {
+  const clonedVariants = [...variants];
+
+  // console.log(clonedVariants, "clonedVariants");
+
+  const result = {};
+  clonedVariants.forEach((variant) => {
+    Object.entries(variant.options).forEach(([key, value]) => {
+      if (!result[key]) {
+        result[key] = new Set();
+      }
+      result[key].add(value);
+    });
+  });
+  const formattedResult = Object.keys(result).map((key) => ({
+    id: uuidv4(),
+    name: key,
+    values: Array.from(result[key]),
+  }));
+  // console.log(formattedResult, "formattedResult");
+  return formattedResult;
+};
 
 export default memo(function Page({ params }) {
   const slug = params.slug;
   const [fileList, setFileList] = useState([]);
+  const [catList, setCatList] = useState([]);
   const [defaultFileList, setDefaultFileList] = useState([]);
-  const [isToggle, setIsToggle] = useState(false);
-  const [showCatOptions, setShowCatOptions] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [switchState, setSwitchState] = useState(false);
+  const [selectedCatKeys, setSelectedCatKeys] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [openSlider1, setOpenSlider1] = useState(false);
   const [openSlider2, setOpenSlider2] = useState(false);
+  const [actionType, setActionType] = useState("");
+  const [status, setStatus] = useState("draft");
 
-  const toggleRef = useRef(null);
+  const router = useRouter();
 
-  const allCategories = useCategoryStore((state) => state.allCategories);
+  const descriptionRef = useRef(null);
+  const nameRef = useRef(null);
+  const priceRef = useRef(null);
+  const quantityRef = useRef(null);
+  const comparePriceRef = useRef(null);
+  const submitBtnRef = useRef(null);
+
+  const { data: allCategories, isLoading: catIsLoading } = useSWR(
+    "/admin/categories",
+    getAllCategories,
+  );
   const setEditVariantWithId = useAdminStore(
     (state) => state.setEditVariantWithId,
   );
   const variants = useAdminStore((state) => state.variants);
+  const setVariants = useAdminStore((state) => state.setVariants);
+  const setCurVariantOptions = useAdminStore(
+    (state) => state.setCurVariantOptions,
+  );
+  const addVariantOptions = useAdminStore((state) => state.addVariantOptions);
+  const setProducts = useProductStore((state) => state.setProducts);
+  const { data: products, isLoading } = useSWR(
+    "/admin/products",
+    () => getAdminProduct(),
+    {
+      onSuccess: (prods) => {
+        return setProducts(prods);
+      },
+    },
+  );
 
-  // useEffect(() => {
-  //   const toggleElement = toggleRef.current;
-  //   const handleChange = (e) => {
-  //     setIsToggle(e.target.checked);
-  //   };
-  //   toggleElement.addEventListener("change", handleChange);
-  //   return () => {
-  //     toggleElement.removeEventListener("change", handleChange);
-  //   };
-  // }, []);
+  useEffect(() => {
+    if (catIsLoading) return;
+    if (allCategories?.length) {
+      const category = allCategories.map((cat) => ({
+        value: cat.id,
+        label: cat.name,
+      }));
+
+      setCatList(category);
+    }
+  }, [allCategories, catIsLoading]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (slug !== "new" && products?.length) {
+      const selectedProduct = products.find((product) => product.id === slug);
+
+      if (selectedProduct) {
+        setActionType("edit");
+        setSelectedProduct(selectedProduct);
+        setVariants(selectedProduct?.variant);
+        setCurVariantOptions(generateVariantOptions(selectedProduct?.variant));
+
+        const seletedImgs = selectedProduct.image.map((img, index) => {
+          return {
+            uid: index,
+            name: "image.png",
+            status: "done",
+            url: img,
+          };
+        });
+        if (selectedProduct?.category) {
+          const productCatId = selectedProduct?.category.map((cat) => cat.id);
+
+          setSelectedCatKeys(productCatId);
+        }
+
+        setDefaultFileList(seletedImgs);
+        descriptionRef.current.value = selectedProduct.description || "";
+        nameRef.current.value = selectedProduct.name || "";
+        priceRef.current.value = selectedProduct.price || "";
+        quantityRef.current.value = selectedProduct.quantity || "";
+        comparePriceRef.current.value = selectedProduct?.comparePrice || "";
+      }
+    } else if (slug === "new") {
+      setActionType("create");
+      setSelectedProduct(null);
+    } else {
+      router.push("/admin/products/new");
+    }
+  }, [
+    slug,
+    products,
+    isLoading,
+    setEditVariantWithId,
+    addVariantOptions,
+    setCurVariantOptions,
+    setVariants,
+    router,
+  ]);
 
   const handleFormSubmit = async (formData) => {
     try {
+      formData.append("status", status);
+
       const medias = getFiles(fileList);
-      console.log(medias);
       medias.images.forEach((file) => {
         formData.append("image", file);
       });
@@ -60,36 +170,63 @@ export default memo(function Page({ params }) {
         formData.append("video", file);
       });
 
-      if (!formData.get("category")) {
-        throw new Error("Category is required");
-      }
-
       if (variants.length > 0) {
         variants.forEach((variant, index) => {
           const { id, imageURL, image, ...rest } = variant;
+          const isUUID = (id) => {
+            const uuidRegex =
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            return uuidRegex.test(id);
+          };
+
+          if (!isUUID(id)) {
+            rest._id = id;
+          }
 
           // Serialize the non-file data
           const serializedVariant = JSON.stringify(rest);
           formData.append(`variantData[${index}]`, serializedVariant);
 
           // Append file if it exists
-          if (image instanceof File) {
+          if (image?.originFileObj instanceof File) {
+            formData.append(`variantImage[${index}]`, image.originFileObj);
+          } else if (image && typeof image === "string") {
             formData.append(`variantImage[${index}]`, image);
           }
         });
       }
 
-      // for (let pairs of formData.entries()) {
-      //   console.log(pairs[0], pairs[1]);
-      // }
-
-      const product = await createProduct(formData);
-
-      if (product.status === "error") {
-        throw new Error(product.message);
+      if (selectedCatKeys.length > 0) {
+        selectedCatKeys.forEach((catId) => {
+          formData.append("category", catId);
+        });
       }
 
-      message.success("Product created");
+      if (actionType === "create") {
+        const product = await createProduct(formData);
+
+        if (product.status === "error") {
+          throw new Error(product.message);
+        }
+        message.success("Product created");
+        router.push(`/admin/products/${product.id}`);
+      }
+
+      if (actionType === "edit") {
+        formData.append("id", slug);
+
+        for (var pair of formData.entries()) {
+          console.log(pair[0] + ", " + pair[1]);
+        }
+
+        const product = await updateProduct(formData);
+        alert(product.category);
+        if (product.status === "error") {
+          throw new Error(product.message);
+        }
+        message.success("Product updated");
+        router.push(`/admin/products/${product.id}`);
+      }
 
       // clear inputs after successful submission
       // if (fileInputRef.current) {
@@ -107,11 +244,38 @@ export default memo(function Page({ params }) {
       // }
     } catch (err) {
       message.error(err.message);
+    } finally {
+      setSwitchState(false);
     }
   };
 
-  const handleFilesChange = (newFiles) => {
-    setFiles(newFiles);
+  const showConfirm = () => {
+    const setStatusAsync = (newStatus) => {
+      return new Promise((resolve) => {
+        setStatus(newStatus);
+        resolve();
+      });
+    };
+
+    confirm({
+      icon: null,
+      content: <p>Confirm to set product status to &apos;active&apos;</p>,
+      centered: true,
+      async onOk() {
+        if (selectedProduct?.status === "active") {
+          setSwitchState(true);
+          await setStatusAsync("draft");
+          submitBtnRef.current.click();
+          return;
+        }
+        setSwitchState(true);
+        await setStatusAsync("active");
+        submitBtnRef.current.click();
+      },
+      onCancel() {
+        console.log("Cancel");
+      },
+    });
   };
 
   const handleEditSingleVariant = (id) => {
@@ -147,6 +311,7 @@ export default memo(function Page({ params }) {
                   name="name"
                   required
                   id="name"
+                  ref={nameRef}
                   autoComplete="off"
                   placeholder="Short sleeve t-shirt"
                   className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
@@ -161,6 +326,7 @@ export default memo(function Page({ params }) {
                 </label>
                 <textarea
                   name="description"
+                  ref={descriptionRef}
                   id="description"
                   placeholder="A short sleeve t-shirt made from organic cotton."
                   className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
@@ -173,6 +339,7 @@ export default memo(function Page({ params }) {
                 fileList={fileList}
                 setFileList={setFileList}
                 defaultFileList={defaultFileList}
+                setDefaultFileList={setDefaultFileList}
               />
             </div>
             <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow-shadowSm">
@@ -184,6 +351,7 @@ export default memo(function Page({ params }) {
                   PRICE
                 </label>
                 <input
+                  ref={priceRef}
                   type="number"
                   name="price"
                   required
@@ -201,6 +369,7 @@ export default memo(function Page({ params }) {
                   COMPARE PRICE
                 </label>
                 <input
+                  ref={comparePriceRef}
                   type="number"
                   name="stock"
                   id="stock"
@@ -215,6 +384,7 @@ export default memo(function Page({ params }) {
                 QUANTITY
               </h3>
               <input
+                ref={quantityRef}
                 type="number"
                 name="quantity"
                 id="quantity"
@@ -224,73 +394,41 @@ export default memo(function Page({ params }) {
                 className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline md:w-1/2"
               />
             </div>
-            <VariantsSection
-              handleOpenSlider={(e) => {
-                e.preventDefault();
-                return setOpenSlider1(true);
-              }}
-            />
+            <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
           </div>
-          <div className="">
+          <div>
             <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
               <div className="flex w-full items-center justify-center">
-                <ButtonPrimary
+                <button
                   type="submit"
                   className="grow-1 mr-4 flex-1 rounded-md bg-slate-900 px-16 py-2.5 text-white"
+                  ref={submitBtnRef}
                 >
                   Save changes
-                </ButtonPrimary>
+                </button>
                 <button className="text-xl font-bold tracking-wider text-primary">
                   ...
                 </button>
               </div>
               <hr className="my-3 opacity-60" />
-              <div className="flex items-center">
-                <div className={styles["toggle-checkbox-wrapper"]}>
-                  <input
-                    ref={toggleRef}
-                    onChange={() => setIsToggle(!isToggle)}
-                    type="checkbox"
-                    id="toggle"
-                    className={styles["hidden-checkbox"]}
-                  />
-                  <div
-                    className={styles["toggle-checkbox"]}
-                    onClick={() => document.getElementById("toggle").click()}
-                  >
-                    <div className={styles["toggle-thumb"]}></div>
-                  </div>
-                </div>
-                <span className="ml-4 inline-block text-xxs font-bold tracking-[0.12em] opacity-70">
-                  {isToggle ? "ACTIVE" : "INACTIVE"}
-                </span>
-              </div>
+              <Switch
+                loading={switchState}
+                onClick={showConfirm}
+                checked={selectedProduct?.status === "active" || false}
+              />
             </div>
             <div className="rounded-lg bg-white shadow-shadowSm">
               <div className="p-4">
                 <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
                   CATEGORY
                 </h3>
-                <DropDownSelect
-                  hasCheckbox={true}
-                  showOptions={showCatOptions}
-                  options={allCategories || []}
-                  className="bg-white"
-                  variationName="category"
-                  selectedVariantVal={selectedCategory.join(", ")}
-                  onClick={() => {
-                    setShowCatOptions(!showCatOptions);
-                  }}
-                  handleSelectedOption={(option, name) => {
-                    setSelectedCategory((prev) => {
-                      const updatedCategories = new Set(prev);
-                      if (updatedCategories.has(option.slug)) {
-                        updatedCategories.delete(option.slug);
-                        return Array.from(updatedCategories);
-                      }
-                      updatedCategories.add(option.slug);
-                      return Array.from(updatedCategories);
-                    });
+
+                <DropDown
+                  options={catList}
+                  mode="tags"
+                  selectedKeys={selectedCatKeys}
+                  handleChange={(value) => {
+                    setSelectedCatKeys(value);
                   }}
                 />
               </div>
@@ -302,11 +440,11 @@ export default memo(function Page({ params }) {
           setOpenSlider={setOpenSlider1}
           handleOpenSlider2={() => setOpenSlider2(true)}
           handleEditSingleVariant={handleEditSingleVariant}
+          actionType={actionType}
         />
         <AddSingleVariant
           openSlider={openSlider2}
           setOpenSlider={setOpenSlider2}
-          // handleSaveSingleVariant={handleSaveSingleVariant}
         />
       </div>
     </div>

@@ -5,7 +5,7 @@ import { useProductStore } from "@/store/store";
 import ProductCard from "@/app/ui/product-card";
 
 import { getAllProducts } from "../action/productAction";
-import { toast } from "react-toastify";
+import { message } from "antd";
 import { useSidebarStore } from "@/store/store";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -93,7 +93,7 @@ const RecommendedProducts = ({ cat, searchParams }) => {
         const productData = await getAllProducts(cat, searchParams);
         setProducts(productData);
       } catch (error) {
-        toast.error("Error fetching products: " + error.message);
+        message.error("Error fetching products: " + error.message);
         console.log(error);
       }
     };
