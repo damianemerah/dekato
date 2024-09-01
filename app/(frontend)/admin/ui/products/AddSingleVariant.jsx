@@ -1,40 +1,27 @@
 import { memo, useCallback, useState, useEffect, useRef } from "react";
-import DropDownSelect from "@/app/(frontend)/admin/ui/DropDown";
-import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
-import ImageUpload from "@/app/(frontend)/admin/ui/products/MediaUpload";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-
+import { getBase64 } from "../../utils/utils";
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
-
 import DeleteIcon from "@/public/assets/icons/remove.svg";
 import { ButtonPrimary } from "@/app/ui/button";
 import { v4 as uuidv4 } from "uuid";
 import ModalWrapper from "./ModalWrapper";
 import { message } from "antd";
+import DropDown from "../DropDown2";
 
-export default memo(function AddSingleVariant({
-  setOpenSlider,
-  openSlider,
-  // handleSaveSingleVariant,
-}) {
-  const [fileList, setFileList] = useState([]);
+export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [defaultFileList, setDefaultFileList] = useState([]);
-  // {
-  //   uid: selectedCategory?.id,
-  //   name: "image.png",
-  //   status: "done",
-  //   url: selectedCategory.image[0],
-  // },
+  const [groupList, setGroupList] = useState([]);
+  const [fileList, setFileList] = useState([]);
+
   const variantOptions = useAdminStore((state) => state.variantOptions);
-  const [showVarOptions, setShowVarOptions] = useState([]);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const fileInputRef = useRef(null);
   const inputQuantityRef = useRef(null);
   const inputPriceRef = useRef(null);
 
-  const variants = useAdminStore((state) => state.variants);
   const editVariantWithId = useAdminStore((state) => state.editVariantWithId);
+  const variants = useAdminStore((state) => state.variants || []);
+  const setVariants = useAdminStore((state) => state.setVariants);
   const setEditVariantWithId = useAdminStore(
     (state) => state.setEditVariantWithId,
   );
@@ -43,115 +30,191 @@ export default memo(function AddSingleVariant({
   const addVariant = useAdminStore((state) => state.addVariant);
 
   useEffect(() => {
-    if (variantOptions) {
-      setShowVarOptions(variantOptions.map(() => false));
-    }
-  }, [variantOptions]);
-
-  useEffect(() => {
+    //clear inputs when modal is closed
     if (!openSlider) {
       setEditVariantWithId(null);
       const radios = document.querySelectorAll("input[type='radio']");
       radios.forEach((radio) => {
         return (radio.checked = false);
       });
+      inputQuantityRef.current.value = "";
+      inputPriceRef.current.value = "";
 
-      const inputs = document.querySelectorAll("input[type='number']");
-      inputs.forEach((input) => {
-        return (input.value = "");
-      });
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.clearFiles();
+      setSelectedVariant(null);
+      setFileList([]);
+      setDefaultFileList([]);
     }
   }, [openSlider, setEditVariantWithId]);
 
   useEffect(() => {
-    if (variants) {
+    if (!openSlider) return;
+
+    if (variantOptions) {
+      const groupList = variantOptions
+        .map((option) => {
+          return {
+            name: option.name,
+            options: option.values.map((value) => ({
+              label: value,
+              // value: option.name + value,
+              value: uuidv4(),
+            })),
+          };
+        })
+        .map((item) => {
+          const selectedId = item.options.find((option) => {
+            return selectedVariant?.options[item.name] === option.label;
+          })?.value;
+          return {
+            ...item,
+            selected: selectedId || "",
+          };
+        });
+
+      console.log(groupList, "grouplist");
+      setGroupList(groupList);
+
+      setGroupList(groupList);
+    }
+  }, [variantOptions, selectedVariant, openSlider]);
+
+  useEffect(() => {
+    //set selected option when editing a variant
+    if (variants && editVariantWithId) {
       const selectedOpt = variants.find(
         (variant) => variant.id === editVariantWithId,
       );
-      console.log(selectedOpt, "selectedOpt1234");
-      setSelectedOption(selectedOpt);
+
+      let url;
+
+      if (selectedOpt?.imageURL) {
+        url = selectedOpt.imageURL;
+      } else if (selectedOpt?.image && typeof selectedOpt?.image === "string") {
+        url = selectedOpt.image;
+      }
+
+      const selectedVariantImg = selectedOpt?.image
+        ? [
+            {
+              uid: 1,
+              name: "image.png",
+              status: "done",
+              url,
+            },
+          ]
+        : [];
+
+      setDefaultFileList(selectedVariantImg);
+      setSelectedVariant(selectedOpt);
     }
   }, [variants, editVariantWithId]);
 
-  const handleSelectedFile = (files) => {
-    setSelectedFile(files[0]);
-    console.log(files, "files");
-    setFileList(files[0]);
-  };
+  const handleSaveSingleVariant = useCallback(async () => {
+    const options = groupList.reduce((acc, curr) => {
+      return {
+        ...acc,
+        [curr.name]: curr.options.find((opt) => opt.value === curr.selected)
+          ?.label,
+      };
+    }, {});
 
-  const toggleDropdown = useCallback((index) => {
-    setShowVarOptions((prev) =>
-      prev.map((show, i) => (i === index ? !show : show)),
-    );
-  }, []);
+    let isDuplicate = false;
 
-  const handleSaveSingleVariant = useCallback(() => {
+    if (
+      variants.some(
+        (variant) =>
+          JSON.stringify(variant.options).toLowerCase() ===
+          JSON.stringify(options).toLowerCase(),
+      )
+    ) {
+      isDuplicate = true;
+    }
+
+    let imageURL;
+
+    // New logic: Use defaultFileList if fileList is empty
+    if (fileList.length === 0 && defaultFileList.length > 0) {
+      imageURL = defaultFileList[0]?.url; // Use existing image URL
+    } else if (typeof fileList[0]?.url === "string") {
+      imageURL = fileList[0].url;
+    } else if (fileList?.length && fileList[0]?.originFileObj instanceof Blob) {
+      imageURL = await getBase64(fileList[0].originFileObj);
+    }
+
     if (editVariantWithId) {
       const variant = variants.find(
         (variant) => variant.id === editVariantWithId,
       );
 
-      if (
-        variants.some(
-          (variant) =>
-            JSON.stringify(variant.options).toLowerCase() ===
-            JSON.stringify(selectedOption.options).toLowerCase(),
-        ) &&
-        !selectedFile
-      ) {
-        setOpenSlider(false);
-        return;
-      }
-
       updateVariant(editVariantWithId, {
-        options: selectedOption.options,
+        options: isDuplicate ? variant.options : options,
         quantity: inputQuantityRef.current.value,
         price: inputPriceRef.current.value,
-        image: selectedFile ? selectedFile : variant.image,
+        image: fileList?.length ? fileList[0] : null,
+        imageURL,
       });
-      setOpenSlider(false);
-    } else if (selectedOption) {
-      //prevent duplicate variants
+    } else {
       if (
         variants.some(
           (variant) =>
-            JSON.stringify(variant.options).toLowerCase() ===
-            JSON.stringify(selectedOption.options).toLowerCase(),
+            JSON.stringify(variant.options) === JSON.stringify(options),
         )
       ) {
         setOpenSlider(false);
+        message.info("Variant already exists.");
         return;
       }
+
       const id = uuidv4();
+      const imageURL =
+        fileList?.length && (await getBase64(fileList[0].originFileObj));
       addVariant({
         id,
-      });
-      updateVariant(id, {
-        options: selectedOption.options,
+        options,
         quantity: inputQuantityRef.current.value,
         price: inputPriceRef.current.value,
-        image: selectedFile,
+        image: fileList?.length ? fileList[0] : null,
+        imageURL,
+      });
+    }
+
+    if (fileList.length === 0 && defaultFileList.length === 0) {
+      const updatedVariants = variants.map((variant) => {
+        if (variant.id === editVariantWithId) {
+          return {
+            ...variant,
+            imageURL: null,
+            image: null,
+          };
+        }
+        return variant;
       });
 
-      setOpenSlider(false);
+      console.log(updatedVariants, "updatedVariants");
+      setVariants(updatedVariants);
     }
+
+    setOpenSlider(false);
+    setEditVariantWithId(null);
+    setFileList([]); // Ensure both lists are cleared
+    setDefaultFileList([]); // Ensure both lists are cleared
   }, [
-    selectedOption,
     setOpenSlider,
-    selectedFile,
     addVariant,
     editVariantWithId,
     updateVariant,
     variants,
+    fileList,
+    setEditVariantWithId,
+    groupList,
+    defaultFileList,
+    setVariants,
   ]);
 
   const handleInputChange = useCallback(
     (id, val, field) => {
       if (isNaN(val) || val < 0) {
-        message.warn("Please enter a valid number.");
+        message.info("Please enter a valid number.");
         return;
       }
       updateVariant(id, { [field]: val });
@@ -171,43 +234,35 @@ export default memo(function AddSingleVariant({
         <h2 className="font- mb-4 text-2xl text-primary">
           Select options for product variants
         </h2>
-        <div className="mb-6 flex w-full items-center justify-center gap-4">
-          {variantOptions?.map((option, index) => (
-            <DropDownSelect
-              key={index}
-              showOptions={showVarOptions[index]}
-              onClick={() => toggleDropdown(index)}
-              options={option?.values}
-              className="min-w-44 max-w-[250px] bg-white"
-              variationName={option.name}
-              selectedVariantVal={
-                selectedOption?.options[option.name.toLowerCase()]
-              }
-              handleSelectedOption={(option, name) => {
-                setSelectedOption((prev) => ({
-                  options: {
-                    ...prev?.options,
-                    [name.toLowerCase()]: option,
-                  },
-                }));
+        <div className="mb-6 flex w-full gap-4">
+          {groupList.map((group) => (
+            <DropDown
+              key={group.name}
+              options={group.options}
+              selectedKeys={group.selected}
+              handleChange={(value) => {
+                const updatedGroupList = groupList.map((item) => {
+                  if (item.name === group.name) {
+                    return {
+                      ...item,
+                      selected: value,
+                    };
+                  }
+                  return item;
+                });
+                setGroupList(updatedGroupList);
               }}
             />
           ))}
         </div>
-        <ImageUpload
-          ref={fileInputRef}
-          onFilesChange={handleSelectedFile}
-          selectBtn={true}
-          multiple={false}
-          varImg="variantImage"
-        />
 
-        <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+        <div className="mb-6 rounded-lg p-6 shadow-shadowSm">
           <MediaUpload
             multiple={false}
             fileList={fileList}
             setFileList={setFileList}
             defaultFileList={defaultFileList}
+            setDefaultFileList={setDefaultFileList}
           />
         </div>
         <div className="flex items-center gap-4 py-2">
@@ -221,8 +276,8 @@ export default memo(function AddSingleVariant({
               autoComplete="off"
               placeholder="Enter quantity"
               value={
-                variants.find((variant) => variant.id === editVariantWithId)
-                  ?.quantity
+                variants?.find((variant) => variant.id === editVariantWithId)
+                  ?.quantity || ""
               }
               className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
               onChange={(e) =>
@@ -240,8 +295,8 @@ export default memo(function AddSingleVariant({
               autoComplete="off"
               placeholder="Enter price"
               value={
-                variants.find((variant) => variant.id === editVariantWithId)
-                  ?.price
+                variants?.find((variant) => variant.id === editVariantWithId)
+                  ?.price || ""
               }
               className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
               onChange={(e) =>
@@ -260,7 +315,7 @@ export default memo(function AddSingleVariant({
         </button>
         <ButtonPrimary
           className="!rounded-md !px-3.5 py-4 text-base font-bold tracking-wide"
-          onClick={() => handleSaveSingleVariant(selectedFile)}
+          onClick={() => handleSaveSingleVariant()}
         >
           Add variant
         </ButtonPrimary>

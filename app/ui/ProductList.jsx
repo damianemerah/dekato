@@ -1,7 +1,7 @@
 "use client";
 import useSWR from "swr";
 import { useProductStore } from "@/store/store";
-import { toast } from "react-toastify";
+import { message } from "antd";
 import ProductCard from "@/app/ui/ProductCard";
 import { getAllProducts } from "@/app/action/productAction";
 
@@ -16,7 +16,7 @@ const ProductList = ({ cat, searchParams }) => {
       setProducts(productData);
       return productData;
     } catch (error) {
-      toast.error("Error fetching products: " + error.message);
+      message.error("Error fetching products: " + error.message);
       throw error;
     }
   };

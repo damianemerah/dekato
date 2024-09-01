@@ -8,6 +8,7 @@ import { restrictTo } from "@/utils/checkPermission";
 import Email from "@/lib/email";
 import Address from "@/models/address";
 import { filterObj } from "@/utils/filterObj";
+import handleAppError from "@/utils/appError";
 
 export async function createUser(formData) {
   await dbConnect();
@@ -37,7 +38,13 @@ export async function getUser(userId) {
   await dbConnect();
   restrictTo("admin");
 
-  const userData = await User.findById(userId);
+  if (!userId) {
+    return;
+  }
+
+  const userData = await User.findById(userId).populate("address");
+
+  console.log(userData, "userData");
 
   if (!userData) {
     throw new Error("No user found with that ID");
@@ -142,4 +149,31 @@ export async function deleteUserAddress(addressId) {
   }
 
   return null;
+}
+
+export async function getAllUsers() {
+  try {
+    await dbConnect();
+    restrictTo("admin");
+
+    const usersDoc = await User.find()
+      .populate("address")
+      .populate("orderCount");
+
+    const users = usersDoc.map((user) => {
+      const userObj = user.toObject();
+      const { _id, address, ...rest } = userObj;
+      const addressArr = address.map((addr) => {
+        const { _id, ...rest } = addr.toObject();
+        return { id: _id.toString(), ...rest };
+      });
+      return { id: _id.toString(), addressArr, ...rest };
+    });
+
+    console.log(users, "users");
+    return users;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message || "An error occurred");
+  }
 }

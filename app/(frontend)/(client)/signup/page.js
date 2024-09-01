@@ -6,7 +6,7 @@ import FbIcon from "@/public/assets/icons/fb-icon.svg";
 import GoogleIcon from "@/public/assets/icons/google.svg";
 import ViewIcon from "@/public/assets/icons/view.svg";
 import ViewOff from "@/public/assets/icons/view-off.svg";
-import { toast } from "react-toastify";
+import { message } from "antd";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -39,10 +39,9 @@ const SignUp = () => {
       },
     });
 
-
     if (result.ok) {
       router.push("/signin");
-      toast.success(
+      message.success(
         "Sign up successful! Please check your email to verify your account.",
       );
       const data = await result.json();

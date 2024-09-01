@@ -48,7 +48,7 @@ export default memo(function VariantGroupTable({ variantOptions }) {
               </td>
               <td className="space-x-2 py-3 text-left">
                 <label className="flex flex-wrap items-center justify-start gap-2 rounded-md p-3 shadow-shadowSm hover:border hover:border-grayOutline">
-                  {group.values.map((value, index) => (
+                  {group?.values.map((value, index) => (
                     <span
                       className="flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xxs font-bold shadow-shadowSm"
                       key={index}

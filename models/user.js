@@ -5,64 +5,59 @@ import crypto from "crypto";
 // import Wishlist from "./wishlist.js";
 // import Cart from "./cart.js";
 
-const userSchema = new mongoose.Schema(
-  {
-    firstname: {
-      type: String,
-      trim: true,
-      required: [true, "Please tell us your name"],
+const userSchema = new mongoose.Schema({
+  firstname: {
+    type: String,
+    trim: true,
+    required: [true, "Please tell us your name"],
+  },
+  lastname: {
+    type: String,
+    trim: true,
+    required: [true, "Please tell us your name"],
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: [true, "Email already exists, please login"],
+    lowercase: true,
+    validate: [validator.isEmail, "Please provide a valid email"],
+    trim: true,
+  },
+  emailVerified: { type: Boolean, default: false },
+  role: {
+    type: String,
+    default: "user",
+    required: true,
+    enum: ["user", "admin"],
+  },
+  password: {
+    type: String,
+    required: [true, "Please provide a password"],
+    validator: function (value) {
+      return validator.isLength(value, { min: 8 });
     },
-    lastname: {
-      type: String,
-      trim: true,
-      required: [true, "Please tell us your name"],
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: [true, "Email already exists, please login"],
-      lowercase: true,
-      validate: [validator.isEmail, "Please provide a valid email"],
-      trim: true,
-    },
-    emailVerified: { type: Boolean, default: false },
-    role: {
-      type: String,
-      default: "user",
-      required: true,
-      enum: ["user", "admin"],
-    },
-    password: {
-      type: String,
-      required: [true, "Please provide a password"],
-      validator: function (value) {
-        return validator.isLength(value, { min: 8 });
+    message: "Password must be at least 8 characters long",
+    select: false,
+  },
+  passwordConfirm: {
+    type: String,
+    required: [true, "Please confirm your password"],
+    validate: {
+      //This only works on CREATE and SAVE!!!
+      validator: function (el) {
+        return el === this.password;
       },
-      message: "Password must be at least 8 characters long",
-      select: false,
+      message: "Passwords are not the same!",
     },
-    passwordConfirm: {
-      type: String,
-      required: [true, "Please confirm your password"],
-      validate: {
-        //This only works on CREATE and SAVE!!!
-        validator: function (el) {
-          return el === this.password;
-        },
-        message: "Passwords are not the same!",
-      },
-    },
-    passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-    createdAt: { type: Date, default: Date.now },
-    active: { type: Boolean, default: true },
-  }
-  // {
-  //   toJSON: { virtuals: true },
-  //   toObject: { virtuals: true },
-  // }
-);
+  },
+  passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+  createdAt: { type: Date, default: Date.now },
+  active: { type: Boolean, default: true },
+  address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
+});
 
 userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
@@ -82,7 +77,7 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,
-  userPassword
+  userPassword,
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
@@ -91,7 +86,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
-      10
+      10,
     );
     return JWTTimestamp < changedTimestamp;
   }
@@ -101,7 +96,6 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
-  console.log(resetToken, "resetToken🔥");
 
   //encrypt token and save to database
   this.passwordResetToken = crypto
@@ -113,5 +107,15 @@ userSchema.methods.createPasswordResetToken = function () {
 
   return resetToken;
 };
+
+userSchema.virtual("orderCount", {
+  ref: "Order",
+  localField: "_id",
+  foreignField: "userId",
+  count: true,
+});
+
+userSchema.set("toObject", { virtuals: true });
+userSchema.set("toJSON", { virtuals: true });
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

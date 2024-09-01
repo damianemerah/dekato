@@ -7,16 +7,8 @@ export const useAdminStore = create((set) => ({
     set((state) => {
       const updatedVariants = state.variants.map((variant) => {
         if (variant.id === variantId) {
-          console.log(newVariant.image instanceof File, "newVariant");
-          if (newVariant.image instanceof File) {
-            if (variant.imageURL) {
-              URL.revokeObjectURL(variant.imageURL);
-            }
-            newVariant.imageURL = URL.createObjectURL(newVariant.image);
-          }
           return { ...variant, ...newVariant };
         }
-
         return variant;
       });
 
@@ -36,14 +28,16 @@ export const useAdminStore = create((set) => ({
   variantOptions: [],
   addVariantOptions: (option) =>
     set((state) => ({ variantOptions: [...state.variantOptions, option] })),
+  setVariantOptions: (variantOptions) => set({ variantOptions }),
 
+  curVariantOptions: [],
+  setCurVariantOptions: (curVariantOptions) => set({ curVariantOptions }),
   updateVariantOptionName: (id, value) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
         option.id === id ? { ...option, name: value } : option,
       ),
     })),
-
   updateVariantOptionValues: (e, groupId) =>
     set((state) => {
       if (e.key === "Enter" || e.key === ",") {
@@ -96,8 +90,8 @@ export const useCategoryStore = create((set) => ({
   allCategories: [],
   setAllCategories: (allCategories) => set({ allCategories }),
 
-  initialFiles: [],
-  setInitialFiles: (initialFiles) => set({ initialFiles }),
+  isLoading: false,
+  setIsLoading: (isLoading) => set({ isLoading }),
 }));
 
 export const useProductStore = create((set) => ({

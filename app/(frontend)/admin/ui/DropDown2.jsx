@@ -1,27 +1,24 @@
-import React from "react";
-import { Menu, Dropdown, message, Space } from "antd";
-import UpIcon from "@/public/assets/icons/up.svg";
+import { Select, Space } from "antd";
+import { memo } from "react";
 
-const handleMenuClick = (e) => {
-  message.info("Click on menu item.");
-  console.log("click", e);
-};
-
-const DropDown = ({ items, selectedVal }) => {
-  const menuProps = {
-    items,
-    onClick: handleMenuClick,
-  };
-  return (
-    <Dropdown
-      menu={menuProps}
-      className="!w-20 items-center rounded-lg bg-white p-3 shadow-shadowSm"
-    >
-      <Space>
-        {selectedVal || "Select option"}
-        <UpIcon />
-      </Space>
-    </Dropdown>
-  );
-};
-export default DropDown;
+const DropDown = ({ selectedKeys, handleChange, mode, options }) => (
+  <Space
+    style={{
+      width: "100%",
+    }}
+    direction="vertical"
+  >
+    <Select
+      mode={mode}
+      allowClear
+      style={{
+        width: "100%",
+      }}
+      placeholder="Please select"
+      value={selectedKeys}
+      onChange={handleChange}
+      options={options}
+    />
+  </Space>
+);
+export default memo(DropDown);

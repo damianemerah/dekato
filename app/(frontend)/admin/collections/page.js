@@ -1,54 +1,21 @@
 "use client";
 
-import React, { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { Button, Flex, Table, Dropdown, Space } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import Image from "next/image";
-import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
 import Link from "next/link";
-
-const columns = [
-  {
-    title: "Image",
-    dataIndex: "image",
-    render: (_, record) => (
-      <Image
-        src={record.image}
-        alt={record.name}
-        width={50}
-        height={50}
-        className="h-[50px] w-[50px] rounded-lg object-cover"
-      />
-    ),
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-  },
-  {
-    title: "Products",
-    dataIndex: "productCount",
-  },
-  {
-    title: "Parent Collection",
-    dataIndex: "parent",
-  },
-  {
-    title: "Action",
-    dataIndex: "action",
-    render: (_, record) => {
-      console.log(record, "record");
-      return <Action slug={record.slug} />;
-    },
-  },
-];
+import useSWR from "swr";
+import { getAllCategories } from "@/app/action/categoryAction";
+import image6 from "@/public/assets/no-image.webp";
+import { filter } from "lodash";
+import { record } from "zod";
 
 const Action = memo(function Action({ slug }) {
   const items = [
     {
       label: (
         <Link
-          target="_blank"
           rel="noopener noreferrer"
           href={`/admin/collections/${slug}`}
           className="!text-blue-500"
@@ -58,28 +25,25 @@ const Action = memo(function Action({ slug }) {
       ),
       key: "0",
     },
-    {
-      type: "divider",
-    },
+
     {
       label: (
         <p
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => alert("delete")}
-          className="text-red-500"
         >
           Delete
         </p>
       ),
       key: "1",
+      danger: true,
     },
 
-    // {
-    //   label: "3rd menu item（disabled）",
-    //   key: "3",
-    //   disabled: true,
-    // },
+    {
+      label: "Archive",
+      key: "3",
+    },
   ];
   return (
     <Dropdown
@@ -101,23 +65,78 @@ const Collections = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const collections = useCategoryStore((state) => state.allCategories);
+  const { data: collections, isLoading } = useSWR(
+    "/api/allCategories",
+    getAllCategories,
+  );
 
-  const dataSource = collections.map((item) => {
+  const dataSource = collections?.map((item) => {
     return {
       key: item.id,
       image: item.image[0],
       name: item.name,
       productCount: item.productCount,
-      parent: item.parent,
+      parent: item?.parent ? item.parent.name : "",
       slug: item.slug,
       action: <Action slug={item.slug} />,
     };
   });
 
+  const columns = [
+    {
+      title: "Image",
+      dataIndex: "image",
+      render: (_, record) => {
+        const imageSrc = record?.image ? record.image : image6;
+        return (
+          <Image
+            src={imageSrc}
+            alt={record.name}
+            width={50}
+            height={50}
+            className="h-[50px] w-[50px] rounded-lg object-cover"
+          />
+        );
+      },
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      filters: dataSource?.map((item) => ({
+        text: item.name,
+        value: item.name,
+      })),
+      filterSearch: true,
+      onFilter: (value, record) => record.name.includes(value),
+    },
+    {
+      title: "Products",
+      dataIndex: "productCount",
+      sorter: (a, b) => a.productCount - b.productCount,
+    },
+    {
+      title: "Parent Collection",
+      dataIndex: "parent",
+      filters: collections?.map((item, i) => ({
+        text: item.name ? item.name : "",
+        value: item.name ? item.name : "",
+      })),
+      filterSearch: true,
+      onFilter: (value, record) => {
+        return record?.parent.includes(value);
+      },
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => {
+        return <Action slug={record.slug} />;
+      },
+    },
+  ];
+
   const start = () => {
     setLoading(true);
-    // ajax request after empty completing
     setTimeout(() => {
       setSelectedRowKeys([]);
       setLoading(false);
@@ -150,10 +169,18 @@ const Collections = () => {
           rowSelection={rowSelection}
           columns={columns}
           dataSource={dataSource || []}
+          loading={
+            isLoading
+              ? {
+                  indicator: <LoadingOutlined spin className="!text-primary" />,
+                  size: "large",
+                }
+              : false
+          }
         />
       </Flex>
     </>
   );
 };
 
-export default Collections;
+export default memo(Collections);
