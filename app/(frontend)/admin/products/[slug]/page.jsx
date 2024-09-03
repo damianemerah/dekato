@@ -18,12 +18,13 @@ import {
 } from "@/app/action/productAction";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { Switch, Modal, message } from "antd";
+import { Switch, Modal, message, Spin, Space } from "antd";
 import useSWR from "swr";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
+import { LoadingOutlined } from "@ant-design/icons";
 
 const { confirm } = Modal;
 
@@ -63,6 +64,7 @@ export default memo(function Page({ params }) {
   const [openSlider2, setOpenSlider2] = useState(false);
   const [actionType, setActionType] = useState("");
   const [status, setStatus] = useState("draft");
+  const [prodLoading, setProdLoading] = useState(false);
 
   const router = useRouter();
 
@@ -159,7 +161,12 @@ export default memo(function Page({ params }) {
   ]);
 
   const handleFormSubmit = async (formData) => {
+    alert("submit");
     try {
+      setProdLoading(true);
+      setTimeout(() => {
+        setProdLoading(false);
+      }, 5000);
       formData.append("status", status);
 
       const medias = getFiles(fileList);
@@ -220,7 +227,6 @@ export default memo(function Page({ params }) {
         }
 
         const product = await updateProduct(formData);
-        alert(product.category);
         if (product.status === "error") {
           throw new Error(product.message);
         }
@@ -246,6 +252,7 @@ export default memo(function Page({ params }) {
       message.error(err.message);
     } finally {
       setSwitchState(false);
+      setProdLoading(false);
     }
   };
 
@@ -401,10 +408,21 @@ export default memo(function Page({ params }) {
               <div className="flex w-full items-center justify-center">
                 <button
                   type="submit"
-                  className="grow-1 mr-4 flex-1 rounded-md bg-slate-900 px-16 py-2.5 text-white"
+                  className="grow-1 mr-4 flex-1 rounded-md bg-primary px-16 py-2.5 text-white"
                   ref={submitBtnRef}
                 >
-                  Save changes
+                  <Space>
+                    Save changes
+                    {prodLoading && (
+                      <Spin
+                        indicator={
+                          <LoadingOutlined spin className="!text-white" />
+                        }
+                        size="large"
+                        fullscreen
+                      />
+                    )}
+                  </Space>
                 </button>
                 <button className="text-xl font-bold tracking-wider text-primary">
                   ...

@@ -91,6 +91,57 @@ export async function getAllCategories() {
   }
 }
 
+export async function fetchAllCategories() {
+  // Step 1: Fetch all categories from the database
+  const categories = await Category.find().exec();
+
+  // Step 2: Create a map of categories by their ID for easy lookup
+  const categoryMap = {};
+  categories.forEach((category) => {
+    categoryMap[category._id] = {
+      label: category.name,
+      href: category.slug ? `/${category.slug}/products` : undefined,
+      children: [], // Initialize children array
+    };
+  });
+
+  // Step 3: Build the hierarchical structure
+  const topLevelCategories = [];
+
+  categories.forEach((category) => {
+    if (category.parent) {
+      // If the category has a parent, add it to its parent's children array
+      if (categoryMap[category.parent]) {
+        categoryMap[category.parent].children.push(categoryMap[category._id]);
+      }
+    } else {
+      // If the category has no parent, it's a top-level category
+      topLevelCategories.push(categoryMap[category._id]);
+    }
+  });
+
+  // Step 4: Limit the depth to 3 levels
+  function limitDepth(categories, depth = 0) {
+    if (depth >= 2) {
+      // 0-based indexing, so 2 = 3rd level
+      return categories.map((category) => ({
+        label: category.label,
+        href: category.href,
+      }));
+    }
+    return categories.map((category) => ({
+      label: category.label,
+      href: category.href,
+      children: limitDepth(category.children, depth + 1),
+    }));
+  }
+
+  // Apply the depth limitation
+  const finalStructure = limitDepth(topLevelCategories);
+
+  return finalStructure;
+}
+
 export async function getCategories(slug) {
   try {
     await dbConnect();

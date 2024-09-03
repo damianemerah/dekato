@@ -9,7 +9,6 @@ const ProductList = ({ cat, searchParams }) => {
   const setProducts = useProductStore((state) => state.setProducts);
   const products = useProductStore((state) => state.products);
 
-  // Define a fetcher function for SWR
   const fetcher = async () => {
     try {
       const productData = await getAllProducts(cat, searchParams);
@@ -32,6 +31,8 @@ const ProductList = ({ cat, searchParams }) => {
 
   if (!data) {
     return <div>Loading...</div>;
+  } else {
+    console.log(data, "data⭐");
   }
 
   if (products.length === 0) {
@@ -44,8 +45,12 @@ const ProductList = ({ cat, searchParams }) => {
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-center bg-gray-100 p-4">
-      {products.map((product, index) => (
-        <ProductCard key={index} product={product} className="self-stretch" />
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          className="self-stretch"
+        />
       ))}
     </div>
   );

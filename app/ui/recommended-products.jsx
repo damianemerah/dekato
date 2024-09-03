@@ -92,6 +92,7 @@ const RecommendedProducts = ({ cat, searchParams }) => {
       try {
         const productData = await getAllProducts(cat, searchParams);
         setProducts(productData);
+        console.log(productData, "productdata");
       } catch (error) {
         message.error("Error fetching products: " + error.message);
         console.log(error);

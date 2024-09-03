@@ -11,8 +11,8 @@ import { useCartStore } from "@/store/store";
 import RecommendedProducts from "@/app/ui/recommended-products";
 
 export default function Home() {
-  const setCurUICategory = useCartStore((state) => state.setCurUICategory);
-  setCurUICategory("home");
+  // const setCurUICategory = useCartStore((state) => state.setCurUICategory);
+  // setCurUICategory("home");
   return (
     <div className={`${oswald.className} bg-gray-100`}>
       <Hero />

@@ -1,7 +1,12 @@
 "use client";
 import React, { useEffect, useState, useRef, memo } from "react";
 import { useSidebarStore, useCategoryStore } from "@/store/store";
+import {
+  fetchAllCategories,
+  getAllCategories,
+} from "@/app/action/categoryAction";
 import { oswald } from "@/font";
+import useSWR from "swr";
 
 export default memo(function Sidebar() {
   const sidebarItems = [
@@ -56,6 +61,11 @@ export default memo(function Sidebar() {
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
   const openSidebar = useSidebarStore((state) => state.openSidebar);
 
+  const { data: categories } = useSWR(
+    "/sidebar/allCategories",
+    fetchAllCategories,
+  );
+
   const [isMobile, setIsMobile] = useState(false);
 
   // Expand all categories by default
@@ -86,6 +96,15 @@ export default memo(function Sidebar() {
     }
   };
 
+  const toggleIcon = (items, toggleItem) => (
+    <span className="relative flex h-6 w-6 items-center justify-center">
+      <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
+      <span
+        className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${items === toggleItem ? "rotate-0" : "rotate-90"}`}
+      />
+    </span>
+  );
+
   return (
     <>
       {isMobile && isSidebarOpen && (
@@ -104,7 +123,7 @@ export default memo(function Sidebar() {
       >
         <nav>
           <ul className={`${oswald.className} divide-y`}>
-            {sidebarItems.map((item, index) => (
+            {sidebarItems?.map((item, index) => (
               <li key={index} className="px-4 py-5">
                 {item.children ? (
                   <>
@@ -113,12 +132,8 @@ export default memo(function Sidebar() {
                       className="flex items-center justify-between uppercase"
                     >
                       {item.label}
-                      <span className="relative flex h-6 w-6 items-center justify-center">
-                        <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
-                        <span
-                          className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${expandedItem === item.label ? "rotate-0" : "rotate-90"}`}
-                        />
-                      </span>
+                      {item.children.length > 0 &&
+                        toggleIcon(expandedItem, item.label)}
                     </div>
                     <ul
                       className={`transition-all duration-300 ease-in-out ${

@@ -116,12 +116,16 @@ export async function getAdminProduct() {
 
 export async function getAllProducts(cat, searchParams = {}) {
   try {
+    console.log("💎💎💎💎💎💎💎");
     searchParams.cat = cat;
     const newSearchParams = includePriceObj(searchParams);
 
     await dbConnect();
 
-    const feature = new APIFeatures(Product.find().lean(), newSearchParams)
+    const feature = new APIFeatures(
+      Product.find().populate("category", "slug").lean(),
+      newSearchParams,
+    )
       .filter()
       .sort()
       .limitFields()
@@ -135,8 +139,13 @@ export async function getAllProducts(cat, searchParams = {}) {
       if (products[i].category) {
         products[i].category = products[i].category.toString();
       }
+      if(products[i].variant) {
+        products[i].variant = products[i].variant.map((v) => {
+         const { _id, ...rest } = v;
+          return { id: _id.toString(), ...rest };
+        });
+      }
     }
-
     return products;
   } catch (err) {
     const error = handleAppError(err);

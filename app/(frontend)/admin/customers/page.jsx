@@ -1,164 +1,199 @@
-'use client';
-import {
-  IndexTable,
-  LegacyCard,
-  IndexFilters,
-  useSetIndexFiltersMode,
-  useIndexResourceState,
-  Text,
-  Badge,
-  Page,
-} from '@shopify/polaris';
-import { useState, useCallback } from 'react';
+"use client";
 
-function Customers() {
+import React, { useState, memo, useEffect } from "react";
+import { Button, Flex, Table, Dropdown, Space, message, Modal } from "antd";
+import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
+import { deleteProduct } from "@/app/action/productAction";
+import { getAllCategories } from "@/app/action/categoryAction";
+import useSWR from "swr";
+import Link from "next/link";
+import { getAllUsers } from "@/app/action/userAction";
 
-  const [itemStrings, setItemStrings] = useState([
-    'All',
-    'Unpaid',
-    'Open',
-    'Closed',
-    'Local delivery',
-    'Local pickup',
-  ]);
+const { confirm } = Modal;
 
-  const [selected, setSelected] = useState(0);
-
-  const sortOptions = [
-    { label: 'Order', value: 'order asc', directionLabel: 'Ascending' },
-    { label: 'Order', value: 'order desc', directionLabel: 'Descending' },
-    { label: 'Customer', value: 'customer asc', directionLabel: 'A-Z' },
-    { label: 'Customer', value: 'customer desc', directionLabel: 'Z-A' },
-    { label: 'Date', value: 'date asc', directionLabel: 'A-Z' },
-    { label: 'Date', value: 'date desc', directionLabel: 'Z-A' },
-    { label: 'Total', value: 'total asc', directionLabel: 'Ascending' },
-    { label: 'Total', value: 'total desc', directionLabel: 'Descending' },
-  ];
-  const [sortSelected, setSortSelected] = useState(['order asc']);
-  const { mode, setMode } = useSetIndexFiltersMode();
-  const onHandleCancel = () => {};
-
-  const onHandleSave = async () => {
-    return true;
-  };
-
-  const [queryValue, setQueryValue] = useState('');
-
-  const handleFiltersQueryChange = useCallback(
-    (value) => setQueryValue(value),
-    []
-  );
-
-  const customers = [
+const Action = memo(function Action({ id, handleDelete }) {
+  const items = [
     {
-      id: '1020',
-      customer: 'Jaydon Stanton',
-      email: <Badge>Not subscribed</Badge>,
-      location: 'Lagos Nigeria',
-      orders: 3,
-      amountSpent: '$969.44',
+      label: (
+        <Link
+          rel="noopener noreferrer"
+          href={`/admin/products/${id}`}
+          className="!text-blue-500"
+        >
+          View / Edit
+        </Link>
+      ),
+      key: "0",
     },
     {
-      id: '1019',
-      customer: 'Ruben Westerfelt',
-      email: <Badge>Not subscribed</Badge>,
-      location: 'Lagos Nigeria',
-      orders: 3,
-      amountSpent: '$701.19',
+      type: "divider",
     },
     {
-      id: '1018',
-      customer: 'Leo Carder',
-      email: <Badge tone='success'>Subscribed</Badge>,
-      location: 'Lagos Nigeria',
-      orders: 5,
-      amountSpent: '$798.24',
+      label: "Delete",
+      key: "1",
+      danger: true,
+      onClick: () => handleDelete(id),
+    },
+    {
+      label: "Achive",
+      key: "2",
     },
   ];
-  const resourceName = {
-    singular: 'customer',
-    plural: 'customers',
+  return (
+    <Dropdown
+      menu={{
+        items,
+      }}
+    >
+      <a onClick={(e) => e.preventDefault()}>
+        <Space>
+          Action
+          <DownOutlined />
+        </Space>
+      </a>
+    </Dropdown>
+  );
+});
+
+const ProductsList = () => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const { data: collections } = useSWR("/api/allCategories", getAllCategories);
+
+  const { data: users, isLoading } = useSWR("/api/users", getAllUsers);
+
+  useEffect(() => {
+    if (users) {
+      console.log(users, "usersMap");
+    }
+  }, [users]);
+
+  const dataSource = users?.map((item) => ({
+    key: item.id,
+    customer: item.firstname + " " + item.lastname,
+    email: item.email,
+    location: item?.address?.find((add) => add.isDefault)?.address,
+    orders: item?.orderCount,
+    amountSpent: "1000",
+    action: <Action />,
+  }));
+
+  const handleDelete = async (id) => {
+    const deleteAndUpdateProd = () => {
+      new Promise(async (resolve, reject) => {
+        try {
+          await deleteProduct(id);
+          mutate("/admin/products");
+          message.success("Product deleted successfully");
+          resolve();
+        } catch (error) {
+          message.error("Failed to delete product");
+          reject();
+        }
+      });
+    };
+    try {
+      confirm({
+        title: "Are you sure you want to delete this product?",
+        content: "This action cannot be undone",
+        onOk() {
+          deleteAndUpdateProd();
+        },
+      });
+    } catch (error) {
+      message.error("Failed to delete product");
+    }
   };
 
-  const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(customers);
+  const columns = [
+    {
+      title: "Customer",
+      dataIndex: "customer",
+      filters: dataSource
+        ?.filter((item) => item.name)
+        .map((item) => ({
+          text: item.name,
+          value: item.name,
+        })),
+      filterSearch: true,
+      onFilter: (value, record) => record.name.includes(value),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+    },
+    {
+      title: "Location",
+      dataIndex: "location",
+      sorter: (a, b) => a.quantity - b.quantity,
+    },
+    {
+      title: "Orders",
+      dataIndex: "orders",
+      sorter: (a, b) => a.price - b.price,
+    },
+    {
+      title: "Amount Spent",
+      dataIndex: "amountSpent",
+      sorter: (a, b) => a.price - b.price,
+    },
 
-  const rowMarkup = customers.map(
-    ({ id, customer, email, location, orders, amountSpent }, index) => (
-      <IndexTable.Row
-        id={id}
-        key={id}
-        selected={selectedResources.includes(id)}
-        position={index}
-      >
-        <IndexTable.Cell>{customer}</IndexTable.Cell>
-        <IndexTable.Cell>{email}</IndexTable.Cell>
-        <IndexTable.Cell>{location}</IndexTable.Cell>
-        <IndexTable.Cell>{orders}</IndexTable.Cell>
-        <IndexTable.Cell>{amountSpent}</IndexTable.Cell>
-      </IndexTable.Row>
-    )
-  );
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => {
+        return <Action id={record.key} handleDelete={handleDelete} />;
+      },
+    },
+  ];
+
+  const start = () => {
+    setLoading(true);
+    // ajax request after empty completing
+    setTimeout(() => {
+      setSelectedRowKeys([]);
+      setLoading(false);
+    }, 1000);
+  };
+  const onSelectChange = (newSelectedRowKeys) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+  const hasSelected = selectedRowKeys.length > 0;
 
   return (
-    <Page
-      fullWidth
-      title={'Customers'}
-      primaryAction={{ content: 'Add customers' }}
-      secondaryActions={[
-        {
-          content: 'Export',
-          accessibilityLabel: 'Export customers list',
-          onAction: () => alert('Export action'),
-        },
-        {
-          content: 'Import',
-          accessibilityLabel: 'Import customers list',
-          onAction: () => alert('Import action'),
-        },
-      ]}
-    >
-      <LegacyCard>
-        <IndexFilters
-          sortOptions={sortOptions}
-          sortSelected={sortSelected}
-          queryValue={queryValue}
-          queryPlaceholder='Searching in all'
-          onQueryChange={handleFiltersQueryChange}
-          onQueryClear={() => setQueryValue('')}
-          onSort={setSortSelected}
-          primaryAction=''
-          cancelAction={{
-            onAction: onHandleCancel,
-            disabled: false,
-            loading: false,
-          }}
-          tabs={[]}
-          mode={mode}
-          setMode={setMode}
-          hideFilters
-          filteringAccessibilityTooltip='Search (F)'
-        />
-        <IndexTable
-          resourceName={resourceName}
-          itemCount={customers.length}
-          selectedItemsCount={
-            allResourcesSelected ? 'All' : selectedResources.length
-          }
-          onSelectionChange={handleSelectionChange}
-          headings={[
-            { title: 'Customer' },
-            { title: 'Email' },
-            { title: 'Location' },
-            { title: 'Orders' },
-            { title: 'Amount spent' },
-          ]}
-        >
-          {rowMarkup}
-        </IndexTable>
-      </LegacyCard>
-    </Page>
+    <Flex gap="middle" vertical className="p-6">
+      <Flex align="center" justify="end" gap="middle">
+        <Link href="/admin/products/new">
+          <Button
+            className="!bg-primary !text-white"
+            onClick={start}
+            loading={loading}
+          >
+            Add new customer
+          </Button>
+        </Link>
+        {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+      </Flex>
+      <Table
+        rowSelection={rowSelection}
+        columns={columns}
+        dataSource={dataSource || []}
+        loading={
+          isLoading
+            ? {
+                indicator: <LoadingOutlined spin className="!text-primary" />,
+                size: "large",
+              }
+            : false
+        }
+      />
+    </Flex>
   );
-}
+};
 
-export default Customers;
+export default memo(ProductsList);

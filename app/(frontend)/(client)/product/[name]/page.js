@@ -2,7 +2,6 @@ import { oswald } from "@/font";
 import Image from "next/image";
 
 import ProductDetail from "@/app/ui/product/ProductDetail";
-import ProductCard from "@/app/ui/product-card";
 
 import image7 from "@/public/assets/image7.png";
 import image8 from "@/public/assets/image8.png";

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 import crypto from "crypto";
+import Order from "./order.js";
 // import Wishlist from "./wishlist.js";
 // import Cart from "./cart.js";
 
@@ -114,6 +115,14 @@ userSchema.virtual("orderCount", {
   foreignField: "userId",
   count: true,
 });
+//virtual populate user total spent
+
+// userSchema.virtual("amountSpent").get(async function () {
+//   const orders = await Order.find({ userId: this._id });
+//   const total = orders.reduce((acc, order) => acc + order.total, 0);
+
+//   return total;
+// });
 
 userSchema.set("toObject", { virtuals: true });
 userSchema.set("toJSON", { virtuals: true });

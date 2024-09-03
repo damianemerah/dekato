@@ -9,13 +9,13 @@ import { useCartStore } from "@/store/store";
 import { memo, useEffect } from "react";
 
 export default memo(function CategoryProducts({ cat, searchParams }) {
-  const setCurUICategory = useCartStore((state) => state.setCurUICategory);
+  // const setCurUICategory = useCartStore((state) => state.setCurUICategory);
 
-  useEffect(() => {
-    if (cat) {
-      setCurUICategory(cat.toLowerCase());
-    }
-  }, [cat, setCurUICategory]);
+  // useEffect(() => {
+  //   if (cat) {
+  //     setCurUICategory(cat.toLowerCase());
+  //   }
+  // }, [cat, setCurUICategory]);
 
   return (
     <>

@@ -1,8 +1,6 @@
 export function includePriceObj(searchParams) {
   const params = { ...searchParams };
 
-  if (!params.price || !params.quantity) return params;
-
   for (const key in params) {
     if (Array.isArray(params[key])) {
       params[key] = params[key][0];

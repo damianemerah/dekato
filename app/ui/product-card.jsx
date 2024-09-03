@@ -10,7 +10,7 @@ export default function ProductCard({ product }) {
     <div className="relative w-full max-w-sm bg-white">
       <div className="relative h-[400px] w-full overflow-hidden">
         <Image
-          src={product.image}
+          src={product.image[0]}
           alt={product.name}
           fill={true}
           className="object-cover"
@@ -22,7 +22,9 @@ export default function ProductCard({ product }) {
         )}
       </div>
       <div className="p-2 pt-4">
-        <h3 className="text-xs uppercase text-gray-500">{product.category}</h3>
+        <h3 className="text-xs uppercase text-gray-500">
+          {product.category.map((c) => c.slug).join(", ")}
+        </h3>
         <p className="mt-1 text-sm font-semibold">{product.name}</p>
         {product.discount && (
           <div className="flex items-center gap-4">
