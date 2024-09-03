@@ -1,5 +1,3 @@
-"use client";
-
 import ProductDetail from "@/app/ui/product/product-details";
 import ProductsList from "@/app/ui/products-list";
 import { oswald } from "@/style/font";

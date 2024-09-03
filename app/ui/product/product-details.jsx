@@ -1,31 +1,32 @@
+"use client";
+
 import { useState, useRef } from "react";
 import { oswald } from "@/font";
-
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Thumbs } from "swiper/modules";
-
 import XIcon from "@/public/assets/icons/twitter.svg";
 import FbIcon from "@/public/assets/icons/facebook-share.svg";
 import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { Button, ButtonPrimary } from "@/app/ui/button";
 
-const CollapsibleSection = ({ title, children }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   const contentRef = useRef(null);
 
   return (
     <li className="border-gray-200">
       <button
         className={`${oswald.className} flex w-full justify-between px-2 py-4 text-left text-sm font-medium focus:outline-none`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
       >
         {title}
         <span className="relative flex h-6 w-6 items-center justify-center">
           <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
           <span
-            className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${isOpen ? "rotate-0" : "rotate-90"}`}
+            className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${
+              isOpen ? "rotate-0" : "rotate-90"
+            }`}
           />
         </span>
       </button>
@@ -60,6 +61,12 @@ export default function ProductDetail() {
     : product.price;
 
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
+  const [activeSection, setActiveSection] = useState(null);
+
+  const handleToggleSection = (section) => {
+    setActiveSection(activeSection === section ? null : section);
+  };
+
   return (
     <>
       <div className="relative mb-20 flex w-full max-w-[960px] justify-center">
@@ -164,7 +171,7 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          <div className={`${oswald.className} space-y-2`}>
+          <div className={`${oswald.className} space-y-2 pt-2`}>
             <div className="flex items-center justify-center gap-2">
               <ButtonPrimary className="w-full flex-1">
                 Add to bag
@@ -189,34 +196,49 @@ export default function ProductDetail() {
 
           <div>
             <ul className="divide-y">
-              <CollapsibleSection title="Product Details">
-                <p className={``}>
-                  Cool off this summer in the Mini Ruffle Smocked Tank Top from
-                  our very own LA Hearts. This tank features a smocked body,
-                  adjustable straps, scoop neckline, ruffled hems, and a cropped
-                  fit.
+              <CollapsibleSection
+                title="Product Details"
+                isOpen={activeSection === "Product Details"}
+                onToggle={() => handleToggleSection("Product Details")}
+              >
+                <p>
+                  Cool off-duty look Black checked dress, has a round neck,
+                  three-quarter sleeves, concealed zip closure, an attached
+                  lining, and flared hem. Wear this dress to any occasion, and
+                  look elegant!
                 </p>
               </CollapsibleSection>
-              <CollapsibleSection title="Brand">
+
+              <CollapsibleSection
+                title="Brand"
+                isOpen={activeSection === "Brand"}
+                onToggle={() => handleToggleSection("Brand")}
+              >
                 <p className={``}>
                   A brand known for its unique styles and comfortable fits.
                 </p>
               </CollapsibleSection>
-              <CollapsibleSection title="Size & Fit">
+
+              <CollapsibleSection
+                title="Size & Fit"
+                isOpen={activeSection === "Size & Fit"}
+                onToggle={() => handleToggleSection("Size & Fit")}
+              >
                 <p className={``}>
-                  Model's height: 172.5cm / 5' 8"
+                  Model&apos;s height: 172.5cm / 5&apos; 8&quot;
                   <br />
                   Model is wearing: XS - UK 8
                 </p>
               </CollapsibleSection>
-              <CollapsibleSection title="Look After Me">
-                <p className={``}>
-                  Machine wash according to instructions on care label.
-                </p>
-              </CollapsibleSection>
-              <CollapsibleSection title="About Me">
-                <p className={``}>
-                  Soft, breathable fabric. Perfect for summer days.
+
+              <CollapsibleSection
+                title="Delivery & Returns"
+                isOpen={activeSection === "Delivery & Returns"}
+                onToggle={() => handleToggleSection("Delivery & Returns")}
+              >
+                <p>
+                  We deliver your order within 1-2 business days. Easy returns
+                  available.
                 </p>
               </CollapsibleSection>
             </ul>

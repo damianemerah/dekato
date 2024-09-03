@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { oswald } from "@/font";
 import React from "react";
 
 function OrderCard({ status, orderNumber, total, deliveryDate, items }) {
@@ -42,7 +43,7 @@ function OrderCard({ status, orderNumber, total, deliveryDate, items }) {
               className="mr-4 h-24 w-24 object-cover"
             />
             <div className="flex flex-col space-y-2">
-              <span className="font-oswald font-semibold">{item.name}</span>
+              <span className={`${oswald.className} font-oswald font-semibold`}>{item.name}</span>
               <span className="text-gray-500">{item.color}</span>
               <span className="">{item.price}</span>
             </div>

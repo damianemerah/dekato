@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { oswald } from "@/style/font";
 
 export function Button({ children, className }) {
   return (
@@ -14,7 +15,7 @@ export function Button({ children, className }) {
 export function ButtonPrimary({ children, className, onClick, type }) {
   return (
     <button
-      className={`h-[44px] rounded-sm bg-primary px-8 py-2 text-white active:scale-95 ${className} uppercase`}
+      className={`${oswald.className} h-[44px] rounded-sm bg-primary px-8 py-2 text-white active:scale-95 ${className} uppercase`}
       onClick={onClick}
       type={type}
     >
