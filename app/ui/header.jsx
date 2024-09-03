@@ -32,7 +32,7 @@ function Header() {
             <Link href="/shop/women/products">
               <p className="border-b-2 border-white p-1">Women</p>
             </Link>
-            <Link href="/shop/men/products">
+            <Link href="/men">
               <p className="p-1">Men</p>
             </Link>
           </div>
