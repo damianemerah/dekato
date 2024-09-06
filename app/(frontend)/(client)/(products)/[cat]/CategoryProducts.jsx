@@ -9,20 +9,12 @@ import { useCartStore } from "@/store/store";
 import { memo, useEffect } from "react";
 
 export default memo(function CategoryProducts({ cat, searchParams }) {
-  // const setCurUICategory = useCartStore((state) => state.setCurUICategory);
-
-  // useEffect(() => {
-  //   if (cat) {
-  //     setCurUICategory(cat.toLowerCase());
-  //   }
-  // }, [cat, setCurUICategory]);
-
   return (
     <>
       <div className="flex w-full items-center justify-center bg-gray-100 py-14 uppercase">
-        <h1 className="text-3xl font-semibold">Women Selected Styles</h1>
+        <h1 className="text-3xl font-semibold">{`${cat} Selected Styles`}</h1>
       </div>
-      <Filter />
+      <Filter cat={cat} searchParams={searchParams} />
       <div className="px-8 py-12">
         <ProductList cat={cat} searchParams={searchParams} />
       </div>

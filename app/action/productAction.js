@@ -1,26 +1,16 @@
 "use server";
 
 import Product from "@/models/product";
+import Category from "@/models/category";
 import APIFeatures from "@/utils/apiFeatures";
 import { handleFormData } from "@/utils/handleForm";
-import Category from "@/models/category";
 import { protect, restrictTo } from "@/utils/checkPermission";
 import dbConnect from "@/lib/mongoConnection";
-import { includePriceObj } from "@/utils/searchWithPrice";
-import { formDataToObject } from "@/utils/filterObj";
+import { getQueryObj } from "@/utils/getFunc";
 import handleAppError from "@/utils/appError";
 import { revalidatePath } from "next/cache";
 import { deleteFiles } from "@/lib/s3Func";
-
-function arrayToMap(arr) {
-  const map = new Map();
-
-  for (const item of arr) {
-    const key = JSON.stringify(item);
-    map.set(key, item);
-  }
-  return map;
-}
+import mongoose, { mongo } from "mongoose";
 
 const setupIndexes = async () => {
   try {
@@ -37,35 +27,6 @@ const setupIndexes = async () => {
     await Product.collection.createIndex({ slug: 1 });
   } catch (error) {
     console.error("Error creating indexes:", error);
-  }
-};
-
-// setupIndexes();
-
-const getProductVariants = async (productIds) => {
-  try {
-    const variants = await Product.aggregate([
-      { $match: { _id: { $in: productIds } } },
-      { $unwind: "$variants" },
-      {
-        $group: {
-          _id: null,
-          colors: { $addToSet: "$variants.color" },
-          sizes: { $addToSet: "$variants.size" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          colors: 1,
-          sizes: 1,
-        },
-      },
-    ]);
-
-    return variants[0] || { colors: [], sizes: [] }; // Handle case where no variants are found
-  } catch (error) {
-    throw new Error("Failed to fetch product variants");
   }
 };
 
@@ -114,11 +75,45 @@ export async function getAdminProduct() {
   }
 }
 
-export async function getAllProducts(cat, searchParams = {}) {
+export async function getVariantsByCategory(slug) {
   try {
-    console.log("💎💎💎💎💎💎💎");
-    searchParams.cat = cat;
-    const newSearchParams = includePriceObj(searchParams);
+    await dbConnect();
+    const variantData = await Product.aggregate([
+      {
+        $match: {
+          category: new mongoose.Types.ObjectId(slug),
+        },
+      },
+      {
+        $unwind: "$variant",
+      },
+      {
+        $project: {
+          _id: 0,
+          variant: 1,
+        },
+      },
+    ]);
+
+    const variants = variantData.map((data) => {
+      const { variant, ...pRest } = data;
+      const { _id, ...rest } = variant;
+      return { variant: { id: _id.toString(), ...rest }, ...pRest };
+    });
+
+    return variants;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw Error(error.message || "Something went wrong");
+  }
+}
+
+export async function getAllProducts(cat, searchParams = {}, options) {
+  try {
+    searchParams.cat = searchParams.cat
+      ? Array.from(new Set([...searchParams.cat.split(","), cat])).join(",")
+      : cat;
+    const newSearchParams = getQueryObj(searchParams, options);
 
     await dbConnect();
 
@@ -137,19 +132,24 @@ export async function getAllProducts(cat, searchParams = {}) {
       products[i]._id = products[i]._id.toString();
 
       if (products[i].category) {
-        products[i].category = products[i].category.toString();
+        products[i].category = products[i].category.map((c) => {
+          const { _id, ...rest } = c;
+          return { id: _id.toString(), ...rest };
+        });
       }
-      if(products[i].variant) {
+      if (products[i].variant) {
         products[i].variant = products[i].variant.map((v) => {
-         const { _id, ...rest } = v;
+          const { _id, ...rest } = v;
           return { id: _id.toString(), ...rest };
         });
       }
     }
+
     return products;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message);
+    console.log(error, "error🔥🚀💎");
+    throw new Error(error?.message || "An error occurred");
   }
 }
 

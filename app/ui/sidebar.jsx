@@ -64,6 +64,9 @@ export default memo(function Sidebar() {
   const { data: categories } = useSWR(
     "/sidebar/allCategories",
     fetchAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
   );
 
   const [isMobile, setIsMobile] = useState(false);

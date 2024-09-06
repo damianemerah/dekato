@@ -65,12 +65,13 @@ const ProductsList = () => {
     data: products,
     mutate,
     isLoading,
-  } = useSWR("/admin/products", () => getAdminProduct());
+  } = useSWR("/admin/products", () => getAdminProduct(), {
+    revalidateOnFocus: false,
+  });
 
-  const { data: collections } = useSWR(
-    "/api/allCategories",
-    getAllCategories,
-  );
+  const { data: collections } = useSWR("/api/allCategories", getAllCategories, {
+    revalidateOnFocus: false,
+  });
 
   const dataSource = products?.map((item) => ({
     key: item.id,

@@ -6,9 +6,11 @@ import SearchBox from "./searchbox.jsx";
 import { signOut } from "next-auth/react";
 import { oswald } from "@/font";
 import UserIcon from "@/public/assets/icons/user.svg";
+import { useState } from "react";
 
 function Header() {
   const user = useUserStore((state) => state.user);
+  const [search, setSearch] = useState("");
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
 
   return (
@@ -29,15 +31,15 @@ function Header() {
             </svg>
           </button>
           <div className="flex h-full items-center gap-5 text-base uppercase">
-            <Link href="/shop/women/products">
+            <Link href="/women">
               <p className="border-b-2 border-white p-1">Women</p>
             </Link>
-            <Link href="/shop/men/products">
+            <Link href="/men">
               <p className="p-1">Men</p>
             </Link>
           </div>
 
-          <SearchBox />
+          <SearchBox setSearch={setSearch} />
         </div>
       </div>
 

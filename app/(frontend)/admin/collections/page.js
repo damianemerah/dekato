@@ -66,6 +66,9 @@ const Collections = () => {
   const { data: collections, isLoading } = useSWR(
     "/api/allCategories",
     getAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
   );
 
   const dataSource = collections?.map((item) => {

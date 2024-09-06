@@ -24,33 +24,10 @@ import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
+import { generateVariantOptions } from "@/utils/getFunc";
 import { LoadingOutlined } from "@ant-design/icons";
 
 const { confirm } = Modal;
-
-//generate variantOptions
-const generateVariantOptions = (variants) => {
-  const clonedVariants = [...variants];
-
-  // console.log(clonedVariants, "clonedVariants");
-
-  const result = {};
-  clonedVariants.forEach((variant) => {
-    Object.entries(variant.options).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = new Set();
-      }
-      result[key].add(value);
-    });
-  });
-  const formattedResult = Object.keys(result).map((key) => ({
-    id: uuidv4(),
-    name: key,
-    values: Array.from(result[key]),
-  }));
-  // console.log(formattedResult, "formattedResult");
-  return formattedResult;
-};
 
 export default memo(function Page({ params }) {
   const slug = params.slug;
@@ -78,6 +55,9 @@ export default memo(function Page({ params }) {
   const { data: allCategories, isLoading: catIsLoading } = useSWR(
     "/admin/categories",
     getAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
   );
   const setEditVariantWithId = useAdminStore(
     (state) => state.setEditVariantWithId,
@@ -96,6 +76,7 @@ export default memo(function Page({ params }) {
       onSuccess: (prods) => {
         return setProducts(prods);
       },
+      revalidateOnFocus: false,
     },
   );
 

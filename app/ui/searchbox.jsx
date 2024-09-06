@@ -1,12 +1,11 @@
-import React from "react";
-
-const SearchBox = () => {
+const SearchBox = ({ setSearch }) => {
   return (
     <div className="relative min-w-72">
       <input
         type="text"
         placeholder="Search..."
-        className="h-8 bg-white px-4 py-2 text-black outline-none placeholder:text-sm"
+        className="h-8 w-full bg-white px-4 py-2 text-black outline-none placeholder:text-sm"
+        onChange={(e) => setSearch(e.target.value)}
       />
       <button
         type="button"

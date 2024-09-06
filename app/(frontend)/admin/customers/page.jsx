@@ -59,9 +59,13 @@ const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { data: collections } = useSWR("/api/allCategories", getAllCategories);
+  const { data: collections } = useSWR("/api/allCategories", getAllCategories, {
+    revalidateOnFocus: false,
+  });
 
-  const { data: users, isLoading } = useSWR("/api/users", getAllUsers);
+  const { data: users, isLoading } = useSWR("/api/users", getAllUsers, {
+    revalidateOnFocus: false,
+  });
 
   useEffect(() => {
     if (users) {

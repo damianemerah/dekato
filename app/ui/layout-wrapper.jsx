@@ -36,6 +36,7 @@ const LayoutWrapper = ({ children }) => {
       onError: (error) => {
         message.error("Failed to log in. Please try again.");
       },
+      revalidateOnFocus: false,
     },
   );
 

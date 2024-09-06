@@ -1,5 +1,6 @@
 "use server";
 
+import mongoose from "mongoose";
 import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
 import { handleFormData } from "@/utils/handleForm";
@@ -91,6 +92,30 @@ export async function getAllCategories() {
   }
 }
 
+export async function getSubCategories(parentId) {
+  await dbConnect();
+  try {
+    const categories = await Category.find({ parent: parentId })
+      .select("name description image slug createdAt")
+      .populate("productCount")
+      .sort({ slug: 1 })
+      .lean();
+    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
+      const { _id: pid, ...p } = parent || {};
+      return {
+        id: _id.toString(),
+        parent: parent ? { id: pid.toString(), ...p } : null,
+        ...rest,
+      };
+    });
+
+    return formattedCat;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw Error(error.message || "Something went wrong");
+  }
+}
+
 export async function fetchAllCategories() {
   // Step 1: Fetch all categories from the database
   const categories = await Category.find().exec();
@@ -142,48 +167,48 @@ export async function fetchAllCategories() {
   return finalStructure;
 }
 
-export async function getCategories(slug) {
-  try {
-    await dbConnect();
-    const query = !slug || slug === "home" ? { parent: null } : { slug };
+// export async function getCategories(slug) {
+//   try {
+//     await dbConnect();
+//     const query = !slug || slug === "home" ? { parent: null } : { slug };
 
-    const categoryDocs = await Category.find(query).populate({
-      path: "children",
-      select: "-__v -children.parent",
-    });
+//     const categoryDocs = await Category.find(query).populate({
+//       path: "children",
+//       select: "-__v -children.parent",
+//     });
 
-    if (!categoryDocs) {
-      throw new Error("Category not found");
-    }
+//     if (!categoryDocs) {
+//       throw new Error("Category not found");
+//     }
 
-    // Convert each document to a plain JavaScript object and modify the _id fields
-    const categories = categoryDocs.map((categoryDoc) => {
-      const category = categoryDoc.toObject();
+//     // Convert each document to a plain JavaScript object and modify the _id fields
+//     const categories = categoryDocs.map((categoryDoc) => {
+//       const category = categoryDoc.toObject();
 
-      // Rename _id to id and convert to string
-      const { _id, children, parent, ...rest } = category;
+//       // Rename _id to id and convert to string
+//       const { _id, children, parent, ...rest } = category;
 
-      return {
-        id: _id.toString(),
-        ...rest,
+//       return {
+//         id: _id.toString(),
+//         ...rest,
 
-        // Convert children _id to strings and remove parent field if it exists
-        children: children.map((child) => {
-          const { _id, parent, children, ...childRest } = child;
-          return {
-            id: _id.toString(),
-            ...childRest,
-          };
-        }),
-      };
-    });
+//         // Convert children _id to strings and remove parent field if it exists
+//         children: children.map((child) => {
+//           const { _id, parent, children, ...childRest } = child;
+//           return {
+//             id: _id.toString(),
+//             ...childRest,
+//           };
+//         }),
+//       };
+//     });
 
-    return categories;
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
-  }
-}
+//     return categories;
+//   } catch (err) {
+//     const error = handleAppError(err);
+//     throw new Error(error.message || "An error occurred");
+//   }
+// }
 
 export async function createCategory(formData) {
   await restrictTo("admin");
