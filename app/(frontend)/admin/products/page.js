@@ -6,7 +6,6 @@ import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { getAdminProduct, deleteProduct } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
-import { useProductStore } from "@/app/(frontend)/admin/store/adminStore";
 import useSWR from "swr";
 import image6 from "@/public/assets/no-image.webp";
 import Link from "next/link";

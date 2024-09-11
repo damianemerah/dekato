@@ -60,7 +60,7 @@ const productSchema = new mongoose.Schema({
   cat: [String],
   createdAt: { type: Date, default: Date.now },
   slug: { type: String },
-  tag: [String],
+  tag: [{ type: String, lowercase: true }],
   variant: [
     {
       options: {

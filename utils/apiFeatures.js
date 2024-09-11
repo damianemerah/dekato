@@ -5,13 +5,31 @@ class APIFeatures {
   }
 
   filter() {
-    //Filtering
+    // Filtering
     const queryObj = { ...this.queryString };
-    const excludedFields = ["page", "sort", "limit", "fields"];
-
+    const excludedFields = ["page", "sort", "limit", "fields", "q"];
     excludedFields.forEach((el) => delete queryObj[el]);
 
     this.query = this.query.find(queryObj);
+    return this;
+  }
+
+  search() {
+    if (this.queryString.q) {
+      const searchQuery = this.queryString.q.trim();
+      const searchWords = searchQuery.split(" ").map((word) => word.trim());
+
+      // Construct a regex pattern that checks if each word in the query appears at the start of words
+      const regexPattern = searchWords.map((word) => `\\b${word}`).join(".*");
+
+      this.query = this.query.find({
+        $or: [
+          { name: { $regex: regexPattern, $options: "i" } },
+          { description: { $regex: regexPattern, $options: "i" } },
+          { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
+        ],
+      });
+    }
     return this;
   }
 
@@ -32,7 +50,6 @@ class APIFeatures {
     } else {
       this.query = this.query.select("-__v");
     }
-
     return this;
   }
 

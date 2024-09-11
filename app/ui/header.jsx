@@ -6,12 +6,17 @@ import SearchBox from "./searchbox.jsx";
 import { signOut } from "next-auth/react";
 import { oswald } from "@/font";
 import UserIcon from "@/public/assets/icons/user.svg";
-import { useState } from "react";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation.js";
 
 function Header() {
   const user = useUserStore((state) => state.user);
-  const [search, setSearch] = useState("");
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    console.log("Header rendered", pathname);
+  }, [pathname]);
 
   return (
     <header
@@ -32,14 +37,22 @@ function Header() {
           </button>
           <div className="flex h-full items-center gap-5 text-base uppercase">
             <Link href="/women">
-              <p className="border-b-2 border-white p-1">Women</p>
+              <p
+                className={`${pathname.split("/")[1] === "women" && "border-b-2 border-b-white p-1"} transition-all duration-100 ease-in-out`}
+              >
+                Women
+              </p>
             </Link>
             <Link href="/men">
-              <p className="p-1">Men</p>
+              <p
+                className={`${pathname.split("/")[1] === "men" && "border-b-2 border-b-white p-1"} transition-all duration-100 ease-in-out`}
+              >
+                Men
+              </p>
             </Link>
           </div>
 
-          <SearchBox setSearch={setSearch} />
+          <SearchBox />
         </div>
       </div>
 

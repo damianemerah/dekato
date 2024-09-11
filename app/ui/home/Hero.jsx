@@ -29,9 +29,9 @@ export default function Hero() {
           el: ".custom-pagination",
           clickable: true,
           renderBullet: (index, className) =>
-            `<span class="${className}"></span>`,
+            `<span className="${className}"></span>`,
         }}
-        className={`relative`}
+        className="relative"
       >
         <SwiperSlide className="h-auto bg-[url('/assets/hero_bg.png')] bg-cover bg-center bg-no-repeat">
           <div className={`flex items-center justify-center px-16 py-16`}>

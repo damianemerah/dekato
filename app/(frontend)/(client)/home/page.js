@@ -7,7 +7,6 @@ import SubPageCampaign from "@/app/ui/page-campaign";
 import Galley from "@/app/ui/home/Galley";
 import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
-import { useCartStore } from "@/store/store";
 import RecommendedProducts from "@/app/ui/recommended-products";
 
 export default function Home() {

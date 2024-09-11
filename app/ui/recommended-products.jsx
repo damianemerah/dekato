@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useProductStore } from "@/store/store";
+// import { useProductStore } from "@/store/store";
 
 import ProductCard from "@/app/ui/product-card";
 
@@ -29,7 +29,8 @@ const RecommendedProducts = ({ cat, searchParams }) => {
     setBreakpoints(newBreakpoints);
   }, [isSidebarOpen]);
 
-  const setProducts = useProductStore((state) => state.setProducts);
+  //refactor
+  // const setProducts = useProductStore((state) => state.setProducts);
   // const products = useProductStore((state) => state.products);
 
   const products = [
@@ -87,20 +88,19 @@ const RecommendedProducts = ({ cat, searchParams }) => {
     },
   ];
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const productData = await getAllProducts(cat, searchParams);
-        setProducts(productData);
-        console.log(productData, "productdata");
-      } catch (error) {
-        message.error("Error fetching products: " + error.message);
-        console.log(error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchProducts = async () => {
+  //     try {
+  //       const productData = await getAllProducts(cat, searchParams);
+  //       setProducts(productData);
+  //     } catch (error) {
+  //       message.error("Error fetching products: " + error.message);
+  //       console.log(error);
+  //     }
+  //   };
 
-    fetchProducts();
-  }, [setProducts, cat, searchParams]);
+  //   fetchProducts();
+  // }, [setProducts, cat, searchParams]);
 
   return (
     <>

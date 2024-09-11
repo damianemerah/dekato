@@ -60,15 +60,15 @@ export default function Cart() {
               </label>
               <div className="flex flex-col gap-1">
                 <h3 className={`${oswald.className} text-lg leading-5`}>DHL</h3>
-                <label class="ml-1 inline-flex items-center">
+                <label className="ml-1 inline-flex items-center">
                   <input
                     type="radio"
-                    class="peer hidden"
+                    className="peer hidden"
                     name="shipping"
                     value="flat-rate"
                   />
-                  <span class="inline-block h-2.5 w-2.5 rounded-full border border-gray-400 outline outline-offset-1 peer-checked:border-transparent peer-checked:bg-black"></span>
-                  <span class="ml-2 text-gray-700">Flat Rate NGN 3000</span>
+                  <span className="inline-block h-2.5 w-2.5 rounded-full border border-gray-400 outline outline-offset-1 peer-checked:border-transparent peer-checked:bg-black"></span>
+                  <span className="ml-2 text-gray-700">Flat Rate NGN 3000</span>
                 </label>
               </div>
             </div>

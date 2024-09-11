@@ -10,7 +10,7 @@ import { getQueryObj } from "@/utils/getFunc";
 import handleAppError from "@/utils/appError";
 import { revalidatePath } from "next/cache";
 import { deleteFiles } from "@/lib/s3Func";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 const setupIndexes = async () => {
   try {
@@ -75,24 +75,70 @@ export async function getAdminProduct() {
   }
 }
 
-export async function getVariantsByCategory(slug) {
+export async function productSearch(searchQuery) {
   try {
     await dbConnect();
+
+    searchQuery.limit = 9;
+
+    const feature = new APIFeatures(Product.find().select("name"), searchQuery)
+      .filter()
+      .search()
+      .sort()
+      .limitFields()
+      .paginate();
+
+    const productData = await feature.query;
+
+    const products = productData.map((product) => {
+      const { _id, name } = product;
+      return { id: _id.toString(), name };
+    });
+
+    return products;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
+
+export async function getVariantsByCategory(id, searchStr = "") {
+  try {
+    await dbConnect();
+    console.log("id👇👇", id, "str", searchStr);
+
+    let matchCondition = {};
+
+    if (searchStr && id === "search") {
+      console.log("searchStr👇", searchStr);
+
+      // Split the search string into individual words
+      const searchWords = searchStr.split(" ").map((word) => word.trim());
+
+      // Create a regex pattern that ensures each word starts at the beginning of a word in the field
+      const regexPattern = searchWords.map((word) => `\\b${word}`).join(".*");
+
+      // Apply the regex pattern to the name, description, and tag fields
+      matchCondition = {
+        $or: [
+          { name: { $regex: regexPattern, $options: "i" } },
+          { description: { $regex: regexPattern, $options: "i" } },
+          { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
+        ],
+      };
+    } else if (mongoose.Types.ObjectId.isValid(id) && id !== "search") {
+      console.log("id👇", id);
+      matchCondition = {
+        category: new mongoose.Types.ObjectId(id),
+      };
+    } else {
+      return;
+    }
+
     const variantData = await Product.aggregate([
-      {
-        $match: {
-          category: new mongoose.Types.ObjectId(slug),
-        },
-      },
-      {
-        $unwind: "$variant",
-      },
-      {
-        $project: {
-          _id: 0,
-          variant: 1,
-        },
-      },
+      { $match: matchCondition },
+      { $unwind: "$variant" },
+      { $project: { _id: 0, variant: 1 } },
     ]);
 
     const variants = variantData.map((data) => {
@@ -108,12 +154,15 @@ export async function getVariantsByCategory(slug) {
   }
 }
 
-export async function getAllProducts(cat, searchParams = {}, options) {
+export async function getAllProducts(cat, searchParams = {}) {
   try {
-    searchParams.cat = searchParams.cat
-      ? Array.from(new Set([...searchParams.cat.split(","), cat])).join(",")
-      : cat;
-    const newSearchParams = getQueryObj(searchParams, options);
+    const params = { ...searchParams };
+    if (cat) {
+      params.cat = params.cat
+        ? Array.from(new Set([...params.cat.split(","), cat])).join(",")
+        : cat;
+    }
+    const newSearchParams = getQueryObj(params);
 
     await dbConnect();
 
@@ -122,6 +171,7 @@ export async function getAllProducts(cat, searchParams = {}, options) {
       newSearchParams,
     )
       .filter()
+      .search()
       .sort()
       .limitFields()
       .paginate();

@@ -8,22 +8,14 @@ import {
 } from "@/app/action/productAction";
 import { getSubCategories } from "@/app/action/categoryAction";
 import { generateVariantOptions } from "@/utils/getFunc";
+import FilterContent from "./filter-content";
+import { useProductStore, useSearchStore } from "@/store/store";
 
 const sortOptions = [
-  { value: "relevance", label: "Relevance" },
-  { value: "price-low-high", label: "Price: Low to High" },
-  { value: "price-high-low", label: "Price: High to Low" },
+  { value: "+createdAt", label: "Relevance" },
+  { value: "price", label: "Price: Low to High" }, // Ascending
+  { value: "-price", label: "Price: High to Low" }, // Descending
 ];
-
-const fetcher = async (cat, searchParams) => {
-  try {
-    const productData = await getAllProducts(cat, searchParams);
-    return productData;
-  } catch (error) {
-    message.error("Error fetching products: " + error.message);
-    throw error;
-  }
-};
 
 export default function Filter({ cat, searchParams }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -31,6 +23,7 @@ export default function Filter({ cat, searchParams }) {
     price: [],
     cat: [],
   });
+  const [searchStr, setSearchStr] = useState("");
   const [variantOptions, setVariantOptions] = useState([]);
   const [sort, setSort] = useState("relevance");
   const [filterStatus, setFilterStatus] = useState("idle");
@@ -38,26 +31,28 @@ export default function Filter({ cat, searchParams }) {
   const router = useRouter();
   const dropdownRef = useRef(null);
 
-  const { data: products, isLoading } = useSWR(
-    [cat, searchParams],
-    () => fetcher(cat, searchParams),
+  const products = useProductStore((state) => state.products);
+  const isLoading = useProductStore((state) => state.isLoading);
+
+  const id =
+    cat === "search"
+      ? "search"
+      : products?.length > 0 &&
+        products[0]?.category.find(
+          (c) => c.slug.toLowerCase() === cat.toLowerCase(),
+        )?.id;
+
+  const { data: subCategories } = useSWR(
+    id,
+    () => id && id !== "search" && getSubCategories(id),
     {
       revalidateOnFocus: false,
     },
   );
-  const id =
-    products?.length > 0 &&
-    products[0]?.category.find(
-      (c) => c.slug.toLowerCase() === cat.toLowerCase(),
-    )?.id;
-
-  const { data: subCategories } = useSWR(id, () => id && getSubCategories(id), {
-    revalidateOnFocus: false,
-  });
 
   const { data: productVariants, isLoading: varIsLoading } = useSWR(
-    `productsVariant${id}`,
-    () => id && getVariantsByCategory(id),
+    `productsVariant${(id, searchStr)}`,
+    () => id && getVariantsByCategory(id, searchStr),
     {
       revalidateOnFocus: false,
     },
@@ -78,11 +73,22 @@ export default function Filter({ cat, searchParams }) {
       ...variantOptions,
       {
         name: "cat",
-        options: subCategories?.map((sub) => sub.slug) || [],
+        options: (subCategories && subCategories?.map((sub) => sub.slug)) || [],
       },
     ],
     [variantOptions, subCategories],
   );
+
+  useEffect(() => {
+    setSearchStr(searchParams.q);
+  }, [searchParams.q]);
+
+  useEffect(() => {
+    const sortParam = searchParams.sort;
+    if (sortParam) {
+      setSort(sortOptions.find((opt) => opt.value === sortParam)?.label);
+    }
+  }, [searchParams.sort]);
 
   useEffect(() => {
     if (!varIsLoading && productVariants) {
@@ -158,7 +164,9 @@ export default function Filter({ cat, searchParams }) {
             }
             return {
               ...prev,
-              [newKey]: Array.isArray(value) ? value : [value],
+              [newKey]: Array.isArray(value)
+                ? value.split(",")
+                : value.split(","),
             };
           });
         }
@@ -235,13 +243,16 @@ export default function Filter({ cat, searchParams }) {
 
   const handleSortChange = (value) => {
     setSort(value);
-    console.log(value, "value");
+    const params = new URLSearchParams(window.location.search);
+    params.set("sort", value);
+
+    router.push(`/${cat}?${params.toString()}`);
     toggleDropdown("sort");
   };
 
   //find product price range and compute variants
 
-  if (!isLoading && products.length === 0) {
+  if (!isLoading && products?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-4">
         <p className="mb-4 text-center text-lg text-gray-700">
@@ -258,172 +269,21 @@ export default function Filter({ cat, searchParams }) {
   }
 
   return (
-    <>
-      <div
-        ref={dropdownRef}
-        className="sticky top-[108px] z-10 flex h-14 w-full items-center justify-between bg-gray-100 px-8 shadow-md"
-      >
-        <div className="flex items-center">
-          <p className="text-sm">Filter by:</p>
-          <div className="ml-4 flex items-center justify-start space-x-2">
-            {filters.map((filter) => (
-              <div key={filter.name} className="relative">
-                <button
-                  onClick={() => toggleDropdown(filter.name)}
-                  className={`flex items-center gap-2 px-3 py-1 text-sm font-medium ${activeDropdown === filter.name ? "bg-white" : ""}`}
-                >
-                  {filter.name === "cat"
-                    ? "Category"
-                    : filter.name.charAt(0).toUpperCase() +
-                      filter.name.slice(1)}
-                  <span className="relative flex h-6 w-6 items-center justify-center">
-                    <span className="h-0.5 w-2 bg-black transition-transform duration-300" />
-                    <span
-                      className={`absolute h-0.5 w-2 bg-black transition-transform duration-300 ${activeDropdown === filter.name ? "rotate-0" : "rotate-90"}`}
-                    />
-                  </span>
-                </button>
-
-                {activeDropdown === filter.name && (
-                  <div className="absolute left-0 flex w-max flex-col bg-white text-[#303030]">
-                    {filter.options.map((option, index) => (
-                      <label
-                        key={index}
-                        className="inline-flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-gray-100"
-                      >
-                        <div className="relative flex items-center">
-                          <input
-                            type={
-                              filter.name === "price" ? "radio" : "checkbox"
-                            }
-                            name={filter?.name}
-                            value={option.toLowerCase()}
-                            onChange={(e) => handleChange(e, filter.name)}
-                            checked={selectedFilters[filter.name]?.includes(
-                              option.toLowerCase(),
-                            )}
-                            className={`peer relative h-5 w-5 cursor-pointer ${filter.name === "price" ? "" : "appearance-none"} border border-gray-900 transition-all checked:bg-gray-900`}
-                          />
-                          <span className="pointer-events-none absolute left-2/4 top-2/4 -translate-x-2/4 -translate-y-2/4 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-3.5 w-3.5"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              stroke="currentColor"
-                              strokeWidth="1"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              ></path>
-                            </svg>
-                          </span>
-                        </div>
-                        {option}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center">
-          <p className="text-sm">Sort:</p>
-          <div className="relative ml-4">
-            <button
-              onClick={() => toggleDropdown("sort")}
-              className={`flex items-center gap-2 px-3 py-1 text-sm font-medium ${
-                activeDropdown === "sort" ? "bg-white" : ""
-              } hover:bg-white`}
-            >
-              {sort}
-              <span className="relative flex h-6 w-6 items-center justify-center">
-                <span className="h-0.5 w-2 bg-black transition-transform duration-300" />
-                <span
-                  className={`absolute h-0.5 w-2 bg-black transition-transform duration-300 ${
-                    activeDropdown === "sort" ? "rotate-0" : "rotate-90"
-                  }`}
-                />
-              </span>
-            </button>
-
-            {activeDropdown === "sort" && (
-              <div className="absolute right-0 w-max bg-white">
-                {sortOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleSortChange(option.value)}
-                    className={`block w-full px-4 py-2 text-left text-sm ${
-                      sort === option.value ? "font-medium" : ""
-                    } hover:bg-gray-100`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {selectedFilters && (
-        <div className="mt-6 flex items-center px-6">
-          <div className="ml-4 flex items-center justify-start space-x-3">
-            {Object.entries(selectedFilters)?.map(([key, value]) =>
-              value.length > 0 ? (
-                <div
-                  key={key}
-                  className="flex items-center gap-2 rounded-3xl hover:bg-gray-100"
-                >
-                  <span className="flex items-center rounded-3xl border p-2 text-sm font-medium">
-                    {value.map((item, index) => (
-                      <span key={index}>
-                        {`${item}${index < value.length - 1 ? ",\u00A0" : ""}`}
-                      </span>
-                    ))}
-
-                    <button
-                      onClick={() => {
-                        setFilterStatus("active");
-                        setSelectedFilters((prev) => ({
-                          ...prev,
-                          [key]: [],
-                        }));
-                        setFilterStatus("active");
-                      }}
-                      className="ml-2 text-sm font-medium text-gray-500 hover:text-gray-700"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="20px"
-                        viewBox="0 -960 960 960"
-                        width="20px"
-                        fill="#303030"
-                      >
-                        <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-                      </svg>
-                    </button>
-                  </span>
-                </div>
-              ) : null,
-            )}
-          </div>
-
-          {filterStatus === "active" && (
-            <button
-              onClick={handleFilter}
-              className="hdfxmen-cloth9.over:bg-primary-dark ml-3 bg-primary px-4 py-1.5 text-white"
-            >
-              Apply Filters
-            </button>
-          )}
-        </div>
-      )}
-    </>
+    <FilterContent
+      dropdownRef={dropdownRef}
+      activeDropdown={activeDropdown}
+      selectedFilters={selectedFilters}
+      setSelectedFilters={setSelectedFilters}
+      sort={sort}
+      sortOptions={sortOptions}
+      filterStatus={filterStatus}
+      setFilterStatus={setFilterStatus}
+      handleFilter={handleFilter}
+      handleChange={handleChange}
+      handleSortChange={handleSortChange}
+      filters={filters}
+      toggleDropdown={toggleDropdown}
+    />
   );
 }
 
