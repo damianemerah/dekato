@@ -7,7 +7,7 @@ import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
 import { startSession } from "mongoose";
-import getQuantity from "@/utils/getQuantity";
+import { getQuantity } from "@/utils/getFunc";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);

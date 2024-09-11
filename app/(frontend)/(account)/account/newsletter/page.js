@@ -16,13 +16,13 @@ export default function Newsletter() {
             Subscription Options
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <div class="relative flex gap-x-3">
-              <div class="flex h-6 items-center">
+            <div className="relative flex gap-x-3">
+              <div className="flex h-6 items-center">
                 <input
                   id="newsletter"
                   name="newsletter"
                   type="checkbox"
-                  className="h-4 w-4  text-primary focus:ring-primary"
+                  className="h-4 w-4 text-primary focus:ring-primary"
                 />
               </div>
               <label htmlFor="newsletter">General Subscription</label>

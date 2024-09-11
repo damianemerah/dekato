@@ -7,7 +7,7 @@ const addressSchema = new mongoose.Schema({
   phone: String,
   city: String,
   state: String,
-  country: { type: String, default: "Nigeria" },
+  country: { type: String },
   postalCode: String,
   isDefault: { type: Boolean },
 });

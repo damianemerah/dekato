@@ -6,10 +6,6 @@ import en from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
 import "@/style/globals.css";
 import "./admin.css";
-import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
-import useSWR from "swr";
-import { getAllCategories } from "@/app/action/categoryAction";
-import { AntdRegistry } from "@ant-design/nextjs-registry";
 import {
   ActionList,
   AppProvider,
@@ -35,14 +31,6 @@ import { set } from "lodash";
 function AdminLayout({ children }) {
   // Loading component and active navlink style
   const pathname = usePathname();
-  const setAllCategories = useCategoryStore((state) => state.setAllCategories);
-
-  // Use SWR to fetch categories
-  useSWR("/api/allCategories", getAllCategories, {
-    onSuccess: (categories) => {
-      setAllCategories(categories);
-    },
-  });
 
   // Split the pathname into an array of path segments
   const paths = pathname.split("/").filter(Boolean);
@@ -284,10 +272,9 @@ function AdminLayout({ children }) {
   return (
     <div>
       {/* App provider for Polaris components */}
-      <AntdRegistry>
-        <AppProvider linkComponent={LinkWrapper} i18n={en}>
-          {/* Frame for the admin interface */}
-          {/* <Frame
+      <AppProvider linkComponent={LinkWrapper} i18n={en}>
+        {/* Frame for the admin interface */}
+        {/* <Frame
             logo={logo}
             // topBar={topBarMarkup}
             navigation={navigationMarkup}
@@ -295,17 +282,16 @@ function AdminLayout({ children }) {
             onNavigationDismiss={toggleMobileNavigationActive}
             skipToContentTarget={skipToContentRef}
           > */}
-          {/* Contextual save bar for unsaved changes */}
-          {/* {contextualSaveBarMarkup} */}
-          {/* Loading indicator */}
-          {/* {loadingMarkup} */}
-          {/* Child components */}
-          {children}
-          {/* Toast message */}
-          {/* {toastMarkup} */}
-          {/* </Frame> */}
-        </AppProvider>
-      </AntdRegistry>
+        {/* Contextual save bar for unsaved changes */}
+        {/* {contextualSaveBarMarkup} */}
+        {/* Loading indicator */}
+        {/* {loadingMarkup} */}
+        {/* Child components */}
+        {children}
+        {/* Toast message */}
+        {/* {toastMarkup} */}
+        {/* </Frame> */}
+      </AppProvider>
     </div>
   );
 }

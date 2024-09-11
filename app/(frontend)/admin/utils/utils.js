@@ -1,22 +1,3 @@
-// export function disambiguateLabel(key, value) {
-//   switch (key) {
-//     case "type":
-//       return value.map((val) => `type: ${val}`).join(", ");
-//     case "tone":
-//       return value.map((val) => `tone: ${val}`).join(", ");
-//     default:
-//       return value;
-//   }
-// }
-
-// export function isEmpty(value) {
-//   if (Array.isArray(value)) {
-//     return value.length === 0;
-//   } else {
-//     return value === "" || value == null;
-//   }
-// }
-
 export function getFiles(fileList) {
   const media = {
     images: [],

@@ -9,6 +9,8 @@ import Email from "@/lib/email";
 import Address from "@/models/address";
 import { filterObj } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
+import Order from "@/models/order";
+import { formDataToObject } from "@/utils/filterObj";
 
 export async function createUser(formData) {
   await dbConnect();
@@ -44,17 +46,20 @@ export async function getUser(userId) {
 
   const userData = await User.findById(userId).populate("address");
 
-  console.log(userData, "userData");
-
   if (!userData) {
     throw new Error("No user found with that ID");
   }
 
-  const user = userData.toObject();
+  const userObj = userData.toObject();
+
+  const { _id, address, ...rest } = userObj;
+  const addressArr = address.map((addr) => {
+    const { _id, userId, ...rest } = addr;
+    return { id: _id.toString(), ...rest };
+  });
 
   // Rename _id to id and convert to string
-  const { _id, ...rest } = user;
-  return { id: _id.toString(), ...rest };
+  return { id: _id.toString(), address: addressArr, ...rest };
 }
 
 export async function updateUserInfo(userId, formData) {
@@ -157,20 +162,20 @@ export async function getAllUsers() {
     restrictTo("admin");
 
     const usersDoc = await User.find()
-      .populate("address")
+      .populate("address", "address city state country isDefault")
       .populate("orderCount");
+    // .populate("amountSpent");
 
     const users = usersDoc.map((user) => {
       const userObj = user.toObject();
       const { _id, address, ...rest } = userObj;
       const addressArr = address.map((addr) => {
-        const { _id, ...rest } = addr.toObject();
+        const { _id, userId, ...rest } = addr;
         return { id: _id.toString(), ...rest };
       });
-      return { id: _id.toString(), addressArr, ...rest };
+      return { id: _id.toString(), address: addressArr, ...rest };
     });
 
-    console.log(users, "users");
     return users;
   } catch (err) {
     const error = handleAppError(err);

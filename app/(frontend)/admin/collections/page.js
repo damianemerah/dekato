@@ -8,8 +8,6 @@ import Link from "next/link";
 import useSWR from "swr";
 import { getAllCategories } from "@/app/action/categoryAction";
 import image6 from "@/public/assets/no-image.webp";
-import { filter } from "lodash";
-import { record } from "zod";
 
 const Action = memo(function Action({ slug }) {
   const items = [
@@ -68,6 +66,9 @@ const Collections = () => {
   const { data: collections, isLoading } = useSWR(
     "/api/allCategories",
     getAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
   );
 
   const dataSource = collections?.map((item) => {
@@ -154,15 +155,16 @@ const Collections = () => {
   return (
     <>
       <Flex gap="middle" vertical className="p-6">
-        <Flex align="center" gap="middle">
-          <Button
-            type="primary"
-            onClick={start}
-            disabled={!hasSelected}
-            loading={loading}
-          >
-            Reload
-          </Button>
+        <Flex align="center" justify="end" gap="middle">
+          <Link href="/admin/collections/new">
+            <Button
+              className="!bg-primary !text-white"
+              onClick={start}
+              loading={loading}
+            >
+              Add new collection
+            </Button>
+          </Link>
           {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
         </Flex>
         <Table

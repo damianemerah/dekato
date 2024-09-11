@@ -1,5 +1,6 @@
 "use server";
 
+import mongoose from "mongoose";
 import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
 import { handleFormData } from "@/utils/handleForm";
@@ -91,48 +92,123 @@ export async function getAllCategories() {
   }
 }
 
-export async function getCategories(slug) {
+export async function getSubCategories(parentId) {
+  await dbConnect();
   try {
-    await dbConnect();
-    const query = !slug || slug === "home" ? { parent: null } : { slug };
-
-    const categoryDocs = await Category.find(query).populate({
-      path: "children",
-      select: "-__v -children.parent",
-    });
-
-    if (!categoryDocs) {
-      throw new Error("Category not found");
-    }
-
-    // Convert each document to a plain JavaScript object and modify the _id fields
-    const categories = categoryDocs.map((categoryDoc) => {
-      const category = categoryDoc.toObject();
-
-      // Rename _id to id and convert to string
-      const { _id, children, parent, ...rest } = category;
-
+    const categories = await Category.find({ parent: parentId })
+      .select("name description image slug createdAt")
+      .populate("productCount")
+      .sort({ slug: 1 })
+      .lean();
+    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
+      const { _id: pid, ...p } = parent || {};
       return {
         id: _id.toString(),
+        parent: parent ? { id: pid.toString(), ...p } : null,
         ...rest,
-
-        // Convert children _id to strings and remove parent field if it exists
-        children: children.map((child) => {
-          const { _id, parent, children, ...childRest } = child;
-          return {
-            id: _id.toString(),
-            ...childRest,
-          };
-        }),
       };
     });
 
-    return categories;
+    return formattedCat;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw Error(error.message || "Something went wrong");
   }
 }
+
+export async function fetchAllCategories() {
+  // Step 1: Fetch all categories from the database
+  const categories = await Category.find().exec();
+
+  // Step 2: Create a map of categories by their ID for easy lookup
+  const categoryMap = {};
+  categories.forEach((category) => {
+    categoryMap[category._id] = {
+      label: category.name,
+      href: category.slug ? `/${category.slug}/products` : undefined,
+      children: [], // Initialize children array
+    };
+  });
+
+  // Step 3: Build the hierarchical structure
+  const topLevelCategories = [];
+
+  categories.forEach((category) => {
+    if (category.parent) {
+      // If the category has a parent, add it to its parent's children array
+      if (categoryMap[category.parent]) {
+        categoryMap[category.parent].children.push(categoryMap[category._id]);
+      }
+    } else {
+      // If the category has no parent, it's a top-level category
+      topLevelCategories.push(categoryMap[category._id]);
+    }
+  });
+
+  // Step 4: Limit the depth to 3 levels
+  function limitDepth(categories, depth = 0) {
+    if (depth >= 2) {
+      // 0-based indexing, so 2 = 3rd level
+      return categories.map((category) => ({
+        label: category.label,
+        href: category.href,
+      }));
+    }
+    return categories.map((category) => ({
+      label: category.label,
+      href: category.href,
+      children: limitDepth(category.children, depth + 1),
+    }));
+  }
+
+  // Apply the depth limitation
+  const finalStructure = limitDepth(topLevelCategories);
+
+  return finalStructure;
+}
+
+// export async function getCategories(slug) {
+//   try {
+//     await dbConnect();
+//     const query = !slug || slug === "home" ? { parent: null } : { slug };
+
+//     const categoryDocs = await Category.find(query).populate({
+//       path: "children",
+//       select: "-__v -children.parent",
+//     });
+
+//     if (!categoryDocs) {
+//       throw new Error("Category not found");
+//     }
+
+//     // Convert each document to a plain JavaScript object and modify the _id fields
+//     const categories = categoryDocs.map((categoryDoc) => {
+//       const category = categoryDoc.toObject();
+
+//       // Rename _id to id and convert to string
+//       const { _id, children, parent, ...rest } = category;
+
+//       return {
+//         id: _id.toString(),
+//         ...rest,
+
+//         // Convert children _id to strings and remove parent field if it exists
+//         children: children.map((child) => {
+//           const { _id, parent, children, ...childRest } = child;
+//           return {
+//             id: _id.toString(),
+//             ...childRest,
+//           };
+//         }),
+//       };
+//     });
+
+//     return categories;
+//   } catch (err) {
+//     const error = handleAppError(err);
+//     throw new Error(error.message || "An error occurred");
+//   }
+// }
 
 export async function createCategory(formData) {
   await restrictTo("admin");

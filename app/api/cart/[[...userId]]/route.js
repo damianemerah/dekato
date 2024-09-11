@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
-import getQuantity from "@/utils/getQuantity";
+import { getQuantity } from "@/utils/getFunc";
 import _ from "lodash";
 import { protect, restrictTo } from "@/utils/checkPermission";
 

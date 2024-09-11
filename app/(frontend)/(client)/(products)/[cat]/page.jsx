@@ -10,7 +10,6 @@ const getAllCategories = async () => {
 };
 
 export async function generateStaticParams() {
-  console.log("Fetching category products 🎈🎈🎈");
   const categories = await getAllCategories();
 
   return categories.map((slug) => ({

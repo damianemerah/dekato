@@ -28,6 +28,9 @@ export default memo(function NewCollection({ params }) {
   const { data: allCategories, isLoading } = useSWR(
     "/api/allCategories",
     getAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
   );
   const setAllCategories = useCategoryStore((state) => state.setAllCategories);
 

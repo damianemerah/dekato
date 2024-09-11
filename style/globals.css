@@ -63,6 +63,7 @@ a:link {
   right: 0;
 }
 
+/* unused style */
 .animate_hover:hover {
   animation: productCard 0.3s both;
 }

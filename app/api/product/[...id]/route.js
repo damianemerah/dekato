@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
 import { startSession } from "mongoose";
-import getComputedStyleQuantity from "@/utils/getQuantity";
+import { getQuantity } from "@/utils/getFunc";
 import { protect, restrictTo } from "@/utils/checkPermission";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
@@ -64,7 +64,7 @@ export async function POST(req, { params }) {
       });
     }
 
-    getComputedStyleQuantity(singleProduct, product);
+    getQuantity(singleProduct, product);
 
     if (shippingMethod.toLowerCase() === "delivery" && !address) {
       throw new AppError("Address is required for delivery", 400);

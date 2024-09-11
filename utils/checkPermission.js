@@ -18,7 +18,6 @@ export const protect = async () => {
 
 export const restrictTo = async (...roles) => {
   const session = await protect();
-  console.log(session, "session🚀🚀🚀");
 
   if (!session) {
     throw new AppError("Please log in to access this resource", 401);

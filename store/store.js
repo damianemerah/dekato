@@ -1,4 +1,3 @@
-import { set } from "lodash";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -35,27 +34,12 @@ export const useCartStore = create((set) => ({
   setCurUICategory: (curUICategory) => set({ curUICategory }),
 }));
 
-export const useProductStore = create(
-  (set) => ({
-    products: [],
-    setProducts: (products) => set({ products }),
-    addProduct: (product) =>
-      set((state) => ({ products: [...state.products, product] })),
-    removeProduct: (id) =>
-      set((state) => ({
-        products: state.products.filter((product) => product.id !== id),
-      })),
-    updateProduct: (updatedProduct) =>
-      set((state) => ({
-        products: state.products.map((product) =>
-          product.id === updatedProduct.id ? updatedProduct : product,
-        ),
-      })),
-  }),
-  {
-    name: "product-storage",
-  },
-);
+export const useProductStore = create((set) => ({
+  products: [],
+  setProducts: (products) => set({ products }),
+  isLoading: false,
+  setIsLoading: (isLoading) => set({ isLoading }),
+}));
 
 export const useCategoryStore = create((set) => ({
   categories: [],
@@ -89,3 +73,8 @@ export const useSidebarStore = create(
     },
   ),
 );
+
+export const useSearchStore = create((set) => ({
+  searchString: "",
+  setSearchString: (searchString) => set({ searchString }),
+}));

@@ -2,7 +2,7 @@ import { Cart, CartItem } from "@/models/cart";
 import User from "@/models/user";
 import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
-import getQuantity from "@/utils/getQuantity";
+import { getQuantity } from "@/utils/getFunc";
 import _ from "lodash";
 import { restrictTo } from "@/utils/checkPermission";
 
