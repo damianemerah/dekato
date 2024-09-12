@@ -71,7 +71,7 @@ export async function getAllCategories() {
   try {
     const categories = await Category.find(
       {},
-      "name description image slug createdAt parent",
+      "name description image slug createdAt parent pinned pinOrder",
     )
       .populate("productCount")
       .populate("parent", "name _id slug")
@@ -250,12 +250,24 @@ export async function updateCategory(formData) {
   await dbConnect();
   try {
     const id = formData.get("id");
-    const body = await handleFormData(formData, Category, id);
+    const data = await handleFormData(formData, Category, id);
+
+    const body = {};
+
+    for (const [key, _] of Object.entries(data)) {
+      if (formData.get(key)) {
+        body[key] = data[key];
+      }
+    }
 
     const categoryDoc = await Category.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
-    });
+    })
+      .select("name description image slug createdAt parent pinned pinOrder")
+      .populate("productCount")
+      .populate("parent", "name _id slug")
+      .lean();
 
     if (!categoryDoc) {
       throw new Error("Category not found");
@@ -267,6 +279,9 @@ export async function updateCategory(formData) {
     const { _id, ...rest } = category;
 
     revalidatePath(`/admin/collections/${category.slug}`);
+    revalidatePath(`/admin/collections`);
+
+    console.log({ id: _id.toString(), ...rest });
     return { id: _id.toString(), ...rest };
   } catch (err) {
     const error = handleAppError(err);

@@ -176,24 +176,35 @@ export async function getAllProducts(cat, searchParams = {}) {
       .limitFields()
       .paginate();
 
-    const products = await feature.query;
+    const productData = await feature.query;
 
-    for (let i = 0; i < products.length; i++) {
-      products[i]._id = products[i]._id.toString();
+    const products = productData.map((product) => {
+      const { _id, category, variant, ...rest } = product;
 
-      if (products[i].category) {
-        products[i].category = products[i].category.map((c) => {
+      const formattedProduct = {
+        id: _id.toString(),
+        ...rest,
+      };
+
+      if (category) {
+        formattedProduct.category = category.map((c) => {
           const { _id, ...rest } = c;
+
           return { id: _id.toString(), ...rest };
         });
       }
-      if (products[i].variant) {
-        products[i].variant = products[i].variant.map((v) => {
+
+      if (variant) {
+        formattedProduct.variant = variant.map((v) => {
           const { _id, ...rest } = v;
           return { id: _id.toString(), ...rest };
         });
       }
-    }
+
+      return formattedProduct;
+    });
+
+    console.log(products, "products🚀🚀🚀");
 
     return products;
   } catch (err) {
@@ -244,7 +255,14 @@ export async function updateProduct(formData) {
     const id = formData.get("id");
     // Find the existing product
     if (!id) throw new AppError("Product not found", 404);
-    const productToUpdate = await handleFormData(formData, Product, id);
+    const data = await handleFormData(formData, Product, id);
+    const productToUpdate = {};
+
+    for (const [key, _] of Object.entries(data)) {
+      if (formData.get(key)) {
+        body[key] = data[key];
+      }
+    }
 
     Object.entries(productToUpdate).forEach(([key, value]) => {
       if (key.startsWith("variantData") || key.startsWith("variantImage")) {

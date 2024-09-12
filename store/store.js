@@ -77,4 +77,7 @@ export const useSidebarStore = create(
 export const useSearchStore = create((set) => ({
   searchString: "",
   setSearchString: (searchString) => set({ searchString }),
+
+  activeDropdown: false,
+  setActiveDropdown: (activeDropdown) => set({ activeDropdown }),
 }));

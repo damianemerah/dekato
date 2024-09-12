@@ -4,20 +4,37 @@ import Image from "next/image";
 import Link from "next/link";
 import image3 from "@/public/assets/image3.png";
 import { oswald } from "@/font";
+import useSWR from "swr";
+import { getAllCategories } from "@/app/action/categoryAction";
 
 export default function HomeCategory() {
   const [selectedCategory, setSelectedCategory] = useState("women");
+
+  const { data: allCategories, isLoading } = useSWR(
+    "/api/allCategories",
+    getAllCategories,
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        console.log(data);
+      },
+    },
+  );
 
   const categories = {
     women: [
       { name: "Dresses", image: image3 },
       { name: "Tops", image: image3 },
       { name: "Jeans", image: image3 },
+      { name: "Jeans", image: image3 },
+      { name: "Jeans", image: image3 },
       { name: "Shoes", image: image3 },
       // { name: "Accessories", image: image3 },
     ],
     men: [
       { name: "Shirts", image: image3 },
+      { name: "Pants", image: image3 },
+      { name: "Pants", image: image3 },
       { name: "Pants", image: image3 },
       { name: "Jackets", image: image3 },
       { name: "Sneakers", image: image3 },

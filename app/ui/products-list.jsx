@@ -9,6 +9,7 @@ import { useProductStore } from "@/store/store";
 const fetcher = async (cat, searchParams) => {
   if (cat === "q") return;
   const productData = await getAllProducts(cat, searchParams);
+  console.log(productData, "productData🔥🚀💎");
   return productData;
 };
 

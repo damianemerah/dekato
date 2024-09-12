@@ -10,10 +10,16 @@ import "swiper/css/effect-fade";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, EffectFade, Autoplay } from "swiper/modules";
+import { useSearchStore } from "@/store/store";
 
 export default function Hero() {
+  const activeDropdown = useSearchStore((state) => state.activeDropdown);
+  const setActiveDropdown = useSearchStore((state) => state.setActiveDropdown);
   return (
-    <section className={`${oswald.className}`}>
+    <section
+      className={`${oswald.className}`}
+      onClick={() => (activeDropdown ? setActiveDropdown(false) : null)}
+    >
       <Swiper
         modules={[EffectFade, Pagination, Navigation, Autoplay]}
         spaceBetween={30}

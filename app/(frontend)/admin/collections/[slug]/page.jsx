@@ -38,7 +38,7 @@ export default memo(function NewCollection({ params }) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (allCategories.length) {
+    if (allCategories?.length) {
       const category = allCategories.map((cat) => ({
         value: cat.id,
         label: cat.name,
@@ -148,7 +148,7 @@ export default memo(function NewCollection({ params }) {
     >
       <ButtonPrimary
         type="submit"
-        className="mb-4 ml-auto block !rounded-md !px-3.5 py-4 text-right text-base font-bold tracking-wide"
+        className="mb-4 ml-auto block !rounded-md text-right text-base font-bold tracking-wide"
       >
         {actionType === "edit" ? "Update collection" : "Create collection"}
       </ButtonPrimary>
@@ -191,7 +191,7 @@ export default memo(function NewCollection({ params }) {
         <div>
           <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
             <MediaUpload
-              multiple={false}
+              multiple={true}
               fileList={fileList}
               setFileList={setFileList}
               defaultFileList={defaultFileList}

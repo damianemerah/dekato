@@ -14,6 +14,8 @@ const categorySchema = new mongoose.Schema({
     default: null,
     index: true,
   },
+  pinned: Boolean,
+  pinOrder: Number,
   children: [{ type: mongoose.Schema.ObjectId, ref: "Category" }],
   createdAt: { type: Date, default: Date.now },
 });

@@ -53,7 +53,7 @@ export default memo(function Page({ params }) {
   const submitBtnRef = useRef(null);
 
   const { data: allCategories, isLoading: catIsLoading } = useSWR(
-    "/admin/categories",
+    "/api/allCategories",
     getAllCategories,
     {
       revalidateOnFocus: false,

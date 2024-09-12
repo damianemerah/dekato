@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ProductCard({ product }) {
   const discountedPrice = product.discount
@@ -22,11 +23,17 @@ export default function ProductCard({ product }) {
         )}
       </div>
       <div className="p-2">
-        {/* <h3 className="text-xs uppercase text-gray-500">{product.category}</h3> */}
-        <p className="mt-1 line-clamp-2 text-sm font-light text-[#303030]">
-          {product.name}
-        </p>
-        {product.discount && (
+        {/* <h3 className="text-xs uppercase text-gray-500">
+          {product.cat.join(", ")}
+        </h3> */}
+        {product.slug && (
+          <Link href={`/product/${product.slug}-${product.id.slice(-6)}`}>
+            <p className="mt-1 line-clamp-2 text-sm font-light text-[#303030]">
+              {product.name}
+            </p>
+          </Link>
+        )}
+        {product.discount > 0 && (
           <div className="flex items-center gap-2">
             <p className="mt-2 text-sm font-semibold text-gray-500 line-through">
               ₦{product.price}
