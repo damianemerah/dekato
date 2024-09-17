@@ -12,7 +12,7 @@ export default memo(function CategoryProducts({ cat, searchParams }) {
   return (
     <>
       <div className="flex w-full items-center justify-center bg-gray-100 py-14 uppercase">
-        <h1 className="text-3xl font-semibold">{`${cat} Selected Styles`}</h1>
+        <h1 className="text-3xl font-semibold">{`${cat.slice(-1)[0]} Selected Styles`}</h1>
       </div>
       <Filter cat={cat} searchParams={searchParams} />
       <div className="px-8 py-12">

@@ -17,6 +17,7 @@ class APIFeatures {
   search() {
     if (this.queryString.q) {
       const searchQuery = this.queryString.q.trim();
+      console.log(searchQuery, "searchQuery🚀🚀🚀");
       const searchWords = searchQuery.split(" ").map((word) => word.trim());
 
       // Construct a regex pattern that checks if each word in the query appears at the start of words

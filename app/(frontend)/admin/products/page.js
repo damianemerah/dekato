@@ -7,6 +7,7 @@ import Image from "next/image";
 import { getAdminProduct, deleteProduct } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import image6 from "@/public/assets/no-image.webp";
 import Link from "next/link";
 
@@ -65,12 +66,16 @@ const ProductsList = () => {
     mutate,
     isLoading,
   } = useSWR("/admin/products", () => getAdminProduct(), {
-    revalidateOnFocus: false,
+    revalidateOnFocus: true,
   });
 
-  const { data: collections } = useSWR("/api/allCategories", getAllCategories, {
-    revalidateOnFocus: false,
-  });
+  const { data: collections } = useSWRImmutable(
+    "/api/allCategories",
+    getAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   const dataSource = products?.map((item) => ({
     key: item.id,
@@ -78,23 +83,21 @@ const ProductsList = () => {
     name: item.name,
     status: item.status,
     productCount: item.quantity,
-    category: item.cat.join(", "),
+    category: item.cat?.join(", ") || "",
     action: <Action />,
   }));
 
+  console.log(products, "dataSource🚀🚀🚀");
+
   const handleDelete = async (id) => {
-    const deleteAndUpdateProd = () => {
-      new Promise(async (resolve, reject) => {
-        try {
-          await deleteProduct(id);
-          mutate("/admin/products");
-          message.success("Product deleted successfully");
-          resolve();
-        } catch (error) {
-          message.error("Failed to delete product");
-          reject();
-        }
-      });
+    const deleteAndUpdateProd = async () => {
+      try {
+        await deleteProduct(id);
+        await mutate();
+        message.success("Product deleted successfully");
+      } catch (error) {
+        message.error("Failed to delete product");
+      }
     };
     try {
       confirm({

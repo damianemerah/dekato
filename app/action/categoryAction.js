@@ -92,10 +92,15 @@ export async function getAllCategories() {
   }
 }
 
-export async function getSubCategories(parentId) {
+export async function getSubCategories(slug) {
   await dbConnect();
   try {
-    const categories = await Category.find({ parent: parentId })
+    const category = await Category.findOne({ slug });
+    if (!category) {
+      throw new Error("Category not found");
+    }
+
+    const categories = await Category.find({ parent: category._id })
       .select("name description image slug createdAt")
       .populate("productCount")
       .sort({ slug: 1 })
@@ -167,49 +172,6 @@ export async function fetchAllCategories() {
   return finalStructure;
 }
 
-// export async function getCategories(slug) {
-//   try {
-//     await dbConnect();
-//     const query = !slug || slug === "home" ? { parent: null } : { slug };
-
-//     const categoryDocs = await Category.find(query).populate({
-//       path: "children",
-//       select: "-__v -children.parent",
-//     });
-
-//     if (!categoryDocs) {
-//       throw new Error("Category not found");
-//     }
-
-//     // Convert each document to a plain JavaScript object and modify the _id fields
-//     const categories = categoryDocs.map((categoryDoc) => {
-//       const category = categoryDoc.toObject();
-
-//       // Rename _id to id and convert to string
-//       const { _id, children, parent, ...rest } = category;
-
-//       return {
-//         id: _id.toString(),
-//         ...rest,
-
-//         // Convert children _id to strings and remove parent field if it exists
-//         children: children.map((child) => {
-//           const { _id, parent, children, ...childRest } = child;
-//           return {
-//             id: _id.toString(),
-//             ...childRest,
-//           };
-//         }),
-//       };
-//     });
-
-//     return categories;
-//   } catch (err) {
-//     const error = handleAppError(err);
-//     throw new Error(error.message || "An error occurred");
-//   }
-// }
-
 export async function createCategory(formData) {
   await restrictTo("admin");
   await dbConnect();
@@ -266,8 +228,7 @@ export async function updateCategory(formData) {
     })
       .select("name description image slug createdAt parent pinned pinOrder")
       .populate("productCount")
-      .populate("parent", "name _id slug")
-      .lean();
+      .populate("parent", "name _id slug");
 
     if (!categoryDoc) {
       throw new Error("Category not found");
@@ -276,7 +237,7 @@ export async function updateCategory(formData) {
     const category = categoryDoc.toObject();
 
     // Return category with id instead of _id
-    const { _id, ...rest } = category;
+    const { _id, parent, ...rest } = category;
 
     revalidatePath(`/admin/collections/${category.slug}`);
     revalidatePath(`/admin/collections`);
@@ -311,6 +272,20 @@ export async function deleteCategory(id) {
       );
     }
 
+    // Find categories where children array includes the deleted category's id
+    const categoriesWithDeletedChild = await Category.find({
+      children: deletedCategory._id,
+    });
+
+    // Remove the deleted category's id from the children array of these categories
+    for (const category of categoriesWithDeletedChild) {
+      category.children = category.children.filter(
+        (childId) => !childId.equals(deletedCategory._id),
+      );
+      await category.save();
+    }
+
+    revalidatePath("/admin/collections");
     return null;
   } catch (err) {
     const error = handleAppError(err);

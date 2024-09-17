@@ -61,12 +61,15 @@ export async function getAdminProduct() {
       if (variant) {
         formattedProduct.variant = variant.map((v) => {
           const { _id, ...rest } = v;
+          console.log(rest, "rest🔥✔️✔️✔️");
           return { id: _id.toString(), ...rest };
         });
       }
 
       return formattedProduct;
     });
+
+    // console.log(formattedProducts, "formattedProducts🚀🚀🚀");
 
     return formattedProducts;
   } catch (err) {
@@ -102,20 +105,15 @@ export async function productSearch(searchQuery) {
   }
 }
 
-export async function getVariantsByCategory(id, searchStr = "") {
+export async function getVariantsByCategory(catName, searchStr = "") {
   try {
     await dbConnect();
-    console.log("id👇👇", id, "str", searchStr);
 
     let matchCondition = {};
 
-    if (searchStr && id === "search") {
-      console.log("searchStr👇", searchStr);
-
+    if (searchStr && catName.toLowerCase() === "search") {
       // Split the search string into individual words
       const searchWords = searchStr.split(" ").map((word) => word.trim());
-
-      // Create a regex pattern that ensures each word starts at the beginning of a word in the field
       const regexPattern = searchWords.map((word) => `\\b${word}`).join(".*");
 
       // Apply the regex pattern to the name, description, and tag fields
@@ -126,10 +124,18 @@ export async function getVariantsByCategory(id, searchStr = "") {
           { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
         ],
       };
-    } else if (mongoose.Types.ObjectId.isValid(id) && id !== "search") {
-      console.log("id👇", id);
+    } else if (catName && catName !== "search") {
+      // Find the category
+      const category = await Category.findOne({ slug: catName });
+      if (!category) {
+        throw new Error("Category not found");
+      }
+
+      // Include the main category and all subcategories in the match condition
       matchCondition = {
-        category: new mongoose.Types.ObjectId(id),
+        category: {
+          $in: [category._id, ...category.children],
+        },
       };
     } else {
       return;
@@ -156,20 +162,33 @@ export async function getVariantsByCategory(id, searchStr = "") {
 
 export async function getAllProducts(cat, searchParams = {}) {
   try {
+    await dbConnect();
     const params = { ...searchParams };
-    if (cat) {
-      params.cat = params.cat
-        ? Array.from(new Set([...params.cat.split(","), cat])).join(",")
-        : cat;
+    const catName =
+      cat && cat.length > 0 ? cat.slice(-1)[0].toLowerCase() : null;
+
+    // Find the category
+    const category = catName
+      ? await Category.findOne({ slug: catName }).lean()
+      : null;
+
+    let categoryIds = [];
+    if (category) {
+      console.log(category, "category🔥🚀💎");
+      categoryIds = [category._id, ...(category.children || [])];
     }
+
+    // Modify the query to include the category and its children if category exists
+    const baseQuery =
+      categoryIds.length > 0
+        ? Product.find({ category: { $in: categoryIds } })
+        : Product.find();
+
+    const populatedQuery = baseQuery.populate("category", "slug").lean();
+
     const newSearchParams = getQueryObj(params);
 
-    await dbConnect();
-
-    const feature = new APIFeatures(
-      Product.find().populate("category", "slug").lean(),
-      newSearchParams,
-    )
+    const feature = new APIFeatures(populatedQuery, newSearchParams)
       .filter()
       .search()
       .sort()
@@ -203,8 +222,6 @@ export async function getAllProducts(cat, searchParams = {}) {
 
       return formattedProduct;
     });
-
-    console.log(products, "products🚀🚀🚀");
 
     return products;
   } catch (err) {
@@ -260,11 +277,14 @@ export async function updateProduct(formData) {
 
     for (const [key, _] of Object.entries(data)) {
       if (formData.get(key)) {
-        body[key] = data[key];
+        productToUpdate[key] = data[key];
       }
     }
+    if (data.variant) {
+      productToUpdate.variant = data.variant;
+    }
 
-    Object.entries(productToUpdate).forEach(([key, value]) => {
+    Object.entries(productToUpdate).forEach(([key, _]) => {
       if (key.startsWith("variantData") || key.startsWith("variantImage")) {
         delete productToUpdate[key];
       }
@@ -299,11 +319,17 @@ export async function updateProduct(formData) {
       // Replace the variant array with the updated and new variants
       productToUpdate.variant = updatedVariants;
     }
+
+    console.log(productToUpdate, "productToUpdate🔥🚀💎");
     // Update the product
-    const productData = await Product.findByIdAndUpdate(id, productToUpdate, {
-      new: true,
-      runValidators: true,
-    });
+    const productData = await Product.findOneAndUpdate(
+      { _id: id },
+      productToUpdate,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     const {
       _id,
@@ -384,13 +410,32 @@ export async function searchProduct(searchQuery) {
 export async function getProductById(id) {
   await dbConnect();
 
-  const product = await Product.findById(id);
+  const productData = await Product.findById(id).lean();
 
-  if (!product) {
+  if (!productData) {
     throw new Error("Product not found");
   }
 
-  return product;
+  const product = productData;
+
+  console.log(product, "productsss🔥🚀💎");
+  const { _id, category, variant, ...rest } = product;
+
+  const productVariant = variant.map((v) => {
+    const { _id, ...rest } = v;
+    return { id: _id.toString(), ...rest };
+  });
+
+  const productCategory = category.map((c) => ({
+    id: c._id.toString(),
+  }));
+
+  return {
+    id: _id.toString(),
+    ...rest,
+    variant: productVariant,
+    category: productCategory,
+  };
 }
 
 export async function getProductsByCategory(cat) {

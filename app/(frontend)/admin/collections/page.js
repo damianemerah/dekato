@@ -9,15 +9,20 @@ import {
   Space,
   Checkbox,
   InputNumber,
+  message,
 } from "antd";
 import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import Link from "next/link";
-import useSWR from "swr";
-import { getAllCategories, updateCategory } from "@/app/action/categoryAction";
+import useSWRImmutable from "swr/immutable";
+import {
+  getAllCategories,
+  updateCategory,
+  deleteCategory,
+} from "@/app/action/categoryAction";
 import image6 from "@/public/assets/no-image.webp";
 
-const Action = memo(function Action({ slug }) {
+const Action = memo(function Action({ slug, handleDelete }) {
   const items = [
     {
       label: (
@@ -33,11 +38,7 @@ const Action = memo(function Action({ slug }) {
     },
     {
       label: (
-        <p
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => alert("delete")}
-        >
+        <p target="_blank" rel="noopener noreferrer" onClick={handleDelete}>
           Delete
         </p>
       ),
@@ -71,19 +72,19 @@ const Collections = () => {
   const [pinOrders, setPinOrders] = useState({}); // Track pinOrder and isChecked
   const [changedRows, setChangedRows] = useState({}); // Track which rows have been changed
 
-  const { data: collections, isLoading } = useSWR(
-    "/api/allCategories",
-    getAllCategories,
-    {
-      revalidateOnFocus: false,
-    },
-  );
+  const {
+    data: collections,
+    isLoading,
+    mutate,
+  } = useSWRImmutable("/api/allCategories", getAllCategories, {
+    revalidateOnFocus: false,
+  });
 
   useEffect(() => {
     if (!collections) return;
     const pins = collections.reduce((acc, c) => {
       acc[c.id] = {
-        pinOrder: c.pinOrder || 1, // Set default pin order
+        pinOrder: c.pinOrder, // Set default pin order
         isChecked: !!c.pinned, // Track whether it's pinned
       };
       return acc;
@@ -145,6 +146,8 @@ const Collections = () => {
         ...prev,
         [key]: false,
       }));
+      console.log("Update successful"); // Check if this logs
+      message.info("Updated"); // Ensure this is reached
     } catch (error) {
       console.error("Error updating category", error);
     }
@@ -228,21 +231,27 @@ const Collections = () => {
       title: "Action",
       dataIndex: "action",
       render: (_, record) => {
-        return <Action slug={record.slug} />;
+        return (
+          <Action
+            slug={record.slug}
+            handleDelete={() => handleDelete(record.key)}
+          />
+        );
       },
     },
     {
       title: "Pin",
       dataIndex: "pin",
+      sorter: (a, b) => a.pinOrder - b.pinOrder,
       render: (_, record) => (
         <Flex gap="small" align="center">
           <Checkbox
-            checked={!!record.isChecked}
+            checked={record.isChecked}
             onChange={(e) => handlePinChange(record.key, e.target.checked)}
           />
           <InputNumber
             min={1}
-            disabled={pinOrders[record.key]?.isChecked}
+            disabled={!pinOrders[record.key]?.isChecked}
             value={record?.pinOrder}
             onChange={(value) => handlePinOrderChange(record.key, value)}
           />
@@ -284,6 +293,25 @@ const Collections = () => {
   };
 
   const hasSelected = selectedRowKeys.length > 0;
+
+  const handleDelete = async (id) => {
+    try {
+      const category = collections.find((category) => category.id === id);
+      if (category.productCount > 0) {
+        message.warning(
+          "Products in this collection. Move products to other collection",
+          4,
+        );
+        return;
+      }
+      await deleteCategory(id);
+      await mutate();
+      message.success("Deleted");
+    } catch (error) {
+      console.log(error);
+      message.error("Error");
+    }
+  };
 
   return (
     <>

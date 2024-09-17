@@ -20,6 +20,7 @@ import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { Switch, Modal, message, Spin, Space } from "antd";
 import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
@@ -52,7 +53,7 @@ export default memo(function Page({ params }) {
   const comparePriceRef = useRef(null);
   const submitBtnRef = useRef(null);
 
-  const { data: allCategories, isLoading: catIsLoading } = useSWR(
+  const { data: allCategories, isLoading: catIsLoading } = useSWRImmutable(
     "/api/allCategories",
     getAllCategories,
     {
@@ -74,6 +75,7 @@ export default memo(function Page({ params }) {
     () => getAdminProduct(),
     {
       onSuccess: (prods) => {
+        console.log(prods, "prods🔥");
         return setProducts(prods);
       },
       revalidateOnFocus: false,
@@ -101,6 +103,8 @@ export default memo(function Page({ params }) {
         setActionType("edit");
         setSelectedProduct(selectedProduct);
         setVariants(selectedProduct?.variant);
+
+        console.log(selectedProduct, "selectedProduct🔥");
         setCurVariantOptions(generateVariantOptions(selectedProduct?.variant));
 
         const seletedImgs = selectedProduct.image.map((img, index) => {
@@ -142,7 +146,6 @@ export default memo(function Page({ params }) {
   ]);
 
   const handleFormSubmit = async (formData) => {
-    alert("submit");
     try {
       setProdLoading(true);
       setTimeout(() => {

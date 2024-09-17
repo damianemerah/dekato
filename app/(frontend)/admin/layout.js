@@ -26,7 +26,7 @@ import {
 } from "@shopify/polaris-icons";
 
 import { LinkWrapper } from "./components";
-import { set } from "lodash";
+import { SWRDevTools } from "swr-devtools";
 
 function AdminLayout({ children }) {
   // Loading component and active navlink style
@@ -273,6 +273,8 @@ function AdminLayout({ children }) {
     <div>
       {/* App provider for Polaris components */}
       <AppProvider linkComponent={LinkWrapper} i18n={en}>
+      <SWRDevTools>
+
         {/* Frame for the admin interface */}
         {/* <Frame
             logo={logo}
@@ -291,6 +293,7 @@ function AdminLayout({ children }) {
         {/* Toast message */}
         {/* {toastMarkup} */}
         {/* </Frame> */}
+        </SWRDevTools>
       </AppProvider>
     </div>
   );

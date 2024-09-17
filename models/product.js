@@ -117,6 +117,32 @@ productSchema.pre("save", async function (next) {
   next();
 });
 
+productSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate();
+  console.log(update, "update🚀🚀🚀");
+  if (update.category) {
+    try {
+      const categories = await Category.find({
+        _id: { $in: update.category },
+      }).select("slug");
+
+      console.log(categories, "categories🚀🚀🚀");
+
+      if (categories && categories.length > 0) {
+        update.cat = categories.map((cat) => cat.slug);
+        console.log(this.cat, "this.cat🚀🚀🚀");
+      } else {
+        if (this.status !== "draft") {
+          throw new Error("At least one category slug is required");
+        }
+      }
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
+
 const Product =
   mongoose.models.Product || mongoose.model("Product", productSchema);
 
