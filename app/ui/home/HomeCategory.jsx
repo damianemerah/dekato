@@ -54,6 +54,11 @@ export default function HomeCategory() {
     }
   }, [categories, categorizedItems]);
 
+  const handleSlideChange = (swiper) => {
+    setActiveIndex(swiper.activeIndex);
+    setTotalSlides(swiper.slides.length);
+  };
+
   return (
     <div className={`mb-8 mt-4 px-6 py-5 ${oswald.className}`}>
       <div className="ml-8 flex flex-col gap-1">
@@ -107,6 +112,9 @@ export default function HomeCategory() {
           <p>No categories available</p>
         )}
       </div>
+
+      <div className="swiper-button-prev hidden md:flex"></div>
+      <div className="swiper-button-next hidden md:flex"></div>
     </div>
   );
 }
