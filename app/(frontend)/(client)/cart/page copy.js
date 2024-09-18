@@ -7,7 +7,6 @@ import CartCards from "@/app/ui/cart/cart-card";
 import { oswald, inter } from "@/font";
 import { Button } from "@/app/ui/button";
 import Frame77 from "@/public/assets/frame77-dark.svg";
-import { Frame } from "@shopify/polaris";
 
 export default function Cart() {
   return (

@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { oswald } from "@/style/font";
-import React from "react";
 
 const Logo = () => {
   return (

@@ -6,6 +6,7 @@ import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { deleteProduct } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import Link from "next/link";
 import { getAllUsers } from "@/app/action/userAction";
 
@@ -59,9 +60,13 @@ const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { data: collections } = useSWR("/api/allCategories", getAllCategories, {
-    revalidateOnFocus: false,
-  });
+  const { data: collections } = useSWRImmutable(
+    "/api/allCategories",
+    getAllCategories,
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   const { data: users, isLoading } = useSWR("/api/users", getAllUsers, {
     revalidateOnFocus: false,
@@ -88,7 +93,7 @@ const ProductsList = () => {
       new Promise(async (resolve, reject) => {
         try {
           await deleteProduct(id);
-          mutate("/admin/products");
+          await mutate("/admin/products");
           message.success("Product deleted successfully");
           resolve();
         } catch (error) {

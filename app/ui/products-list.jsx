@@ -9,6 +9,7 @@ import { useProductStore } from "@/store/store";
 const fetcher = async (cat, searchParams) => {
   if (cat === "q") return;
   const productData = await getAllProducts(cat, searchParams);
+  console.log(productData, "productData🔥🚀💎");
   return productData;
 };
 
@@ -49,10 +50,11 @@ const ProductsList = ({ cat, searchParams }) => {
   const setProducts = useProductStore((state) => state.setProducts);
   const isLoading = useProductStore((state) => state.isLoading);
   const setIsLoading = useProductStore((state) => state.setIsLoading);
-  const pCat = cat === "search" ? null : cat;
+
+  const pCat = cat[0] === "search" ? null : cat;
 
   const { isLoading: pLoad, error } = useSWR(
-    [pCat, searchParams],
+    `products/${pCat}:${searchParams}`,
     () => fetcher(pCat, searchParams),
     {
       revalidateOnFocus: false,

@@ -32,23 +32,22 @@ export function getQuantity(item, product) {
 export const generateVariantOptions = (variants) => {
   const clonedVariants = [...variants];
 
-  // console.log(clonedVariants, "clonedVariants");
-
   const result = {};
   clonedVariants.forEach((variant) => {
     Object.entries(variant.options).forEach(([key, value]) => {
       if (!result[key]) {
         result[key] = new Set();
       }
+
       result[key].add(value);
     });
   });
+
   const formattedResult = Object.keys(result).map((key) => ({
     id: key.id || uuidv4(),
     name: key,
     values: Array.from(result[key]),
   }));
-  // console.log(formattedResult, "formattedResult");
   return formattedResult;
 };
 
@@ -56,7 +55,10 @@ export function getQueryObj(searchParams) {
   console.log(searchParams, "searchParams⭐⭐");
 
   const params = Object.fromEntries(
-    Object.entries(searchParams).map(([key, value]) => [key, value.split(",")]),
+    Object.entries(searchParams).map(([key, value]) => [
+      key,
+      Array.isArray(value) ? value.slice(-1) : value.split(","),
+    ]),
   );
 
   let variantConditions = [];

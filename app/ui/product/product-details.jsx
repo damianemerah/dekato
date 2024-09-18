@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { oswald } from "@/font";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -10,6 +10,9 @@ import FbIcon from "@/public/assets/icons/facebook-share.svg";
 import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { Button, ButtonPrimary } from "@/app/ui/button";
+import useSWR from "swr";
+import { getProductById } from "@/app/action/productAction";
+import { generateVariantOptions } from "@/utils/getFunc";
 
 const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   const contentRef = useRef(null);
@@ -43,22 +46,54 @@ const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   );
 };
 
-export default function ProductDetail() {
-  const product = {
-    id: 1,
-    category: "TOP WOMEN",
-    name: "Women Black Checked Fit and Flare Dress",
-    images: ["/assets/image7.png", "/assets/image8.png", "/assets/image9.png"],
-    color: "Black",
-    sizes: ["S", "M", "L", "XL", "XXL", "4XL"],
-    price: "50000.00",
-    quantity: 1,
-    discount: 30,
-  };
+const fetcher = async (id) => {
+  const product = await getProductById(id);
+  return product;
+};
 
-  const discountedPrice = product.discount
-    ? (product.price * (100 - product.discount)) / 100
-    : product.price;
+export default function ProductDetail({ name }) {
+  const [variantOptions, setVariantOptions] = useState([]);
+  const [variantImages, setVariantImages] = useState([]);
+  const [discountedPrice, setDiscountedPrice] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const id = name.split("-").slice(-1)[0];
+
+  const { data: product, isLoading } = useSWR(
+    `/product/${id}`,
+    () => fetcher(id),
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        console.log(data, "product data🔥🚀💎");
+      },
+    },
+  );
+
+  // const product = {
+  //   id: 1,
+  //   category: "TOP WOMEN",
+  //   name: "Women Black Checked Fit and Flare Dress",
+  //   images: ["/assets/image7.png", "/assets/image8.png", "/assets/image9.png"],
+  //   color: "Black",
+  //   sizes: ["S", "M", "L", "XL", "XXL", "4XL"],
+  //   price: "50000.00",
+  //   quantity: 1,
+  //   discount: 30,
+  // };
+
+  useEffect(() => {
+    if (!product || isLoading) return;
+    const discountedPrice = product?.discount
+      ? (product.price * (100 - product.discount)) / 100
+      : product.price;
+    setDiscountedPrice(discountedPrice);
+
+    const options = generateVariantOptions(product.variant);
+    setVariantOptions(options);
+
+    const variantImages = product.variant.map((variant) => variant.image);
+    setVariantImages([...new Set(variantImages)]);
+  }, [product, isLoading]);
 
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
@@ -66,6 +101,8 @@ export default function ProductDetail() {
   const handleToggleSection = (section) => {
     setActiveSection(activeSection === section ? null : section);
   };
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <>
@@ -84,7 +121,7 @@ export default function ProductDetail() {
                 direction="vertical"
                 className="h-fit"
               >
-                {product.images.map((image, index) => (
+                {product?.image.map((image, index) => (
                   <SwiperSlide key={index} className="!h-14 !w-12">
                     <Image
                       className="block h-full w-full object-cover"
@@ -104,7 +141,7 @@ export default function ProductDetail() {
                 modules={[FreeMode, Thumbs]}
                 className="mainSwiper h-full max-w-lg"
               >
-                {product.images.map((image, index) => (
+                {product.image.map((image, index) => (
                   <SwiperSlide key={index}>
                     <Image
                       className="block h-full w-full object-cover"
@@ -130,7 +167,7 @@ export default function ProductDetail() {
 
         <div className="float-left mt-6 block w-[33.3332%] max-w-80 flex-1 space-y-4 px-3">
           <h3 className="text-2xl font-normal">{product.name}</h3>
-          {product.discount && (
+          {product.discount > 0 && (
             <div className="flex items-center gap-2">
               <p className="text-base font-semibold text-gray-500 line-through">
                 ₦{product.price}
@@ -144,7 +181,7 @@ export default function ProductDetail() {
             <p className="text-lg font-semibold">₦{product.price}</p>
           )}
 
-          <div className="">
+          {/* <div className="">
             <p className={`${oswald.className} mb-2 text-base font-medium`}>
               Color: <span>{product.color}</span>
             </p>
@@ -153,9 +190,62 @@ export default function ProductDetail() {
               <span className="h-8 w-8 rounded-full border border-black bg-black p-1"></span>
               <span className="h-8 w-8 rounded-full border border-black bg-white p-1"></span>
             </div>
-          </div>
+          </div> */}
 
-          <div className="">
+          {variantOptions.length > 0 && (
+            <div>
+              {variantOptions.map((option) => {
+                if (option.name === "color") {
+                  return (
+                    <>
+                      <p
+                        key={option.id}
+                        className={`${oswald.className} mb-2 text-base font-medium`}
+                      >
+                        <span className="capitalize">{option.name}</span>:{" "}
+                        <span>{product.color}</span>
+                      </p>
+                      <div className="flex gap-2">
+                        {variantImages.map((image, index) => (
+                          <div
+                            key={index}
+                            className="h-16 w-16 rounded-full border border-black p-1"
+                          >
+                            <Image
+                              src={image}
+                              alt={`Variant ${index + 1}`}
+                              width={64}
+                              height={64}
+                              className="h-full w-full rounded-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                } else {
+                  return (
+                    <>
+                      <p
+                        key={option.id}
+                        className={`${oswald.className} mb-2 text-base font-medium`}
+                      >
+                        <span className="capitalize">{option.name}</span>:{" "}
+                        <span>{product.color}</span>
+                      </p>
+                      <div className="flex gap-2">
+                        <span className="h-8 w-8 rounded-full border border-black bg-red-600 p-1"></span>
+                        <span className="h-8 w-8 rounded-full border border-black bg-black p-1"></span>
+                        <span className="h-8 w-8 rounded-full border border-black bg-white p-1"></span>
+                      </div>
+                    </>
+                  );
+                }
+              })}
+            </div>
+          )}
+
+          {/* <div className="">
             <p className={`${oswald.className} mb-2 text-base font-medium`}>
               Size:
             </p>
@@ -169,7 +259,7 @@ export default function ProductDetail() {
                 </p>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className={`${oswald.className} space-y-2 pt-2`}>
             <div className="flex items-center justify-center gap-2">
@@ -201,15 +291,10 @@ export default function ProductDetail() {
                 isOpen={activeSection === "Product Details"}
                 onToggle={() => handleToggleSection("Product Details")}
               >
-                <p>
-                  Cool off-duty look Black checked dress, has a round neck,
-                  three-quarter sleeves, concealed zip closure, an attached
-                  lining, and flared hem. Wear this dress to any occasion, and
-                  look elegant!
-                </p>
+                <p>{product.description}</p>
               </CollapsibleSection>
 
-              <CollapsibleSection
+              {/* <CollapsibleSection
                 title="Brand"
                 isOpen={activeSection === "Brand"}
                 onToggle={() => handleToggleSection("Brand")}
@@ -217,9 +302,9 @@ export default function ProductDetail() {
                 <p className={``}>
                   A brand known for its unique styles and comfortable fits.
                 </p>
-              </CollapsibleSection>
+              </CollapsibleSection> */}
 
-              <CollapsibleSection
+              {/* <CollapsibleSection
                 title="Size & Fit"
                 isOpen={activeSection === "Size & Fit"}
                 onToggle={() => handleToggleSection("Size & Fit")}
@@ -229,7 +314,7 @@ export default function ProductDetail() {
                   <br />
                   Model is wearing: XS - UK 8
                 </p>
-              </CollapsibleSection>
+              </CollapsibleSection> */}
 
               <CollapsibleSection
                 title="Delivery & Returns"

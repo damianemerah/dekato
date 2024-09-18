@@ -15,7 +15,6 @@ const MediaUpload = ({
   const [previewImage, setPreviewImage] = useState("");
 
   useEffect(() => {
-    console.log("defaultFileList", defaultFileList);
     if (defaultFileList?.length > 0 && fileList?.length === 0) {
       setFileList(defaultFileList);
     }

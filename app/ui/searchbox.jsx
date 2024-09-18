@@ -28,7 +28,8 @@ const fetcher = async (str) => {
 };
 
 const SearchBox = () => {
-  const [activeDropdown, setActiveDropdown] = useState(null);
+  const activeDropdown = useSearchStore((state) => state.activeDropdown);
+  const setActiveDropdown = useSearchStore((state) => state.setActiveDropdown);
   const setSearchString = useSearchStore((state) => state.setSearchString);
   const searchString = useSearchStore((state) => state.searchString);
   const dropdownRef = useRef(null);
@@ -45,13 +46,10 @@ const SearchBox = () => {
   useEffect(() => {
     setSearchString(debouncedSearch);
     setActiveDropdown(debouncedSearch ? true : false);
-  }, [debouncedSearch, setSearchString]);
+  }, [debouncedSearch, setSearchString, setActiveDropdown]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // console.log(dropdownRef?.current.contains(event.target));
-      // console.log(searchRef?.current.contains(event.target));
-
       if (
         !dropdownRef?.current?.contains(event.target) &&
         !searchRef?.current?.contains(event.target)
@@ -61,7 +59,7 @@ const SearchBox = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [setActiveDropdown]);
 
   const handleSearchProduct = async (e) => {
     e.preventDefault();

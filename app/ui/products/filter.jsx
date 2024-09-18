@@ -18,6 +18,7 @@ const sortOptions = [
 ];
 
 export default function Filter({ cat, searchParams }) {
+  const catName = cat.slice(-1)[0].toLowerCase();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
     price: [],
@@ -34,27 +35,22 @@ export default function Filter({ cat, searchParams }) {
   const products = useProductStore((state) => state.products);
   const isLoading = useProductStore((state) => state.isLoading);
 
-  const id =
-    cat === "search"
-      ? "search"
-      : products?.length > 0 &&
-        products[0]?.category.find(
-          (c) => c.slug.toLowerCase() === cat.toLowerCase(),
-        )?.id;
-
   const { data: subCategories } = useSWR(
-    id,
-    () => id && id !== "search" && getSubCategories(id),
+    catName ? catName : null,
+    () => getSubCategories(catName),
     {
       revalidateOnFocus: false,
     },
   );
 
   const { data: productVariants, isLoading: varIsLoading } = useSWR(
-    `productsVariant${(id, searchStr)}`,
-    () => id && getVariantsByCategory(id, searchStr),
+    catName ? `productsVariant:${catName}:${searchStr}` : null,
+    () => catName && getVariantsByCategory(catName, searchStr),
     {
       revalidateOnFocus: false,
+      onSuccess: (data) => {
+        console.log(data, "Vdata");
+      },
     },
   );
 
@@ -119,6 +115,9 @@ export default function Filter({ cat, searchParams }) {
       });
     }
   }, [varIsLoading, productVariants]);
+
+  console.log(variantOptions, "variantOptions");
+  console.log(productVariants, "productVariants");
 
   useEffect(() => {
     // Handle prefill searchparams with variant options
