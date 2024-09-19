@@ -1,6 +1,4 @@
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-import FacebookProvider from "next-auth/providers/facebook";
 import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
 import NextAuth from "next-auth";
@@ -36,14 +34,6 @@ export const OPTIONS = {
           throw new Error("Authentication failed");
         }
       },
-      // GoogleProvider({
-      //   clientId: process.env.GOOGLE_CLIENT_ID,
-      //   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      // }),
-      // FacebookProvider({
-      //   clientId: process.env.FACEBOOK_CLIENT_ID,
-      //   clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-      // }),
     }),
   ],
   callbacks: {
