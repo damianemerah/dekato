@@ -2,16 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function ProductCard({ product }) {
-  const discountedPrice = product.discount
-    ? (product.price * (100 - product.discount)) / 100
-    : product.price;
+  const discountedPrice =
+    product.price - (product.price * product.discount) / 100;
 
   return (
     <Link href={`/product/${product.slug}-${product.id}`}>
-      <div className="relative w-full max-w-sm bg-white">
-        <div className="relative h-[400px] w-full overflow-hidden">
+      <div className="flex h-full flex-col bg-white shadow-sm transition-all duration-300 hover:shadow-md">
+        <div className="relative aspect-[3/4] w-full overflow-hidden">
           <Image
-            src={product?.image[0]}
+            src={product?.image[0] || "/placeholder-image.jpg"}
             alt={product.name}
             fill={true}
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
@@ -23,28 +22,28 @@ export default function ProductCard({ product }) {
             </div>
           )}
         </div>
-        <div className="p-2">
-          {/* <h3 className="text-xs uppercase text-gray-500">
-          {product.cat.join(", ")}
-        </h3> */}
-          {product.slug && (
-            <p className="mt-1 line-clamp-2 text-sm font-light text-[#303030]">
+        <div className="flex flex-1 flex-col justify-between p-4">
+          <div>
+            <p className="mb-2 line-clamp-2 text-sm font-light text-[#303030]">
               {product.name}
             </p>
-          )}
-          {product.discount > 0 && (
-            <div className="flex items-center gap-2">
-              <p className="mt-2 text-sm font-semibold text-gray-500 line-through">
-                ₦{product.price}
+          </div>
+          <div>
+            {product.discount ? (
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-gray-500 line-through">
+                  ₦{product.price.toLocaleString()}
+                </p>
+                <p className="text-sm font-semibold text-[#12A100]">
+                  ₦{discountedPrice.toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm font-semibold">
+                ₦{product.price.toLocaleString()}
               </p>
-              <p className="mt-1 text-sm font-semibold text-[#12A100]">
-                ₦{discountedPrice}
-              </p>
-            </div>
-          )}
-          {!product.discount && (
-            <p className="mt-2 text-sm font-semibold">₦{product.price}</p>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </Link>
