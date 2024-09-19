@@ -4,7 +4,7 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [ ] **Environment Configuration**: Ensure all environment variables are correctly set up (e.g., database connection strings, API keys).
 
-- [ ] **Database Connection**: Verify that the database connection is established and working.
+- [x] **Database Connection**: Verify that the database connection is established and working.
 
 - [ ] **Dependencies**: Ensure all dependencies are installed and up-to-date (`package.json`).
 
@@ -14,7 +14,7 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [ ] **User Registration**: Users should be able to register.
 
-- [ ] **User Registration**: Users should be able to register.
+- [ ] **User Login**: Users should be able to log in.
 
 - [ ] **User Authentication**: Implement authentication checks for protected routes.
 
