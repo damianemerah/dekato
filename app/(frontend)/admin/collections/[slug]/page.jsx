@@ -53,7 +53,15 @@ export default memo(function NewCollection({ params }) {
       }, 0);
 
       setPinOrder(highestPinOrder + 1);
-      const category = allCategories.map((cat) => ({
+
+      // Filter categories to only include "men" or "women"
+      const filteredCategories = allCategories.filter(
+        (cat) =>
+          cat.name.toLowerCase() === "men" ||
+          cat.name.toLowerCase() === "women",
+      );
+
+      const category = filteredCategories.map((cat) => ({
         value: cat.id,
         label: cat.name,
       }));
