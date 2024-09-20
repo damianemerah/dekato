@@ -93,8 +93,30 @@ const Collections = () => {
     setPinOrders(pins);
   }, [collections]);
 
-  // Handle pin checkbox changes
   const handlePinChange = (key, isChecked) => {
+    const category = collections.find((cat) => cat.id === key);
+    if (
+      category.name.toLowerCase() === "men" ||
+      category.name.toLowerCase() === "women"
+    ) {
+      message.error("Cannot pin 'men' or 'women' categories");
+      return;
+    }
+
+    const parentCategory = collections.find(
+      (cat) => cat.id === category.parent?.id,
+    );
+    const pinnedCount = collections.filter(
+      (cat) => cat.parent?.id === category.parent?.id && cat.pinned,
+    ).length;
+
+    if (isChecked && pinnedCount >= 5) {
+      message.error(
+        `Cannot pin more than 5 categories under ${parentCategory.name}`,
+      );
+      return;
+    }
+
     setPinOrders((prev) => ({
       ...prev,
       [key]: {
@@ -102,8 +124,6 @@ const Collections = () => {
         isChecked, // Track checkbox state
       },
     }));
-
-    // Mark the row as changed
     setChangedRows((prev) => ({
       ...prev,
       [key]: true,

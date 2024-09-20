@@ -134,6 +134,27 @@ export default memo(function NewCollection({ params }) {
         formData.append("parent", cParent);
       }
 
+      // Ensure "men" and "women" cannot be pinned
+      if (
+        formData.get("name").toLowerCase() === "men" ||
+        formData.get("name").toLowerCase() === "women"
+      ) {
+        formData.set("pinned", false);
+      }
+
+      // Check the number of pinned categories under the selected parent
+      const parentCategory = allCategories.find((cat) => cat.id === cParent);
+      const pinnedCount = allCategories.filter(
+        (cat) => cat.parent?.id === cParent && cat.pinned,
+      ).length;
+
+      if (pinnedCount >= 5) {
+        message.error(
+          `Cannot pin more than 5 categories under ${parentCategory.name}`,
+        );
+        return;
+      }
+
       if (type === "edit") {
         const id = allCategories.find((category) => category.slug === slug).id;
         formData.append("id", id);
@@ -245,6 +266,10 @@ export default memo(function NewCollection({ params }) {
                 value="true"
                 checked={isPinned}
                 onChange={() => setIsPinned(!isPinned)}
+                disabled={
+                  selectedCategory?.name.toLowerCase() === "men" ||
+                  selectedCategory?.name.toLowerCase() === "women"
+                }
               />
 
               {isPinned && (
