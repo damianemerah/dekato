@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, memo } from "react";
-import { useSidebarStore, useCategoryStore } from "@/store/store";
+import { useSidebarStore } from "@/store/store";
 import {
   fetchAllCategories,
   getAllCategories,

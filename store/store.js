@@ -40,23 +40,17 @@ export const useProductStore = create((set) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
 }));
 
-export const useCategoryStore = create((set) => ({
-  categories: [],
-
-  setCategory: (categories) => set({ categories }),
-  addCategory: (category) =>
-    set((state) => ({ categories: [...state.categories, category] })),
-  removeCategory: (id) =>
-    set((state) => ({
-      categories: state.categories.filter((category) => category.id !== id),
-    })),
-  updateCategory: (updatedCategory) =>
-    set((state) => ({
-      categories: state.categories.map((category) =>
-        category.id === updatedCategory.id ? updatedCategory : category,
-      ),
-    })),
-}));
+export const useCategoryStore = create(
+  persist(
+    (set) => ({
+      selectedCategory: "women",
+      setSelectedCategory: (category) => set({ selectedCategory: category }),
+    }),
+    {
+      name: "selected-category",
+    },
+  ),
+);
 
 export const useSidebarStore = create(
   persist(

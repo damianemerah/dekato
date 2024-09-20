@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import image3 from "@/public/assets/image3.png";
 import { oswald } from "@/font";
 import useSWRImmutable from "swr/immutable";
 import { getAllCategories } from "@/app/action/categoryAction";
+import { useCategoryStore } from "@/store/store";
 import { Spin } from "antd";
 
 const getCategoryHierarchy = (category, categories) => {
@@ -22,9 +21,8 @@ const getTopLevelCategory = (category, categories) => {
 };
 
 export default function HomeCategory() {
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [categorizedListState, setCategorizedListState] = useState({});
-
+  const { selectedCategory, setSelectedCategory } = useCategoryStore();
+  const [categorizedListState, setCategorizedListState] = useState([]);
   const { data: categories, isLoading } = useSWRImmutable(
     "/api/allCategories",
     getAllCategories,
@@ -48,19 +46,17 @@ export default function HomeCategory() {
 
   useEffect(() => {
     if (categories && categories.length > 0) {
-      const initialCategory = "women";
-      setSelectedCategory(initialCategory);
-      setCategorizedListState(categorizedItems[initialCategory]);
+      setCategorizedListState(categorizedItems[selectedCategory] || []);
     }
-  }, [categories, categorizedItems]);
+  }, [categories, categorizedItems, selectedCategory]);
 
-  // const handleSlideChange = (swiper) => {
-  //   setActiveIndex(swiper.activeIndex);
-  //   setTotalSlides(swiper.slides.length);
-  // };
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    setCategorizedListState(categorizedItems[category] || []);
+  };
 
   return (
-    <div className={`mb-8 mt-4 px-6 py-5 ${oswald.className}`}>
+    <div className={`mb-8 mt-4 px-14 py-5 ${oswald.className}`}>
       <div className="ml-8 flex flex-col gap-1">
         <h2 className="text-3xl">Selected Category</h2>
         <div className="mb-6 flex items-center gap-6">
@@ -68,21 +64,13 @@ export default function HomeCategory() {
           <ul className="flex gap-4">
             <li
               className={`${selectedCategory === "women" ? "active__category" : ""} cursor-pointer`}
-              onClick={() => {
-                if (!categories) return;
-                setSelectedCategory("women");
-                setCategorizedListState(categorizedItems["women"]);
-              }}
+              onClick={() => handleCategoryChange("women")}
             >
               Women
             </li>
             <li
               className={`${selectedCategory === "men" ? "active__category" : ""} cursor-pointer`}
-              onClick={() => {
-                if (!categories) return;
-                setSelectedCategory("men");
-                setCategorizedListState(categorizedItems["men"]);
-              }}
+              onClick={() => handleCategoryChange("men")}
             >
               Men
             </li>
@@ -90,24 +78,30 @@ export default function HomeCategory() {
         </div>
       </div>
 
-      <div className="flex justify-between gap-7">
-        {Array.isArray(categorizedListState) &&
-        categorizedListState.length > 0 ? (
+      <div className="flex justify-between">
+        {isLoading ? (
+          <Spin size="large" />
+        ) : Array.isArray(categorizedListState) &&
+          categorizedListState.length > 0 ? (
           categorizedListState
             .filter((category) => category.pinned)
-            .map((category, index) => (
-              <Link
-                href="#"
-                key={index}
-                style={{
-                  background: `linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.5) 50%), url('${category.image[0]}')`,
-                  backgroundSize: "cover",
-                }}
-                className="m-2 flex min-w-[calc(20%-10px)] flex-1 items-center justify-center bg-[#E9D2FF] text-3xl text-white after:block after:pb-[100%]"
-              >
-                {category.name}
-              </Link>
-            ))
+            .map((category, index) => {
+              console.log("Image URL:", category.image[0]); // Log the image URL
+              return (
+                <Link
+                  href="#"
+                  key={index}
+                  className="m-2 flex min-w-[calc(18.33%-12px)] max-w-[calc(18.33%-12px)] flex-1 items-end justify-center !bg-cover pb-12 text-2xl font-bold text-white after:block after:pb-[100%]"
+                  style={{
+                    background: `linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.5) 50%), url('${category.image[0]}')`,
+
+                    backgroundSize: "cover",
+                  }}
+                >
+                  {category.name}
+                </Link>
+              );
+            })
         ) : (
           <p>No categories available</p>
         )}
