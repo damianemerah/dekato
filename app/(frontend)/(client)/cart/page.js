@@ -3,8 +3,42 @@
 import { ButtonPrimary } from "@/app/ui/button";
 import CartCards from "@/app/ui/cart/cart-card";
 import { oswald } from "@/font";
+import { useUserStore, useCartStore } from "@/store/store";
+import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
+import { getCart } from "@/app/action/cartAction";
+
+const fetcher = async (id) => {
+  const res = await getCart(id);
+  return res;
+};
 
 export default function Cart() {
+  const user = useUserStore((state) => state.user);
+  const cart = useCartStore((state) => state.cart);
+  const setCart = useCartStore((state) => state.setCart);
+  const userIsLoading = useUserStore((state) => state.userIsLoading);
+
+  const { isLoading } = useSWRImmutable(
+    user?.id ? `/cart/${user.id}` : null,
+    () => (user?.id ? fetcher(user.id) : null),
+    {
+      onSuccess: (data) => {
+        setCart(data.item);
+      },
+    },
+  );
+
+  if (isLoading) return <div>Loading...</div>;
+  if (cart.length === 0 && !isLoading && !userIsLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-xl font-semibold text-gray-500">
+          Your cart is empty
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
       <h1
@@ -12,19 +46,19 @@ export default function Cart() {
       >
         Shopping Bag
       </h1>
-      <div className="mt-4 flex flex-col gap-10 lg:flex-row">
-        <div className="">
+      <div className="mt-4 flex flex-col gap-10 lg:flex-row lg:justify-center">
+        <div className="lg:w-2/3">
           <p
             className={`${oswald.className} mb-4 text-lg font-medium uppercase text-grayText`}
           >
             # Items
           </p>
-          <div className="flex flex-col items-center gap-4 border-y px-2">
-            <CartCards />
+          <div className="flex flex-col items-center gap-4 px-2">
+            <CartCards products={cart} />
           </div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col lg:w-1/3">
           <div className="flex flex-col gap-5">
             <div className="space-y-6 border border-grayOutline bg-grayBg p-5">
               <div className="space-y-2">
@@ -88,7 +122,9 @@ export default function Cart() {
             </div>
           </div>
 
-          <ButtonPrimary className="w-full">Proceed to Checkout</ButtonPrimary>
+          <ButtonPrimary className="mt-5 w-full">
+            Proceed to Checkout
+          </ButtonPrimary>
         </div>
       </div>
     </div>

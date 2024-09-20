@@ -71,7 +71,6 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
           };
         });
 
-      console.log(groupList, "grouplist");
       setGroupList(groupList);
 
       setGroupList(groupList);
@@ -150,7 +149,12 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
         options: isDuplicate ? variant.options : options,
         quantity: inputQuantityRef.current.value,
         price: inputPriceRef.current.value,
-        image: fileList?.length ? fileList[0] : null,
+        image:
+          fileList?.length && fileList[0]?.originFileObj instanceof Blob
+            ? fileList[0]
+            : fileList[0] && fileList[0].url
+              ? fileList[0].url
+              : null,
         imageURL,
       });
     } else {
@@ -190,7 +194,6 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
         return variant;
       });
 
-      console.log(updatedVariants, "updatedVariants");
       setVariants(updatedVariants);
     }
 
@@ -234,7 +237,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
         <h2 className="font- mb-4 text-2xl text-primary">
           Select options for product variants
         </h2>
-        <div className="mb-6 flex w-full gap-4">
+        <div className="mb-6 flex w-full flex-col gap-4 sm:flex-row md:flex-row">
           {groupList.map((group) => (
             <DropDown
               key={group.name}
@@ -265,7 +268,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
             setDefaultFileList={setDefaultFileList}
           />
         </div>
-        <div className="flex items-center gap-4 py-2">
+        <div className="flex flex-col items-center gap-4 py-2 sm:flex-row md:flex-row">
           <div className="flex w-full flex-col items-start gap-1.5">
             <label htmlFor="quantity">Quantity</label>
             <input

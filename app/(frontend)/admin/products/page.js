@@ -87,8 +87,6 @@ const ProductsList = () => {
     action: <Action />,
   }));
 
-  console.log(products, "dataSource🚀🚀🚀");
-
   const handleDelete = async (id) => {
     const deleteAndUpdateProd = async () => {
       try {
@@ -159,7 +157,6 @@ const ProductsList = () => {
       })),
       filterSearch: true,
       onFilter: (value, record) => {
-        console.log(value, "value");
         return record?.category.includes(value);
       },
     },
@@ -216,6 +213,8 @@ const ProductsList = () => {
               }
             : false
         }
+        scroll={{ x: "max-content" }}
+        className="overflow-x-auto sm:overflow-x-auto md:overflow-x-visible"
       />
     </Flex>
   );

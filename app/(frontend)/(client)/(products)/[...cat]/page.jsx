@@ -23,10 +23,6 @@ const getAllCategories = async () => {
 
     return path;
   };
-  console.log(
-    categories.map((category) => buildCategoryPath(category, categories)),
-    "categories🔥",
-  );
 
   return categories.map((category) => buildCategoryPath(category, categories));
 };

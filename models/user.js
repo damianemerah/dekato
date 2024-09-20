@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import validator from "validator";
 import crypto from "crypto";
 import Order from "./order.js";
-// import Wishlist from "./wishlist.js";
+import Product from "@/models/product";
 // import Cart from "./cart.js";
 
 const userSchema = new mongoose.Schema({
@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema({
     required: true,
     enum: ["user", "admin"],
   },
+  wishlist: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Product", unique: true },
+  ],
   password: {
     type: String,
     required: [true, "Please provide a password"],
@@ -107,6 +110,16 @@ userSchema.methods.createPasswordResetToken = function () {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+userSchema.methods.addToWishlist = function (productId) {
+  if (
+    !this.wishlist.includes(productId) &&
+    mongoose.Types.ObjectId.isValid(productId)
+  ) {
+    this.wishlist.push(productId);
+  }
+  return this.save({ validateBeforeSave: false });
 };
 
 userSchema.virtual("orderCount", {

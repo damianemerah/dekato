@@ -17,6 +17,7 @@ export async function GET(req, { params }) {
     await dbConnect();
 
     const { userId } = params;
+    console.log("👇🔥🔥userId", userId);
 
     const cart = await Cart.findOne({ userId }).populate({
       path: "item",
@@ -50,6 +51,7 @@ export async function POST(req) {
     await dbConnect();
 
     const body = await req.json();
+    console.log("👇🔥🔥body", body);
     const { userId, item: newItem } = body;
     const user = await User.findById(userId);
     let existingProduct;

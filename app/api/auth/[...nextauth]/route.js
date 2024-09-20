@@ -32,7 +32,6 @@ export const OPTIONS = {
 
           return user;
         } catch (error) {
-          console.error("Error in authentication", error);
           throw new Error("Authentication failed");
         }
       },

@@ -1,45 +1,12 @@
 "use client";
 
 import React, { memo, useCallback, useState, useEffect } from "react";
-import useSWR from "swr";
 import PromoBar from "@/app/ui/promo-bar";
 import Sidebar from "@/app/ui/sidebar";
 import Footer from "@/app/ui/footer";
-import { useSidebarStore, useUserStore } from "@/store/store";
-import { useSession } from "next-auth/react";
-import { getUser } from "@/app/action/userAction";
-import { message } from "antd";
-
-// Global Fetcher function for SWR
-const fetchUser = async (userId) => {
-  return await getUser(userId);
-};
+import { useSidebarStore } from "@/store/store";
 
 const LayoutWrapper = ({ children }) => {
-  const { data: session } = useSession();
-  const setUser = useUserStore((state) => state.setUser);
-
-  // Use a memoized fetcher to avoid unnecessary re-renders
-  const memoizedFetchUser = useCallback(() => {
-    return session?.user?.id ? fetchUser(session.user.id) : null;
-  }, [session?.user?.id]);
-
-  // Use SWR to fetch the full user object
-  const { data: user, error: userError } = useSWR(
-    session?.user?.id ? `/api/user/${session.user.id}` : null,
-    memoizedFetchUser,
-    {
-      revalidateOnFocus: false,
-      onSuccess: (fetchedUser) => {
-        setUser(fetchedUser);
-      },
-      onError: (error) => {
-        message.error("Failed to log in. Please try again.");
-      },
-      revalidateOnFocus: false,
-    },
-  );
-
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const [isMobile, setIsMobile] = useState(false);
 

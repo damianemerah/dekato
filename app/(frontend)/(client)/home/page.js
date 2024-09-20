@@ -10,8 +10,6 @@ import image6 from "@/public/assets/image6.png";
 import RecommendedProducts from "@/app/ui/recommended-products";
 
 export default function Home() {
-  // const setCurUICategory = useCartStore((state) => state.setCurUICategory);
-  // setCurUICategory("home");
   return (
     <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
@@ -20,7 +18,7 @@ export default function Home() {
       <div className="">
         <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
         <div className="mb-10">
-          <RecommendedProducts cat="men" />
+          <RecommendedProducts />
         </div>
       </div>
       <div className={`mb-14 flex items-center justify-center gap-5`}>

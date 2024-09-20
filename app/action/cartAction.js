@@ -1,116 +1,134 @@
+"use server";
+
 import { Cart, CartItem } from "@/models/cart";
-import User from "@/models/user";
 import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import { getQuantity } from "@/utils/getFunc";
 import _ from "lodash";
 import { restrictTo } from "@/utils/checkPermission";
+import mongoose from "mongoose";
+
+// Helper function to format cart data
+function formatCartData(cart) {
+  const { _id, item } = cart;
+  const formattedItems = item.map((cartItem) => {
+    const { _id, productId, variantId, cartId, ...rest } = cartItem;
+
+    // Find the specific variant in the product's variant list
+    const variant = productId.variant?.find(
+      (v) => v._id.toString() === variantId?.toString(),
+    );
+
+    return {
+      id: _id.toString(),
+      slug: productId.slug,
+      productId: productId._id.toString(),
+      variantId: variantId?.toString(),
+      cartId: cartId.toString(),
+      image: variant ? variant.image : productId.image?.[0],
+      ...rest,
+    };
+  });
+
+  return {
+    item: formattedItems,
+    id: _id.toString(),
+  };
+}
+
+// Helper function to create a new cart
+async function createNewCart(userId, session) {
+  const newCart = await Cart.create([{ userId, item: [] }], { session });
+  return newCart[0];
+}
 
 export async function createCartItem(userId, newItem) {
   await restrictTo("admin", "user");
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  await dbConnect();
+  try {
+    await dbConnect();
 
-  let existingProduct;
+    if (
+      !newItem.quantity ||
+      !newItem.productId ||
+      !newItem.name ||
+      !newItem.price
+    ) {
+      throw new Error("Missing required fields for cart item");
+    }
 
-  if (!newItem.quantity) {
-    throw new Error("Quantity is required");
-  }
-
-  const cart = await Cart.findOne({ userId });
-
-  if (!cart) {
-    const newCart = createNewCart(userId);
-
-    const existingProduct = await Product.findById(newItem.product);
+    const existingProduct = await Product.findById(newItem.productId).session(
+      session,
+    );
     if (!existingProduct) {
       throw new Error("Product not found");
     }
 
-    const quantity = getQuantity(newItem.quantity, existingProduct);
+    const correctQuantity = getQuantity(newItem, existingProduct);
 
-    const cartItem = await CartItem.create({ ...newItem, quantity });
+    let cart = await Cart.findOne({ userId }).lean().session(session);
 
-    newCart.item.push(cartItem);
-
-    await newCart.save();
-
-    return cartItem;
-  }
-
-  // Check if product exists or variant exists
-  if (newItem.variantId) {
-    existingProduct = await Product.findOne({
-      _id: newItem.productId,
-      "variant._id": newItem.variantId,
-    });
-  } else {
-    existingProduct = await Product.findOne({ _id: newItem.productId });
-  }
-
-  if (!existingProduct) {
-    throw new Error("Product or variant not found");
-  }
-  const correctQuantity = getQuantity(newItem.quantity, existingProduct);
-
-  //check if user already has the item in cart
-  const existingItemCart = await Cart.findOne({
-    userId,
-  }).populate({
-    path: "item",
-    match: { productId: newItem.productId },
-  });
-
-  if (existingItemCart) {
-    // check if variant already exists
-    if (
-      newItem.variantId &&
-      !existingItemCart.item.some(
-        (cartItem) => cartItem.variantId === newItem.variantId,
-      )
-    ) {
-      //check quantity
-      const cartItem = await CartItem.create({ newItem, correctQuantity });
-      existingItemCart.item.push(cartItem);
-      await existingItemCart.save();
-
-      return cartItem;
+    if (!cart) {
+      cart = await createNewCart(userId, session);
     }
-    // Check if original item already exists in cart
-    else if (
-      !newItem.variantId &&
-      existingItemCart.item.every((cartItem) => cartItem.variantId)
-    ) {
-      //check quantity
-      const cartItem = await CartItem.create({ newItem, correctQuantity });
-      existingItemCart.item.push(cartItem);
-      await existingItemCart.save();
 
-      return cartItem;
+    const query = {
+      productId: newItem.productId,
+      cartId: cart._id,
+      ...(newItem.variantId
+        ? { variantId: newItem.variantId }
+        : { variantId: { $exists: false } }),
+    };
+
+    const existingItemCart = await CartItem.findOne(query).session(session);
+
+    if (existingItemCart) {
+      existingItemCart.quantity += correctQuantity;
+      await existingItemCart.save({ session });
+
+      // throw new Error("Item not added to cart or already exists");
+    } else {
+      const cartItem = await CartItem.create(
+        [
+          {
+            ...newItem,
+            cartId: cart._id,
+            quantity: correctQuantity,
+          },
+        ],
+        { session },
+      );
+
+      cart = await Cart.findByIdAndUpdate(
+        cart._id,
+        { $push: { item: cartItem[0]._id } },
+        { session, new: true },
+      ).lean();
     }
-  } else {
-    const cartItem = await CartItem.create({ newItem, correctQuantity });
-    cart.item.push(cartItem);
-    await cart.save();
 
-    return cartItem;
+    await session.commitTransaction();
+    return formatCartData(cart);
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-
-  throw new Error("Item not added to cart or already exists");
 }
 
 export async function getCart(userId) {
-  await restrictTo("admin", "user");
-
   await dbConnect();
 
-  const cart = await Cart.findOne({ userId });
+  // Find the cart and populate the product details and variants
+  const cart = await Cart.findOne({ userId }).lean();
 
   if (!cart) {
-    createNewCart(userId);
+    return createNewCart(userId);
   }
 
-  return cart;
+  return formatCartData(cart);
 }
 
 export async function updateCartItemQuantity(updateData) {
@@ -133,32 +151,78 @@ export async function updateCartItemQuantity(updateData) {
   cartItem.quantity = itemQuantity;
   await cartItem.save();
 
-  return cartItem;
+  const updatedCart = await Cart.findById(cart._id).lean();
+
+  return formatCartData(updatedCart);
+}
+
+export async function updateCartItemChecked(userId, cartItemId, checked) {
+  await restrictTo("admin", "user");
+  await dbConnect();
+
+  const cart = await Cart.findOne({ userId });
+  if (!cart) {
+    throw new Error("Cart not found");
+  }
+
+  const cartItem = await CartItem.findByIdAndUpdate(cartItemId, {
+    checked: checked,
+  });
+  if (!cartItem) {
+    throw new Error("Item not found");
+  }
+
+  const updatedCart = await Cart.findById(cart._id).lean();
+
+  return formatCartData(updatedCart);
 }
 
 export async function selectAllCart(userId, selectAll) {
   await restrictTo("admin", "user");
   await dbConnect();
 
+  // Ensure that selectAll is a boolean
   if (typeof selectAll !== "boolean") {
     throw new Error("Invalid value for selectAll");
   }
+
+  // Find the user's cart
+  const cart = await Cart.findOne({ userId });
+  if (!cart) {
+    throw new Error("Cart not found");
+  }
+
+  // Extract the CartItem ids
+  const cartItemIds = cart.item.map((item) => item._id);
+
+  // Update the checked status for all CartItems in the cart
+  await CartItem.updateMany(
+    { _id: { $in: cartItemIds } },
+    { $set: { checked: selectAll } },
+  );
+
+  // Fetch the updated cart with items
+  const updatedCart = await Cart.findById(cart._id).lean();
+
+  return formatCartData(updatedCart);
+}
+
+export async function removeFromCart(userId, cartItemId) {
+  await restrictTo("admin", "user");
+  await dbConnect();
 
   const cart = await Cart.findOne({ userId });
   if (!cart) {
     throw new Error("Cart not found");
   }
-  cart.item.forEach((item) => {
-    item.checked = selectAll;
-  });
-  cart.save();
 
-  return item;
-}
+  const cartItem = cart.item.find((item) => item._id.toString() === cartItemId);
+  if (!cartItem) {
+    throw new Error("Item not found");
+  }
 
-function createNewCart(userId) {
-  return Cart.create({
-    userId,
-    item: [],
-  });
+  await cartItem.deleteOne();
+  await cart.save();
+
+  return null;
 }

@@ -3,7 +3,6 @@
 import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
 import { Cart } from "@/models/cart";
-import Wishlist from "@/models/wishlist";
 import { restrictTo } from "@/utils/checkPermission";
 import Email from "@/lib/email";
 import Address from "@/models/address";
@@ -27,7 +26,6 @@ export async function createUser(formData) {
 
   if (user) {
     await Cart.create({ userId: user._id, item: [] });
-    await Wishlist.create({ userId: user._id, product: [] });
   }
 
   const url = process.env.NEXTAUTH_URL + "/signin";
@@ -52,14 +50,41 @@ export async function getUser(userId) {
 
   const userObj = userData.toObject();
 
-  const { _id, address, ...rest } = userObj;
+  const { _id, address, wishlist, ...rest } = userObj;
   const addressArr = address.map((addr) => {
     const { _id, userId, ...rest } = addr;
     return { id: _id.toString(), ...rest };
   });
 
-  // Rename _id to id and convert to string
-  return { id: _id.toString(), address: addressArr, ...rest };
+  return {
+    id: _id.toString(),
+    address: addressArr,
+    wishlist: wishlist.map((item) => item.toString()),
+    ...rest,
+  };
+}
+
+export async function getWishlist(userId) {
+  await dbConnect();
+  restrictTo("admin, user");
+
+  const wishlistDoc = await User.findById(userId)
+    .select("wishlist")
+    .populate("wishlist", "name price image variant")
+    .lean();
+
+  const { wishlist, ...rest } = wishlistDoc;
+
+  const wishlistObj = wishlist.map((item) => {
+    const { _id, variant, ...rest } = item;
+    const variantObj = variant.map((item) => {
+      const { _id, ...rest } = item;
+      return { id: _id.toString(), ...rest };
+    });
+    return { id: _id.toString(), variant: variantObj, ...rest };
+  });
+
+  return wishlistObj;
 }
 
 export async function updateUserInfo(userId, formData) {
@@ -79,6 +104,47 @@ export async function updateUserInfo(userId, formData) {
   }
 
   return user;
+}
+
+export async function addToWishlist(userId, productId) {
+  await dbConnect();
+  const result = await restrictTo("admin", "user");
+  if (result.error) {
+    throw new Error(result.error);
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  await user.addToWishlist(productId);
+
+  const { _id, wishlist, address, ...rest } = user.toObject();
+
+  const userObj = {
+    id: _id.toString(),
+    address: address.map((item) => item.toString()),
+    wishlist: wishlist.map((item) => item.toString()),
+    ...rest,
+  };
+
+  return userObj;
+}
+
+export async function removeFromWishlist(userId, productId) {
+  await dbConnect();
+  restrictTo("admin, user");
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $pull: { wishlist: productId },
+    },
+    { new: true },
+  );
+
+  return null;
 }
 
 export async function deleteUser(userId) {

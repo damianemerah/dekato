@@ -15,8 +15,6 @@ import mongoose from "mongoose";
 const setupIndexes = async () => {
   try {
     await dbConnect();
-
-    // Create indexes
     await Product.collection.createIndex({
       name: "text",
       description: "text",
@@ -25,98 +23,86 @@ const setupIndexes = async () => {
     await Product.collection.createIndex({ cat: 1 });
     await Product.collection.createIndex({ price: 1 });
     await Product.collection.createIndex({ slug: 1 });
-  } catch (error) {
-    console.error("Error creating indexes:", error);
-  }
+  } catch (error) {}
 };
 
-// const productIds = products.map((product) => product._id);
-// const variants = await getProductVariants(productIds);
+const formatProduct = (product) => {
+  const { _id, category, variant, ...rest } = product;
+  const formattedProduct = {
+    id: _id.toString(),
+    ...rest,
+  };
+
+  if (category) {
+    formattedProduct.category = category.map((c) => {
+      const { _id, buffer, ...rest } = c;
+      return {
+        id: _id.toString(),
+        ...rest,
+      };
+    });
+  }
+
+  if (variant) {
+    formattedProduct.variant = variant.map((v) => {
+      const { _id, ...rest } = v;
+      return {
+        id: _id.toString(),
+        ...rest,
+      };
+    });
+  }
+
+  return formattedProduct;
+};
+
+const handleProductQuery = async (query, searchParams = {}) => {
+  const feature = new APIFeatures(query, searchParams)
+    .filter()
+    .search()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const productData = await feature.query;
+  return productData.map(formatProduct);
+};
 
 export async function getAdminProduct() {
   try {
     await dbConnect();
-
     const products = await Product.find()
       .sort({ createdAt: -1 })
       .populate("category", "name")
       .lean();
-
-    const formattedProducts = products.map((product) => {
-      const { _id, category, variant, ...rest } = product;
-
-      const formattedProduct = {
-        id: _id.toString(),
-        ...rest,
-      };
-
-      if (category) {
-        formattedProduct.category = category.map((c) => {
-          const { _id, ...rest } = c;
-
-          return { id: _id.toString(), ...rest };
-        });
-      }
-
-      if (variant) {
-        formattedProduct.variant = variant.map((v) => {
-          const { _id, ...rest } = v;
-          console.log(rest, "rest🔥✔️✔️✔️");
-          return { id: _id.toString(), ...rest };
-        });
-      }
-
-      return formattedProduct;
-    });
-
-    // console.log(formattedProducts, "formattedProducts🚀🚀🚀");
-
-    return formattedProducts;
+    return products.map(formatProduct);
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    throw handleAppError(err);
   }
 }
 
 export async function productSearch(searchQuery) {
   try {
     await dbConnect();
-
     searchQuery.limit = 9;
-
-    const feature = new APIFeatures(Product.find().select("name"), searchQuery)
-      .filter()
-      .search()
-      .sort()
-      .limitFields()
-      .paginate();
-
-    const productData = await feature.query;
-
-    const products = productData.map((product) => {
-      const { _id, name } = product;
-      return { id: _id.toString(), name };
-    });
-
-    return products;
+    const products = await handleProductQuery(
+      Product.find().select("name"),
+      searchQuery,
+    );
+    return products.map(({ id, name }) => ({ id, name }));
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    throw handleAppError(err);
   }
 }
 
 export async function getVariantsByCategory(catName, searchStr = "") {
   try {
     await dbConnect();
-
     let matchCondition = {};
 
     if (searchStr && catName.toLowerCase() === "search") {
-      // Split the search string into individual words
       const searchWords = searchStr.split(" ").map((word) => word.trim());
       const regexPattern = searchWords.map((word) => `\\b${word}`).join(".*");
-
-      // Apply the regex pattern to the name, description, and tag fields
       matchCondition = {
         $or: [
           { name: { $regex: regexPattern, $options: "i" } },
@@ -125,17 +111,10 @@ export async function getVariantsByCategory(catName, searchStr = "") {
         ],
       };
     } else if (catName && catName !== "search") {
-      // Find the category
-      const category = await Category.findOne({ slug: catName });
-      if (!category) {
-        throw new Error("Category not found");
-      }
-
-      // Include the main category and all subcategories in the match condition
+      const category = await Category.findOne({ slug: catName }).lean();
+      if (!category) throw new Error("Category not found");
       matchCondition = {
-        category: {
-          $in: [category._id, ...category.children],
-        },
+        category: { $in: [category._id, ...category.children] },
       };
     } else {
       return;
@@ -147,87 +126,37 @@ export async function getVariantsByCategory(catName, searchStr = "") {
       { $project: { _id: 0, variant: 1 } },
     ]);
 
-    const variants = variantData.map((data) => {
-      const { variant, ...pRest } = data;
-      const { _id, ...rest } = variant;
-      return { variant: { id: _id.toString(), ...rest }, ...pRest };
-    });
-
-    return variants;
+    return variantData.map(({ variant }) => ({
+      variant: { id: variant._id.toString(), ...variant },
+    }));
   } catch (err) {
-    const error = handleAppError(err);
-    throw Error(error.message || "Something went wrong");
+    throw handleAppError(err);
   }
 }
 
 export async function getAllProducts(cat, searchParams = {}) {
   try {
     await dbConnect();
-    const params = { ...searchParams };
     const catName =
       cat && cat.length > 0 ? cat.slice(-1)[0].toLowerCase() : null;
-
-    // Find the category
     const category = catName
       ? await Category.findOne({ slug: catName }).lean()
       : null;
+    const categoryIds = category
+      ? [category._id, ...(category.children || [])]
+      : [];
 
-    let categoryIds = [];
-    if (category) {
-      console.log(category, "category🔥🚀💎");
-      categoryIds = [category._id, ...(category.children || [])];
-    }
-
-    // Modify the query to include the category and its children if category exists
     const baseQuery =
       categoryIds.length > 0
         ? Product.find({ category: { $in: categoryIds } })
         : Product.find();
 
     const populatedQuery = baseQuery.populate("category", "slug").lean();
+    const newSearchParams = getQueryObj(searchParams);
 
-    const newSearchParams = getQueryObj(params);
-
-    const feature = new APIFeatures(populatedQuery, newSearchParams)
-      .filter()
-      .search()
-      .sort()
-      .limitFields()
-      .paginate();
-
-    const productData = await feature.query;
-
-    const products = productData.map((product) => {
-      const { _id, category, variant, ...rest } = product;
-
-      const formattedProduct = {
-        id: _id.toString(),
-        ...rest,
-      };
-
-      if (category) {
-        formattedProduct.category = category.map((c) => {
-          const { _id, ...rest } = c;
-
-          return { id: _id.toString(), ...rest };
-        });
-      }
-
-      if (variant) {
-        formattedProduct.variant = variant.map((v) => {
-          const { _id, ...rest } = v;
-          return { id: _id.toString(), ...rest };
-        });
-      }
-
-      return formattedProduct;
-    });
-
-    return products;
+    return await handleProductQuery(populatedQuery, newSearchParams);
   } catch (err) {
-    const error = handleAppError(err);
-    console.log(error, "error🔥🚀💎");
-    throw new Error(error?.message || "An error occurred");
+    throw handleAppError(err);
   }
 }
 
@@ -236,128 +165,73 @@ export async function createProduct(formData) {
     await restrictTo("admin");
     await dbConnect();
 
-    const id = formData.get("category");
-    const obj = await handleFormData(formData, Category, id);
-
+    const categoryIds = formData.getAll("category");
+    const obj = await handleFormData(formData, Category, categoryIds);
     const productDoc = await Product.create(obj);
     if (!productDoc) throw new Error("Product not created");
 
-    const product = productDoc.toObject();
-    const { category: productCategories, _id, ...rest } = product;
-
-    if (product.variant) {
-      const variants = product.variant.map((variant) => {
-        const { _id, ...rest } = variant;
-
-        return { id: _id.toString(), ...rest };
-      });
-      return { id: _id.toString(), ...rest, variant: variants };
-    }
-
     revalidatePath("/admin/products");
-
-    return { id: _id.toString(), ...rest };
+    return formatProduct(productDoc.lean());
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw handleAppError(err);
   }
 }
 
-//Entire product object is being updated
 export async function updateProduct(formData) {
-  await restrictTo("admin");
-  await dbConnect();
-
   try {
+    await restrictTo("admin");
+    await dbConnect();
+
     const id = formData.get("id");
-    // Find the existing product
-    if (!id) throw new AppError("Product not found", 404);
-    const data = await handleFormData(formData, Product, id);
-    const productToUpdate = {};
+    if (!id) throw new Error("Product not found");
 
-    for (const [key, _] of Object.entries(data)) {
-      if (formData.get(key)) {
-        productToUpdate[key] = data[key];
-      }
-    }
+    const data = await handleFormData(formData);
+    const productToUpdate = Object.fromEntries(
+      Object.entries(data).filter(
+        ([key, value]) =>
+          formData.get(key) &&
+          !key.startsWith("variantData") &&
+          !key.startsWith("variantImage"),
+      ),
+    );
+
     if (data.variant) {
-      productToUpdate.variant = data.variant;
-    }
+      const existingProduct = await Product.findById(id).lean();
+      if (!existingProduct) throw new Error("Product not found");
 
-    Object.entries(productToUpdate).forEach(([key, _]) => {
-      if (key.startsWith("variantData") || key.startsWith("variantImage")) {
-        delete productToUpdate[key];
-      }
-    });
-
-    const existingProduct = await Product.findById(id);
-    if (!existingProduct) throw new AppError("Product not found", 404);
-
-    // Create a map of existing variant IDs to their corresponding variant objects
-    if (productToUpdate.variant) {
       const existingVariantsMap = new Map(
-        existingProduct.variant.map((variant) => [
-          variant._id.toString(),
-          variant,
-        ]),
+        existingProduct.variant.map((v) => [v._id.toString(), v]),
       );
 
-      // Update existing variants and collect new variants
-      const updatedVariants = productToUpdate.variant.map((newVariant) => {
+      productToUpdate.variant = data.variant.map((newVariant) => {
         const existingVariant = existingVariantsMap.get(newVariant._id);
         if (existingVariant) {
-          if (!newVariant.image) {
-            const { image, ...restOfVariant } = existingVariant.toObject();
-            return { ...restOfVariant, ...newVariant };
-          }
-          return { ...existingVariant.toObject(), ...newVariant };
-        } else {
-          return newVariant;
+          return newVariant.image
+            ? { ...existingVariant, ...newVariant }
+            : {
+                ...existingVariant,
+                ...newVariant,
+                image: existingVariant.image,
+              };
         }
+        return newVariant;
       });
-
-      // Replace the variant array with the updated and new variants
-      productToUpdate.variant = updatedVariants;
     }
 
-    console.log(productToUpdate, "productToUpdate🔥🚀💎");
-    // Update the product
     const productData = await Product.findOneAndUpdate(
       { _id: id },
       productToUpdate,
       {
         new: true,
         runValidators: true,
+        lean: true,
       },
     );
 
-    const {
-      _id,
-      category: productCategories,
-      variant,
-      ...rest
-    } = productData.toObject();
-
-    const productVariant = variant.map((v) => {
-      const { _id, ...rest } = v;
-      return { id: _id.toString(), ...rest };
-    });
-
-    const productCategory = productCategories.map((c) => ({
-      id: c._id.toString(),
-    }));
-
     revalidatePath(`/admin/products/${id}`);
-
-    return {
-      id: _id.toString(),
-      ...rest,
-      variant: productVariant,
-      category: productCategory,
-    };
+    return formatProduct(productData);
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw handleAppError(err);
   }
 }
 
@@ -366,29 +240,21 @@ export const deleteProduct = async (id) => {
     await restrictTo("admin");
     await dbConnect();
 
-    const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findByIdAndDelete(id).lean();
+    if (!product) throw new Error("Product not found");
 
-    if (!product) {
-      throw new Error("Product not found");
-    }
+    const imagesToDelete = [
+      ...product.image,
+      ...(product.video || []),
+      ...(product.variant?.map((v) => v.image) || []),
+    ].filter(Boolean);
 
-    product?.image.length && (await deleteFiles(product.image));
-
-    if (product.video && product.video.length > 0) {
-      await deleteFiles(product.video);
-    }
-
-    if (product.variant && product.variant.length > 0) {
-      const variantImages = product.variant.map((variant) => variant.image);
-      variantImages.length && (await deleteFiles(variantImages));
-    }
+    if (imagesToDelete.length) await deleteFiles(imagesToDelete);
 
     revalidatePath("/admin/products");
-
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw handleAppError(err);
   }
 };
 
@@ -396,50 +262,33 @@ export async function searchProduct(searchQuery) {
   const terms = searchQuery.split(" ");
   const regex = new RegExp(terms.join("|"), "i");
 
-  const products = await Product.find({
+  return await Product.find({
     $or: [
-      { $text: { $search: searchQuery } }, // Full-text search on 'name'
-      { tag: { $in: terms } }, // Match any tag in 'tags' array
-      { cat: regex }, // Match any category that contains the search terms
+      { $text: { $search: searchQuery } },
+      { tag: { $in: terms } },
+      { cat: regex },
     ],
-  });
-
-  return products;
+  }).lean();
 }
 
 export async function getProductById(id) {
   await dbConnect();
-
-  const productData = await Product.findById(id).lean();
-
-  if (!productData) {
-    throw new Error("Product not found");
-  }
-
-  const product = productData;
-
-  console.log(product, "productsss🔥🚀💎");
-  const { _id, category, variant, ...rest } = product;
-
-  const productVariant = variant.map((v) => {
-    const { _id, ...rest } = v;
-    return { id: _id.toString(), ...rest };
-  });
-
-  const productCategory = category.map((c) => ({
-    id: c._id.toString(),
-  }));
-
-  return {
-    id: _id.toString(),
-    ...rest,
-    variant: productVariant,
-    category: productCategory,
-  };
+  const product = await Product.findById(id).lean();
+  if (!product) throw new Error("Product not found");
+  return formatProduct(product);
 }
 
 export async function getProductsByCategory(cat) {
   await dbConnect();
   const products = await Product.find({ cat }).populate("category").lean();
-  return products;
+  return products.map((product) => {
+    const formattedProduct = formatProduct(product);
+    // Remove the buffer property from category objects
+    if (formattedProduct.category) {
+      formattedProduct.category = formattedProduct.category.map(
+        ({ id, ...rest }) => ({ id, ...rest }),
+      );
+    }
+    return formattedProduct;
+  });
 }

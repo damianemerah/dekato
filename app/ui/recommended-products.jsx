@@ -10,7 +10,7 @@ import { useSidebarStore } from "@/store/store";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-const RecommendedProducts = ({ cat, searchParams }) => {
+const RecommendedProducts = () => {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
 
   const [breakpoints, setBreakpoints] = useState({

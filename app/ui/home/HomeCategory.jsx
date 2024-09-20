@@ -6,6 +6,7 @@ import image3 from "@/public/assets/image3.png";
 import { oswald } from "@/font";
 import useSWRImmutable from "swr/immutable";
 import { getAllCategories } from "@/app/action/categoryAction";
+import { Spin } from "antd";
 
 const getCategoryHierarchy = (category, categories) => {
   if (!category.parent) {
@@ -49,7 +50,6 @@ export default function HomeCategory() {
     if (categories && categories.length > 0) {
       const initialCategory = "women";
       setSelectedCategory(initialCategory);
-      console.log(categorizedItems[initialCategory]);
       setCategorizedListState(categorizedItems[initialCategory]);
     }
   }, [categories, categorizedItems]);

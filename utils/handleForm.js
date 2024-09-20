@@ -13,11 +13,8 @@ export const handleFormData = async (formData, Model, id) => {
   const variantsFilesToUpload = [];
   const filesToDelete = [];
   let existingProd;
-  console.log(formData.get("image"), "🚀🚀FORMDATA🚀🚀");
   const images = formData.getAll("image");
-
   const videos = formData.getAll("video");
-
   const status = formData.get("status");
 
   if (status === "active") {
@@ -73,11 +70,17 @@ export const handleFormData = async (formData, Model, id) => {
     }
   });
 
-  // check if model and id is provided & get existing product
   if (Model && id) {
-    existingProd = await Model.findById(id);
-    if (!existingProd) {
-      throw new AppError(`${Model} not found`, 404);
+    if (Array.isArray(id)) {
+      existingProd = await Model.find({ _id: { $in: id } });
+      if (existingProd.length !== id.length) {
+        throw new AppError(`One or more ${Model.modelName}s not found`, 404);
+      }
+    } else {
+      existingProd = await Model.findById(id);
+      if (!existingProd) {
+        throw new AppError(`${Model.modelName} not found`, 404);
+      }
     }
   }
 
