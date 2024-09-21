@@ -18,7 +18,7 @@ export default memo(function VariantGroupTable({ variantOptions }) {
     (state) => state.removeVariantOptionValue,
   );
   return (
-    <div className="rounded-lg border border-gray-200">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 sm:overflow-x-auto md:overflow-hidden">
       <table className="min-w-full bg-white">
         <thead>
           <tr className="bg-gray-100 text-xs uppercase leading-normal text-gray-600">

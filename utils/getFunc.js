@@ -8,23 +8,23 @@ export function getQuantity(item, product) {
       (doc) => doc._id.toString() === item.variantId,
     );
 
-    if (!variant || variant.quantity === 0) {
+    if (!variant || +variant.quantity === 0) {
       throw new Error("Product out of stock");
     }
 
-    if (item.quantity > variant.quantity && variant.quantity > 0) {
+    if (+item.quantity > +variant.quantity && +variant.quantity > 0) {
       item.quantity = variant.quantity;
       return item.quantity;
     } else {
       return item.quantity;
     }
-  } else if (product.quantity === 0) {
+  } else if (+product.quantity === 0) {
     throw new Error("Product out of stock");
-  } else if (item.quantity > product.quantity && product.quantity > 0) {
-    item.quantity = product.quantity;
-    return item.quantity;
+  } else if (+item.quantity > +product.quantity && +product.quantity > 0) {
+    item.quantity = +product.quantity;
+    return +item.quantity;
   } else {
-    return item.quantity;
+    return +item.quantity;
   }
 }
 
@@ -52,8 +52,6 @@ export const generateVariantOptions = (variants) => {
 };
 
 export function getQueryObj(searchParams) {
-  console.log(searchParams, "searchParams⭐⭐");
-
   const params = Object.fromEntries(
     Object.entries(searchParams).map(([key, value]) => [
       key,

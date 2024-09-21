@@ -7,12 +7,19 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Thumbs } from "swiper/modules";
 import XIcon from "@/public/assets/icons/twitter.svg";
 import FbIcon from "@/public/assets/icons/facebook-share.svg";
+import HeartIcon from "@/public/assets/icons/heart.svg";
+import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
 import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { Button, ButtonPrimary } from "@/app/ui/button";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { getProductById } from "@/app/action/productAction";
 import { generateVariantOptions } from "@/utils/getFunc";
+import { createCartItem } from "@/app/action/cartAction";
+import { useUserStore } from "@/store/store";
+import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
+import { message, Spin } from "antd";
+import { useCartStore } from "@/store/store";
 
 const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   const contentRef = useRef(null);
@@ -55,31 +62,21 @@ export default function ProductDetail({ name }) {
   const [variantOptions, setVariantOptions] = useState([]);
   const [variantImages, setVariantImages] = useState([]);
   const [discountedPrice, setDiscountedPrice] = useState(0);
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedVariantId, setSelectedVariantId] = useState(null);
+  const [selectedVariantOption, setSelectedVariantOption] = useState({});
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const id = name.split("-").slice(-1)[0];
+  const user = useUserStore((state) => state.user);
+  const userId = user?.id;
+  const setCart = useCartStore((state) => state.setCart);
 
   const { data: product, isLoading } = useSWR(
     `/product/${id}`,
     () => fetcher(id),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => {
-        console.log(data, "product data🔥🚀💎");
-      },
     },
   );
-
-  // const product = {
-  //   id: 1,
-  //   category: "TOP WOMEN",
-  //   name: "Women Black Checked Fit and Flare Dress",
-  //   images: ["/assets/image7.png", "/assets/image8.png", "/assets/image9.png"],
-  //   color: "Black",
-  //   sizes: ["S", "M", "L", "XL", "XXL", "4XL"],
-  //   price: "50000.00",
-  //   quantity: 1,
-  //   discount: 30,
-  // };
 
   useEffect(() => {
     if (!product || isLoading) return;
@@ -91,8 +88,20 @@ export default function ProductDetail({ name }) {
     const options = generateVariantOptions(product.variant);
     setVariantOptions(options);
 
-    const variantImages = product.variant.map((variant) => variant.image);
-    setVariantImages([...new Set(variantImages)]);
+    // Update this part to create a map of color to image
+    const colorToImageMap = new Map();
+    product.variant.forEach((variant) => {
+      if (variant.options.color && variant.image) {
+        colorToImageMap.set(variant.options.color, variant.image);
+      }
+    });
+    setVariantImages(Array.from(colorToImageMap.values()));
+
+    if (product.variant.length > 0) {
+      const firstVariant = product.variant[0];
+      setSelectedVariantId(firstVariant.id);
+      setSelectedVariantOption(firstVariant.options);
+    }
   }, [product, isLoading]);
 
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
@@ -100,6 +109,100 @@ export default function ProductDetail({ name }) {
 
   const handleToggleSection = (section) => {
     setActiveSection(activeSection === section ? null : section);
+  };
+
+  const addItemToCart = async () => {
+    try {
+      if (!userId) {
+        message.error("Please login to add to cart");
+        return;
+      }
+      setIsAddingToCart(true);
+      const selectedVariant = product.variant.find(
+        (variant) => variant.id === selectedVariantId,
+      );
+      const newItem = {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        option: selectedVariant?.options || null,
+        variantId: selectedVariant?.id || null,
+        userId,
+      };
+
+      const cartItem = await createCartItem(userId, newItem);
+      mutate(`/api/user/${userId}`);
+      setCart(cartItem.item);
+      message.success("Item added to cart");
+      mutate(`/cart/${userId}`);
+    } catch (error) {
+      message.info(error.message, 4);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
+  const addWishlist = async () => {
+    try {
+      if (!userId) {
+        return;
+      }
+
+      if (user?.wishlist.includes(product.id)) {
+        const wishlistItem = await removeFromWishlist(userId, product.id);
+      } else {
+        const wishlistItem = await addToWishlist(userId, product.id);
+      }
+      mutate(`/api/user/${userId}`);
+    } catch (error) {
+      message.info(error.message);
+    }
+  };
+
+  const handleVariantSelection = (optionName, value) => {
+    setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
+
+    // Filter variants based on the selected color/image
+    const filteredVariants = product.variant.filter(
+      (variant) => variant.options[optionName] === value,
+    );
+
+    // Update other options based on filtered variants
+    const updatedOptions = { ...selectedVariantOption, [optionName]: value };
+    Object.keys(updatedOptions).forEach((key) => {
+      if (key !== optionName) {
+        const availableValues = new Set(
+          filteredVariants.map((v) => v.options[key]),
+        );
+        if (!availableValues.has(updatedOptions[key])) {
+          updatedOptions[key] = filteredVariants[0].options[key];
+        }
+      }
+    });
+
+    setSelectedVariantOption(updatedOptions);
+
+    // Find the matching variant and update selectedVariantId
+    const newSelectedVariant = filteredVariants.find((variant) =>
+      Object.entries(updatedOptions).every(
+        ([key, val]) => variant.options[key] === val,
+      ),
+    );
+    if (newSelectedVariant) {
+      setSelectedVariantId(newSelectedVariant.id);
+    }
+  };
+
+  const isOptionAvailable = (optionName, value) => {
+    if (optionName === "color") return true; // All colors are selectable
+    return product.variant.some(
+      (variant) =>
+        variant.options[optionName] === value &&
+        Object.entries(selectedVariantOption).every(
+          ([key, val]) => key === optionName || variant.options[key] === val,
+        ),
+    );
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -121,16 +224,18 @@ export default function ProductDetail({ name }) {
                 direction="vertical"
                 className="h-fit"
               >
-                {product?.image.map((image, index) => (
-                  <SwiperSlide key={index} className="!h-14 !w-12">
-                    <Image
-                      className="block h-full w-full object-cover"
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      fill
-                    />
-                  </SwiperSlide>
-                ))}
+                {product?.image &&
+                  product.image.map((image, index) => (
+                    <SwiperSlide key={index} className="!h-14 !w-12">
+                      <Image
+                        className="block h-full w-full object-cover"
+                        src={image}
+                        alt={`Thumbnail ${index + 1}`}
+                        width={48}
+                        height={56}
+                      />
+                    </SwiperSlide>
+                  ))}
               </Swiper>
             </div>
             {/* Main Image Swiper */}
@@ -141,17 +246,21 @@ export default function ProductDetail({ name }) {
                 modules={[FreeMode, Thumbs]}
                 className="mainSwiper h-full max-w-lg"
               >
-                {product.image.map((image, index) => (
-                  <SwiperSlide key={index}>
-                    <Image
-                      className="block h-full w-full object-cover"
-                      src={image}
-                      alt={`Main image ${index + 1}`}
-                      width={512}
-                      height={650}
-                    />
-                  </SwiperSlide>
-                ))}
+                {product?.image &&
+                  product.image.map((image, index) => (
+                    <SwiperSlide key={index}>
+                      <div className="relative aspect-[4/5] w-full">
+                        <Image
+                          className="object-cover"
+                          src={image}
+                          alt={`Main image ${index + 1}`}
+                          fill
+                          priority={index === 0}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      </div>
+                    </SwiperSlide>
+                  ))}
               </Swiper>
 
               <div className="mt-1 flex items-center justify-center gap-5">
@@ -181,101 +290,89 @@ export default function ProductDetail({ name }) {
             <p className="text-lg font-semibold">₦{product.price}</p>
           )}
 
-          {/* <div className="">
-            <p className={`${oswald.className} mb-2 text-base font-medium`}>
-              Color: <span>{product.color}</span>
-            </p>
-            <div className="flex gap-2">
-              <span className="h-8 w-8 rounded-full border border-black bg-red-600 p-1"></span>
-              <span className="h-8 w-8 rounded-full border border-black bg-black p-1"></span>
-              <span className="h-8 w-8 rounded-full border border-black bg-white p-1"></span>
-            </div>
-          </div> */}
-
           {variantOptions.length > 0 && (
             <div>
-              {variantOptions.map((option) => {
-                if (option.name === "color") {
-                  return (
-                    <>
-                      <p
-                        key={option.id}
-                        className={`${oswald.className} mb-2 text-base font-medium`}
-                      >
-                        <span className="capitalize">{option.name}</span>:{" "}
-                        <span>{product.color}</span>
-                      </p>
-                      <div className="flex gap-2">
-                        {variantImages.map((image, index) => (
-                          <div
-                            key={index}
-                            className="h-16 w-16 rounded-full border border-black p-1"
-                          >
-                            <Image
-                              src={image}
-                              alt={`Variant ${index + 1}`}
-                              width={64}
-                              height={64}
-                              className="h-full w-full rounded-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  );
-                } else {
-                  return (
-                    <>
-                      <p
-                        key={option.id}
-                        className={`${oswald.className} mb-2 text-base font-medium`}
-                      >
-                        <span className="capitalize">{option.name}</span>:{" "}
-                        <span>{product.color}</span>
-                      </p>
-                      <div className="flex gap-2">
-                        <span className="h-8 w-8 rounded-full border border-black bg-red-600 p-1"></span>
-                        <span className="h-8 w-8 rounded-full border border-black bg-black p-1"></span>
-                        <span className="h-8 w-8 rounded-full border border-black bg-white p-1"></span>
-                      </div>
-                    </>
-                  );
-                }
-              })}
+              {variantOptions.map((option) => (
+                <div key={option.id}>
+                  <p
+                    className={`${oswald.className} mb-2 text-base font-medium`}
+                  >
+                    <span className="capitalize">{option.name}</span>:{" "}
+                    <span>
+                      {selectedVariantOption[option.name] || "Select"}
+                    </span>
+                  </p>
+                  <div className="flex gap-2">
+                    {option.values.map((value, index) => {
+                      const isAvailable = isOptionAvailable(option.name, value);
+                      return option.name === "color" ? (
+                        <div
+                          key={value}
+                          className={`h-16 w-16 rounded-full border ${
+                            selectedVariantOption[option.name] === value
+                              ? "border-black"
+                              : "border-gray-300"
+                          } cursor-pointer`}
+                          onClick={() =>
+                            handleVariantSelection(option.name, value)
+                          }
+                        >
+                          <Image
+                            src={
+                              product.variant.find(
+                                (v) => v.options.color === value,
+                              )?.image || ""
+                            }
+                            alt={`Variant ${value}`}
+                            width={64}
+                            height={64}
+                            className="h-full w-full rounded-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <p
+                          key={index}
+                          className={`flex items-center justify-center border ${
+                            selectedVariantOption[option.name] === value
+                              ? "border-black"
+                              : "border-gray-300"
+                          } p-2 text-xs uppercase ${
+                            isAvailable
+                              ? "cursor-pointer"
+                              : "cursor-not-allowed line-through opacity-50"
+                          }`}
+                          onClick={() =>
+                            isAvailable &&
+                            handleVariantSelection(option.name, value)
+                          }
+                        >
+                          {value}
+                        </p>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          {/* <div className="">
-            <p className={`${oswald.className} mb-2 text-base font-medium`}>
-              Size:
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {product.sizes.map((size, index) => (
-                <p
-                  key={index}
-                  className="texy-sm flex h-10 w-10 items-center justify-center border border-black"
-                >
-                  {size}
-                </p>
-              ))}
-            </div>
-          </div> */}
-
           <div className={`${oswald.className} space-y-2 pt-2`}>
             <div className="flex items-center justify-center gap-2">
-              <ButtonPrimary className="w-full flex-1">
-                Add to bag
+              <ButtonPrimary
+                className={`w-full flex-1 ${isAddingToCart ? "cursor-not-allowed" : ""}`}
+                onClick={addItemToCart}
+              >
+                {isAddingToCart ? <Spin /> : "Add to bag"}
               </ButtonPrimary>
-              <button className="flex h-10 w-10 flex-none items-center justify-center border-2 border-black p-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="20px"
-                  viewBox="0 -960 960 960"
-                  width="20px"
-                  fill="#303030"
-                >
-                  <path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z" />
-                </svg>
+              <button
+                className="flex h-10 w-10 flex-none items-center justify-center border-2 border-black p-2"
+                onClick={addWishlist}
+              >
+                {user?.wishlist.includes(product.id) ? (
+                  <HeartFilledIcon className="text-black" />
+                ) : (
+                  <HeartIcon />
+                )}
               </button>
             </div>
             <Button className="flex h-[44px] w-full items-center justify-center border-2 border-green-500 px-9 uppercase hover:bg-transparent hover:text-green-500">
@@ -293,28 +390,6 @@ export default function ProductDetail({ name }) {
               >
                 <p>{product.description}</p>
               </CollapsibleSection>
-
-              {/* <CollapsibleSection
-                title="Brand"
-                isOpen={activeSection === "Brand"}
-                onToggle={() => handleToggleSection("Brand")}
-              >
-                <p className={``}>
-                  A brand known for its unique styles and comfortable fits.
-                </p>
-              </CollapsibleSection> */}
-
-              {/* <CollapsibleSection
-                title="Size & Fit"
-                isOpen={activeSection === "Size & Fit"}
-                onToggle={() => handleToggleSection("Size & Fit")}
-              >
-                <p className={``}>
-                  Model&apos;s height: 172.5cm / 5&apos; 8&quot;
-                  <br />
-                  Model is wearing: XS - UK 8
-                </p>
-              </CollapsibleSection> */}
 
               <CollapsibleSection
                 title="Delivery & Returns"

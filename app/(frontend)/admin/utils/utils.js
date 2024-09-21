@@ -8,7 +8,6 @@ export function getFiles(fileList) {
   const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i;
   const videoExtensions = /\.(mp4|avi|mov|mkv|webm|flv|wmv)$/i;
 
-  console.log(fileList);
 
   fileList.forEach((item) => {
     // Check if the item is a File object or a string
@@ -32,7 +31,6 @@ export function getFiles(fileList) {
 }
 
 export const getBase64 = (file) => {
-  console.log(file, "📁📁");
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);

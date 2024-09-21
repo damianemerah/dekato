@@ -1,5 +1,6 @@
 import { roboto } from "@/font";
 import Provider from "@/app/ui/Provider";
+import GlobalFetch from "@/app/ui/globalFetch";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 // import { StyleProvider } from "@ant-design/cssinjs";
 // Import Swiper styles
@@ -16,7 +17,10 @@ export default function RootLayout({ children }) {
       <AntdRegistry>
         {/* <StyleProvider layer> */}
         <Provider>
-          <body className={`${roboto.className} antialiased`}>{children}</body>
+          <body className={`${roboto.className} antialiased`}>
+            <GlobalFetch />
+            {children}
+          </body>
         </Provider>
         {/* </StyleProvider> */}
       </AntdRegistry>

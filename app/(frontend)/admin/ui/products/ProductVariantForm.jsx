@@ -44,7 +44,7 @@ const VariantsSection = ({ handleOpenSlider }) => {
           EDIT
         </button>
       </div>
-      <div className="overflow-hidden rounded-lg border border-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 sm:overflow-x-auto md:overflow-hidden">
         <table className="min-w-full bg-white">
           <thead>
             <tr className="bg-gray-200 text-xs uppercase leading-normal text-gray-600">

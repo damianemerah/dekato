@@ -65,7 +65,6 @@ export default memo(function NewCollection({ params }) {
         (category) => category.slug === slug,
       );
 
-      console.log("selectedCategory", selectedCategory);
 
       if (selectedCategory) {
         setActionType("edit");
@@ -109,7 +108,6 @@ export default memo(function NewCollection({ params }) {
   const handleCreateCategory = async (formData, type) => {
     try {
       for (const pair of formData.entries()) {
-        console.log(pair[0] + ", " + pair[1]);
       }
       if (formData.get("pinned") === "true") {
         formData.set("pinned", true);
@@ -240,7 +238,6 @@ export default memo(function NewCollection({ params }) {
                 checked={isPinned}
                 onChange={() => setIsPinned(!isPinned)}
               />
-              {console.log("isPinned", isPinned)}
 
               {isPinned && (
                 <InputNumber

@@ -44,8 +44,7 @@ const SignUp = () => {
       message.success(
         "Sign up successful! Please check your email to verify your account.",
       );
-      const data = await result.json();
-      console.log(data, "data🚀🚀🚀");
+      // const data = await result.json();
     }
   };
 

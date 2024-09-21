@@ -21,18 +21,17 @@ export const useUserStore = create((set) => ({
     })),
 }));
 
-export const useCartStore = create((set) => ({
-  cart: [],
-  isFetched: false,
-  setCart: (cart) => set({ cart, isFetched: true }),
-  addToCart: (item) => set((state) => ({ cart: [...state.cart, item] })),
-  removeFromCart: (id) =>
-    set((state) => ({
-      cart: state.cart.filter((item) => item.id !== id),
-    })),
-  curUICategory: "",
-  setCurUICategory: (curUICategory) => set({ curUICategory }),
-}));
+export const useCartStore = create(
+  persist(
+    (set) => ({
+      cart: [],
+      setCart: (cart) => set({ cart, isFetched: true }),
+    }),
+    {
+      name: "cart-storage",
+    },
+  ),
+);
 
 export const useProductStore = create((set) => ({
   products: [],

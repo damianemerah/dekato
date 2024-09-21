@@ -130,7 +130,6 @@ const Collections = () => {
   // Handle form submission
   const submitForm = async (key) => {
     const { pinOrder, isChecked } = pinOrders[key];
-    console.log(`Submitting changes for row: ${key}`, { pinOrder, isChecked });
 
     // Prepare the form data for submission
     const formData = new FormData();
@@ -146,15 +145,12 @@ const Collections = () => {
         ...prev,
         [key]: false,
       }));
-      console.log("Update successful"); // Check if this logs
       message.info("Updated"); // Ensure this is reached
     } catch (error) {
-      console.error("Error updating category", error);
     }
   };
 
   const cancelChanges = (key) => {
-    console.log(`Cancelling changes for row: ${key}`);
     // Reset pin order and checked state for this row
     setPinOrders((prev) => ({
       ...prev,
@@ -283,7 +279,6 @@ const Collections = () => {
   };
 
   const onSelectChange = (newSelectedRowKeys) => {
-    console.log("selectedRowKeys changed: ", newSelectedRowKeys);
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
@@ -308,7 +303,6 @@ const Collections = () => {
       await mutate();
       message.success("Deleted");
     } catch (error) {
-      console.log(error);
       message.error("Error");
     }
   };

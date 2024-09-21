@@ -143,7 +143,7 @@ export default memo(function EditVariant({
             </ButtonPrimary>
           </div>
         </div>
-        <div className="overflow-hidden rounded-lg border border-gray-200">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 sm:overflow-x-auto md:overflow-hidden">
           <table className="min-w-full table-fixed bg-white">
             <thead>
               <tr className="bg-gray-100 text-xs uppercase leading-normal text-gray-600">
@@ -193,7 +193,6 @@ export default memo(function EditVariant({
                     </td>
                     <td className="py-3 text-left">
                       <div className="flex flex-wrap items-center justify-start gap-x-1 gap-y-1.5 rounded-md">
-                        {/* {console.log(variant?.options, "🚀🚀OPTIONS🚀🚀")} */}
                         {variant?.options &&
                           Object.entries(variant?.options).map(
                             ([key, value], i) => (

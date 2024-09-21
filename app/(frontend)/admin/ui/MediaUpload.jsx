@@ -36,7 +36,6 @@ const MediaUpload = ({
   };
 
   const handleRemove = (file) => {
-    console.log("file", file);
     const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
 
     setDefaultFileList(updatedFileList);

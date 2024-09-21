@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
-import Product from "./product";
 
 // Define the schema for the Category model
 const categorySchema = new mongoose.Schema({
@@ -52,5 +51,5 @@ categorySchema.set("toJSON", { virtuals: true });
 categorySchema.set("toObject", { virtuals: true });
 
 // Export the Category model or use the cached one
-export default mongoose.models.Category ||
-  mongoose.model("Category", categorySchema);
+module.exports =
+  mongoose.models.Category || mongoose.model("Category", categorySchema);

@@ -122,6 +122,7 @@ export async function getSubCategories(slug) {
 }
 
 export async function fetchAllCategories() {
+  await dbConnect();
   // Step 1: Fetch all categories from the database
   const categories = await Category.find().exec();
 
@@ -242,7 +243,6 @@ export async function updateCategory(formData) {
     revalidatePath(`/admin/collections/${category.slug}`);
     revalidatePath(`/admin/collections`);
 
-    console.log({ id: _id.toString(), ...rest });
     return { id: _id.toString(), ...rest };
   } catch (err) {
     const error = handleAppError(err);

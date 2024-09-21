@@ -48,9 +48,6 @@ export default function Filter({ cat, searchParams }) {
     () => catName && getVariantsByCategory(catName, searchStr),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => {
-        console.log(data, "Vdata");
-      },
     },
   );
 
@@ -115,9 +112,6 @@ export default function Filter({ cat, searchParams }) {
       });
     }
   }, [varIsLoading, productVariants]);
-
-  console.log(variantOptions, "variantOptions");
-  console.log(productVariants, "productVariants");
 
   useEffect(() => {
     // Handle prefill searchparams with variant options

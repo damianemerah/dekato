@@ -7,7 +7,6 @@ import VariantsSection from "@/app/(frontend)/admin/ui/products/ProductVariantFo
 import EditVariant from "@/app/(frontend)/admin/ui/products/EditVariant";
 import {
   useAdminStore,
-  useCategoryStore,
   useProductStore,
 } from "@/app/(frontend)/admin/store/adminStore";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
@@ -75,7 +74,6 @@ export default memo(function Page({ params }) {
     () => getAdminProduct(),
     {
       onSuccess: (prods) => {
-        console.log(prods, "prods🔥");
         return setProducts(prods);
       },
       revalidateOnFocus: false,
@@ -104,7 +102,6 @@ export default memo(function Page({ params }) {
         setSelectedProduct(selectedProduct);
         setVariants(selectedProduct?.variant);
 
-        console.log(selectedProduct, "selectedProduct🔥");
         setCurVariantOptions(generateVariantOptions(selectedProduct?.variant));
 
         const seletedImgs = selectedProduct.image.map((img, index) => {
@@ -126,7 +123,8 @@ export default memo(function Page({ params }) {
         nameRef.current.value = selectedProduct.name || "";
         priceRef.current.value = selectedProduct.price || "";
         quantityRef.current.value = selectedProduct.quantity || "";
-        comparePriceRef.current.value = selectedProduct?.comparePrice || "";
+        comparePriceRef.current.value = selectedProduct?.discount || "";
+        //review 🎈🎈🎈 discount
       }
     } else if (slug === "new") {
       setActionType("create");
@@ -262,10 +260,7 @@ export default memo(function Page({ params }) {
         setSwitchState(true);
         await setStatusAsync("active");
         submitBtnRef.current.click();
-      },
-      onCancel() {
-        console.log("Cancel");
-      },
+      }
     });
   };
 
@@ -276,19 +271,23 @@ export default memo(function Page({ params }) {
 
   return (
     <div className="relative h-full">
-      <div className={`${roboto.className} mx-auto px-10 py-20`}>
-        <div className="mb-12 flex items-center">
+      <div
+        className={`${roboto.className} mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10 lg:py-20`}
+      >
+        <div className="mb-6 flex items-center sm:mb-8 md:mb-10 lg:mb-12">
           <Link href="/admin/products">
-            <BackIcon className="mr-4 cursor-pointer text-xl font-bold" />
+            <BackIcon className="mr-2 cursor-pointer text-lg font-bold sm:mr-3 sm:text-xl md:mr-4" />
           </Link>
-          <h3 className="text-xl font-medium">Products</h3>
+          <h3 className="text-lg font-medium sm:text-xl">Products</h3>
         </div>
-        <h2 className="mb-8 text-2xl font-medium tracking-wide">Add Product</h2>
+        <h2 className="mb-4 text-xl font-medium tracking-wide sm:mb-6 sm:text-2xl md:mb-8">
+          Add Product
+        </h2>
         <form
           action={handleFormSubmit}
-          className="grid grid-cols-1 gap-4 lg:grid-cols-3"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
-          <div className="lg:col-span-2">
+          <div className="sm:col-span-2">
             <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
               <div className="mb-4">
                 <label
@@ -324,7 +323,7 @@ export default memo(function Page({ params }) {
                 ></textarea>
               </div>
             </div>
-            <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+            <div className="mb-6 rounded-lg bg-white p-4 shadow-shadowSm sm:p-6">
               <MediaUpload
                 multiple={true}
                 fileList={fileList}
@@ -333,7 +332,7 @@ export default memo(function Page({ params }) {
                 setDefaultFileList={setDefaultFileList}
               />
             </div>
-            <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow-shadowSm">
+            <div className="mb-4 grid grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow-shadowSm sm:grid-cols-2 md:grid-cols-3">
               <div>
                 <label
                   htmlFor="price"
@@ -354,20 +353,33 @@ export default memo(function Page({ params }) {
               </div>
               <div>
                 <label
-                  htmlFor="stock"
+                  htmlFor="discount"
                   className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
                 >
-                  COMPARE PRICE
+                  DISCOUNT (%)
                 </label>
                 <input
                   ref={comparePriceRef}
                   type="number"
-                  name="stock"
-                  id="stock"
+                  name="discount"
+                  id="discount"
                   autoComplete="off"
-                  placeholder="100"
+                  placeholder="0"
+                  min="0"
+                  max="100"
                   className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+                  DISCOUNTED PRICE
+                </label>
+                <div
+                  className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
+                  title="Not editable"
+                >
+                  {selectedProduct?.discountPrice || "N/A"}
+                </div>
               </div>
             </div>
             <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
@@ -382,7 +394,7 @@ export default memo(function Page({ params }) {
                 required
                 autoComplete="off"
                 placeholder="100"
-                className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline md:w-1/2"
+                className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline sm:w-1/2"
               />
             </div>
             <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
@@ -392,7 +404,7 @@ export default memo(function Page({ params }) {
               <div className="flex w-full items-center justify-center">
                 <button
                   type="submit"
-                  className="grow-1 mr-4 flex-1 rounded-md bg-primary px-16 py-2.5 text-white"
+                  className="grow-1 mr-4 flex-1 rounded-md bg-primary px-4 py-2.5 text-white sm:px-8 md:px-16"
                   ref={submitBtnRef}
                 >
                   <Space>
@@ -408,7 +420,10 @@ export default memo(function Page({ params }) {
                     )}
                   </Space>
                 </button>
-                <button className="text-xl font-bold tracking-wider text-primary">
+                <button
+                  className="text-xl font-bold tracking-wider text-primary"
+                  type="button"
+                >
                   ...
                 </button>
               </div>

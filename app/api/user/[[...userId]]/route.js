@@ -5,7 +5,6 @@ import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
 import { filterObj } from "@/utils/filterObj";
 import { Cart } from "@/models/cart";
-import Wishlist from "@/models/wishlist";
 import { protect, restrictTo } from "@/utils/checkPermission";
 import Email from "@/lib/email";
 
@@ -29,7 +28,6 @@ export async function POST(req) {
 
     if (user) {
       await Cart.create({ userId: user._id, item: [] });
-      await Wishlist.create({ userId: user._id, product: [] });
     }
 
     //send welcome email

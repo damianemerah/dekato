@@ -9,7 +9,6 @@ import { redirect } from "next/navigation";
 export const protect = async () => {
   const session = await getServerSession(OPTIONS);
   if (!session) {
-    console.log("No session found");
     redirect("/signin");
   }
 
@@ -18,15 +17,8 @@ export const protect = async () => {
 
 export const restrictTo = async (...roles) => {
   const session = await protect();
-
-  if (!session) {
-    throw new AppError("Please log in to access this resource", 401);
-  }
-  if (!roles.includes(session?.user.role)) {
-    throw new AppError(
-      "You do not have permission to perform this action",
-      403,
-    );
+  if (!session?.user || !roles.includes(session.user.role)) {
+    return { error: "You do not have permission to perform this action" };
   }
   return session;
 };

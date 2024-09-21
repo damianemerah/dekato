@@ -72,12 +72,6 @@ const ProductsList = () => {
     revalidateOnFocus: false,
   });
 
-  useEffect(() => {
-    if (users) {
-      console.log(users, "usersMap");
-    }
-  }, [users]);
-
   const dataSource = users?.map((item) => ({
     key: item.id,
     customer: item.firstname + " " + item.lastname,

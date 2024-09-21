@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-// import Product from "./product.js";
-// import User from "./user.js";
 
 const cartItemSchema = new mongoose.Schema({
   productId: {
@@ -12,10 +10,12 @@ const cartItemSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   quantity: { type: Number, default: 1 },
   checked: { type: Boolean, default: true },
-  color: String,
-  size: String,
+  option: { type: Object },
   variantId: String,
-  cartId: String,
+  cartId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Cart",
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -33,6 +33,10 @@ const cartSchema = new mongoose.Schema({
 cartSchema.pre(/^find/, function (next) {
   this.populate({
     path: "item",
+    populate: {
+      path: "productId",
+      select: "name variant image slug",
+    },
   });
   next();
 });

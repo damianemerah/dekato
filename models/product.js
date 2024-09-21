@@ -1,149 +1,126 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
-import Category from "@/models/category";
+import Category from "./category";
 
-const productSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: function () {
-      return this.status !== "draft";
+const productSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    trim: true,
-  },
-  description: {
-    type: String,
-    required: function () {
-      return this.status !== "draft";
+    description: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    trim: true,
-  },
-  price: {
-    type: Number,
-    required: function () {
-      return this.status !== "draft";
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
     },
-    min: 0,
-  },
-  discount: {
-    type: Number,
-    validate: {
-      validator: function (val) {
-        return this.status === "draft" || val < this.price;
+    discount: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    discountPrice: Number,
+    discountDuration: Date,
+    image: [String],
+    video: [String],
+    category: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        required: [true, "Product must belong to a category"],
       },
-      message: "Discount price ({VALUE}) should be below this regular price",
-    },
-    default: 0,
-  },
-  discountDuration: {
-    type: Date,
-    required: function () {
-      return this.status !== "draft" && this.discount > 0;
-    },
-  },
-  discountPrice: {
-    type: Number,
-  },
-  image: [String],
-  video: [String],
-  category: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: "Category",
-      required: [
-        function () {
-          return this.status !== "draft";
+    ],
+    cat: [String],
+    createdAt: { type: Date, default: Date.now },
+    slug: { type: String, unique: true },
+    tag: [{ type: String, lowercase: true }],
+    variant: [
+      {
+        options: {
+          type: Object,
         },
-        "Product must belong to a category",
-      ],
-    },
-  ],
-  cat: [String],
-  createdAt: { type: Date, default: Date.now },
-  slug: { type: String },
-  tag: [{ type: String, lowercase: true }],
-  variant: [
-    {
-      options: {
-        type: Map,
-        of: String,
+        price: Number,
+        quantity: {
+          type: Number,
+          default: 0,
+          min: 0,
+        },
+        image: { type: String, required: true },
       },
-      price: Number,
-      quantity: { type: Number },
-      image: String,
+    ],
+    quantity: {
+      type: Number,
+      min: [0, "Quantity must be a positive number"],
     },
-  ],
-  quantity: {
-    type: Number,
-    required: function () {
-      return this.status !== "draft";
+    sold: { type: Number, default: 0, min: 0 },
+    status: {
+      type: String,
+      default: "draft",
+      enum: ["draft", "active", "archive"],
     },
-    min: [0, "Quantity must be a positive number"],
   },
-  sold: { type: Number, default: 0 },
-  status: {
-    type: String,
-    default: "draft",
-    enum: ["draft", "active", "archive"],
-  },
-});
+  { timestamps: true },
+);
 
 productSchema.pre("save", async function (next) {
-  this.slug = slugify(this.name, { lower: true });
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, { lower: true, strict: true });
+  }
 
   if (this.isModified("category")) {
-    try {
-      const categories = await Category.find({
-        _id: { $in: this.category },
-      }).select("slug");
-
-      if (categories && categories.length > 0) {
-        this.cat = categories.map((cat) => cat.slug);
-      } else {
-        if (this.status !== "draft") {
-          throw new Error("At least one category slug is required");
-        }
-      }
-    } catch (error) {
-      return next(error);
-    }
+    await updateCategorySlug(this);
   }
 
-  if (this.discount > 0 && this.discountDuration > Date.now()) {
-    this.discountPrice = this.price - this.discount;
-  } else {
-    this.discountPrice = this.price;
-  }
-
+  validateAndSetDiscount(this);
   next();
 });
 
 productSchema.pre("findOneAndUpdate", async function (next) {
   const update = this.getUpdate();
-  console.log(update, "update🚀🚀🚀");
-  if (update.category) {
-    try {
-      const categories = await Category.find({
-        _id: { $in: update.category },
-      }).select("slug");
 
-      console.log(categories, "categories🚀🚀🚀");
-
-      if (categories && categories.length > 0) {
-        update.cat = categories.map((cat) => cat.slug);
-        console.log(this.cat, "this.cat🚀🚀🚀");
-      } else {
-        if (this.status !== "draft") {
-          throw new Error("At least one category slug is required");
-        }
-      }
-    } catch (error) {
-      return next(error);
-    }
+  if (update.name) {
+    update.slug = slugify(update.name, { lower: true, strict: true });
   }
+
+  if (update.category) {
+    await updateCategorySlug(update);
+  }
+
+  validateAndSetDiscount(update);
   next();
 });
 
-const Product =
-  mongoose.models.Product || mongoose.model("Product", productSchema);
+async function updateCategorySlug(doc) {
+  try {
+    const categories = await Category.find({
+      _id: { $in: doc.category },
+    }).select("slug");
 
-export default Product;
+    if (categories && categories.length > 0) {
+      doc.cat = categories.map((cat) => cat.slug);
+    } else if (doc.status !== "draft") {
+      throw new Error("At least one category slug is required");
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+function validateAndSetDiscount(doc) {
+  if (doc.discount) {
+    doc.discount = Math.min(doc.discount, 100);
+    if (doc.discount > 0 && doc.price) {
+      doc.discountPrice = doc.price * (1 - doc.discount / 100);
+    } else {
+      doc.discountPrice = undefined;
+    }
+  }
+}
+
+module.exports =
+  mongoose.models.Product || mongoose.model("Product", productSchema);
