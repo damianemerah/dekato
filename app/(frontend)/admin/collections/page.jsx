@@ -110,7 +110,10 @@ const Collections = () => {
       (cat) => cat.parent?.id === category.parent?.id && cat.pinned,
     ).length;
 
-    if (isChecked && pinnedCount >= 5) {
+    // Check if the category is already pinned
+    const isAlreadyPinned = category.pinned;
+
+    if (isChecked && pinnedCount >= 5 && !isAlreadyPinned) {
       message.error(
         `Cannot pin more than 5 categories under ${parentCategory.name}`,
       );

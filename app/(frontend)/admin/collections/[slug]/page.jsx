@@ -11,10 +11,8 @@ import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWRImmutable from "swr/immutable";
-import { Spin, Button } from "antd";
+import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import { oswald } from "@/style/font";
-import useSWR from "swr";
 
 export default memo(function NewCollection({ params }) {
   const slug = params.slug;
@@ -148,7 +146,8 @@ export default memo(function NewCollection({ params }) {
         (cat) => cat.parent?.id === cParent && cat.pinned,
       ).length;
 
-      if (pinnedCount >= 5) {
+      const isAlreadyPinned = selectedCategory.pinned;
+      if (pinnedCount >= 5 && !isAlreadyPinned) {
         message.error(
           `Cannot pin more than 5 categories under ${parentCategory.name}`,
         );
