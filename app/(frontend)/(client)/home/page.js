@@ -1,6 +1,6 @@
 "use client";
 import Hero from "@/app/ui/home/Hero";
-import HomeCategory from "@/app/ui/home/HomeCategory";
+import SelectedCategories from "@/app/ui/home/selected-categories";
 import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
 import SubPageCampaign from "@/app/ui/page-campaign";
@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
-      <HomeCategory />
+      <SelectedCategories />
       <Campaign />
       <div className="">
         <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>

@@ -292,3 +292,32 @@ export async function deleteCategory(id) {
     throw new Error(error.message || "An error occurred");
   }
 }
+
+export async function getPinnedCategoriesByParent(parentName) {
+  await dbConnect();
+  try {
+    // Find the parent category by its name
+    const parentCategory = await Category.findOne({ name: parentName });
+    if (!parentCategory) {
+      throw new Error("Parent category not found");
+    }
+
+    // Find the pinned categories with the parent category as their parent
+    const pinnedCategories = await Category.find({
+      parent: parentCategory._id,
+      pinned: true,
+    })
+      .select("name description image slug pinned pinOrder createdAt")
+      .lean();
+
+    return pinnedCategories.map(({ _id, ...rest }) => ({
+      id: _id.toString(),
+      ...rest,
+    }));
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(
+      error.message || "Something went wrong while fetching pinned categories",
+    );
+  }
+}

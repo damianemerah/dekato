@@ -11,10 +11,8 @@ import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWRImmutable from "swr/immutable";
-import { Spin, Button } from "antd";
+import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import { oswald } from "@/style/font";
-import useSWR from "swr";
 
 export default memo(function NewCollection({ params }) {
   const slug = params.slug;
@@ -53,7 +51,15 @@ export default memo(function NewCollection({ params }) {
       }, 0);
 
       setPinOrder(highestPinOrder + 1);
-      const category = allCategories.map((cat) => ({
+
+      // Filter categories to only include "men" or "women"
+      const filteredCategories = allCategories.filter(
+        (cat) =>
+          cat.name.toLowerCase() === "men" ||
+          cat.name.toLowerCase() === "women",
+      );
+
+      const category = filteredCategories.map((cat) => ({
         value: cat.id,
         label: cat.name,
       }));
@@ -124,6 +130,28 @@ export default memo(function NewCollection({ params }) {
 
       if (cParent?.length > 0) {
         formData.append("parent", cParent);
+      }
+
+      // Ensure "men" and "women" cannot be pinned
+      if (
+        formData.get("name").toLowerCase() === "men" ||
+        formData.get("name").toLowerCase() === "women"
+      ) {
+        formData.set("pinned", false);
+      }
+
+      // Check the number of pinned categories under the selected parent
+      const parentCategory = allCategories.find((cat) => cat.id === cParent);
+      const pinnedCount = allCategories.filter(
+        (cat) => cat.parent?.id === cParent && cat.pinned,
+      ).length;
+
+      const isAlreadyPinned = selectedCategory.pinned;
+      if (pinnedCount >= 5 && !isAlreadyPinned) {
+        message.error(
+          `Cannot pin more than 5 categories under ${parentCategory.name}`,
+        );
+        return;
       }
 
       if (type === "edit") {
@@ -237,6 +265,10 @@ export default memo(function NewCollection({ params }) {
                 value="true"
                 checked={isPinned}
                 onChange={() => setIsPinned(!isPinned)}
+                disabled={
+                  selectedCategory?.name.toLowerCase() === "men" ||
+                  selectedCategory?.name.toLowerCase() === "women"
+                }
               />
 
               {isPinned && (

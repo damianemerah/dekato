@@ -1,0 +1,45 @@
+Certainly! Below is a simplified, printable version of the instructions:
+
+---
+
+### **Keeping Your Branch `costech_b` Up-to-Date**
+
+**1. Fetch Updates from the Original Repository (`upstream`)**
+```
+git fetch upstream
+```
+
+**2. Switch to Your `main` Branch**
+```
+git checkout main
+```
+
+**3. Merge Updates from `upstream/main` into Your `main`**
+```
+git merge upstream/main
+```
+
+**4. Push the Updated `main` Branch to Your Fork (`origin`)**
+```
+git push origin main
+```
+
+**5. Rebase Your Branch `costech_b` onto the Updated `main`**
+```
+git checkout costech_b
+git rebase main
+```
+
+- **If there are conflicts, resolve them, then continue:**
+  ```
+  git rebase --continue
+  ```
+
+**6. Push the Rebasing Changes to Your Fork**
+```
+git push origin costech_b --force
+```
+
+
+
+
