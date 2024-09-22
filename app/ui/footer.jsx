@@ -13,30 +13,29 @@ export default function Footer() {
     <footer className="bg-primary text-white">
       {/* Top Section */}
       <div className={`bg-neutral-300 py-10 text-black ${oswald.className}`}>
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-10 lg:flex-row">
+        <div className="mx-auto grid max-w-screen-lg items-center justify-center gap-6 px-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p className="text-center">Quality Assurance</p>
+            <p>Quality Assurance</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p className="text-center">Free Shipping</p>
+            <p>Free Shipping</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p className="text-center">Secure Payment</p>
+            <p>Secure Payment</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p className="text-center">Customer Support</p>
+            <p>Customer Support</p>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section */}
       <div className="flex items-center justify-center px-8 py-20">
         <div
-          className={`${oswald.className} flex w-full justify-center space-x-20 uppercase`}
+          className={`${oswald.className} flex w-full flex-col justify-center space-y-10 uppercase sm:flex-col sm:space-y-10 md:flex-col md:space-y-10 lg:flex-row lg:space-x-20 lg:space-y-0`}
         >
           {/* Features */}
           <div className="flex flex-col space-y-7">
@@ -142,8 +141,11 @@ export default function Footer() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-start">
-              <label htmlFor="newsletter" className="hover:text-white">
+            <div className="flex flex-col items-start md:max-w-xs">
+              <label
+                htmlFor="newsletter"
+                className="w-full text-center hover:text-white sm:text-left"
+              >
                 Subscribe to our newsletter
               </label>
               <input

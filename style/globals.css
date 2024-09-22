@@ -7,6 +7,32 @@
   --font-roboto: "Roboto", sans-serif;
 }
 
+* {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+  box-sizing: border-box;
+}
+
+/* Webkit browsers (Chrome, Safari, etc.) */
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #000;
+  border-radius: 4px;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #000 #fff;
+}
+
 h2 {
   @apply text-3xl font-bold;
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import image2 from "@/public/assets/image2.png";
 import image3 from "@/public/assets/image3.png";
 import { oswald } from "@/font";
+import PromoBar from "@/app/ui/promo-bar";
 
 import "swiper/css/effect-fade";
 
@@ -20,6 +21,7 @@ export default function Hero() {
       className={`${oswald.className}`}
       onClick={() => (activeDropdown ? setActiveDropdown(false) : null)}
     >
+      <PromoBar />
       <Swiper
         modules={[EffectFade, Pagination, Navigation, Autoplay]}
         spaceBetween={30}
@@ -40,19 +42,21 @@ export default function Hero() {
         className="relative"
       >
         <SwiperSlide className="h-auto bg-[url('/assets/hero_bg.png')] bg-cover bg-center bg-no-repeat">
-          <div className={`flex items-center justify-center px-16 py-16`}>
-            <div className="heading_bd relative mr-4 flex flex-shrink-0 flex-grow-0 basis-1/2 flex-col justify-center p-8">
-              <h1 className="mb-10 text-4xl font-bold leading-tight text-slate-950 md:text-6xl lg:text-7xl">
+          <div
+            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+          >
+            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                 SUMMER SALE: Get 30% OFF On all dresses.
               </h1>
               <Link
                 href="#"
-                className="self-start border-2 border-black px-8 py-3 font-medium text-black hover:no-underline"
+                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
               >
                 SHOP NOW
               </Link>
             </div>
-            <div className="relative flex h-96 flex-1 justify-center border-dashed">
+            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
               <div className="block w-1/2">
                 <Image
                   alt="cat"
@@ -76,19 +80,21 @@ export default function Hero() {
         </SwiperSlide>
 
         <SwiperSlide className="h-auto bg-[url('/assets/hero_img1.jpg')] bg-cover bg-center bg-no-repeat">
-          <div className={`flex items-center justify-center px-16 py-16`}>
-            <div className="heading_bd relative mr-4 flex flex-shrink-0 flex-grow-0 basis-1/2 flex-col justify-center p-8">
-              <h1 className="mb-10 text-4xl font-bold leading-tight text-slate-950 md:text-6xl lg:text-7xl">
+          <div
+            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+          >
+            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                 Discover the Latest Collection of Women&apos;s Wear.
               </h1>
               <Link
                 href="#"
-                className="self-start border-2 border-black px-8 py-3 font-medium text-black hover:no-underline"
+                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
               >
                 SHOP NOW
               </Link>
             </div>
-            <div className="relative flex h-96 flex-1 justify-center border-dashed">
+            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
               <div className="block w-1/2">
                 <Image
                   alt="cat"
@@ -112,19 +118,21 @@ export default function Hero() {
         </SwiperSlide>
 
         <SwiperSlide className="h-auto bg-[url('/assets/hero_img2.jpg')] bg-cover bg-center bg-no-repeat">
-          <div className={`flex items-center justify-center px-16 py-16`}>
-            <div className="heading_bd relative mr-4 flex flex-shrink-0 flex-grow-0 basis-1/2 flex-col justify-center p-8">
-              <h1 className="mb-10 text-4xl font-bold leading-tight text-slate-950 md:text-6xl lg:text-7xl">
+          <div
+            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+          >
+            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                 New Arrivals: Fresh Styles for Every Occasion.
               </h1>
               <Link
                 href="#"
-                className="self-start border-2 border-black px-8 py-3 font-medium text-black hover:no-underline"
+                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
               >
                 SHOP NOW
               </Link>
             </div>
-            <div className="relative flex h-96 flex-1 justify-center border-dashed">
+            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
               <div className="block w-1/2">
                 <Image
                   alt="cat"
@@ -148,24 +156,26 @@ export default function Hero() {
         </SwiperSlide>
 
         <div className="absolute bottom-0 right-0 z-10 mb-4 mr-4 flex justify-center gap-1">
-          <div className="swiper-button-prev-custom !visible flex h-10 w-10 items-center justify-center bg-black text-white">
+          <div className="swiper-button-prev-custom !visible flex h-8 w-8 items-center justify-center bg-black text-white sm:h-10 sm:w-10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              height="20px"
+              height="16px"
               viewBox="0 0 24 24"
-              width="20px"
+              width="16px"
               fill="white"
+              className="sm:h-5 sm:w-5"
             >
               <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
             </svg>
           </div>
-          <div className="swiper-button-next-custom !visible flex h-10 w-10 items-center justify-center bg-black text-white">
+          <div className="swiper-button-next-custom !visible flex h-8 w-8 items-center justify-center bg-black text-white sm:h-10 sm:w-10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              height="20px"
+              height="16px"
               viewBox="0 0 24 24"
-              width="20px"
+              width="16px"
               fill="white"
+              className="sm:h-5 sm:w-5"
             >
               <path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
             </svg>

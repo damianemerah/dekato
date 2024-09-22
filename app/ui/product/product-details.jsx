@@ -19,22 +19,27 @@ import { createCartItem } from "@/app/action/cartAction";
 import { useUserStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { message, Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { useCartStore } from "@/store/store";
+import AddIcon from "@/public/assets/icons/add.svg";
+import MinusIcon from "@/public/assets/icons/minus.svg";
+import Link from "next/link";
+import EditIcon from "@/public/assets/icons/edit.svg";
 
 const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   const contentRef = useRef(null);
 
   return (
-    <li className="border-gray-200">
+    <li className="border-b border-gray-200">
       <button
-        className={`${oswald.className} flex w-full justify-between px-2 py-4 text-left text-sm font-medium focus:outline-none`}
+        className={`${oswald.className} flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-800 hover:text-black focus:outline-none`}
         onClick={onToggle}
       >
         {title}
         <span className="relative flex h-6 w-6 items-center justify-center">
-          <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
+          <span className="h-0.5 w-3 bg-gray-600 transition-transform duration-300" />
           <span
-            className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${
+            className={`absolute h-0.5 w-3 bg-gray-600 transition-transform duration-300 ${
               isOpen ? "rotate-0" : "rotate-90"
             }`}
           />
@@ -47,7 +52,7 @@ const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
           height: isOpen ? contentRef.current.scrollHeight : 0,
         }}
       >
-        <div className="px-2 pb-4 font-light">{children}</div>
+        <div className="pb-4 text-sm font-light text-gray-700">{children}</div>
       </div>
     </li>
   );
@@ -60,8 +65,6 @@ const fetcher = async (id) => {
 
 export default function ProductDetail({ name }) {
   const [variantOptions, setVariantOptions] = useState([]);
-  const [variantImages, setVariantImages] = useState([]);
-  const [discountedPrice, setDiscountedPrice] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -80,22 +83,16 @@ export default function ProductDetail({ name }) {
 
   useEffect(() => {
     if (!product || isLoading) return;
-    const discountedPrice = product?.discount
-      ? (product.price * (100 - product.discount)) / 100
-      : product.price;
-    setDiscountedPrice(discountedPrice);
 
     const options = generateVariantOptions(product.variant);
     setVariantOptions(options);
 
-    // Update this part to create a map of color to image
     const colorToImageMap = new Map();
     product.variant.forEach((variant) => {
       if (variant.options.color && variant.image) {
         colorToImageMap.set(variant.options.color, variant.image);
       }
     });
-    setVariantImages(Array.from(colorToImageMap.values()));
 
     if (product.variant.length > 0) {
       const firstVariant = product.variant[0];
@@ -106,9 +103,25 @@ export default function ProductDetail({ name }) {
 
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const handleToggleSection = (section) => {
     setActiveSection(activeSection === section ? null : section);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isZoomed) return;
+    const { left, top, width, height } =
+      e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - left) / width;
+    const y = (e.clientY - top) / height;
+    setZoomPosition({ x, y });
+  };
+
+  const handleImageClick = () => {
+    setIsZoomed(!isZoomed);
   };
 
   const addItemToCart = async () => {
@@ -150,9 +163,9 @@ export default function ProductDetail({ name }) {
       }
 
       if (user?.wishlist.includes(product.id)) {
-        const wishlistItem = await removeFromWishlist(userId, product.id);
+        await removeFromWishlist(userId, product.id);
       } else {
-        const wishlistItem = await addToWishlist(userId, product.id);
+        await addToWishlist(userId, product.id);
       }
       mutate(`/api/user/${userId}`);
     } catch (error) {
@@ -163,12 +176,10 @@ export default function ProductDetail({ name }) {
   const handleVariantSelection = (optionName, value) => {
     setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
 
-    // Filter variants based on the selected color/image
     const filteredVariants = product.variant.filter(
       (variant) => variant.options[optionName] === value,
     );
 
-    // Update other options based on filtered variants
     const updatedOptions = { ...selectedVariantOption, [optionName]: value };
     Object.keys(updatedOptions).forEach((key) => {
       if (key !== optionName) {
@@ -183,7 +194,6 @@ export default function ProductDetail({ name }) {
 
     setSelectedVariantOption(updatedOptions);
 
-    // Find the matching variant and update selectedVariantId
     const newSelectedVariant = filteredVariants.find((variant) =>
       Object.entries(updatedOptions).every(
         ([key, val]) => variant.options[key] === val,
@@ -195,7 +205,7 @@ export default function ProductDetail({ name }) {
   };
 
   const isOptionAvailable = (optionName, value) => {
-    if (optionName === "color") return true; // All colors are selectable
+    if (optionName === "color") return true;
     return product.variant.some(
       (variant) =>
         variant.options[optionName] === value &&
@@ -205,15 +215,42 @@ export default function ProductDetail({ name }) {
     );
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Spin
+          indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
+          className="!text-primary"
+          size="large"
+        />
+      </div>
+    );
+
+  if (!product)
+    return (
+      <div className="flex h-screen items-center justify-center text-lg font-semibold text-gray-600">
+        Product not found
+      </div>
+    );
 
   return (
-    <>
-      <div className="relative mb-20 flex w-full max-w-[960px] justify-center">
-        <div className="sticky bottom-0 top-24 float-left h-fit w-[66.64%] px-3">
-          <div className="flex">
-            {/* Thumbnail Swiper */}
-            <div className="mr-3 flex flex-col gap-2 self-start">
+    <div className="mx-auto mb-8 w-full">
+      {user && user.role === "admin" && (
+        <div className="mb-4 flex justify-end">
+          <Link
+            href={`/admin/products/${product.name}-${product.id}`}
+            className="inline-flex items-center rounded bg-primary px-4 py-2 text-white transition-colors duration-300"
+            title="admin edit button"
+          >
+            <EditIcon className="mr-2 h-5 w-5 fill-white" />
+            <span>Edit Product</span>
+          </Link>
+        </div>
+      )}
+      <div className="flex flex-wrap">
+        <div className="mb-8 w-full lg:mb-0 lg:w-2/3">
+          <div className="relative w-full">
+            <div className="absolute bottom-8 left-8 z-10 md:mb-0">
               <Swiper
                 onSwiper={setThumbsSwiper}
                 spaceBetween={10}
@@ -222,97 +259,122 @@ export default function ProductDetail({ name }) {
                 watchSlidesProgress={true}
                 modules={[FreeMode, Thumbs]}
                 direction="vertical"
-                className="h-fit"
+                className="h-64 md:h-auto"
               >
                 {product?.image &&
                   product.image.map((image, index) => (
-                    <SwiperSlide key={index} className="!h-14 !w-12">
+                    <SwiperSlide
+                      key={index}
+                      className={`!h-20 !w-20 shadow-shadowSm ${
+                        index === activeIndex ? "border-2 border-black" : ""
+                      }`}
+                    >
                       <Image
                         className="block h-full w-full object-cover"
                         src={image}
                         alt={`Thumbnail ${index + 1}`}
-                        width={48}
-                        height={56}
+                        fill
+                        quality={100}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                     </SwiperSlide>
                   ))}
               </Swiper>
             </div>
-            {/* Main Image Swiper */}
-            <div className="relative max-w-lg overflow-hidden">
-              <Swiper
-                spaceBetween={10}
-                thumbs={{ swiper: thumbsSwiper }}
-                modules={[FreeMode, Thumbs]}
-                className="mainSwiper h-full max-w-lg"
-              >
-                {product?.image &&
-                  product.image.map((image, index) => (
-                    <SwiperSlide key={index}>
-                      <div className="relative aspect-[4/5] w-full">
-                        <Image
-                          className="object-cover"
-                          src={image}
-                          alt={`Main image ${index + 1}`}
-                          fill
-                          priority={index === 0}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                      </div>
-                    </SwiperSlide>
-                  ))}
-              </Swiper>
-
-              <div className="mt-1 flex items-center justify-center gap-5">
-                <p className="font-semibold">Share:</p>
-                <XIcon />
-                <FbIcon />
-                <InstaIcon />
-                <WhatsappIcon />
-              </div>
+            <Swiper
+              spaceBetween={10}
+              thumbs={{ swiper: thumbsSwiper }}
+              modules={[FreeMode, Thumbs]}
+              className="mainSwiper h-96 w-full md:h-[500px]"
+              onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+            >
+              {product?.image &&
+                product.image.map((image, index) => (
+                  <SwiperSlide key={index} className="h-full w-full">
+                    <div
+                      className="relative h-full w-full overflow-hidden"
+                      onMouseMove={handleMouseMove}
+                      onMouseLeave={() => setZoomPosition({ x: 0, y: 0 })}
+                      onClick={handleImageClick}
+                      style={{
+                        cursor: `url("data:image/svg+xml,${encodeURIComponent(
+                          isZoomed
+                            ? '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>'
+                            : '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M7.5 4v7M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>',
+                        )}") 24 24, auto`,
+                      }}
+                    >
+                      <Image
+                        className="object-cover transition-transform duration-200 ease-out"
+                        src={image}
+                        alt={`Main image ${index + 1}`}
+                        fill
+                        priority={index === 0}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        quality={100}
+                        style={{
+                          transformOrigin: `${zoomPosition.x * 100}% ${zoomPosition.y * 100}%`,
+                          transform: `scale(${isZoomed ? 2 : 1})`,
+                        }}
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+            </Swiper>
+            <div className="mt-4 flex items-center justify-center gap-6">
+              <p className="font-semibold text-gray-700">Share:</p>
+              <XIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
+              <FbIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
+              <InstaIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
+              <WhatsappIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
             </div>
           </div>
         </div>
 
-        <div className="float-left mt-6 block w-[33.3332%] max-w-80 flex-1 space-y-4 px-3">
-          <h3 className="text-2xl font-normal">{product.name}</h3>
-          {product.discount > 0 && (
-            <div className="flex items-center gap-2">
-              <p className="text-base font-semibold text-gray-500 line-through">
-                ₦{product.price}
+        <div className="w-full px-4 lg:w-1/3">
+          <h3
+            className={`${oswald.className} mb-1 text-center text-xl font-semibold uppercase sm:text-2xl md:text-3xl lg:text-left`}
+          >
+            {product.name}
+          </h3>
+          <div className="mb-6 text-center lg:text-left">
+            {product.discount > 0 ? (
+              <div className="flex items-center justify-center gap-3 lg:justify-start">
+                <p className="text-sm text-gray-500 line-through sm:text-base md:text-lg">
+                  ₦{product.price.toLocaleString()}
+                </p>
+                <p className="text-base font-bold text-green-600 sm:text-lg md:text-xl">
+                  ₦{product.discountPrice.toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <p className="text-base font-bold sm:text-lg md:text-xl">
+                ₦{product.price.toLocaleString()}
               </p>
-              <p className="text-lg font-semibold text-[#12A100]">
-                ₦{discountedPrice}
-              </p>
-            </div>
-          )}
-          {!product.discount && (
-            <p className="text-lg font-semibold">₦{product.price}</p>
-          )}
+            )}
+          </div>
 
           {variantOptions.length > 0 && (
-            <div>
+            <div className="mb-6">
               {variantOptions.map((option) => (
-                <div key={option.id}>
-                  <p
-                    className={`${oswald.className} mb-2 text-base font-medium`}
-                  >
+                <div key={option.id} className="mb-4">
+                  <p className={`${oswald.className} mb-2 text-lg font-medium`}>
                     <span className="capitalize">{option.name}</span>:{" "}
-                    <span>
+                    <span className="font-normal">
                       {selectedVariantOption[option.name] || "Select"}
                     </span>
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {option.values.map((value, index) => {
                       const isAvailable = isOptionAvailable(option.name, value);
                       return option.name === "color" ? (
                         <div
                           key={value}
-                          className={`h-16 w-16 rounded-full border ${
+                          className={`h-12 w-12 rounded-full border-2 ${
                             selectedVariantOption[option.name] === value
                               ? "border-black"
                               : "border-gray-300"
-                          } cursor-pointer`}
+                          } cursor-pointer transition-all duration-200 hover:shadow-md`}
                           onClick={() =>
                             handleVariantSelection(option.name, value)
                           }
@@ -324,30 +386,31 @@ export default function ProductDetail({ name }) {
                               )?.image || ""
                             }
                             alt={`Variant ${value}`}
-                            width={64}
-                            height={64}
+                            width={48}
+                            height={48}
                             className="h-full w-full rounded-full object-cover"
                           />
                         </div>
                       ) : (
-                        <p
+                        <button
                           key={index}
-                          className={`flex items-center justify-center border ${
+                          className={`border px-4 py-2 ${
                             selectedVariantOption[option.name] === value
-                              ? "border-black"
-                              : "border-gray-300"
-                          } p-2 text-xs uppercase ${
+                              ? "border-black bg-black text-white"
+                              : "border-gray-300 text-gray-700"
+                          } rounded text-sm uppercase ${
                             isAvailable
-                              ? "cursor-pointer"
-                              : "cursor-not-allowed line-through opacity-50"
-                          }`}
+                              ? "hover:border-black"
+                              : "cursor-not-allowed opacity-50"
+                          } transition-all duration-200`}
                           onClick={() =>
                             isAvailable &&
                             handleVariantSelection(option.name, value)
                           }
+                          disabled={!isAvailable}
                         >
                           {value}
-                        </p>
+                        </button>
                       );
                     })}
                   </div>
@@ -356,39 +419,43 @@ export default function ProductDetail({ name }) {
             </div>
           )}
 
-          <div className={`${oswald.className} space-y-2 pt-2`}>
-            <div className="flex items-center justify-center gap-2">
+          <div className={`${oswald.className} mb-8 space-y-4`}>
+            <div className="flex items-center gap-3">
               <ButtonPrimary
-                className={`w-full flex-1 ${isAddingToCart ? "cursor-not-allowed" : ""}`}
+                className={`flex-1 text-lg ${isAddingToCart ? "cursor-not-allowed opacity-75" : ""}`}
                 onClick={addItemToCart}
+                disabled={isAddingToCart}
               >
                 {isAddingToCart ? <Spin /> : "Add to bag"}
               </ButtonPrimary>
               <button
-                className="flex h-10 w-10 flex-none items-center justify-center border-2 border-black p-2"
+                className="flex h-12 w-12 flex-none items-center justify-center rounded-full border-2 border-black transition-colors duration-200 hover:bg-gray-100"
                 onClick={addWishlist}
               >
                 {user?.wishlist.includes(product.id) ? (
-                  <HeartFilledIcon className="text-black" />
+                  <HeartFilledIcon className="h-6 w-6 text-red-500" />
                 ) : (
-                  <HeartIcon />
+                  <HeartIcon className="h-6 w-6" />
                 )}
               </button>
             </div>
-            <Button className="flex h-[44px] w-full items-center justify-center border-2 border-green-500 px-9 uppercase hover:bg-transparent hover:text-green-500">
-              <WhatsappIcon />
-              <span className="ml-2">Order on WhatsApp</span>
+            <Button className="flex h-12 w-full items-center justify-center rounded-md border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500 hover:text-white">
+              <WhatsappIcon className="mr-2 h-5 w-5" />
+              <span className="text-lg">Order on WhatsApp</span>
             </Button>
           </div>
 
           <div>
-            <ul className="divide-y">
+            <ul className="divide-y border-t border-gray-200">
               <CollapsibleSection
                 title="Product Details"
                 isOpen={activeSection === "Product Details"}
                 onToggle={() => handleToggleSection("Product Details")}
               >
-                <p>{product.description}</p>
+                <div
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                  className="quill-content ql-editor"
+                />
               </CollapsibleSection>
 
               <CollapsibleSection
@@ -398,13 +465,13 @@ export default function ProductDetail({ name }) {
               >
                 <p>
                   We deliver your order within 1-2 business days. Easy returns
-                  available.
+                  available within 14 days of delivery.
                 </p>
               </CollapsibleSection>
             </ul>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -95,20 +95,6 @@ const RecommendedProducts = () => {
     },
   ];
 
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       const productData = await getAllProducts(cat, searchParams);
-  //       setProducts(productData);
-  //     } catch (error) {
-  //       message.error("Error fetching products: " + error.message);
-  //       console.log(error);
-  //     }
-  //   };
-
-  //   fetchProducts();
-  // }, [setProducts, cat, searchParams]);
-
   return (
     <>
       <Swiper

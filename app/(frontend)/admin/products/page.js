@@ -10,6 +10,7 @@ import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import image6 from "@/public/assets/no-image.webp";
 import Link from "next/link";
+import useConfirmModal from "@/app/ui/confirm-modal";
 
 const { confirm } = Modal;
 
@@ -60,6 +61,7 @@ const Action = memo(function Action({ id, handleDelete }) {
 const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
+  const showConfirmModal = useConfirmModal();
 
   const {
     data: products,
@@ -98,7 +100,7 @@ const ProductsList = () => {
       }
     };
     try {
-      confirm({
+      showConfirmModal({
         title: "Are you sure you want to delete this product?",
         content: "This action cannot be undone",
         onOk() {

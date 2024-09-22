@@ -37,5 +37,9 @@ export async function generateStaticParams() {
 }
 
 export default async function Product({ params: { cat }, searchParams }) {
-  return <CategoryProducts cat={cat} searchParams={searchParams} />;
+  return (
+    <div className="bg-gray-100">
+      <CategoryProducts cat={cat} searchParams={searchParams} />
+    </div>
+  );
 }

@@ -10,6 +10,7 @@ import "swiper/css/pagination";
 import "swiper/css/free-mode";
 import "swiper/css/thumbs";
 import "@/style/globals.css";
+import LayoutWrapper from "@/app/ui/layout-wrapper";
 
 export default function RootLayout({ children }) {
   return (
@@ -17,9 +18,9 @@ export default function RootLayout({ children }) {
       <AntdRegistry>
         {/* <StyleProvider layer> */}
         <Provider>
-          <body className={`${roboto.className} antialiased`}>
+          <body className={`${roboto.className} relative antialiased`}>
             <GlobalFetch />
-            {children}
+            <LayoutWrapper>{children}</LayoutWrapper>
           </body>
         </Provider>
         {/* </StyleProvider> */}

@@ -1,425 +1,218 @@
 "use client";
+import React, { useState } from "react";
 import {
-  ActionList,
-  Avatar,
-  Badge,
-  Bleed,
-  BlockStack,
-  Box,
+  Layout,
+  Typography,
+  Space,
   Button,
-  Card,
-  Divider,
-  Grid,
-  Icon,
-  InlineGrid,
-  LegacyCard,
-  Page,
-  Popover,
-  ResourceItem,
-  ResourceList,
-  SkeletonBodyText,
-  SkeletonDisplayText,
   Tag,
-  Text,
-  Thumbnail,
-} from "@shopify/polaris";
-
+  Card,
+  List,
+  Avatar,
+  Popover,
+  Menu,
+  Dropdown,
+  Row,
+  Col,
+  Divider,
+} from "antd";
 import {
-  EditIcon,
-  DuplicateIcon,
-  ArchiveIcon,
-  PrintIcon,
-  XIcon,
-  MenuHorizontalIcon,
-  DeliveryIcon,
-  ReceiptPaidIcon,
-} from "@shopify/polaris-icons";
-import { useCallback, useState } from "react";
+  LeftOutlined,
+  EditOutlined,
+  MoreOutlined,
+  CheckCircleOutlined,
+  DollarOutlined,
+} from "@ant-design/icons";
+import Link from "next/link";
 
-// This example is for guidance purposes. Copying it will come with caveats.
+const { Title, Text } = Typography;
+const { Header, Content } = Layout;
+
 function OrderDetails() {
-  const SkeletonLabel = (props) => {
-    return (
-      <Box
-        background="bg-fill-tertiary"
-        minHeight="1rem"
-        maxWidth="5rem"
-        borderRadius="base"
-        {...props}
-      />
-    );
-  };
+  const menu = (
+    <Menu>
+      <Menu.Item key="1">Print packing slip</Menu.Item>
+      <Menu.Item key="2" danger>
+        Cancel fulfillment
+      </Menu.Item>
+    </Menu>
+  );
 
-  const [active, setActive] = useState(false);
-  const toggleActive = useCallback(() => setActive((active) => !active), []);
+  const orderItems = [
+    {
+      id: "145",
+      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
+      sku: "9504957",
+      qty: 1,
+      price: "200",
+      size: 9,
+      color: "black",
+      image:
+        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
+    },
+    {
+      id: "146",
+      name: "Tucan scarf",
+      sku: "0404957",
+      qty: 1,
+      price: "500",
+      size: 9,
+      color: "white",
+      image: "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
+    },
+  ];
+
   return (
-    <Page
-      backAction={{ content: "Products", url: "/admin/orders" }}
-      title="#1033"
-      titleMetadata={
-        <>
-          <Badge progress="complete">Paid</Badge>
-          <Badge progress="complete">Fullfilled</Badge>
-        </>
-      }
-      subtitle="January 18, 2024 at 12:54 pm"
-      compactTitle
-      secondaryActions={[
-        {
-          content: "Restock",
-          accessibilityLabel: "Restock Orders",
-          onAction: () => alert("Order restocked"),
-        },
-        {
-          content: "Edit",
-          onAction: () => alert("Edit order"),
-        },
-      ]}
-      actionGroups={[
-        {
-          title: "More actions",
-          actions: [
-            {
-              content: "Duplicate",
-              accessibilityLabel: "Duplicate order",
-              icon: DuplicateIcon,
-              onAction: () => alert("order duplicated"),
-            },
-            {
-              content: "Cancel order",
-              accessibilityLabel: "Cancel order",
-              icon: XIcon,
-              onAction: () => alert("order canceled"),
-            },
-            {
-              content: "Archive",
-              accessibilityLabel: "Archive order",
-              icon: ArchiveIcon,
-              onAction: () => alert("order archived"),
-            },
-            {
-              content: "Print order slip",
-              accessibilityLabel: "Print order slip",
-              icon: PrintIcon,
-              onAction: () => alert("printed"),
-            },
-          ],
-        },
-      ]}
-      pagination={{
-        hasPrevious: true,
-        hasNext: true,
-      }}
-    >
-      <InlineGrid columns={{ xs: 1, lg: "2fr 1fr" }} gap="400">
-        <Box gap="400">
-          <LegacyCard primaryFooterAction={{ content: "Fulfill items" }}>
-            <LegacyCard.Header
+    <Layout>
+      <Header style={{ background: "#fff", padding: "0 16px" }}>
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Link href="/admin/orders">
+              <Button icon={<LeftOutlined />} type="link">
+                Products
+              </Button>
+            </Link>
+            <Title
+              level={4}
+              style={{ display: "inline-block", margin: "0 16px" }}
+            >
+              #1033
+            </Title>
+            <Tag color="green">Paid</Tag>
+            <Tag color="blue">Fulfilled</Tag>
+          </Col>
+          <Col>
+            <Space>
+              <Button>Restock</Button>
+              <Button type="primary">Edit</Button>
+              <Dropdown overlay={menu} trigger={["click"]}>
+                <Button icon={<MoreOutlined />}>More actions</Button>
+              </Dropdown>
+            </Space>
+          </Col>
+        </Row>
+      </Header>
+      <Content style={{ padding: "24px" }}>
+        <Row gutter={24}>
+          <Col span={16}>
+            <Card
               title={
-                <Text as="h2" variant="headingSm">
-                  <Badge tone="success" size="large" icon={DeliveryIcon}>
-                    Fulfilled
-                  </Badge>
-                </Text>
+                <Space>
+                  <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                  <Text strong>Fulfilled</Text>
+                </Space>
+              }
+              extra={
+                <Dropdown overlay={menu} trigger={["click"]}>
+                  <Button icon={<MoreOutlined />} />
+                </Dropdown>
               }
             >
-              <Popover
-                active={active}
-                activator={
-                  <Button
-                    accessibilityLabel="Add variant"
-                    variant="plain"
-                    onClick={toggleActive}
-                  >
-                    <Icon source={MenuHorizontalIcon} tone="base" />
-                  </Button>
-                }
-                onClose={toggleActive}
-              >
-                <ActionList
-                  actionRole="menuitem"
-                  items={[
-                    { content: "Print packing slip" },
-                    {
-                      content: "Cancel fulfillment",
-                      onAction: () => {},
-                      destructive: true,
-                    },
-                  ]}
-                />
-              </Popover>
-            </LegacyCard.Header>
-            <Box
-              paddingInline="400"
-              paddingBlockStart="200"
-              paddingBlockEnd="400"
-            >
-              <Box
-                borderColor="border"
-                borderWidth="025"
-                borderRadius="200"
-                overflowX="hidden"
-                overflowY="hidden"
-              >
-                <Box
-                  padding="300"
-                  borderColor="border"
-                  borderBlockEndWidth="025"
-                >
-                  Add variants if this product comes in multiple versions, like
-                  different sizes or colors.
-                </Box>
-                <ResourceList
-                  resourceName={{ singular: "order", plural: "orders" }}
-                  items={[
-                    {
-                      id: "145",
-                      url: "#",
-                      avatarSource:
-                        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
-                      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
-                      sku: "9504957",
-                      qty: 1,
-                      price: "200",
-                      size: 9,
-                      color: "black",
-                    },
-                    {
-                      id: "145",
-                      url: "#",
-                      avatarSource:
-                        "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
-                      name: "Tucan scarf",
-                      sku: "0404957",
-                      qty: 1,
-                      price: "500",
-                      size: 9,
-                      color: "white",
-                    },
-                  ]}
-                  renderItem={(item) => {
-                    const {
-                      id,
-                      url,
-                      name,
-                      sku,
-                      qty,
-                      price,
-                      avatarSource,
-                      size,
-                      color,
-                    } = item;
-
-                    return (
-                      <ResourceItem
-                        id={id}
-                        url={url}
-                        media={
-                          <Avatar
-                            customer
-                            size="lg"
-                            name={name}
-                            source={avatarSource}
-                          />
-                        }
-                        accessibilityLabel={`View details for ${name}`}
-                      >
-                        <div className="order_details-grid">
-                          <div className="col-2">
-                            <BlockStack gap="100">
-                              <Text
-                                variant="bodyMd"
-                                fontWeight="medium"
-                                as="h3"
-                                breakWord={true}
-                              >
-                                {name}
-                              </Text>
-                              <Text>
-                                <Tag>
-                                  {size} / {color}
-                                </Tag>
-                              </Text>
-
-                              <Text tone="subdued" variant="bodySm">
-                                SKU: {sku}
-                              </Text>
-                            </BlockStack>
-                          </div>
-                          <div className="col-3">
-                            <Text>
-                              ${price} x {qty}
-                            </Text>
-                          </div>
-                          <div className="col-4">
-                            <Text>${price}</Text>
-                          </div>
-                        </div>
-                      </ResourceItem>
-                    );
-                  }}
-                />
-              </Box>
-            </Box>
-          </LegacyCard>
-          <LegacyCard
-            title={
-              <Text as="h2" variant="headingSm">
-                <Badge size="large" icon={ReceiptPaidIcon}>
-                  Paid
-                </Badge>
-              </Text>
-            }
-          >
-            <Box paddingBlockStart="200" paddingBlockEnd="400">
-              <Box paddingInline="400">
-                <Box
-                  borderColor="border"
-                  borderWidth="025"
-                  borderRadius="200"
-                  overflowX="hidden"
-                  overflowY="hidden"
-                >
-                  <Box padding="300">
-                    <div
-                      style={{
-                        marginBottom: "var(--p-space-300)",
-                        paddingBottom: "var(--p-space-300)",
-                        borderBottom:
-                          "var(--p-border-width-025) solid var(--p-color-border)",
-                      }}
-                    >
-                      <BlockStack gap="200">
-                        <p className="order_overview">
-                          <span>Subtotal</span>
-                          <span className="order_overview_sub">
-                            <Text as="p" tone="subdued">
-                              2 Items
-                            </Text>
-                            $40
-                          </span>
-                        </p>
-                        <Text as="h3" variant="headingSm" fontWeight="medium">
-                          <div className="order_overview">
-                            <span>Total</span>
-                            <span className="order_overview_sub">
-                              <span></span>
-                              <span>$40</span>
-                            </span>
-                          </div>
-                        </Text>
-                      </BlockStack>
-                    </div>
+              <List
+                itemLayout="horizontal"
+                dataSource={orderItems}
+                renderItem={(item) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar src={item.image} shape="square" size={64} />
+                      }
+                      title={item.name}
+                      description={
+                        <Space direction="vertical">
+                          <Tag>
+                            {item.size} / {item.color}
+                          </Tag>
+                          <Text type="secondary">SKU: {item.sku}</Text>
+                        </Space>
+                      }
+                    />
                     <div>
-                      <p className="order_overview">
-                        <span>Paid by customer</span>
-                        <span className="order_overview_sub">
-                          <span></span>
-                          $40
-                        </span>
-                      </p>
+                      <Text>
+                        ${item.price} x {item.qty}
+                      </Text>
+                      <br />
+                      <Text strong>${item.price * item.qty}</Text>
                     </div>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </LegacyCard>
-        </Box>
-
-        <BlockStack gap="400">
-          <Card roundedAbove="sm">
-            <BlockStack gap="400">
-              <InlineGrid columns="1fr auto">
-                <Text as="h3" variant="headingSm" fontWeight="medium">
-                  Note from customer
-                </Text>
-                <Button
-                  variant="plain"
-                  onClick={() => {}}
-                  accessibilityLabel="Edit"
-                >
-                  <Icon source={EditIcon} tone="base" />
-                </Button>
-              </InlineGrid>
-              <Text as="p" variant="bodyMd" tone="subdued">
-                No notes from customer
+                  </List.Item>
+                )}
+              />
+              <Divider />
+              <Button type="primary" block>
+                Fulfill items
+              </Button>
+            </Card>
+            <Card
+              style={{ marginTop: 24 }}
+              title={
+                <Space>
+                  <DollarOutlined style={{ color: "#52c41a" }} />
+                  <Text strong>Paid</Text>
+                </Space>
+              }
+            >
+              <Row justify="space-between">
+                <Col>Subtotal</Col>
+                <Col>
+                  <Text type="secondary">2 Items</Text>
+                  <Text strong style={{ marginLeft: 8 }}>
+                    $40
+                  </Text>
+                </Col>
+              </Row>
+              <Divider />
+              <Row justify="space-between">
+                <Col>
+                  <Text strong>Total</Text>
+                </Col>
+                <Col>
+                  <Text strong>$40</Text>
+                </Col>
+              </Row>
+              <Divider />
+              <Row justify="space-between">
+                <Col>Paid by customer</Col>
+                <Col>$40</Col>
+              </Row>
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card
+              title="Note from customer"
+              extra={<Button type="link" icon={<EditOutlined />} />}
+            >
+              <Text type="secondary">No notes from customer</Text>
+            </Card>
+            <Card style={{ marginTop: 24 }} title="Customer">
+              <Text>John Smith</Text>
+              <br />
+              <Text>4 orders</Text>
+              <Divider />
+              <Title level={5}>Contact Information</Title>
+              <Text>john.smith@example.com</Text>
+              <br />
+              <Text>+234957304755</Text>
+              <Divider />
+              <Title level={5}>Shipping address</Title>
+              <Text>
+                Tyler Ware
+                <br />
+                3508 Pharetra. Av.
+                <br />
+                42621 Nantes
+                <br />
+                Paraguay
+                <br />
+                +59546811470
               </Text>
-            </BlockStack>
-          </Card>
-          <Card roundedAbove="sm">
-            <BlockStack gap="400">
-              <BlockStack gap="200">
-                <Text as="h2" variant="headingSm">
-                  Customer
-                </Text>
-                <Text as="p" variant="bodyMd">
-                  John Smith
-                </Text>
-                <Text as="p" variant="bodyMd">
-                  4 orders
-                </Text>
-              </BlockStack>
-              <BlockStack gap="200">
-                <InlineGrid columns="1fr auto">
-                  <Text as="h3" variant="headingSm" fontWeight="medium">
-                    Contact Information
-                  </Text>
-                  <Button
-                    variant="plain"
-                    onClick={() => {}}
-                    accessibilityLabel="Edit"
-                  >
-                    <Icon source={EditIcon} tone="base" />
-                  </Button>
-                </InlineGrid>
-                <Text as="p" variant="bodyMd">
-                  john.smith@example.com
-                </Text>
-                <Text as="p" variant="bodyMd">
-                  +234957304755
-                </Text>
-              </BlockStack>
-              <BlockStack gap="200">
-                <InlineGrid columns="1fr auto">
-                  <Text as="h3" variant="headingSm" fontWeight="medium">
-                    Shipping address
-                  </Text>
-                  <Button
-                    variant="plain"
-                    onClick={() => {}}
-                    accessibilityLabel="Edit"
-                  >
-                    <Icon source={EditIcon} tone="base" />
-                  </Button>
-                </InlineGrid>
-                <Text as="p" variant="bodyMd">
-                  Tyler Ware <br /> 3508 Pharetra. Av.
-                  <br /> 42621 Nantes <br /> Paraguay
-                  <br /> +59546811470
-                </Text>
-              </BlockStack>
-              <BlockStack gap="200">
-                <InlineGrid columns="1fr auto">
-                  <Text as="h3" variant="headingSm" fontWeight="medium">
-                    Billing address
-                  </Text>
-                  <Button
-                    variant="plain"
-                    onClick={() => {}}
-                    accessibilityLabel="Edit"
-                  >
-                    <Icon source={EditIcon} tone="base" />
-                  </Button>
-                </InlineGrid>
-                <Text as="p" variant="bodyMd" tone="subdued">
-                  Same as shipping address
-                </Text>
-              </BlockStack>
-            </BlockStack>
-          </Card>
-        </BlockStack>
-      </InlineGrid>
-    </Page>
+              <Divider />
+              <Title level={5}>Billing address</Title>
+              <Text type="secondary">Same as shipping address</Text>
+            </Card>
+          </Col>
+        </Row>
+      </Content>
+    </Layout>
   );
 }
 

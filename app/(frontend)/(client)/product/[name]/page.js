@@ -1,10 +1,11 @@
 import ProductDetail from "@/app/ui/product/product-details";
 import ProductsList from "@/app/ui/products-list";
 import { oswald } from "@/style/font";
+import "react-quill/dist/quill.snow.css";
 
 export default function CategoryPage({ params: { name } }) {
   return (
-    <div className="mt-8">
+    <div className="">
       <div className="flex justify-center">
         <ProductDetail name={name} />
       </div>
