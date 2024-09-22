@@ -10,11 +10,14 @@ import { getSubCategories } from "@/app/action/categoryAction";
 import { generateVariantOptions } from "@/utils/getFunc";
 import FilterContent from "./filter-content";
 import { useProductStore, useSearchStore } from "@/store/store";
+import { LoadingOutlined } from "@ant-design/icons";
+import { Spin } from "antd";
+import { ButtonPrimary } from "../button";
 
 const sortOptions = [
   { value: "+createdAt", label: "Relevance" },
-  { value: "price", label: "Price: Low to High" }, // Ascending
-  { value: "-price", label: "Price: High to Low" }, // Descending
+  { value: "price", label: "Price: Low to High" },
+  { value: "-price", label: "Price: High to Low" },
 ];
 
 export default function Filter({ cat, searchParams }) {
@@ -245,18 +248,32 @@ export default function Filter({ cat, searchParams }) {
 
   //find product price range and compute variants
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-screen w-full items-center justify-center bg-black bg-opacity-10">
+        <Spin
+          indicator={
+            <LoadingOutlined
+              style={{ fontSize: 48 }}
+              spin
+              className="!text-primary"
+            />
+          }
+          size="large"
+        />
+      </div>
+    );
+  }
+
   if (!isLoading && products?.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-4">
-        <p className="mb-4 text-center text-lg text-gray-700">
-          Sorry, no products were found matching your filters.
+      <div className="flex flex-col items-center justify-center p-8">
+        <p className="mb-6 text-center font-roboto text-xl text-grayText">
+          No products found.
         </p>
-        <button
-          onClick={() => window.history.back()}
-          className="rounded bg-primary px-4 py-2 text-white"
-        >
-          Go Back
-        </button>
+        <ButtonPrimary className="w-fit" onClick={() => window.history.back()}>
+          Return to Previous Page
+        </ButtonPrimary>
       </div>
     );
   }

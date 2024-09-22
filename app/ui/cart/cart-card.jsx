@@ -16,13 +16,16 @@ import { mutate } from "swr";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { message, Spin, Modal } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { addToWishlist } from "@/app/action/userAction";
+import useConfirmModal from "@/app/ui/confirm-modal";
 
 const CartCard = ({ cartItem }) => {
   const user = useUserStore((state) => state.user);
   const [quantity, setQuantity] = useState(cartItem.quantity.toString());
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
+  const showConfirmModal = useConfirmModal();
 
   const handleCheckboxChange = async () => {
     setIsLoading(true);
@@ -42,12 +45,20 @@ const CartCard = ({ cartItem }) => {
     if (newQuantity === "" || parseInt(newQuantity) < 1) return;
     setIsLoading(true);
     try {
-      await updateCartItemQuantity({
+      const updatedCart = await updateCartItemQuantity({
         userId: user.id,
         cartItemId: cartItem.id,
         productId: cartItem.productId,
         quantity: parseInt(newQuantity),
       });
+      // Find the updated cart item and set its quantity
+      const updatedItem = updatedCart.item.find(
+        (item) => item.id === cartItem.id,
+      );
+      if (updatedItem) {
+        setQuantity(updatedItem.quantity.toString());
+        previousQuantityRef.current = updatedItem.quantity.toString();
+      }
       mutate(`/cart/${user.id}`);
     } finally {
       setIsLoading(false);
@@ -67,7 +78,7 @@ const CartCard = ({ cartItem }) => {
   };
 
   const handleMoveToWishlist = () => {
-    Modal.confirm({
+    showConfirmModal({
       title: "Move to Wishlist",
       content:
         "Are you sure you want to move this item to your wishlist and remove it from the cart?",
@@ -94,7 +105,10 @@ const CartCard = ({ cartItem }) => {
     <>
       {isLoading && (
         <div className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-black bg-opacity-10">
-          <Spin size="large" />
+          <Spin
+            indicator={<LoadingOutlined spin className="!text-primary" />}
+            size="large"
+          />
         </div>
       )}
       <div className="flex w-full items-start gap-4 py-4">
@@ -103,7 +117,7 @@ const CartCard = ({ cartItem }) => {
             type="checkbox"
             checked={cartItem.checked}
             onChange={handleCheckboxChange}
-            className="h-5 w-5 cursor-pointer"
+            className="h-5 w-5 cursor-pointer appearance-none border border-gray-300 bg-white checked:border-gray-900 checked:bg-gray-900 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />
           <Link href={`/product/${cartItem.slug}-${cartItem.productId}`}>
             <Image
@@ -146,23 +160,23 @@ const CartCard = ({ cartItem }) => {
               </button>
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-base font-medium text-gray-700">
+          <div className="flex items-center">
+            <span className="mr-4 block text-base font-medium text-gray-700">
               {cartItem.price} NGN
             </span>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="mr-auto flex flex-wrap items-center gap-2">
               {cartItem?.option &&
                 Object.entries(cartItem.option).map(([key, value]) => (
                   <span
                     key={`${key}-${value}`}
-                    className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
+                    className="rounded-lg bg-gray-200 px-3 py-1 text-xs font-semibold uppercase text-gray-700 shadow-sm transition-colors duration-200 ease-in-out hover:bg-gray-300"
                   >
                     {value}
                   </span>
                 ))}
             </div>
 
-            <div className="flex h-10 items-center rounded-md border border-gray-300 bg-white shadow-sm">
+            <div className="ml-auto flex h-10 items-center border border-gray-300 bg-white shadow-sm">
               <button
                 className="px-3 py-1 text-gray-600 transition duration-150 ease-in-out hover:bg-gray-100"
                 onClick={() => {
@@ -226,7 +240,16 @@ export default function CartCards({ products }) {
     <>
       {isLoading && (
         <div className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-black bg-opacity-10">
-          <Spin size="large" />
+          <Spin
+            indicator={
+              <LoadingOutlined
+                style={{ fontSize: 48 }}
+                spin
+                className="!text-primary"
+              />
+            }
+            size="large"
+          />
         </div>
       )}
       <div className="flex w-full flex-col divide-y divide-gray-300">
@@ -235,7 +258,7 @@ export default function CartCards({ products }) {
             type="checkbox"
             checked={selectAll}
             onChange={handleSelectAll}
-            className="mr-2 h-5 w-5 cursor-pointer"
+            className="mr-2 h-5 w-5 cursor-pointer appearance-none border border-gray-300 bg-white checked:border-gray-900 checked:bg-gray-900 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />
           <span className="text-sm font-medium">Select All</span>
         </div>

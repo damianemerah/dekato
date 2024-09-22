@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo, useEffect } from "react";
+import React, { useState, memo } from "react";
 import { Button, Flex, Table, Dropdown, Space, message, Modal } from "antd";
 import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { deleteProduct } from "@/app/action/productAction";
@@ -9,8 +9,7 @@ import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import Link from "next/link";
 import { getAllUsers } from "@/app/action/userAction";
-
-const { confirm } = Modal;
+import useConfirmModal from "@/app/ui/confirm-modal";
 
 const Action = memo(function Action({ id, handleDelete }) {
   const items = [
@@ -60,6 +59,8 @@ const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const showConfirmModal = useConfirmModal();
+
   const { data: collections } = useSWRImmutable(
     "/api/allCategories",
     getAllCategories,
@@ -97,7 +98,7 @@ const ProductsList = () => {
       });
     };
     try {
-      confirm({
+      showConfirmModal({
         title: "Are you sure you want to delete this product?",
         content: "This action cannot be undone",
         onOk() {

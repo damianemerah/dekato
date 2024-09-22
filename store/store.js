@@ -19,6 +19,8 @@ export const useUserStore = create((set) => ({
         address.id === updatedAddress.id ? updatedAddress : address,
       ),
     })),
+  userIsLoading: false,
+  setUserIsLoading: (userIsLoading) => set({ userIsLoading }),
 }));
 
 export const useCartStore = create(
@@ -26,6 +28,8 @@ export const useCartStore = create(
     (set) => ({
       cart: [],
       setCart: (cart) => set({ cart, isFetched: true }),
+      cartIsLoading: false,
+      setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
     }),
     {
       name: "cart-storage",

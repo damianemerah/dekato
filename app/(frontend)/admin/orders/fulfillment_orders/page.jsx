@@ -1,319 +1,203 @@
 "use client";
+import React, { useState } from "react";
 import {
-  ActionList,
-  Avatar,
-  Badge,
-  BlockStack,
-  Box,
+  Layout,
+  Typography,
+  Space,
   Button,
   Card,
-  Divider,
-  TextField,
-  Icon,
-  InlineGrid,
-  LegacyCard,
-  Page,
+  List,
+  Avatar,
   Popover,
-  ResourceItem,
-  ResourceList,
-  Banner,
+  Menu,
+  Badge,
+  Row,
+  Col,
+  Input,
+  Form,
   Checkbox,
-  FormLayout,
   Tag,
-  Text,
-} from "@shopify/polaris";
-
+  Divider,
+  Alert,
+} from "antd";
 import {
-  EditIcon,
-  MenuHorizontalIcon,
-  DeliveryIcon,
-} from "@shopify/polaris-icons";
-import { useCallback, useState } from "react";
+  LeftOutlined,
+  EditOutlined,
+  MoreOutlined,
+  CarOutlined,
+} from "@ant-design/icons";
 
-// This example is for guidance purposes. Copying it will come with caveats.
-function Fullfillment() {
-  const [active, setActive] = useState(false);
-  const toggleActive = useCallback(() => setActive((active) => !active), []);
+const { Title, Text } = Typography;
+const { Header, Content } = Layout;
+
+function Fulfillment() {
+  const [popoverVisible, setPopoverVisible] = useState(false);
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1">Print packing slip</Menu.Item>
+      <Menu.Item key="2" danger>
+        Cancel fulfillment
+      </Menu.Item>
+    </Menu>
+  );
+
+  const orderItems = [
+    {
+      id: "145",
+      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
+      sku: "9504957",
+      qty: 1,
+      price: "200",
+      size: 9,
+      color: "black",
+      image:
+        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
+    },
+    {
+      id: "146",
+      name: "Tucan scarf",
+      sku: "0404957",
+      qty: 1,
+      price: "500",
+      size: 9,
+      color: "white",
+      image: "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
+    },
+  ];
+
   return (
-    <Page
-      backAction={{ content: "Products", url: "/admin/orders" }}
-      title="Fulfill item"
-      secondaryActions={[
-        {
-          content: "Print packing slip",
-          onAction: () => alert("print packing slip"),
-        },
-      ]}
-    >
-      <InlineGrid columns={{ xs: 1, lg: "2fr 1fr" }} gap="400">
-        <Box gap="400">
-          <LegacyCard>
-            <LegacyCard.Header
+    <Layout>
+      <Header style={{ background: "#fff", padding: "0 16px" }}>
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Button icon={<LeftOutlined />} type="link">
+              Products
+            </Button>
+            <Title
+              level={4}
+              style={{ display: "inline-block", margin: "0 16px" }}
+            >
+              Fulfill item
+            </Title>
+          </Col>
+          <Col>
+            <Button onClick={() => alert("print packing slip")}>
+              Print packing slip
+            </Button>
+          </Col>
+        </Row>
+      </Header>
+      <Content style={{ padding: "24px" }}>
+        <Row gutter={24}>
+          <Col span={16}>
+            <Card
               title={
-                <Text as="h2" variant="headingSm">
-                  <Badge tone="success" size="large" icon={DeliveryIcon}>
-                    Fulfilled
-                  </Badge>
-                </Text>
+                <Space>
+                  <Badge status="success" text="Fulfilled" />
+                  <CarOutlined style={{ color: "#52c41a" }} />
+                </Space>
+              }
+              extra={
+                <Popover
+                  content={menu}
+                  trigger="click"
+                  visible={popoverVisible}
+                  onVisibleChange={setPopoverVisible}
+                >
+                  <Button icon={<MoreOutlined />} />
+                </Popover>
               }
             >
-              <Popover
-                active={active}
-                activator={
-                  <Button
-                    accessibilityLabel="Add variant"
-                    variant="plain"
-                    onClick={toggleActive}
-                  >
-                    <Icon source={MenuHorizontalIcon} tone="base" />
-                  </Button>
-                }
-                onClose={toggleActive}
-              >
-                <ActionList
-                  actionRole="menuitem"
-                  items={[
-                    { content: "Print packing slip" },
-                    {
-                      content: "Cancel fulfillment",
-                      onAction: () => {},
-                      destructive: true,
-                    },
-                  ]}
-                />
-              </Popover>
-            </LegacyCard.Header>
-            <Box
-              paddingInline="400"
-              paddingBlockStart="200"
-              paddingBlockEnd="400"
-            >
-              <Box
-                borderColor="border"
-                borderWidth="025"
-                borderRadius="200"
-                overflowX="hidden"
-                overflowY="hidden"
-              >
-                <Box
-                  padding="300"
-                  borderColor="border"
-                  borderBlockEndWidth="025"
-                >
-                  Add variants if this product comes in multiple versions, like
-                  different sizes or colors.
-                </Box>
-                <ResourceList
-                  resourceName={{ singular: "order", plural: "orders" }}
-                  items={[
-                    {
-                      id: "145",
-                      url: "#",
-                      avatarSource:
-                        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
-                      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
-                      sku: "9504957",
-                      qty: 1,
-                      price: "200",
-                      size: 9,
-                      color: "black",
-                    },
-                    {
-                      id: "145",
-                      url: "#",
-                      avatarSource:
-                        "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
-                      name: "Tucan scarf",
-                      sku: "0404957",
-                      qty: 1,
-                      price: "500",
-                      size: 9,
-                      color: "white",
-                    },
-                  ]}
-                  renderItem={(item) => {
-                    const {
-                      id,
-                      url,
-                      name,
-                      sku,
-                      qty,
-                      price,
-                      avatarSource,
-                      size,
-                      color,
-                    } = item;
-
-                    return (
-                      <ResourceItem
-                        id={id}
-                        url={url}
-                        media={
-                          <Avatar
-                            customer
-                            size="lg"
-                            name={name}
-                            source={avatarSource}
-                          />
-                        }
-                        accessibilityLabel={`View details for ${name}`}
-                      >
-                        <div className="flex flex-row flex-wrap justify-between gap-3">
-                          <div className="basis-1/2">
-                            <BlockStack gap="100">
-                              <Text
-                                variant="bodyMd"
-                                fontWeight="medium"
-                                as="h3"
-                                breakWord={true}
-                              >
-                                {name}
-                              </Text>
-                              <Text>
-                                <Tag>
-                                  {size} / {color}
-                                </Tag>
-                              </Text>
-
-                              <Text tone="subdued" variant="bodySm">
-                                SKU: {sku}
-                              </Text>
-                            </BlockStack>
-                          </div>
-                          <div className="grid basis-auto">
-                            <span className="sm:justify-self-end">
-                              kg {qty}
-                            </span>
-                          </div>
-                          <div className="basis-32">
-                            <TextField
-                              label="Price"
-                              labelHidden
-                              type="number"
-                              value={"5"}
-                              onChange={() => {}}
-                              suffix="of 1"
-                              autoComplete="off"
-                              add
-                              va
-                            />
-                          </div>
-                        </div>
-                      </ResourceItem>
-                    );
-                  }}
-                />
-              </Box>
-            </Box>
-
-            <Box
-              paddingInline="400"
-              paddingBlockStart="200"
-              paddingBlockEnd="400"
-            >
-              <BlockStack gap="200">
-                <Text variant="headingSm" as="h6">
-                  Tracking information
-                </Text>
-                <Banner onDismiss={() => {}}>
-                  <p>
-                    Add tracking to improve customer satisfaction Orders with
-                    tracking let customers receive delivery updates and reduce
-                    support requests.
-                  </p>
-                </Banner>
-
-                <FormLayout>
-                  <FormLayout.Group>
-                    <TextField
-                      label="Tracking number"
-                      onChange={() => {}}
-                      autoComplete="off"
+              <List
+                itemLayout="horizontal"
+                dataSource={orderItems}
+                renderItem={(item) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar src={item.image} shape="square" size={64} />
+                      }
+                      title={item.name}
+                      description={
+                        <Space direction="vertical">
+                          <Tag color="blue">
+                            {item.size} / {item.color}
+                          </Tag>
+                          <Text type="secondary">SKU: {item.sku}</Text>
+                        </Space>
+                      }
                     />
-                    <TextField
-                      label="Shipping carrier"
-                      onChange={() => {}}
-                      autoComplete="off"
-                    />
-                  </FormLayout.Group>
-                </FormLayout>
-              </BlockStack>
-            </Box>
-            <Box
-              paddingInline="400"
-              paddingBlockStart="200"
-              paddingBlockEnd="400"
-            >
-              <Box
-                paddingBlockStart="200"
-                borderColor="border"
-                borderBlockStartWidth="025"
-              >
-                <BlockStack gap="200">
-                  <Text variant="headingSm" as="h6">
-                    Notify customer of shipment
-                  </Text>
-                  <Checkbox
-                    label="Send shipment details to your customer now"
-                    checked={true}
-                    onChange={() => {}}
-                  />
-                </BlockStack>
-              </Box>
-            </Box>
-          </LegacyCard>
-        </Box>
-
-        <BlockStack gap="400">
-          <Card roundedAbove="sm">
-            <BlockStack gap="400">
-              <BlockStack gap="200">
-                <InlineGrid columns="1fr auto">
-                  <Text as="h3" variant="headingSm" fontWeight="medium">
-                    Shipping address
-                  </Text>
-                  <Button
-                    variant="plain"
-                    onClick={() => {}}
-                    accessibilityLabel="Edit"
-                  >
-                    <Icon source={EditIcon} tone="base" />
-                  </Button>
-                </InlineGrid>
-                <Text as="p" variant="bodyMd">
-                  Tyler Ware <br /> 3508 Pharetra. Av.
-                  <br /> 42621 Nantes <br /> Paraguay
-                  <br /> +59546811470
-                </Text>
-              </BlockStack>
-            </BlockStack>
-          </Card>
-
-          <Card roundedAbove="sm">
-            <BlockStack gap="200">
-              <Text as="h2" variant="headingSm">
-                Summary
-              </Text>
-              <BlockStack gap="200">
-                <Text as="p" variant="bodyMd" tone="subdued">
-                  Fullfilling from Dekato Shop
-                  <br /> {2} of {2} items
-                </Text>
-              </BlockStack>
+                    <div>
+                      <Input
+                        addonBefore="Qty"
+                        defaultValue={item.qty}
+                        style={{ width: "100px" }}
+                      />
+                    </div>
+                  </List.Item>
+                )}
+              />
               <Divider />
-              <Button
-                variant="primary"
-                onClick={() => {}}
-                accessibilityLabel="Fullfill items"
-              >
-                Fullfill items
+              <Form layout="vertical">
+                <Title level={5}>Tracking information</Title>
+                <Alert
+                  message="Add tracking to improve customer satisfaction. Orders with tracking let customers receive delivery updates and reduce support requests."
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: "16px" }}
+                />
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label="Tracking number">
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Shipping carrier">
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Divider />
+                <Form.Item>
+                  <Checkbox defaultChecked>
+                    Send shipment details to your customer now
+                  </Checkbox>
+                </Form.Item>
+              </Form>
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card
+              title="Shipping address"
+              extra={<Button icon={<EditOutlined />} type="text" />}
+            >
+              <Text>
+                Tyler Ware <br />
+                3508 Pharetra. Av.
+                <br />
+                42621 Nantes <br />
+                Paraguay
+                <br />
+                +59546811470
+              </Text>
+            </Card>
+            <Card style={{ marginTop: "24px" }} title="Summary">
+              <Text type="secondary">
+                Fulfilling from Dekato Shop
+                <br />2 of 2 items
+              </Text>
+              <Divider />
+              <Button type="primary" block>
+                Fulfill items
               </Button>
-            </BlockStack>
-          </Card>
-        </BlockStack>
-      </InlineGrid>
-    </Page>
+            </Card>
+          </Col>
+        </Row>
+      </Content>
+    </Layout>
   );
 }
 
-export default Fullfillment;
+export default Fulfillment;

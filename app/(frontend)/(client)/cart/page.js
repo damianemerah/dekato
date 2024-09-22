@@ -3,34 +3,32 @@
 import { ButtonPrimary } from "@/app/ui/button";
 import CartCards from "@/app/ui/cart/cart-card";
 import { oswald } from "@/font";
-import { useUserStore, useCartStore } from "@/store/store";
-import useSWR from "swr";
-import useSWRImmutable from "swr/immutable";
-import { getCart } from "@/app/action/cartAction";
-
-const fetcher = async (id) => {
-  const res = await getCart(id);
-  return res;
-};
+import { useCartStore } from "@/store/store";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
 export default function Cart() {
-  const user = useUserStore((state) => state.user);
   const cart = useCartStore((state) => state.cart);
-  const setCart = useCartStore((state) => state.setCart);
-  const userIsLoading = useUserStore((state) => state.userIsLoading);
+  const cartIsLoading = useCartStore((state) => state.cartIsLoading);
 
-  const { isLoading } = useSWRImmutable(
-    user?.id ? `/cart/${user.id}` : null,
-    () => (user?.id ? fetcher(user.id) : null),
-    {
-      onSuccess: (data) => {
-        setCart(data.item);
-      },
-    },
-  );
+  if (cartIsLoading) {
+    return (
+      <div className="flex h-full min-h-screen w-full items-center justify-center bg-black bg-opacity-10">
+        <Spin
+          indicator={
+            <LoadingOutlined
+              style={{ fontSize: 48 }}
+              spin
+              className="!text-primary"
+            />
+          }
+          size="large"
+        />
+      </div>
+    );
+  }
 
-  if (isLoading) return <div>Loading...</div>;
-  if (cart.length === 0 && !isLoading && !userIsLoading) {
+  if (!cart || cart.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center">
         <p className="text-xl font-semibold text-gray-500">
@@ -39,10 +37,11 @@ export default function Cart() {
       </div>
     );
   }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
       <h1
-        className={`${oswald.className} py-7 text-center text-4xl antialiased`}
+        className={`${oswald.className} py-8 text-center text-5xl font-semibold uppercase tracking-wide text-gray-800 sm:text-3xl`}
       >
         Shopping Bag
       </h1>
@@ -101,7 +100,7 @@ export default function Cart() {
                     name="shipping"
                     value="flat-rate"
                   />
-                  <span className="inline-block h-2.5 w-2.5 rounded-full border border-gray-400 outline outline-offset-1 peer-checked:border-transparent peer-checked:bg-black"></span>
+                  <span className="inline-block h-2.5 w-2.5 border border-gray-400 outline outline-offset-1 peer-checked:border-transparent peer-checked:bg-black"></span>
                   <span className="ml-2 text-gray-700">Flat Rate NGN 3000</span>
                 </label>
               </div>

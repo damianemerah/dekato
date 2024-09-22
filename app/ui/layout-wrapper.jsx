@@ -1,14 +1,17 @@
 "use client";
 
-import React, { memo, useCallback, useState, useEffect } from "react";
-import PromoBar from "@/app/ui/promo-bar";
+import React, { memo, useState, useEffect } from "react";
 import Sidebar from "@/app/ui/sidebar";
 import Footer from "@/app/ui/footer";
-import { useSidebarStore } from "@/store/store";
+import { useSidebarStore, useUserStore } from "@/store/store";
+import Header from "@/app/ui/header";
+import { usePathname } from "next/navigation";
 
 const LayoutWrapper = ({ children }) => {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const [isMobile, setIsMobile] = useState(false);
+  const user = useUserStore((state) => state.user);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleResize = () => {
@@ -21,14 +24,22 @@ const LayoutWrapper = ({ children }) => {
   }, []);
 
   return (
-    <div className="flex justify-end">
-      <Sidebar />
-      <div
-        className={`transition-all duration-300 ease-in-out ${isSidebarOpen && !isMobile ? "w-[calc(100%-250px)]" : "w-[100%]"}`}
-      >
-        <PromoBar />
-        <div className="min-h-screen">{children}</div>
-        <Footer />
+    <div>
+      <div className="h-16">
+        <Header />
+      </div>
+      <div className="relative w-full">
+        {!pathname.startsWith("/admin") && <Sidebar />}
+        <div
+          className={`transition-all duration-300 ease-in-out ${
+            isSidebarOpen && !isMobile && !pathname.startsWith("/admin")
+              ? "ml-[250px] w-[calc(100%-250px)]"
+              : "w-[100%]"
+          }`}
+        >
+          {children}
+          <Footer />
+        </div>
       </div>
     </div>
   );

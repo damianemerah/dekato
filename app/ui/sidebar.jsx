@@ -1,61 +1,11 @@
 "use client";
-import React, { useEffect, useState, useRef, memo } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { useSidebarStore } from "@/store/store";
-import {
-  fetchAllCategories,
-  getAllCategories,
-} from "@/app/action/categoryAction";
+import { fetchAllCategories } from "@/app/action/categoryAction";
 import { oswald } from "@/font";
 import useSWR from "swr";
 
 export default memo(function Sidebar() {
-  const sidebarItems = [
-    {
-      label: "SALE",
-      children: [
-        { label: "SALE MEN", href: "/men/products" },
-        { label: "SALE WOMEN", href: "/women/products" },
-      ],
-    },
-    {
-      label: "NEW ARRIVALS",
-      href: "/new-arrivals/products",
-    },
-    {
-      label: "MEN",
-      children: [
-        { label: "T-shirts", href: "/men/t-shirts" },
-        { label: "Shirts", href: "/men/shirts" },
-        { label: "Pants", href: "/men/pants" },
-        { label: "Shoes", href: "/men/shoes" },
-      ],
-    },
-    {
-      label: "WOMEN",
-      children: [
-        { label: "Dresses", href: "/women/dresses" },
-        { label: "Tops", href: "/women/tops" },
-        { label: "Skirts", href: "/women/skirts" },
-        { label: "Shoes", href: "/women/shoes" },
-      ],
-    },
-    {
-      label: "JEANS",
-      href: "/jeans/products",
-    },
-    {
-      label: "KIDSWEAR",
-      children: [
-        { label: "Boys", href: "/kids/boys" },
-        { label: "Girls", href: "/kids/girls" },
-      ],
-    },
-    {
-      label: "SECONDHAND",
-      href: "/secondhand/products",
-    },
-  ];
-
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
@@ -66,12 +16,13 @@ export default memo(function Sidebar() {
     fetchAllCategories,
     {
       revalidateOnFocus: false,
+      onSuccess: (data) => console.log(data),
     },
   );
 
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
 
-  // Expand all categories by default
   useEffect(() => {
     const handleResize = () => {
       const isBelowThreshold = window.innerWidth < 1250;
@@ -89,79 +40,76 @@ export default memo(function Sidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, [closeSidebar, openSidebar]);
 
-  const [expandedItem, setExpandedItem] = useState(null);
-
-  const toggleExpand = (label) => {
-    if (expandedItem === label) {
-      setExpandedItem(null);
-    } else {
-      setExpandedItem(label);
-    }
+  const toggleExpand = (id) => {
+    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const toggleIcon = (items, toggleItem) => (
-    <span className="relative flex h-6 w-6 items-center justify-center">
-      <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
-      <span
-        className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${items === toggleItem ? "rotate-0" : "rotate-90"}`}
-      />
-    </span>
-  );
+  const renderCategories = (categories, depth = 0) => {
+    if (!categories || depth > 3) return null;
+
+    console.log(categories);
+
+    return categories.map((category) => (
+      <li key={category.id} className={`px-4 py-5 ${depth > 0 ? "ml-4" : ""}`}>
+        <div
+          onClick={() => toggleExpand(category.id)}
+          className="flex cursor-pointer items-center justify-between uppercase"
+        >
+          {category.name}
+          {category.children && category.children.length > 0 && (
+            <span className="relative flex h-6 w-6 items-center justify-center">
+              <span className="h-0.5 w-3 bg-black transition-transform duration-300" />
+              <span
+                className={`absolute h-0.5 w-3 bg-black transition-transform duration-300 ${
+                  expandedItems[category.id] ? "rotate-0" : "rotate-90"
+                }`}
+              />
+            </span>
+          )}
+        </div>
+        {category.children && category.children.length > 0 && (
+          <ul
+            className={`transition-all duration-300 ease-in-out ${
+              expandedItems[category.id] ? "block" : "hidden"
+            }`}
+          >
+            {renderCategories(category.children, depth + 1)}
+          </ul>
+        )}
+      </li>
+    ));
+  };
+
+  const pinnedCategories =
+    categories?.filter(
+      (category) => category.pinned && category.parent === null,
+    ) || [];
+  const unpinnedCategories =
+    categories?.filter(
+      (category) => !category.pinned && category.parent === null,
+    ) || [];
 
   return (
     <>
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-10 bg-black opacity-50"
+          className="fixed inset-0 z-30 bg-black opacity-50"
           onClick={toggleSidebar}
         ></div>
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-10 mt-[60px] h-full w-[250px] bg-white text-black transition-transform duration-300 ${
+        className={`fixed left-0 top-0 z-40 h-full w-[250px] bg-white text-black transition-transform duration-300 ${
           isSidebarOpen
             ? "visible translate-x-0"
             : "invisible -translate-x-full"
         }`}
+        style={{ paddingTop: "4rem" }} // Adjust this value based on your header and promo bar height
       >
-        <nav>
+        <nav className="h-full overflow-y-auto">
           <ul className={`${oswald.className} divide-y`}>
-            {sidebarItems?.map((item, index) => (
-              <li key={index} className="px-4 py-5">
-                {item.children ? (
-                  <>
-                    <div
-                      onClick={() => toggleExpand(item.label)}
-                      className="flex items-center justify-between uppercase"
-                    >
-                      {item.label}
-                      {item.children.length > 0 &&
-                        toggleIcon(expandedItem, item.label)}
-                    </div>
-                    <ul
-                      className={`transition-all duration-300 ease-in-out ${
-                        expandedItem === item.label ? "block" : "hidden"
-                      }`}
-                    >
-                      {item.children.map((child, childIndex) => (
-                        <li key={childIndex} className="p-2 text-sm">
-                          <a href={child.href} className="">
-                            {child.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : (
-                  <a
-                    href={item.href}
-                    className="flex items-center justify-between"
-                  >
-                    {item.label}
-                  </a>
-                )}
-              </li>
-            ))}
+            {renderCategories(pinnedCategories)}
+            {renderCategories(unpinnedCategories)}
           </ul>
         </nav>
       </aside>

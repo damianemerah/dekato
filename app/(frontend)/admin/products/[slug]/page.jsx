@@ -1,36 +1,31 @@
 "use client";
-import Link from "next/link";
-import { roboto } from "@/style/font";
+
 import { useState, memo, useRef, useEffect, useCallback } from "react";
-import AddSingleVariant from "@/app/(frontend)/admin/ui/products/AddSingleVariant";
-import VariantsSection from "@/app/(frontend)/admin/ui/products/ProductVariantForm";
-import EditVariant from "@/app/(frontend)/admin/ui/products/EditVariant";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
+import { Modal, message } from "antd";
 import {
   useAdminStore,
   useProductStore,
 } from "@/app/(frontend)/admin/store/adminStore";
-import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import {
   createProduct,
   getAdminProduct,
   updateProduct,
 } from "@/app/action/productAction";
-import { getFiles } from "@/app/(frontend)/admin/utils/utils";
-import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { Switch, Modal, message, Spin, Space } from "antd";
-import useSWR from "swr";
-import useSWRImmutable from "swr/immutable";
-import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
-import { v4 as uuidv4 } from "uuid";
-import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
+import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import { generateVariantOptions } from "@/utils/getFunc";
-import { LoadingOutlined } from "@ant-design/icons";
+import useConfirmModal from "@/app/ui/confirm-modal";
+import "react-quill/dist/quill.snow.css";
 
-const { confirm } = Modal;
+import ProductForm from "@/app/(frontend)/admin/ui/products/productForm";
 
-export default memo(function Page({ params }) {
+const Page = memo(function Page({ params }) {
+  const router = useRouter();
   const slug = params.slug;
+
   const [fileList, setFileList] = useState([]);
   const [catList, setCatList] = useState([]);
   const [defaultFileList, setDefaultFileList] = useState([]);
@@ -42,23 +37,16 @@ export default memo(function Page({ params }) {
   const [actionType, setActionType] = useState("");
   const [status, setStatus] = useState("draft");
   const [prodLoading, setProdLoading] = useState(false);
+  const [description, setDescription] = useState("");
 
-  const router = useRouter();
-
-  const descriptionRef = useRef(null);
   const nameRef = useRef(null);
   const priceRef = useRef(null);
   const quantityRef = useRef(null);
-  const comparePriceRef = useRef(null);
+  const discountRef = useRef(null);
   const submitBtnRef = useRef(null);
 
-  const { data: allCategories, isLoading: catIsLoading } = useSWRImmutable(
-    "/api/allCategories",
-    getAllCategories,
-    {
-      revalidateOnFocus: false,
-    },
-  );
+  const showConfirmModal = useConfirmModal();
+
   const setEditVariantWithId = useAdminStore(
     (state) => state.setEditVariantWithId,
   );
@@ -67,64 +55,62 @@ export default memo(function Page({ params }) {
   const setCurVariantOptions = useAdminStore(
     (state) => state.setCurVariantOptions,
   );
-  const addVariantOptions = useAdminStore((state) => state.addVariantOptions);
   const setProducts = useProductStore((state) => state.setProducts);
+
+  const { data: allCategories, isLoading: catIsLoading } = useSWRImmutable(
+    "/api/allCategories",
+    getAllCategories,
+    { revalidateOnFocus: false },
+  );
+
   const { data: products, isLoading } = useSWR(
     "/admin/products",
-    () => getAdminProduct(),
+    getAdminProduct,
     {
-      onSuccess: (prods) => {
-        return setProducts(prods);
-      },
+      onSuccess: setProducts,
       revalidateOnFocus: false,
     },
   );
 
-  useEffect(() => {
-    if (catIsLoading) return;
-    if (allCategories?.length) {
-      const category = allCategories.map((cat) => ({
-        value: cat.id,
-        label: cat.name,
-      }));
+  const initializeEditMode = useCallback(
+    (product) => {
+      setActionType("edit");
+      setSelectedProduct(product);
+      setVariants(product?.variant);
+      setCurVariantOptions(generateVariantOptions(product?.variant));
+      setDefaultFileList(
+        product.image.map((img, index) => ({
+          uid: index,
+          name: "image.png",
+          status: "done",
+          url: img,
+        })),
+      );
+      setSelectedCatKeys(product?.category?.map((cat) => cat.id) || []);
+      setDescription(product.description || "");
+      nameRef.current.value = product.name || "";
+      priceRef.current.value = product.price || "";
+      quantityRef.current.value = product.quantity || "";
+      discountRef.current.value = product?.discount || "";
+    },
+    [setCurVariantOptions, setVariants],
+  );
 
-      setCatList(category);
+  useEffect(() => {
+    if (!catIsLoading && allCategories?.length) {
+      setCatList(
+        allCategories.map((cat) => ({ value: cat.id, label: cat.name })),
+      );
     }
   }, [allCategories, catIsLoading]);
 
   useEffect(() => {
     if (isLoading) return;
+
     if (slug !== "new" && products?.length) {
-      const selectedProduct = products.find((product) => product.id === slug);
-
-      if (selectedProduct) {
-        setActionType("edit");
-        setSelectedProduct(selectedProduct);
-        setVariants(selectedProduct?.variant);
-
-        setCurVariantOptions(generateVariantOptions(selectedProduct?.variant));
-
-        const seletedImgs = selectedProduct.image.map((img, index) => {
-          return {
-            uid: index,
-            name: "image.png",
-            status: "done",
-            url: img,
-          };
-        });
-        if (selectedProduct?.category) {
-          const productCatId = selectedProduct?.category.map((cat) => cat.id);
-
-          setSelectedCatKeys(productCatId);
-        }
-
-        setDefaultFileList(seletedImgs);
-        descriptionRef.current.value = selectedProduct.description || "";
-        nameRef.current.value = selectedProduct.name || "";
-        priceRef.current.value = selectedProduct.price || "";
-        quantityRef.current.value = selectedProduct.quantity || "";
-        comparePriceRef.current.value = selectedProduct?.discount || "";
-        //review 🎈🎈🎈 discount
+      const product = products.find((p) => p.id === slug);
+      if (product) {
+        initializeEditMode(product);
       }
     } else if (slug === "new") {
       setActionType("create");
@@ -132,104 +118,41 @@ export default memo(function Page({ params }) {
     } else {
       router.push("/admin/products/new");
     }
-  }, [
-    slug,
-    products,
-    isLoading,
-    setEditVariantWithId,
-    addVariantOptions,
-    setCurVariantOptions,
-    setVariants,
-    router,
-  ]);
+  }, [slug, products, isLoading, router, initializeEditMode]);
 
   const handleFormSubmit = async (formData) => {
     try {
       setProdLoading(true);
-      setTimeout(() => {
-        setProdLoading(false);
-      }, 5000);
       formData.append("status", status);
+      formData.append("description", description);
 
       const medias = getFiles(fileList);
-      medias.images.forEach((file) => {
-        formData.append("image", file);
+      medias.images.forEach((file) => formData.append("image", file));
+      medias.videos.forEach((file) => formData.append("video", file));
+
+      variants.forEach((variant, index) => {
+        const { id, imageURL, image, ...rest } = variant;
+        if (!isUUID(id)) rest._id = id;
+        formData.append(`variantData[${index}]`, JSON.stringify(rest));
+        if (image?.originFileObj instanceof File) {
+          formData.append(`variantImage[${index}]`, image.originFileObj);
+        } else if (image && typeof image === "string") {
+          formData.append(`variantImage[${index}]`, image);
+        }
       });
-      medias.videos.forEach((file) => {
-        formData.append("video", file);
-      });
 
-      if (variants.length > 0) {
-        variants.forEach((variant, index) => {
-          const { id, imageURL, image, ...rest } = variant;
-          const isUUID = (id) => {
-            const uuidRegex =
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            return uuidRegex.test(id);
-          };
+      selectedCatKeys.forEach((catId) => formData.append("category", catId));
 
-          if (!isUUID(id)) {
-            rest._id = id;
-          }
+      const action = actionType === "create" ? createProduct : updateProduct;
+      if (actionType === "edit") formData.append("id", slug);
 
-          // Serialize the non-file data
-          const serializedVariant = JSON.stringify(rest);
-          formData.append(`variantData[${index}]`, serializedVariant);
+      const product = await action(formData);
+      if (product.status === "error") throw new Error(product.message);
 
-          // Append file if it exists
-          if (image?.originFileObj instanceof File) {
-            formData.append(`variantImage[${index}]`, image.originFileObj);
-          } else if (image && typeof image === "string") {
-            formData.append(`variantImage[${index}]`, image);
-          }
-        });
-      }
-
-      if (selectedCatKeys.length > 0) {
-        selectedCatKeys.forEach((catId) => {
-          formData.append("category", catId);
-        });
-      }
-
-      if (actionType === "create") {
-        const product = await createProduct(formData);
-
-        if (product.status === "error") {
-          throw new Error(product.message);
-        }
-        message.success("Product created");
-        router.push(`/admin/products/${product.id}`);
-      }
-
-      if (actionType === "edit") {
-        formData.append("id", slug);
-
-        for (var pair of formData.entries()) {
-          console.log(pair[0] + ", " + pair[1]);
-        }
-
-        const product = await updateProduct(formData);
-        if (product.status === "error") {
-          throw new Error(product.message);
-        }
-        message.success("Product updated");
-        router.push(`/admin/products/${product.id}`);
-      }
-
-      // clear inputs after successful submission
-      // if (fileInputRef.current) {
-      //   fileInputRef.current.clearFiles();
-      //   //clear input fields
-      //   const inputs = document.querySelectorAll("input");
-      //   inputs.forEach((input) => {
-      //     input.value = "";
-      //   });
-      //   document.querySelector("textarea").value = "";
-      //   const checkbox = document.querySelectorAll("input[type='checkbox']");
-      //   checkbox.forEach((box) => {
-      //     box.checked = false;
-      //   });
-      // }
+      message.success(
+        `Product ${actionType === "create" ? "created" : "updated"}`,
+      );
+      router.push(`/admin/products/${product.id}`);
     } catch (err) {
       message.error(err.message);
     } finally {
@@ -238,29 +161,30 @@ export default memo(function Page({ params }) {
     }
   };
 
+  const isUUID = (id) => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
+
   const showConfirm = () => {
-    const setStatusAsync = (newStatus) => {
-      return new Promise((resolve) => {
+    const setStatusAsync = (newStatus) =>
+      new Promise((resolve) => {
         setStatus(newStatus);
         resolve();
       });
-    };
 
-    confirm({
+    showConfirmModal({
       icon: null,
       content: <p>Confirm to set product status to &apos;active&apos;</p>,
       centered: true,
       async onOk() {
-        if (selectedProduct?.status === "active") {
-          setSwitchState(true);
-          await setStatusAsync("draft");
-          submitBtnRef.current.click();
-          return;
-        }
         setSwitchState(true);
-        await setStatusAsync("active");
+        await setStatusAsync(
+          selectedProduct?.status === "active" ? "draft" : "active",
+        );
         submitBtnRef.current.click();
-      }
+      },
     });
   };
 
@@ -270,200 +194,34 @@ export default memo(function Page({ params }) {
   };
 
   return (
-    <div className="relative h-full">
-      <div
-        className={`${roboto.className} mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10 lg:py-20`}
-      >
-        <div className="mb-6 flex items-center sm:mb-8 md:mb-10 lg:mb-12">
-          <Link href="/admin/products">
-            <BackIcon className="mr-2 cursor-pointer text-lg font-bold sm:mr-3 sm:text-xl md:mr-4" />
-          </Link>
-          <h3 className="text-lg font-medium sm:text-xl">Products</h3>
-        </div>
-        <h2 className="mb-4 text-xl font-medium tracking-wide sm:mb-6 sm:text-2xl md:mb-8">
-          Add Product
-        </h2>
-        <form
-          action={handleFormSubmit}
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          <div className="sm:col-span-2">
-            <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-              <div className="mb-4">
-                <label
-                  htmlFor="name"
-                  className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
-                >
-                  TITLE
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  id="name"
-                  ref={nameRef}
-                  autoComplete="off"
-                  placeholder="Short sleeve t-shirt"
-                  className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="description"
-                  className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
-                >
-                  DESCRIPTION
-                </label>
-                <textarea
-                  name="description"
-                  ref={descriptionRef}
-                  id="description"
-                  placeholder="A short sleeve t-shirt made from organic cotton."
-                  className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-                ></textarea>
-              </div>
-            </div>
-            <div className="mb-6 rounded-lg bg-white p-4 shadow-shadowSm sm:p-6">
-              <MediaUpload
-                multiple={true}
-                fileList={fileList}
-                setFileList={setFileList}
-                defaultFileList={defaultFileList}
-                setDefaultFileList={setDefaultFileList}
-              />
-            </div>
-            <div className="mb-4 grid grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow-shadowSm sm:grid-cols-2 md:grid-cols-3">
-              <div>
-                <label
-                  htmlFor="price"
-                  className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
-                >
-                  PRICE
-                </label>
-                <input
-                  ref={priceRef}
-                  type="number"
-                  name="price"
-                  required
-                  id="price"
-                  autoComplete="off"
-                  placeholder="100"
-                  className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="discount"
-                  className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
-                >
-                  DISCOUNT (%)
-                </label>
-                <input
-                  ref={comparePriceRef}
-                  type="number"
-                  name="discount"
-                  id="discount"
-                  autoComplete="off"
-                  placeholder="0"
-                  min="0"
-                  max="100"
-                  className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-                  DISCOUNTED PRICE
-                </label>
-                <div
-                  className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
-                  title="Not editable"
-                >
-                  {selectedProduct?.discountPrice || "N/A"}
-                </div>
-              </div>
-            </div>
-            <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-              <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-                QUANTITY
-              </h3>
-              <input
-                ref={quantityRef}
-                type="number"
-                name="quantity"
-                id="quantity"
-                required
-                autoComplete="off"
-                placeholder="100"
-                className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline sm:w-1/2"
-              />
-            </div>
-            <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
-          </div>
-          <div>
-            <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-              <div className="flex w-full items-center justify-center">
-                <button
-                  type="submit"
-                  className="grow-1 mr-4 flex-1 rounded-md bg-primary px-4 py-2.5 text-white sm:px-8 md:px-16"
-                  ref={submitBtnRef}
-                >
-                  <Space>
-                    Save changes
-                    {prodLoading && (
-                      <Spin
-                        indicator={
-                          <LoadingOutlined spin className="!text-white" />
-                        }
-                        size="large"
-                        fullscreen
-                      />
-                    )}
-                  </Space>
-                </button>
-                <button
-                  className="text-xl font-bold tracking-wider text-primary"
-                  type="button"
-                >
-                  ...
-                </button>
-              </div>
-              <hr className="my-3 opacity-60" />
-              <Switch
-                loading={switchState}
-                onClick={showConfirm}
-                checked={selectedProduct?.status === "active" || false}
-              />
-            </div>
-            <div className="rounded-lg bg-white shadow-shadowSm">
-              <div className="p-4">
-                <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-                  CATEGORY
-                </h3>
-
-                <DropDown
-                  options={catList}
-                  mode="tags"
-                  selectedKeys={selectedCatKeys}
-                  handleChange={(value) => {
-                    setSelectedCatKeys(value);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </form>
-        <EditVariant
-          openSlider={openSlider1}
-          setOpenSlider={setOpenSlider1}
-          handleOpenSlider2={() => setOpenSlider2(true)}
-          handleEditSingleVariant={handleEditSingleVariant}
-          actionType={actionType}
-        />
-        <AddSingleVariant
-          openSlider={openSlider2}
-          setOpenSlider={setOpenSlider2}
-        />
-      </div>
-    </div>
+    <ProductForm
+      handleFormSubmit={handleFormSubmit}
+      nameRef={nameRef}
+      description={description}
+      setDescription={setDescription}
+      submitBtnRef={submitBtnRef}
+      prodLoading={prodLoading}
+      showConfirm={showConfirm}
+      selectedProduct={selectedProduct}
+      switchState={switchState}
+      catList={catList}
+      selectedCatKeys={selectedCatKeys}
+      setSelectedCatKeys={setSelectedCatKeys}
+      openSlider1={openSlider1}
+      setOpenSlider1={setOpenSlider1}
+      openSlider2={openSlider2}
+      setOpenSlider2={setOpenSlider2}
+      handleEditSingleVariant={handleEditSingleVariant}
+      actionType={actionType}
+      fileList={fileList}
+      setFileList={setFileList}
+      defaultFileList={defaultFileList}
+      setDefaultFileList={setDefaultFileList}
+      priceRef={priceRef}
+      discountRef={discountRef}
+      quantityRef={quantityRef}
+    />
   );
 });
+
+export default Page;

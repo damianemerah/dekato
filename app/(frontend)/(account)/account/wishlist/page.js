@@ -6,6 +6,8 @@ import { oswald } from "@/style/font";
 import useSWR from "swr";
 import { getWishlist } from "@/app/action/userAction";
 import { useUserStore } from "@/store/store";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
 const fetcher = async (id) => {
   const res = await getWishlist(id);
@@ -24,7 +26,10 @@ export default function WishlistPage() {
     },
   );
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return (
+      <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+    );
 
   if (products?.length === 0)
     return (
