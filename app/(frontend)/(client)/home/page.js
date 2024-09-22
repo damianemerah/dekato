@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 import Hero from "@/app/ui/home/Hero";
 import SelectedCategories from "@/app/ui/home/selected-categories";
 import Campaign from "@/app/ui/home/Campaign";

@@ -241,7 +241,7 @@ export async function getPinnedCategoriesByParent(parentName) {
   await dbConnect();
   try {
     // Find the parent category by its name
-    const parentCategory = await Category.findOne({ name: parentName });
+    const parentCategory = await Category.findOne({ name: parentName }).lean();
     if (!parentCategory) {
       throw new Error("Parent category not found");
     }

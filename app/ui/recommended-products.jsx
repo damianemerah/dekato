@@ -1,37 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
-// import { useProductStore } from "@/store/store";
-
+import {} from "react";
 import ProductCard from "@/app/ui/product-card";
-
-import { getAllProducts } from "../action/productAction";
-import { message } from "antd";
-import { useSidebarStore } from "@/store/store";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 const RecommendedProducts = () => {
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
-
-  const [breakpoints, setBreakpoints] = useState({
+  const breakpoints = {
     480: { slidesPerView: 2 },
-    740: { slidesPerView: 3 },
-    1275: { slidesPerView: isSidebarOpen ? 4 : 5 },
-  });
-
-  useEffect(() => {
-    const newBreakpoints = {
-      480: { slidesPerView: 2 },
-      768: { slidesPerView: 3 },
-      1024: { slidesPerView: 4 },
-      1275: { slidesPerView: isSidebarOpen ? 4 : 5 },
-    };
-    setBreakpoints(newBreakpoints);
-  }, [isSidebarOpen]);
-
-  //refactor
-  // const setProducts = useProductStore((state) => state.setProducts);
-  // const products = useProductStore((state) => state.products);
+    768: { slidesPerView: 3 },
+    1024: { slidesPerView: 4 },
+    // 1275: { slidesPerView: 5 },
+  };
 
   const products = [
     {
@@ -98,7 +77,6 @@ const RecommendedProducts = () => {
   return (
     <>
       <Swiper
-        key={`${isSidebarOpen}-${Math.random()}`}
         modules={[Navigation]}
         slidesPerView={1}
         spaceBetween={15}
