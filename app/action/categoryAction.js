@@ -237,31 +237,31 @@ export async function deleteCategory(id) {
   }
 }
 
-export async function getPinnedCategoriesByParent(parentName) {
-  await dbConnect();
+export async function getPinnedCategoriesByParent(parentSlug) {
   try {
-    // Find the parent category by its name
-    const parentCategory = await Category.findOne({ name: parentName });
-    if (!parentCategory) {
-      throw new Error("Parent category not found");
+    await dbConnect();
+
+    let parentCategory;
+    if (parentSlug) {
+      parentCategory = await Category.findOne({ slug: parentSlug });
+      if (!parentCategory) {
+        console.warn(`Parent category with slug '${parentSlug}' not found`);
+        return []; // Return an empty array instead of throwing an error
+      }
     }
 
-    // Find the pinned categories with the parent category as their parent
-    const pinnedCategories = await Category.find({
-      parent: parentCategory._id,
-      pinned: true,
-    })
-      .select("name description image slug pinned pinOrder createdAt")
+    const query = parentCategory
+      ? { parent: parentCategory._id, pinned: true }
+      : { parent: null, pinned: true };
+
+    const pinnedCategories = await Category.find(query)
+      .sort({ pinOrder: 1 })
+      .limit(5)
       .lean();
 
-    return pinnedCategories.map(({ _id, ...rest }) => ({
-      id: _id.toString(),
-      ...rest,
-    }));
+    return pinnedCategories;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(
-      error.message || "Something went wrong while fetching pinned categories",
-    );
+    console.error("Error in getPinnedCategoriesByParent:", err);
+    return []; // Return an empty array instead of throwing an error
   }
 }

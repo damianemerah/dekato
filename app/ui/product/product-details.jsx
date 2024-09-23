@@ -74,7 +74,7 @@ export default function ProductDetail({ name }) {
   const setCart = useCartStore((state) => state.setCart);
 
   const { data: product, isLoading } = useSWR(
-    `/product/${id}`,
+    `/products/${id}`,
     () => fetcher(id),
     {
       revalidateOnFocus: false,

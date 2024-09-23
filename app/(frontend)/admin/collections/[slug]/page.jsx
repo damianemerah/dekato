@@ -72,8 +72,8 @@ export default memo(function NewCollection({ params }) {
       if (selectedCategory) {
         console.log(selectedCategory);
         setActionType("edit");
-
         setSelectedCategory(selectedCategory);
+        setIsPinned(selectedCategory.pinned || false); // Add this line
       } else {
         window.location.href = "/admin/collections";
       }
@@ -81,12 +81,12 @@ export default memo(function NewCollection({ params }) {
       setActionType("create");
       setCParent(null);
     }
-  }, [slug, allCategories, isLoading]);
+  }, [allCategories, isLoading, slug]);
 
   useEffect(() => {
     if (selectedCategory) {
       selectedCategory.parent && setCParent(selectedCategory?.parent.id);
-      const seletedImgs = selectedCategory.image.map((img, index) => {
+      const selectedImgs = selectedCategory.image.map((img, index) => {
         return {
           uid: index,
           name: "image.png",
@@ -94,7 +94,7 @@ export default memo(function NewCollection({ params }) {
           url: img,
         };
       });
-      setDefaultFileList(seletedImgs);
+      setDefaultFileList(selectedImgs);
 
       if (titleRef.current) titleRef.current.value = selectedCategory?.name;
       if (descriptionRef.current)
@@ -102,7 +102,8 @@ export default memo(function NewCollection({ params }) {
       if (pinnedRef.current)
         pinnedRef.current.checked = selectedCategory?.pinned;
       setIsPinned(selectedCategory?.pinned || false);
-      if (pinOrderRef.current) setPinOrder(selectedCategory?.pinOrder || 0);
+
+      // Update pinOrder state instead of trying to set input value directly
       setPinOrder(selectedCategory?.pinOrder || 0);
     }
   }, [selectedCategory]);
@@ -140,7 +141,7 @@ export default memo(function NewCollection({ params }) {
         (cat) => cat.parent?.id === cParent && cat.pinned,
       ).length;
 
-      const isAlreadyPinned = selectedCategory?.pinned;
+      const isAlreadyPinned = selectedCategory?.pinned; 
       if (pinnedCount >= 5 && !isAlreadyPinned) {
         message.error(
           `Cannot pin more than 5 categories under ${parentCategory.name}`,
