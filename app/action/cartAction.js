@@ -11,24 +11,30 @@ import mongoose from "mongoose";
 // Helper function to format cart data
 function formatCartData(cart) {
   const { _id, item } = cart;
-  const formattedItems = item.map((cartItem) => {
-    const { _id, productId, variantId, cartId, ...rest } = cartItem;
+  const formattedItems = item
+    .map((cartItem) => {
+      const { _id, productId, variantId, cartId, ...rest } = cartItem;
 
-    // Find the specific variant in the product's variant list
-    const variant = productId.variant?.find(
-      (v) => v._id.toString() === variantId?.toString(),
-    );
+      if (!productId) {
+        console.warn(`Cart item ${_id} has no associated product`);
+        return null;
+      }
 
-    return {
-      id: _id.toString(),
-      slug: productId.slug,
-      productId: productId._id.toString(),
-      variantId: variantId?.toString(),
-      cartId: cartId.toString(),
-      image: variant ? variant.image : productId.image?.[0],
-      ...rest,
-    };
-  });
+      const variant = productId?.variant?.find(
+        (v) => v._id.toString() === variantId?.toString(),
+      );
+
+      return {
+        id: _id.toString(),
+        slug: productId.slug,
+        productId: productId._id.toString(),
+        variantId: variantId?.toString(),
+        cartId: cartId.toString(),
+        image: variant ? variant.image : productId.image?.[0],
+        ...rest,
+      };
+    })
+    .filter(Boolean); // Remove any null items
 
   return {
     item: formattedItems,

@@ -139,22 +139,29 @@ export async function getAllProducts(cat, searchParams = {}) {
     await dbConnect();
     const catName =
       cat && cat.length > 0 ? cat.slice(-1)[0].toLowerCase() : null;
-    const category = catName
-      ? await Category.findOne({ slug: catName }).lean()
-      : null;
-    const categoryIds = category
-      ? [category._id, ...(category.children || [])]
-      : [];
 
-    const baseQuery =
-      categoryIds.length > 0
-        ? Product.find({ category: { $in: categoryIds } })
-        : Product.find();
+    if (catName) {
+      const category = await Category.findOne({ slug: catName }).lean();
+      if (!category) {
+        // Return an empty array or throw an error for invalid category
+        return [];
+        // Alternatively: throw new Error("Category not found");
+      }
 
-    const populatedQuery = baseQuery.populate("category", "slug").lean();
-    const newSearchParams = getQueryObj(searchParams);
+      const categoryIds = [category._id, ...(category.children || [])];
+      const baseQuery = Product.find({ category: { $in: categoryIds } });
+      const populatedQuery = baseQuery.populate("category", "slug").lean();
+      const newSearchParams = getQueryObj(searchParams);
 
-    return await handleProductQuery(populatedQuery, newSearchParams);
+      return await handleProductQuery(populatedQuery, newSearchParams);
+    } else {
+      // If no category is specified, fetch all products
+      const baseQuery = Product.find();
+      const populatedQuery = baseQuery.populate("category", "slug").lean();
+      const newSearchParams = getQueryObj(searchParams);
+
+      return await handleProductQuery(populatedQuery, newSearchParams);
+    }
   } catch (err) {
     throw handleAppError(err);
   }

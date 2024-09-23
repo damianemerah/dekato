@@ -27,6 +27,7 @@ const ProductsList = ({ cat, searchParams }) => {
     {
       revalidateOnFocus: false,
       onSuccess: (data) => {
+        console.log(data, "data productsList🔥🚀💎");
         setProducts(data);
       },
     },

@@ -19,7 +19,7 @@ export default function FilterContent({
     <>
       <div
         ref={dropdownRef}
-        className="sticky top-[108px] z-10 flex h-14 w-full items-center justify-between bg-gray-100 px-8 shadow-md"
+        className="sticky top-16 z-10 flex h-14 w-full items-center justify-between bg-gray-100 px-8 shadow-md"
       >
         <div className="flex items-center">
           <p className="text-sm">Filter by:</p>
