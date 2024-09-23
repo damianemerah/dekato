@@ -17,7 +17,7 @@ export default function ProductCard({ product }) {
             className="object-cover"
           />
           {product.discount > 0 && (
-            <div className="absolute left-2 top-2 bg-black px-2 py-1 text-sm text-white">
+            <div className="absolute bottom-3 left-0 bg-black px-2 py-2 text-sm text-white">
               -{product.discount}%
             </div>
           )}
@@ -29,17 +29,15 @@ export default function ProductCard({ product }) {
                 <p className="text-sm font-semibold text-gray-500 line-through">
                   ₦{product.price.toLocaleString()}
                 </p>
-                <p className="text-sm font-semibold text-[#12A100]">
+                <p className="font-semibold text-[#12A100]">
                   ₦{discountedPrice.toLocaleString()}
                 </p>
               </div>
             ) : (
-              <p className="text-sm font-semibold">
-                ₦{product.price.toLocaleString()}
-              </p>
+              <p className="font-semibold">₦{product.price.toLocaleString()}</p>
             )}
           </div>
-          <p className="line-clamp-2 text-sm text-[#303030]">{product.name}</p>
+          <p className="line-clamp-2 text-sm">{product.name}</p>
         </div>
       </div>
     </Link>

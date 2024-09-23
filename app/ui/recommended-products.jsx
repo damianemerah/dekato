@@ -1,10 +1,17 @@
 "use client";
-import {} from "react";
+import useSWR from "swr";
 import ProductCard from "@/app/ui/product-card";
-import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
 
-const RecommendedProducts = () => {
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
+const RecommendedProducts = ({ category }) => {
+  const { data, error } = useSWR(
+    `/api/recommendations?category=${category}&limit=10`,
+    fetcher,
+  );
+
   const breakpoints = {
     480: { slidesPerView: 2 },
     768: { slidesPerView: 3 },
@@ -12,67 +19,12 @@ const RecommendedProducts = () => {
     // 1275: { slidesPerView: 5 },
   };
 
-  const products = [
-    {
-      id: 1,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 2,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "235.00",
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-    {
-      id: 4,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-    {
-      id: 4,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-  ];
+  if (error) return <div>Failed to load products...</div>;
+  if (!data) return <div>Loading...</div>;
+
+  const products = data.products || [];
+
+  if (products.length === 0) return <div>No products found.</div>;
 
   return (
     <>
@@ -87,12 +39,12 @@ const RecommendedProducts = () => {
         }}
         className="relative px-3"
       >
-        {products.map((product, index) => (
-          <SwiperSlide key={index}>
+        {products.map((product) => (
+          <SwiperSlide key={product._id}>
             <ProductCard product={product} />
           </SwiperSlide>
         ))}
-        {/* Custom Navigation Buttons */}
+        {/* Navigation buttons */}
         <div className="swiper-button-prev-custom absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
