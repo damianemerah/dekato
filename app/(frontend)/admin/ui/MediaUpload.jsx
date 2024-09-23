@@ -16,6 +16,7 @@ const MediaUpload = ({
 
   useEffect(() => {
     if (defaultFileList?.length > 0 && fileList?.length === 0) {
+      console.log("defaultFileList", defaultFileList);
       setFileList(defaultFileList);
     }
   }, [defaultFileList, fileList?.length, setFileList]);
@@ -24,6 +25,7 @@ const MediaUpload = ({
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
+    console.log("file", file.url);
     setPreviewImage(file.url || file.preview);
     setPreviewOpen(true);
   };

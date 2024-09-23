@@ -1,61 +1,11 @@
 "use client";
-import React, { useEffect, useState, useRef, memo } from "react";
-import { useSidebarStore, useCategoryStore } from "@/store/store";
-import {
-  fetchAllCategories,
-  getAllCategories,
-} from "@/app/action/categoryAction";
+import React, { useEffect, useState, memo } from "react";
+import { useSidebarStore } from "@/store/store";
+import { getAllCategories } from "@/app/action/categoryAction";
 import { oswald } from "@/font";
 import useSWR from "swr";
 
 export default memo(function Sidebar() {
-  const sidebarItems = [
-    {
-      label: "SALE",
-      children: [
-        { label: "SALE MEN", href: "/men/products" },
-        { label: "SALE WOMEN", href: "/women/products" },
-      ],
-    },
-    {
-      label: "NEW ARRIVALS",
-      href: "/new-arrivals/products",
-    },
-    {
-      label: "MEN",
-      children: [
-        { label: "T-shirts", href: "/men/t-shirts" },
-        { label: "Shirts", href: "/men/shirts" },
-        { label: "Pants", href: "/men/pants" },
-        { label: "Shoes", href: "/men/shoes" },
-      ],
-    },
-    {
-      label: "WOMEN",
-      children: [
-        { label: "Dresses", href: "/women/dresses" },
-        { label: "Tops", href: "/women/tops" },
-        { label: "Skirts", href: "/women/skirts" },
-        { label: "Shoes", href: "/women/shoes" },
-      ],
-    },
-    {
-      label: "JEANS",
-      href: "/jeans/products",
-    },
-    {
-      label: "KIDSWEAR",
-      children: [
-        { label: "Boys", href: "/kids/boys" },
-        { label: "Girls", href: "/kids/girls" },
-      ],
-    },
-    {
-      label: "SECONDHAND",
-      href: "/secondhand/products",
-    },
-  ];
-
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
@@ -63,7 +13,7 @@ export default memo(function Sidebar() {
 
   const { data: categories } = useSWR(
     "/sidebar/allCategories",
-    fetchAllCategories,
+    getAllCategories,
     {
       revalidateOnFocus: false,
     },
@@ -71,7 +21,6 @@ export default memo(function Sidebar() {
 
   const [isMobile, setIsMobile] = useState(false);
 
-  // Expand all categories by default
   useEffect(() => {
     const handleResize = () => {
       const isBelowThreshold = window.innerWidth < 1250;
@@ -108,6 +57,24 @@ export default memo(function Sidebar() {
     </span>
   );
 
+  const mapCategories = (categories) => {
+    const topLevelCategories =
+      categories?.filter((cat) => cat.parent === null) || [];
+
+    return topLevelCategories.map((topCat) => ({
+      label: topCat.name.toUpperCase(),
+      href: `/${topCat.slug}/products`,
+      children: categories
+        ?.filter((cat) => cat.parent?.id === topCat.id)
+        .map((subCat) => ({
+          label: subCat.name,
+          href: `/${subCat.slug}/products`,
+        })),
+    }));
+  };
+
+  const sidebarItems = mapCategories(categories);
+
   return (
     <>
       {isMobile && isSidebarOpen && (
@@ -128,15 +95,14 @@ export default memo(function Sidebar() {
           <ul className={`${oswald.className} divide-y`}>
             {sidebarItems?.map((item, index) => (
               <li key={index} className="px-4 py-5">
-                {item.children ? (
+                {item.children && item.children.length > 0 ? (
                   <>
                     <div
                       onClick={() => toggleExpand(item.label)}
                       className="flex items-center justify-between uppercase"
                     >
                       {item.label}
-                      {item.children.length > 0 &&
-                        toggleIcon(expandedItem, item.label)}
+                      {toggleIcon(expandedItem, item.label)}
                     </div>
                     <ul
                       className={`transition-all duration-300 ease-in-out ${

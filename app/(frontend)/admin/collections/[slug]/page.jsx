@@ -52,11 +52,9 @@ export default memo(function NewCollection({ params }) {
 
       setPinOrder(highestPinOrder + 1);
 
-      // Filter categories to only include "men" or "women"
+      // Filter categories to only include those with parent=null
       const filteredCategories = allCategories.filter(
-        (cat) =>
-          cat.name.toLowerCase() === "men" ||
-          cat.name.toLowerCase() === "women",
+        (cat) => cat.parent === null,
       );
 
       const category = filteredCategories.map((cat) => ({
@@ -71,8 +69,8 @@ export default memo(function NewCollection({ params }) {
         (category) => category.slug === slug,
       );
 
-
       if (selectedCategory) {
+        console.log(selectedCategory);
         setActionType("edit");
 
         setSelectedCategory(selectedCategory);
@@ -100,12 +98,11 @@ export default memo(function NewCollection({ params }) {
 
       if (titleRef.current) titleRef.current.value = selectedCategory?.name;
       if (descriptionRef.current)
-        descriptionRef.current.value = selectedCategory?.description;
+        descriptionRef.current.value = selectedCategory?.description || "";
       if (pinnedRef.current)
         pinnedRef.current.checked = selectedCategory?.pinned;
       setIsPinned(selectedCategory?.pinned || false);
-      if (pinOrderRef.current)
-        pinOrderRef.current.value = selectedCategory?.pinOrder || "";
+      if (pinOrderRef.current) setPinOrder(selectedCategory?.pinOrder || 0);
       setPinOrder(selectedCategory?.pinOrder || 0);
     }
   }, [selectedCategory]);
@@ -132,11 +129,8 @@ export default memo(function NewCollection({ params }) {
         formData.append("parent", cParent);
       }
 
-      // Ensure "men" and "women" cannot be pinned
-      if (
-        formData.get("name").toLowerCase() === "men" ||
-        formData.get("name").toLowerCase() === "women"
-      ) {
+      // Ensure top-level categories cannot be pinned
+      if (!cParent) {
         formData.set("pinned", false);
       }
 
@@ -146,7 +140,7 @@ export default memo(function NewCollection({ params }) {
         (cat) => cat.parent?.id === cParent && cat.pinned,
       ).length;
 
-      const isAlreadyPinned = selectedCategory.pinned;
+      const isAlreadyPinned = selectedCategory?.pinned;
       if (pinnedCount >= 5 && !isAlreadyPinned) {
         message.error(
           `Cannot pin more than 5 categories under ${parentCategory.name}`,
@@ -157,6 +151,12 @@ export default memo(function NewCollection({ params }) {
       if (type === "edit") {
         const id = allCategories.find((category) => category.slug === slug).id;
         formData.append("id", id);
+
+        // Prevent category from using itself as a parent
+        if (cParent === id) {
+          message.warning("A category cannot be its own parent.");
+          return;
+        }
 
         const updatedCategory = await updateCategory(formData);
 
@@ -254,8 +254,13 @@ export default memo(function NewCollection({ params }) {
           </div>
 
           <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-            <div className="mb-4 flex items-center gap-2">
-              <h4 className="block text-xxs font-bold leading-none tracking-[0.12em] text-primary">
+            <div
+              className={`${!cParent ? "hidden" : ""} mb-4 flex items-center gap-2`}
+            >
+              <h4
+                className="block text-xxs font-bold leading-none tracking-[0.12em] text-primary"
+                title="Pinned categories can be featured on the homepage"
+              >
                 PINNED
               </h4>
 
@@ -265,21 +270,17 @@ export default memo(function NewCollection({ params }) {
                 value="true"
                 checked={isPinned}
                 onChange={() => setIsPinned(!isPinned)}
-                disabled={
-                  selectedCategory?.name.toLowerCase() === "men" ||
-                  selectedCategory?.name.toLowerCase() === "women"
-                }
               />
 
-              {isPinned && (
-                <InputNumber
-                  name="pinOrder"
-                  value={pinOrder}
-                  ref={pinOrderRef}
-                  onChange={(value) => setPinOrder(value)}
-                  className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-                />
-              )}
+              {/* {isPinned && ( */}
+              <InputNumber
+                name="pinOrder"
+                value={pinOrder}
+                ref={pinOrderRef}
+                onChange={(value) => setPinOrder(value)}
+                className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              />
+              {/* // )} */}
             </div>
             <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
               Parent Category
@@ -287,7 +288,13 @@ export default memo(function NewCollection({ params }) {
             <DropDown
               options={catList}
               selectedKeys={[cParent]}
-              handleChange={(value) => setCParent(value)}
+              handleChange={(value) => {
+                if (value === selectedCategory?.id) {
+                  message.warning("A category cannot be its own parent.");
+                  return;
+                }
+                setCParent(value);
+              }}
             />
           </div>
         </div>

@@ -38,7 +38,7 @@ const LayoutWrapper = ({ children }) => {
           }`}
         >
           {children}
-          <Footer />
+          {!pathname.startsWith("/admin") && <Footer />}
         </div>
       </div>
     </div>

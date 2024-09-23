@@ -121,87 +121,6 @@ export async function getSubCategories(slug) {
   }
 }
 
-export async function fetchAllCategories() {
-  await dbConnect();
-  // Step 1: Fetch all categories from the database
-  const categories = await Category.find().lean().exec();
-
-  // Step 2: Create a map of categories by their ID for easy lookup
-  const categoryMap = {};
-  categories.forEach((category) => {
-    categoryMap[category._id] = {
-      id: category._id.toString(),
-      label: category.name,
-      href: category.slug ? `/${category.slug}/products` : undefined,
-      pinned: category.pinned,
-      pinOrder: category.pinOrder,
-      name: category.name,
-      description: category.description,
-      image: category.image,
-      slug: category.slug,
-      createdAt: category.createdAt,
-      parent: category.parent ? category.parent.toString() : null,
-      children: [], // Initialize children array
-    };
-  });
-
-  // Step 3: Build the hierarchical structure
-  const topLevelCategories = [];
-
-  categories.forEach((category) => {
-    if (category.parent) {
-      // If the category has a parent, add it to its parent's children array
-      if (categoryMap[category.parent]) {
-        categoryMap[category.parent].children.push(categoryMap[category._id]);
-      }
-    } else {
-      // If the category has no parent, it's a top-level category
-      topLevelCategories.push(categoryMap[category._id]);
-    }
-  });
-
-  // Step 4: Limit the depth to 3 levels
-  function limitDepth(categories, depth = 0) {
-    if (depth >= 2) {
-      // 0-based indexing, so 2 = 3rd level
-      return categories.map((category) => ({
-        id: category.id,
-        label: category.label,
-        href: category.href,
-        name: category.name,
-        description: category.description,
-        image: category.image,
-        slug: category.slug,
-        createdAt: category.createdAt,
-        parent: category.parent,
-        pinned: category.pinned,
-        pinOrder: category.pinOrder,
-      }));
-    }
-    return categories.map((category) => ({
-      id: category.id,
-      label: category.label,
-      href: category.href,
-      name: category.name,
-      description: category.description,
-      image: category.image,
-      slug: category.slug,
-      createdAt: category.createdAt,
-      parent: category.parent,
-      pinned: category.pinned,
-      pinOrder: category.pinOrder,
-      children: limitDepth(category.children, depth + 1),
-    }));
-  }
-
-  // Apply the depth limitation
-  const finalStructure = limitDepth(topLevelCategories);
-
-  console.log(finalStructure, "finalStructure");
-
-  return finalStructure;
-}
-
 export async function createCategory(formData) {
   await restrictTo("admin");
   await dbConnect();
@@ -300,13 +219,9 @@ export async function deleteCategory(id) {
         { parent: null },
       );
     }
-
-    // Find categories where children array includes the deleted category's id
     const categoriesWithDeletedChild = await Category.find({
       children: deletedCategory._id,
     });
-
-    // Remove the deleted category's id from the children array of these categories
     for (const category of categoriesWithDeletedChild) {
       category.children = category.children.filter(
         (childId) => !childId.equals(deletedCategory._id),
