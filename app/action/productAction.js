@@ -27,7 +27,7 @@ const setupIndexes = async () => {
 };
 
 const formatProduct = (product) => {
-  const { _id, category, variant, ...rest } = product;
+  const { _id, category, variant, buffer, ...rest } = product;
   const formattedProduct = {
     id: _id.toString(),
     ...rest,
@@ -45,7 +45,7 @@ const formatProduct = (product) => {
 
   if (variant) {
     formattedProduct.variant = variant.map((v) => {
-      const { _id, ...rest } = v;
+      const { _id, buffer, ...rest } = v;
       return {
         id: _id.toString(),
         ...rest,

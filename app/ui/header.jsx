@@ -7,12 +7,17 @@ import { oswald } from "@/font";
 import UserIcon from "@/public/assets/icons/user.svg";
 import HeartIcon from "@/public/assets/icons/heart.svg";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 function Header() {
   const user = useUserStore((state) => state.user);
-  const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+  const toggleSidebarState = useSidebarStore((state) => state.toggleSidebar);
   const pathname = usePathname();
   const cart = useCartStore((state) => state.cart);
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
   return (
     <header
@@ -20,7 +25,7 @@ function Header() {
     >
       <div className="flex h-full flex-1 items-center justify-start space-x-2 sm:space-x-4 lg:space-x-8">
         <button
-          onClick={toggleSidebar}
+          onClick={toggleSidebarState}
           className="hover:bg-primary-dark rounded-full p-1 transition-colors duration-200 sm:p-2"
         >
           <svg
@@ -62,15 +67,31 @@ function Header() {
 
       <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
         {user ? (
-          <Link
-            href="/account"
-            className="flex items-center space-x-1 transition-colors duration-200 hover:text-gray-300"
-          >
-            <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
-            <span className="hidden text-xs sm:inline sm:text-sm">
-              Hi, {user.firstname}
-            </span>
-          </Link>
+          <div className="group relative">
+            <Link
+              href="/account"
+              className="flex items-center space-x-1 transition-colors duration-200 hover:text-gray-300"
+            >
+              <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
+              <span className="hidden text-xs sm:inline sm:text-sm">
+                Hi, {user.firstname}
+              </span>
+            </Link>
+            <div className="absolute right-0 z-10 mt-2 hidden w-48 rounded-md bg-white py-1 shadow-lg group-hover:block">
+              <Link
+                href="/account"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Account
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
         ) : (
           <Link
             href="/signin"
@@ -83,13 +104,13 @@ function Header() {
 
         <Link
           href="/account/wishlist"
-          className="rounded-full p-1 transition-colors duration-200 sm:p-2"
+          className="hover:bg-primary-dark rounded-full p-1 transition-colors duration-200 sm:p-2"
         >
           <HeartIcon className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
         </Link>
         <Link
           href="/cart"
-          className="relative rounded-full p-1 transition-colors duration-200 sm:p-2"
+          className="hover:bg-primary-dark relative rounded-full p-1 transition-colors duration-200 sm:p-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

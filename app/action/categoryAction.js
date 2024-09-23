@@ -240,8 +240,11 @@ export async function deleteCategory(id) {
 export async function getPinnedCategoriesByParent(parentName) {
   await dbConnect();
   try {
-    // Find the parent category by its name
-    const parentCategory = await Category.findOne({ name: parentName });
+    console.log(parentName, "parentName👇📁📁");
+    // Find the parent category by its slu
+    const parentCategory = await Category.findOne({
+      slug: parentName.toLowerCase(),
+    });
     if (!parentCategory) {
       throw new Error("Parent category not found");
     }
@@ -253,6 +256,8 @@ export async function getPinnedCategoriesByParent(parentName) {
     })
       .select("name description image slug pinned pinOrder createdAt")
       .lean();
+
+    console.log(pinnedCategories, "pinnedCategories👇📁📁");
 
     return pinnedCategories.map(({ _id, ...rest }) => ({
       id: _id.toString(),

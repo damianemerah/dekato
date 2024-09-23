@@ -13,7 +13,7 @@ function formatCartData(cart) {
   const { _id, item } = cart;
   const formattedItems = item
     .map((cartItem) => {
-      const { _id, productId, variantId, cartId, ...rest } = cartItem;
+      const { _id, productId, variantId,buffer, cartId, ...rest } = cartItem;
 
       if (!productId) {
         console.warn(`Cart item ${_id} has no associated product`);
