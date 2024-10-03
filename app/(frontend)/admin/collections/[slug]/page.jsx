@@ -11,8 +11,7 @@ import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWRImmutable from "swr/immutable";
-import { Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { BigSpinner } from "@/app/ui/spinner";
 
 export default memo(function NewCollection({ params }) {
   const slug = params.slug;
@@ -72,8 +71,8 @@ export default memo(function NewCollection({ params }) {
       if (selectedCategory) {
         console.log(selectedCategory);
         setActionType("edit");
-
         setSelectedCategory(selectedCategory);
+        setIsPinned(selectedCategory.pinned || false); // Add this line
       } else {
         window.location.href = "/admin/collections";
       }
@@ -81,12 +80,12 @@ export default memo(function NewCollection({ params }) {
       setActionType("create");
       setCParent(null);
     }
-  }, [slug, allCategories, isLoading]);
+  }, [allCategories, isLoading, slug]);
 
   useEffect(() => {
     if (selectedCategory) {
       selectedCategory.parent && setCParent(selectedCategory?.parent.id);
-      const seletedImgs = selectedCategory.image.map((img, index) => {
+      const selectedImgs = selectedCategory.image.map((img, index) => {
         return {
           uid: index,
           name: "image.png",
@@ -94,7 +93,7 @@ export default memo(function NewCollection({ params }) {
           url: img,
         };
       });
-      setDefaultFileList(seletedImgs);
+      setDefaultFileList(selectedImgs);
 
       if (titleRef.current) titleRef.current.value = selectedCategory?.name;
       if (descriptionRef.current)
@@ -102,7 +101,8 @@ export default memo(function NewCollection({ params }) {
       if (pinnedRef.current)
         pinnedRef.current.checked = selectedCategory?.pinned;
       setIsPinned(selectedCategory?.pinned || false);
-      if (pinOrderRef.current) setPinOrder(selectedCategory?.pinOrder || 0);
+
+      // Update pinOrder state instead of trying to set input value directly
       setPinOrder(selectedCategory?.pinOrder || 0);
     }
   }, [selectedCategory]);
@@ -185,14 +185,7 @@ export default memo(function NewCollection({ params }) {
     }
   };
 
-  if (!allCategories)
-    return (
-      <Spin
-        indicator={<LoadingOutlined spin className="!text-primary" />}
-        size="large"
-        fullscreen
-      />
-    );
+  if (!allCategories) return <BigSpinner />;
 
   return (
     <form

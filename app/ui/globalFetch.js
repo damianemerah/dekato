@@ -1,6 +1,6 @@
 "use client";
 
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { useUserStore, useCartStore } from "@/store/store";
 import { getUser } from "@/app/action/userAction";
@@ -23,23 +23,25 @@ export default function GlobalFetch() {
   const setCartIsLoading = useCartStore((state) => state.setCartIsLoading);
   const setUserIsLoading = useUserStore((state) => state.setUserIsLoading);
 
-  const { isLoading: cartIsLoading } = useSWRImmutable(
+  const { isLoading: cartIsLoading } = useSWR(
     user?.id ? `/cart/${user.id}` : null,
     () => (user?.id ? fetcher(user.id) : null),
     {
       onSuccess: (data) => {
-        setCart(data.item);
+        setCart(data);
       },
+      revalidateOnFocus: false,
     },
   );
 
-  const { isLoading: userIsLoading } = useSWRImmutable(
+  const { isLoading: userIsLoading } = useSWR(
     session?.user?.id ? `/api/user/${session.user.id}` : null,
     () => fetchUser(session.user.id),
     {
       onSuccess: (fetchedUser) => {
         setUser(fetchedUser);
       },
+      revalidateOnFocus: false,
     },
   );
 

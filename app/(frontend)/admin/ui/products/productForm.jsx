@@ -5,10 +5,10 @@ import Link from "next/link";
 import { roboto } from "@/style/font";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { Switch, Spin, Space } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { Switch, Space } from "antd";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import dynamic from "next/dynamic";
+import { BigSpinner } from "@/app/ui/spinner";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -229,13 +229,7 @@ const ProductActions = ({
         >
           <Space>
             Save changes
-            {prodLoading && (
-              <Spin
-                indicator={<LoadingOutlined spin className="!text-white" />}
-                size="large"
-                fullscreen
-              />
-            )}
+            {prodLoading && <BigSpinner />}
           </Space>
         </button>
         <button

@@ -1,104 +1,36 @@
 "use client";
-import { useEffect, useState } from "react";
-// import { useProductStore } from "@/store/store";
-
+import useSWR from "swr";
 import ProductCard from "@/app/ui/product-card";
-
-import { getAllProducts } from "../action/productAction";
-import { message } from "antd";
-import { useSidebarStore } from "@/store/store";
-import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
 
-const RecommendedProducts = () => {
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
-  const [breakpoints, setBreakpoints] = useState({
+const RecommendedProducts = ({ category }) => {
+  const { data, error } = useSWR(
+    `/api/recommendations?category=${category}&limit=10`,
+    fetcher,
+  );
+
+  const breakpoints = {
     480: { slidesPerView: 2 },
-    740: { slidesPerView: 3 },
-    1275: { slidesPerView: isSidebarOpen ? 4 : 5 },
-  });
+    768: { slidesPerView: 3 },
+    1024: { slidesPerView: 4 },
+    // 1275: { slidesPerView: 5 },
+  };
 
-  useEffect(() => {
-    const newBreakpoints = {
-      480: { slidesPerView: 2 },
-      768: { slidesPerView: 3 },
-      1024: { slidesPerView: 4 },
-      1275: { slidesPerView: isSidebarOpen ? 4 : 5 },
-    };
-    setBreakpoints(newBreakpoints);
-  }, [isSidebarOpen]);
+  if (error) return <div>Failed to load products...</div>;
+  if (!data) return <div>Loading...</div>;
 
-  //refactor
-  // const setProducts = useProductStore((state) => state.setProducts);
-  // const products = useProductStore((state) => state.products);
+  const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
 
-  const products = [
-    {
-      id: 1,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 2,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "235.00",
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-    {
-      id: 4,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-    {
-      id: 4,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-  ];
+  console.log(products);
+
+  if (products.length === 0) return <div>No products found.</div>;
 
   return (
     <>
       <Swiper
-        key={`${isSidebarOpen}-${Math.random()}`}
         modules={[Navigation]}
         slidesPerView={1}
         spaceBetween={15}
@@ -109,13 +41,13 @@ const RecommendedProducts = () => {
         }}
         className="relative px-3"
       >
-        {products.map((product, index) => (
-          <SwiperSlide key={index}>
+        {products.map((product) => (
+          <SwiperSlide key={product._id}>
             <ProductCard product={product} />
           </SwiperSlide>
         ))}
-        {/* Custom Navigation Buttons */}
-        <div className="swiper-button-prev-custom absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
+        {/* Navigation buttons */}
+        <div className="swiper-button-prev-custom absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-primary text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="20px"
@@ -126,7 +58,7 @@ const RecommendedProducts = () => {
             <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
           </svg>
         </div>
-        <div className="swiper-button-next-custom absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
+        <div className="swiper-button-next-custom absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-primary text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="20px"

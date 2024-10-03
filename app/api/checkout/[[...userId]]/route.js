@@ -1,31 +1,25 @@
 import Order from "@/models/order";
 import Address from "@/models/address";
-import Product from "@/models/product";
 import { Cart } from "@/models/cart";
 import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
 import { startSession } from "mongoose";
-import { getQuantity } from "@/utils/getFunc";
-import { protect, restrictTo } from "@/utils/checkPermission";
+import { restrictTo } from "@/utils/checkPermission";
+import { nanoid } from "nanoid";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
-  await protect();
+  console.log(params, "🕊️GET 🕊️");
   await restrictTo("admin", "user");
   try {
     const { userId } = params;
 
     await dbConnect();
 
-    const cartItems = await Cart.findOne({ user: userId })
-      .populate({
-        path: "user",
-        select: "email",
-      })
-      .populate("item");
+    const cartItems = await Cart.findOne({ userId: userId[0] });
 
     const items = cartItems.item.filter((item) => {
       return item.checked === true;
@@ -40,7 +34,7 @@ export async function GET(req, { params }) {
     }, 0);
 
     const checkoutData = {
-      user: userId.toString(),
+      userId: userId.toString(),
       product: items,
       total: amount,
     };
@@ -54,68 +48,23 @@ export async function GET(req, { params }) {
   }
 }
 
-export async function POST(req) {
-  await protect();
-  await restrictTo("admin", "user");
+export async function POST(req, { params }) {
+  // await restrictTo("admin", "user");
   await dbConnect();
   const session = await startSession();
   try {
     session.startTransaction();
 
+    const { userId } = params;
     const body = await req.json();
-    const { userId, shippingMethod, address } = body;
+    const { shippingMethod, address, items, amount, email } = body;
 
-    const checkoutProduct = await Cart.findOne({ user: userId })
-      .populate({
-        path: "item",
-        match: { checked: true },
-      })
-      .populate({
-        path: "user",
-        select: "email",
-      })
-      .session(session);
-
-    const checkoutItems = checkoutProduct.item;
-
-    //check that product quantity for checkoutItems is not 0
-
-    for (const item of checkoutItems) {
-      //check if product exists or variant exists
-      //variant
-
-      console.log(item.product.toString(), item.variantId, "🕊️ 🕊️");
-
-      const existingProduct = await Product.findOne({
-        _id: item.product.toString(),
-        "variant._id": item.variantId,
-      });
-
-      if (!existingProduct) {
-        throw new AppError("Product or variant not found", 404);
-      }
-      console.log("checking quantity🕊️ 🕊️");
-      getQuantity(item, existingProduct);
-    }
-
-    if (!checkoutItems || checkoutItems.length === 0) {
-      throw new AppError("No items selected", 400);
-    }
-
-    const amount = Math.ceil(
-      checkoutItems.reduce((acc, item) => {
-        return acc + item.price * item.quantity;
-      }, 0),
-    );
-
-    //check if address is user's address
-
-    if (shippingMethod.toLowerCase() === "delivery" && !address) {
+    if (shippingMethod?.toLowerCase() === "delivery" && !address) {
       throw new AppError("Address is required for delivery", 400);
     }
 
-    if (shippingMethod.toLowerCase() === "delivery") {
-      const userAddress = await Address.findOne({ user: userId }).session(
+    if (shippingMethod?.toLowerCase() === "delivery") {
+      const userAddress = await Address.findOne({ userId: userId }).session(
         session,
       );
 
@@ -124,14 +73,21 @@ export async function POST(req) {
       }
     }
 
+    const defaultAddress = await Address.findOne({
+      userId: userId,
+      isDefault: true,
+    }).session(session);
+
     const orderData = {
-      user: userId,
-      cartItem: checkoutItems,
+      userId: userId,
+      cartItem: items.map((item) => item.id),
       total: amount,
       type: "cart",
-      shippingMethod: shippingMethod,
+      shippingMethod: shippingMethod?.toLowerCase(),
       address:
-        shippingMethod.toLowerCase() === "delivery" ? address : undefined,
+        shippingMethod?.toLowerCase() === "delivery"
+          ? defaultAddress._id
+          : undefined,
     };
 
     //session require array of objects
@@ -144,13 +100,14 @@ export async function POST(req) {
     }
 
     const payment = await Paystack.transaction.initialize({
-      email: checkoutProduct.user.email,
-      amount: amount * 100,
+      email: email,
+      amount: Math.round(amount * 100),
       callback_url: `${req.nextUrl.origin}`,
       currency: "NGN",
       metadata: {
         orderId: createdOrder["_id"].toString(),
         userId,
+        receipt_number: nanoid(7),
       },
     });
 
@@ -165,8 +122,12 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (error) {
+    console.log(error, "🔥🔥🔥");
     await session.abortTransaction();
-    return handleAppError(error, req);
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: error.statusCode || 500 },
+    );
   } finally {
     session.endSession();
   }

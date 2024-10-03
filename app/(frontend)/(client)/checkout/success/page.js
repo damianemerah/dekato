@@ -11,7 +11,7 @@ export default function PaymentSuccess() {
           We&apos;ll email you an order confirmation with details and tracking
           info.
         </p>
-        <button className="bg-black px-9 py-4 text-white">
+        <button className="bg-primary px-9 py-4 text-white">
           Continue shopping
         </button>
       </div>

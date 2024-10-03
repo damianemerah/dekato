@@ -12,13 +12,13 @@ export default function Campaign() {
           <div className="flex w-full items-center justify-center">
             <Link
               href="#"
-              className="mr-8 bg-white px-10 py-3 capitalize text-black"
+              className="mr-8 bg-white px-10 py-3 capitalize text-primary"
             >
               Men
             </Link>
             <Link
               href="#"
-              className="bg-white px-10 py-3 capitalize text-black"
+              className="bg-white px-10 py-3 capitalize text-primary"
             >
               Women
             </Link>
@@ -31,13 +31,13 @@ export default function Campaign() {
           <div className="flex w-full items-center justify-center">
             <Link
               href="#"
-              className="mr-8 bg-white px-10 py-3 capitalize text-black"
+              className="mr-8 bg-white px-10 py-3 capitalize text-primary"
             >
               Men
             </Link>
             <Link
               href="#"
-              className="bg-white px-10 py-3 capitalize text-black"
+              className="bg-white px-10 py-3 capitalize text-primary"
             >
               Women
             </Link>

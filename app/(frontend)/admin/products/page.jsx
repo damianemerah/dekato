@@ -8,11 +8,9 @@ import { getAdminProduct, deleteProduct } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
-import image6 from "@/public/assets/no-image.webp";
+import noImage from "@/public/assets/no-image.webp";
 import Link from "next/link";
 import useConfirmModal from "@/app/ui/confirm-modal";
-
-const { confirm } = Modal;
 
 const Action = memo(function Action({ id, handleDelete }) {
   const items = [
@@ -85,7 +83,7 @@ const ProductsList = () => {
     name: item.name,
     status: item.status,
     productCount: item.quantity,
-    category: item.cat?.join(", ") || "",
+    category: item.category?.map((cat) => cat.name).join(", ") || "",
     action: <Action />,
   }));
 
@@ -93,7 +91,7 @@ const ProductsList = () => {
     const deleteAndUpdateProd = async () => {
       try {
         await deleteProduct(id);
-        await mutate();
+        await mutate("/admin/products");
         message.success("Product deleted successfully");
       } catch (error) {
         message.error("Failed to delete product");
@@ -117,13 +115,14 @@ const ProductsList = () => {
       title: "Image",
       dataIndex: "image",
       render: (_, record) => {
-        const imageSrc = record?.image ? record.image : image6;
+        const imageSrc = record?.image ? record.image : noImage;
         return (
           <Image
             src={imageSrc}
             alt={record.name}
             width={50}
             height={50}
+            loading="lazy"
             className="h-[50px] w-[50px] rounded-lg object-cover"
           />
         );
@@ -144,11 +143,17 @@ const ProductsList = () => {
     {
       title: "Status",
       dataIndex: "status",
+      filters: [
+        { text: "Active", value: "active" },
+        { text: "Draft", value: "draft" },
+        { text: "Archived", value: "archived" },
+      ],
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: "Inventory",
       dataIndex: "productCount",
-      sorter: (a, b) => a.quantity - b.quantity,
+      sorter: (a, b) => a.productCount - b.productCount,
     },
     {
       title: "Category",

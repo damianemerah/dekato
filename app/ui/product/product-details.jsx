@@ -12,19 +12,17 @@ import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
 import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { Button, ButtonPrimary } from "@/app/ui/button";
-import useSWR, { mutate } from "swr";
-import { getProductById } from "@/app/action/productAction";
+import { mutate } from "swr";
 import { generateVariantOptions } from "@/utils/getFunc";
 import { createCartItem } from "@/app/action/cartAction";
 import { useUserStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { message, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { message } from "antd";
 import { useCartStore } from "@/store/store";
-import AddIcon from "@/public/assets/icons/add.svg";
-import MinusIcon from "@/public/assets/icons/minus.svg";
+import CheckmarkIcon from "@/public/assets/icons/check.svg?url";
 import Link from "next/link";
 import EditIcon from "@/public/assets/icons/edit.svg";
+import { SmallSpinner } from "../spinner";
 
 const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   const contentRef = useRef(null);
@@ -32,7 +30,7 @@ const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   return (
     <li className="border-b border-gray-200">
       <button
-        className={`${oswald.className} flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-800 hover:text-black focus:outline-none`}
+        className={`${oswald.className} flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-800 hover:text-primary focus:outline-none`}
         onClick={onToggle}
       >
         {title}
@@ -58,31 +56,17 @@ const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
   );
 };
 
-const fetcher = async (id) => {
-  const product = await getProductById(id);
-  return product;
-};
-
-export default function ProductDetail({ name }) {
+export default function ProductDetail({ product }) {
   const [variantOptions, setVariantOptions] = useState([]);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const id = name.split("-").slice(-1)[0];
   const user = useUserStore((state) => state.user);
   const userId = user?.id;
   const setCart = useCartStore((state) => state.setCart);
 
-  const { data: product, isLoading } = useSWR(
-    `/product/${id}`,
-    () => fetcher(id),
-    {
-      revalidateOnFocus: false,
-    },
-  );
-
   useEffect(() => {
-    if (!product || isLoading) return;
+    if (!product) return;
 
     const options = generateVariantOptions(product.variant);
     setVariantOptions(options);
@@ -99,7 +83,7 @@ export default function ProductDetail({ name }) {
       setSelectedVariantId(firstVariant.id);
       setSelectedVariantOption(firstVariant.options);
     }
-  }, [product, isLoading]);
+  }, [product]);
 
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
@@ -138,6 +122,7 @@ export default function ProductDetail({ name }) {
         productId: product.id,
         name: product.name,
         price: product.price,
+        discountPrice: product.discountPrice || null,
         quantity: 1,
         option: selectedVariant?.options || null,
         variantId: selectedVariant?.id || null,
@@ -145,10 +130,10 @@ export default function ProductDetail({ name }) {
       };
 
       const cartItem = await createCartItem(userId, newItem);
-      mutate(`/api/user/${userId}`);
+      await mutate(`/api/user/${userId}`);
       setCart(cartItem.item);
       message.success("Item added to cart");
-      mutate(`/cart/${userId}`);
+      await mutate(`/cart/${userId}`);
     } catch (error) {
       message.info(error.message, 4);
     } finally {
@@ -167,7 +152,7 @@ export default function ProductDetail({ name }) {
       } else {
         await addToWishlist(userId, product.id);
       }
-      mutate(`/api/user/${userId}`);
+      await mutate(`/api/user/${userId}`);
     } catch (error) {
       message.info(error.message);
     }
@@ -215,17 +200,6 @@ export default function ProductDetail({ name }) {
     );
   };
 
-  if (isLoading)
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spin
-          indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
-          className="!text-primary"
-          size="large"
-        />
-      </div>
-    );
-
   if (!product)
     return (
       <div className="flex h-screen items-center justify-center text-lg font-semibold text-gray-600">
@@ -234,39 +208,27 @@ export default function ProductDetail({ name }) {
     );
 
   return (
-    <div className="mx-auto mb-8 w-full">
-      {user && user.role === "admin" && (
-        <div className="mb-4 flex justify-end">
-          <Link
-            href={`/admin/products/${product.name}-${product.id}`}
-            className="inline-flex items-center rounded bg-primary px-4 py-2 text-white transition-colors duration-300"
-            title="admin edit button"
-          >
-            <EditIcon className="mr-2 h-5 w-5 fill-white" />
-            <span>Edit Product</span>
-          </Link>
-        </div>
-      )}
-      <div className="flex flex-wrap">
+    <div className="mx-auto mb-8 w-full max-w-7xl">
+      <div className="flex flex-col lg:flex-row">
         <div className="mb-8 w-full lg:mb-0 lg:w-2/3">
           <div className="relative w-full">
-            <div className="absolute bottom-8 left-8 z-10 md:mb-0">
-              <Swiper
-                onSwiper={setThumbsSwiper}
-                spaceBetween={10}
-                slidesPerView={3}
-                freeMode={true}
-                watchSlidesProgress={true}
-                modules={[FreeMode, Thumbs]}
-                direction="vertical"
-                className="h-64 md:h-auto"
-              >
-                {product?.image &&
-                  product.image.map((image, index) => (
+            {product?.image && product.image.length > 1 && (
+              <div className="absolute bottom-8 left-8 z-10 md:mb-0">
+                <Swiper
+                  onSwiper={setThumbsSwiper}
+                  spaceBetween={10}
+                  slidesPerView={3}
+                  freeMode={true}
+                  watchSlidesProgress={true}
+                  modules={[FreeMode, Thumbs]}
+                  direction="vertical"
+                  className="h-64 md:h-auto"
+                >
+                  {product.image.map((image, index) => (
                     <SwiperSlide
                       key={index}
-                      className={`!h-20 !w-20 shadow-shadowSm ${
-                        index === activeIndex ? "border-2 border-black" : ""
+                      className={`!h-20 !w-16 shadow-shadowSm ${
+                        index === activeIndex ? "border-2 border-primary" : ""
                       }`}
                     >
                       <Image
@@ -279,13 +241,14 @@ export default function ProductDetail({ name }) {
                       />
                     </SwiperSlide>
                   ))}
-              </Swiper>
-            </div>
+                </Swiper>
+              </div>
+            )}
             <Swiper
               spaceBetween={10}
               thumbs={{ swiper: thumbsSwiper }}
               modules={[FreeMode, Thumbs]}
-              className="mainSwiper h-96 w-full md:h-[500px]"
+              className="mainSwiper !h-[600px] w-full"
               onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
             >
               {product?.image &&
@@ -331,26 +294,24 @@ export default function ProductDetail({ name }) {
           </div>
         </div>
 
-        <div className="w-full px-4 lg:w-1/3">
+        <div className="w-full px-2 sm:px-4 lg:w-1/3 lg:px-6">
           <h3
-            className={`${oswald.className} mb-1 text-center text-xl font-semibold uppercase sm:text-2xl md:text-3xl lg:text-left`}
+            className={`${oswald.className} mb-3 text-center text-xl font-[900] uppercase lg:text-left`}
           >
             {product.name}
           </h3>
           <div className="mb-6 text-center lg:text-left">
             {product.discount > 0 ? (
               <div className="flex items-center justify-center gap-3 lg:justify-start">
-                <p className="text-sm text-gray-500 line-through sm:text-base md:text-lg">
+                <p className="text-gray-500 line-through">
                   ₦{product.price.toLocaleString()}
                 </p>
-                <p className="text-base font-bold text-green-600 sm:text-lg md:text-xl">
+                <p className="font-bold text-green-600">
                   ₦{product.discountPrice.toLocaleString()}
                 </p>
               </div>
             ) : (
-              <p className="text-base font-bold sm:text-lg md:text-xl">
-                ₦{product.price.toLocaleString()}
-              </p>
+              <p className="font-bold">₦{product.price.toLocaleString()}</p>
             )}
           </div>
 
@@ -370,9 +331,9 @@ export default function ProductDetail({ name }) {
                       return option.name === "color" ? (
                         <div
                           key={value}
-                          className={`h-12 w-12 rounded-full border-2 ${
+                          className={`border-1 relative h-16 w-16 rounded-full border-secondary ${
                             selectedVariantOption[option.name] === value
-                              ? "border-black"
+                              ? "border-2 border-primary"
                               : "border-gray-300"
                           } cursor-pointer transition-all duration-200 hover:shadow-md`}
                           onClick={() =>
@@ -386,21 +347,24 @@ export default function ProductDetail({ name }) {
                               )?.image || ""
                             }
                             alt={`Variant ${value}`}
-                            width={48}
-                            height={48}
+                            width={64}
+                            height={64}
                             className="h-full w-full rounded-full object-cover"
                           />
+                          {selectedVariantOption[option.name] === value && (
+                            <CheckmarkIcon className="absolute inset-0 m-auto h-6 w-6 fill-white" />
+                          )}
                         </div>
                       ) : (
                         <button
                           key={index}
                           className={`border px-4 py-2 ${
                             selectedVariantOption[option.name] === value
-                              ? "border-black bg-black text-white"
+                              ? "border-primary bg-primary text-white"
                               : "border-gray-300 text-gray-700"
-                          } rounded text-sm uppercase ${
+                          } text-sm uppercase ${
                             isAvailable
-                              ? "hover:border-black"
+                              ? "hover:border-primary hover:bg-primary hover:text-white"
                               : "cursor-not-allowed opacity-50"
                           } transition-all duration-200`}
                           onClick={() =>
@@ -422,14 +386,32 @@ export default function ProductDetail({ name }) {
           <div className={`${oswald.className} mb-8 space-y-4`}>
             <div className="flex items-center gap-3">
               <ButtonPrimary
-                className={`flex-1 text-lg ${isAddingToCart ? "cursor-not-allowed opacity-75" : ""}`}
+                className={`flex-1 text-sm normal-case ${isAddingToCart ? "cursor-not-allowed opacity-75" : ""} flex items-center justify-center bg-secondary`}
                 onClick={addItemToCart}
                 disabled={isAddingToCart}
               >
-                {isAddingToCart ? <Spin /> : "Add to bag"}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mr-2.5 h-5 w-5 sm:h-6 sm:w-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                {isAddingToCart ? (
+                  <SmallSpinner className="!text-white" />
+                ) : (
+                  "Add to Bag"
+                )}
               </ButtonPrimary>
               <button
-                className="flex h-12 w-12 flex-none items-center justify-center rounded-full border-2 border-black transition-colors duration-200 hover:bg-gray-100"
+                className="flex flex-none items-center justify-center border border-secondary p-2 transition-colors duration-200 hover:bg-gray-100"
                 onClick={addWishlist}
               >
                 {user?.wishlist.includes(product.id) ? (
@@ -439,9 +421,11 @@ export default function ProductDetail({ name }) {
                 )}
               </button>
             </div>
-            <Button className="flex h-12 w-full items-center justify-center rounded-md border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500 hover:text-white">
+            <Button className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500">
               <WhatsappIcon className="mr-2 h-5 w-5" />
-              <span className="text-lg">Order on WhatsApp</span>
+              <span className="text-lg group-hover:text-white sm:text-base md:text-lg">
+                Order on WhatsApp
+              </span>
             </Button>
           </div>
 
@@ -463,7 +447,7 @@ export default function ProductDetail({ name }) {
                 isOpen={activeSection === "Delivery & Returns"}
                 onToggle={() => handleToggleSection("Delivery & Returns")}
               >
-                <p>
+                <p className="text-sm sm:text-base md:text-lg">
                   We deliver your order within 1-2 business days. Easy returns
                   available within 14 days of delivery.
                 </p>

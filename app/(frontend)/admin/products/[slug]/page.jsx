@@ -2,9 +2,9 @@
 
 import { useState, memo, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import useSWRImmutable from "swr/immutable";
-import { Modal, message } from "antd";
+import { message } from "antd";
 import {
   useAdminStore,
   useProductStore,
@@ -19,11 +19,13 @@ import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import { generateVariantOptions } from "@/utils/getFunc";
 import useConfirmModal from "@/app/ui/confirm-modal";
 import "react-quill/dist/quill.snow.css";
+import { useUserStore } from "@/store/store";
 
 import ProductForm from "@/app/(frontend)/admin/ui/products/productForm";
 
 const Page = memo(function Page({ params }) {
   const router = useRouter();
+  const user = useUserStore((state) => state.user);
   const slug = params.slug;
 
   const [fileList, setFileList] = useState([]);
@@ -64,7 +66,7 @@ const Page = memo(function Page({ params }) {
   );
 
   const { data: products, isLoading } = useSWR(
-    "/admin/products",
+    `/admin/products/${slug}`,
     getAdminProduct,
     {
       onSuccess: setProducts,
@@ -115,10 +117,18 @@ const Page = memo(function Page({ params }) {
     } else if (slug === "new") {
       setActionType("create");
       setSelectedProduct(null);
+      setCurVariantOptions([]);
     } else {
-      router.push("/admin/products/new");
+      router.push("/admin/products");
     }
-  }, [slug, products, isLoading, router, initializeEditMode]);
+  }, [
+    slug,
+    products,
+    isLoading,
+    router,
+    initializeEditMode,
+    setCurVariantOptions,
+  ]);
 
   const handleFormSubmit = async (formData) => {
     try {
@@ -143,16 +153,21 @@ const Page = memo(function Page({ params }) {
 
       selectedCatKeys.forEach((catId) => formData.append("category", catId));
 
+      for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
       const action = actionType === "create" ? createProduct : updateProduct;
       if (actionType === "edit") formData.append("id", slug);
 
       const product = await action(formData);
       if (product.status === "error") throw new Error(product.message);
 
+      mutate(`/admin/products/${product.id}`);
+      mutate(`/cart/${user.id}`);
       message.success(
         `Product ${actionType === "create" ? "created" : "updated"}`,
       );
-      router.push(`/admin/products/${product.id}`);
     } catch (err) {
       message.error(err.message);
     } finally {

@@ -6,10 +6,10 @@ import { Cart } from "@/models/cart";
 import { restrictTo } from "@/utils/checkPermission";
 import Email from "@/lib/email";
 import Address from "@/models/address";
-import { filterObj } from "@/utils/filterObj";
+import { filterObj, formDataToObject } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
 import Order from "@/models/order";
-import { formDataToObject } from "@/utils/filterObj";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function createUser(formData) {
   await dbConnect();
@@ -25,10 +25,10 @@ export async function createUser(formData) {
   const user = await User.create(userData);
 
   if (user) {
-    await Cart.create({ userId: user._id, item: [] });
+    await Cart.create({ userId: user._id, items: [] });
   }
 
-  const url = process.env.NEXTAUTH_URL + "/signin";
+  const url = `${process.env.NEXTAUTH_URL}/signin`;
   await new Email(user, url).sendWelcome();
 
   return user;
@@ -36,60 +36,58 @@ export async function createUser(formData) {
 
 export async function getUser(userId) {
   await dbConnect();
-  restrictTo("admin");
+  await restrictTo("admin");
 
   if (!userId) {
-    return;
+    return null;
   }
 
-  const userData = await User.findById(userId).populate("address");
+  const userData = await User.findById(userId)
+    .populate("address")
+    .lean({ virtuals: true });
 
   if (!userData) {
     throw new Error("No user found with that ID");
   }
 
-  const userObj = userData.toObject();
+  const { _id, address, wishlist, ...rest } = userData;
+  const addressArr = address.map(({ _id, userId, ...rest }) => ({
+    id: _id.toString(),
+    ...rest,
+  }));
 
-  const { _id, address, wishlist, ...rest } = userObj;
-  const addressArr = address.map((addr) => {
-    const { _id, userId, ...rest } = addr;
-    return { id: _id.toString(), ...rest };
-  });
-
-  return {
+  const userObj = {
     id: _id.toString(),
     address: addressArr,
     wishlist: wishlist.map((item) => item.toString()),
     ...rest,
   };
+
+  return userObj;
 }
 
 export async function getWishlist(userId) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
-  const wishlistDoc = await User.findById(userId)
+  const { wishlist } = await User.findById(userId)
     .select("wishlist")
     .populate("wishlist", "name price image variant")
     .lean();
 
-  const { wishlist, ...rest } = wishlistDoc;
-
-  const wishlistObj = wishlist.map((item) => {
-    const { _id, variant, ...rest } = item;
-    const variantObj = variant.map((item) => {
-      const { _id, ...rest } = item;
-      return { id: _id.toString(), ...rest };
-    });
-    return { id: _id.toString(), variant: variantObj, ...rest };
-  });
-
-  return wishlistObj;
+  return wishlist.map(({ _id, variant, ...rest }) => ({
+    id: _id.toString(),
+    variant: variant.map(({ _id, ...variantRest }) => ({
+      id: _id.toString(),
+      ...variantRest,
+    })),
+    ...rest,
+  }));
 }
 
 export async function updateUserInfo(userId, formData) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
   const userObj = formDataToObject(formData);
   const userData = filterObj(userObj, "firstname", "lastname");
@@ -108,10 +106,7 @@ export async function updateUserInfo(userId, formData) {
 
 export async function addToWishlist(userId, productId) {
   await dbConnect();
-  const result = await restrictTo("admin", "user");
-  if (result.error) {
-    throw new Error(result.error);
-  }
+  await restrictTo("admin", "user");
 
   const user = await User.findById(userId);
   if (!user) {
@@ -122,25 +117,21 @@ export async function addToWishlist(userId, productId) {
 
   const { _id, wishlist, address, ...rest } = user.toObject();
 
-  const userObj = {
+  return {
     id: _id.toString(),
     address: address.map((item) => item.toString()),
     wishlist: wishlist.map((item) => item.toString()),
     ...rest,
   };
-
-  return userObj;
 }
 
 export async function removeFromWishlist(userId, productId) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
-  const user = await User.findByIdAndUpdate(
+  await User.findByIdAndUpdate(
     userId,
-    {
-      $pull: { wishlist: productId },
-    },
+    { $pull: { wishlist: productId } },
     { new: true },
   );
 
@@ -149,7 +140,7 @@ export async function removeFromWishlist(userId, productId) {
 
 export async function deleteUser(userId) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
   const user = await User.findByIdAndDelete(userId);
 
@@ -162,21 +153,22 @@ export async function deleteUser(userId) {
 
 export async function getUserAddress(userId) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
   const address = await Address.find({ userId });
 
-  if (!address) {
+  if (!address.length) {
     throw new Error("No address found for that user");
   }
   return address;
 }
 
-export async function createUserAddress(userId, formData) {
+export async function createUserAddress(formData) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
   const addressData = formDataToObject(formData);
+  const userId = formData.get("userId");
 
   if (addressData.isDefault) {
     await Address.updateMany({ userId }, { isDefault: false });
@@ -184,14 +176,27 @@ export async function createUserAddress(userId, formData) {
 
   const address = await Address.create({ ...addressData, userId });
 
-  return address;
+  const { _id, userId: id, ...rest } = address.toObject();
+
+  await User.findByIdAndUpdate(userId, { $push: { address: _id } });
+
+  const newAddress = { id: _id.toString(), ...rest };
+
+  revalidatePath("/checkout");
+  revalidateTag("checkout-data");
+  return newAddress;
 }
 
-export async function updateUserAddress(userId, addressId, formData) {
+export async function updateUserAddress(formData) {
   await dbConnect();
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
 
   const addressData = formDataToObject(formData);
+  const userId = formData.get("userId");
+  const addressId = formData.get("addressId");
+
+  console.log(addressData, "addressData👇👇👇");
+  console.log(addressId, "addressId👇👇👇");
 
   if (addressData.isDefault) {
     await Address.updateMany({ userId }, { isDefault: false });
@@ -205,12 +210,16 @@ export async function updateUserAddress(userId, addressId, formData) {
   if (!address) {
     throw new Error("No address found with that ID");
   }
+  revalidatePath("/checkout");
+  revalidateTag("checkout-data");
+  console.log(address, "address👇👇👇");
 
-  return address;
+  const { _id, ...rest } = address.toObject();
+  return { id: _id.toString(), ...rest };
 }
 
 export async function deleteUserAddress(addressId) {
-  restrictTo("admin, user");
+  await restrictTo("admin", "user");
   await dbConnect();
 
   const address = await Address.findByIdAndDelete(addressId);
@@ -225,24 +234,25 @@ export async function deleteUserAddress(addressId) {
 export async function getAllUsers() {
   try {
     await dbConnect();
-    restrictTo("admin");
+    await restrictTo("admin");
 
     const usersDoc = await User.find()
       .populate("address", "address city state country isDefault")
-      .populate("orderCount");
-    // .populate("amountSpent");
+      .lean({ virtuals: true });
 
-    const users = usersDoc.map((user) => {
-      const userObj = user.toObject();
-      const { _id, address, ...rest } = userObj;
-      const addressArr = address.map((addr) => {
-        const { _id, userId, ...rest } = addr;
-        return { id: _id.toString(), ...rest };
-      });
-      return { id: _id.toString(), address: addressArr, ...rest };
+    console.log(usersDoc, "usersDoc👇👇👇");
+
+    return usersDoc.map((user) => {
+      const { _id, address, ...rest } = user.toObject();
+      return {
+        id: _id.toString(),
+        address: address.map(({ _id, userId, ...addrRest }) => ({
+          id: _id.toString(),
+          ...addrRest,
+        })),
+        ...rest,
+      };
     });
-
-    return users;
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");

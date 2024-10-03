@@ -1,8 +1,14 @@
 import CategoryProducts from "./CategoryProducts";
 import Category from "@/models/category";
 import dbConnect from "@/lib/mongoConnection";
+import { Suspense } from "react";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
+import { BigSpinner } from "@/app/ui/spinner";
 
-const getAllCategories = async () => {
+export const dynamic = "force-dynamic";
+
+async function getAllCategoryPaths() {
   await dbConnect();
   const categories = await Category.find({}).select("slug parent").lean();
 
@@ -20,26 +26,26 @@ const getAllCategories = async () => {
         break;
       }
     }
-
     return path;
   };
 
   return categories.map((category) => buildCategoryPath(category, categories));
-};
+}
 
-// Update the generateStaticParams function
 export async function generateStaticParams() {
-  const categoryPaths = await getAllCategories();
+  const categoryPaths = await getAllCategoryPaths();
 
   return categoryPaths.map((path) => ({
     cat: path,
   }));
 }
 
-export default async function Product({ params: { cat }, searchParams }) {
+export default function Product({ params: { cat }, searchParams }) {
   return (
-    <div className="bg-gray-100">
-      <CategoryProducts cat={cat} searchParams={searchParams} />
-    </div>
+    <>
+      <Suspense fallback={<BigSpinner />}>
+        <CategoryProducts cat={cat} searchParams={searchParams} />
+      </Suspense>
+    </>
   );
 }

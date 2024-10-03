@@ -8,29 +8,9 @@
 }
 
 * {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px;
   box-sizing: border-box;
-}
-
-/* Webkit browsers (Chrome, Safari, etc.) */
-*::-webkit-scrollbar {
-  width: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: #fff;
-}
-
-*::-webkit-scrollbar-thumb {
-  background-color: #000;
-  border-radius: 4px;
-}
-
-/* Firefox */
-* {
   scrollbar-width: thin;
-  scrollbar-color: #000 #fff;
+  scrollbar-color: #303030 #fff;
 }
 
 h2 {
@@ -60,7 +40,7 @@ a:link {
 }
 
 .active__category {
-  @apply border-b-2 border-black;
+  @apply border-b-2 border-primary;
 }
 
 .center {
@@ -158,9 +138,9 @@ input[type="password"]::-webkit-clear-button {
 }
 
 .swiper-pagination-bullet {
-  @apply mr-1 h-3 w-3 rounded-none border-2 border-black bg-transparent opacity-100;
+  @apply mr-1 h-3 w-3 rounded-none border-2 border-primary bg-transparent opacity-100;
 }
 
 .swiper-pagination-bullet-active {
-  @apply h-4 w-4 bg-black;
+  @apply h-4 w-4 bg-primary;
 }

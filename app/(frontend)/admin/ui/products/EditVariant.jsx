@@ -174,6 +174,7 @@ export default memo(function EditVariant({
                             alt="product image"
                             width={100}
                             height={100}
+                            loading="lazy"
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -186,6 +187,7 @@ export default memo(function EditVariant({
                             alt="product image"
                             width={100}
                             height={100}
+                            loading="lazy"
                             className="h-full w-full object-cover"
                           />
                         )}

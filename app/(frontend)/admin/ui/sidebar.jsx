@@ -23,6 +23,8 @@ export default function AdminSidebar() {
     setSelectedKeys([path]);
   }, [pathname]);
 
+  console.log(collapsed);
+
   const menuItems = [
     {
       key: "admin",

@@ -12,23 +12,23 @@ export default function Footer() {
   return (
     <footer className="bg-primary text-white">
       {/* Top Section */}
-      <div className={`bg-neutral-300 py-10 text-black ${oswald.className}`}>
+      <div className={`bg-neutral-300 py-10 text-primary ${oswald.className}`}>
         <div className="mx-auto grid max-w-screen-lg items-center justify-center gap-6 px-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p>Quality Assurance</p>
+            <p className="text-sm md:text-base lg:text-lg">Quality Assurance</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p>Free Shipping</p>
+            <p className="text-sm md:text-base lg:text-lg">Free Shipping</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p>Secure Payment</p>
+            <p className="text-sm md:text-base lg:text-lg">Secure Payment</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkmark width={26} height={26} />
-            <p>Customer Support</p>
+            <p className="text-sm md:text-base lg:text-lg">Customer Support</p>
           </div>
         </div>
       </div>
@@ -39,103 +39,178 @@ export default function Footer() {
         >
           {/* Features */}
           <div className="flex flex-col space-y-7">
-            <h3 className="font-semibold">Features</h3>
+            <h3 className="text-sm font-semibold md:text-base lg:text-lg">
+              Features
+            </h3>
             <div className="footer_items">
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Men
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Women
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Boys
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Girls
               </a>
-              <a href="#" className="hover:text-white">
-                New Arrvials
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
+                New Arrivals
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Shoes
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Clothes
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Accessories
               </a>
             </div>
           </div>
           {/* Menu */}
           <div className="flex flex-col space-y-7">
-            <h3 className="font-semibold">Menu</h3>
+            <h3 className="text-sm font-semibold md:text-base lg:text-lg">
+              Menu
+            </h3>
             <div className="footer_items">
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 About Us
               </a>
-              <a href="#" className="font-thin hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Contact us
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 My Account
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Order history
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 My wishlist
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Blog
               </a>
-              <a href="#" className="hover:text-white">
+              <a
+                href="#"
+                className="text-sm hover:text-white md:text-base lg:text-lg"
+              >
                 Login
               </a>
             </div>
           </div>
           {/* Contact Information */}
           <div className="flex flex-col space-y-7">
-            <h3 className="font-semibold">Contact us</h3>
+            <h3 className="text-sm font-semibold md:text-base lg:text-lg">
+              Contact us
+            </h3>
             <div className="footer_items">
               <div className="flex flex-col">
-                <p className={`${oswald.className} text-white`}>Address</p>
-                <p className="hover:text-white">
+                <p
+                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
+                >
+                  Address
+                </p>
+                <p className="text-sm hover:text-white md:text-base lg:text-lg">
                   30A Oseni Street, Anthony Village <br />
-                  Oposite GTB, Lagos
+                  Opposite GTB, Lagos
                 </p>
               </div>
               <div className="flex flex-col">
-                <p className={`${oswald.className} text-white`}>Phone</p>
-                <p className="hover:text-white">(234) 802 3024 687</p>
-                <p className="hover:text-white">(234) 806 4737 122</p>
+                <p
+                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
+                >
+                  Phone
+                </p>
+                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                  (234) 802 3024 687
+                </p>
+                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                  (234) 806 4737 122
+                </p>
               </div>
               <div className="flex flex-col">
-                <p className={`${oswald.className} text-white`}>Email</p>
-                <p className="hover:text-white">Mail@Dekato-outfit.com</p>
+                <p
+                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
+                >
+                  Email
+                </p>
+                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                  Mail@Dekato-outfit.com
+                </p>
               </div>
               <div className="flex flex-col">
-                <p className={`${oswald.className} text-white`}>
+                <p
+                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
+                >
                   Working Days/Hours
                 </p>
-                <p className="hover:text-white">Mon - Sat / 8am - 8pm</p>
+                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                  Mon - Sat / 8am - 8pm
+                </p>
               </div>
             </div>
           </div>
           {/* Socials */}
           <div className="flex flex-col space-y-7">
             <div className="flex flex-col space-y-7">
-              <h3 className="font-semibold">Follow Us</h3>
+              <h3 className="text-sm font-semibold md:text-base lg:text-lg">
+                Follow Us
+              </h3>
               <div className="footer_items">
-                <div className="flex items-center space-x-4 hover:text-white">
+                <div className="flex items-center space-x-4 text-sm hover:text-white md:text-base lg:text-lg">
                   <FacebookIcon width={21} height={21} />
                   <p>Facebook</p>
                 </div>
-                <div className="flex items-center space-x-4 hover:text-white">
+                <div className="flex items-center space-x-4 text-sm hover:text-white md:text-base lg:text-lg">
                   <InstagramIcon width={21} height={21} />
                   <p>Instagram</p>
                 </div>
-                <div className="flex items-center space-x-4 hover:text-white">
+                <div className="flex items-center space-x-4 text-sm hover:text-white md:text-base lg:text-lg">
                   <WhatsappIcon width={21} height={21} />
                   <p>Whatsapp</p>
                 </div>
@@ -144,7 +219,7 @@ export default function Footer() {
             <div className="flex flex-col items-start md:max-w-xs">
               <label
                 htmlFor="newsletter"
-                className="w-full text-center hover:text-white sm:text-left"
+                className="w-full text-center text-sm hover:text-white sm:text-left md:text-base lg:text-lg"
               >
                 Subscribe to our newsletter
               </label>
@@ -156,7 +231,7 @@ export default function Footer() {
                 placeholder="Email Address"
               />
 
-              <Button className="mt-[7px] w-full bg-white text-center text-black">
+              <Button className="mt-[7px] w-full bg-white text-center text-primary">
                 Subscribe!
               </Button>
             </div>

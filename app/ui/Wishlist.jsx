@@ -30,12 +30,11 @@ export default function Wishlist({ product }) {
         userId,
       };
 
-
       const cartItem = await createCartItem(userId, newItem);
-      mutate(`/api/user/${userId}`);
+      await mutate(`/api/user/${userId}`);
+      await mutate(`/cart/${userId}`);
       setCart(cartItem.item);
       message.success("Item added to cart");
-      mutate(`/cart/${userId}`);
     } catch (error) {
       message.info(error.message, 4);
     }
@@ -43,7 +42,7 @@ export default function Wishlist({ product }) {
   const removeItem = async () => {
     try {
       await removeFromWishlist(user.id, product.id);
-      mutate(`/account/wishlist/${user.id}`);
+      await mutate(`/account/wishlist/${user.id}`);
       message.success("Product removed from wishlist");
     } catch (error) {
       console.error(error);
@@ -53,7 +52,7 @@ export default function Wishlist({ product }) {
   return (
     <div className="flex items-start gap-4 rounded-lg bg-white p-2 shadow-md transition-shadow duration-300 hover:shadow-lg">
       <div className="relative flex w-full max-w-[250px] flex-col space-y-4">
-        <Link href={`/product/${product.name}-${product.id}`}>
+        <Link href={`/p/${product.name}-${product.id}`}>
           <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md">
             <Image
               src={product.image[0]}

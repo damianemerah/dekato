@@ -2,23 +2,27 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(request) {
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
   const { pathname } = request.nextUrl;
+  const protectedRoutes = ["/admin", "/account", "/checkout"];
 
-  // Protect admin routes
-  if (pathname.startsWith("/admin")) {
-    if (!token || token.role !== "admin") {
-      return NextResponse.redirect(new URL("/signin", request.url));
-    }
-  }
+  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
-  // Protect user routes
-  if (pathname.startsWith("/account")) {
     if (!token) {
-      return NextResponse.redirect(new URL("/signin", request.url));
+      const callbackUrl = encodeURIComponent(request.url);
+      return NextResponse.redirect(
+        new URL(`/signin?callbackUrl=${callbackUrl}`, request.url),
+      );
+    }
+
+    if (pathname.startsWith("/admin") && token.role !== "admin") {
+      const callbackUrl = encodeURIComponent(request.url);
+      return NextResponse.redirect(
+        new URL(`/signin?callbackUrl=${callbackUrl}`, request.url),
+      );
     }
   }
 
@@ -26,5 +30,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*", "/checkout"],
 };

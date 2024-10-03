@@ -8,52 +8,35 @@ import { protect, restrictTo } from "@/utils/checkPermission";
 import dbConnect from "@/lib/mongoConnection";
 import { getQueryObj } from "@/utils/getFunc";
 import handleAppError from "@/utils/appError";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { deleteFiles } from "@/lib/s3Func";
-import mongoose from "mongoose";
 
 const setupIndexes = async () => {
   try {
     await dbConnect();
-    await Product.collection.createIndex({
-      name: "text",
-      description: "text",
-      tag: "text",
-    });
-    await Product.collection.createIndex({ cat: 1 });
-    await Product.collection.createIndex({ price: 1 });
-    await Product.collection.createIndex({ slug: 1 });
-  } catch (error) {}
+    await Promise.all([
+      Product.collection.createIndex({
+        name: "text",
+        description: "text",
+        tag: "text",
+      }),
+      Product.collection.createIndex({ cat: 1 }),
+      Product.collection.createIndex({ price: 1 }),
+      Product.collection.createIndex({ slug: 1 }),
+    ]);
+  } catch (error) {
+    console.error("Error setting up indexes:", error);
+  }
 };
 
 const formatProduct = (product) => {
-  const { _id, category, variant, buffer, ...rest } = product;
-  const formattedProduct = {
+  const { _id, category, variant, ...rest } = product;
+  return {
     id: _id.toString(),
     ...rest,
+    category: category?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
+    variant: variant?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v })),
   };
-
-  if (category) {
-    formattedProduct.category = category.map((c) => {
-      const { _id, buffer, ...rest } = c;
-      return {
-        id: _id.toString(),
-        ...rest,
-      };
-    });
-  }
-
-  if (variant) {
-    formattedProduct.variant = variant.map((v) => {
-      const { _id, buffer, ...rest } = v;
-      return {
-        id: _id.toString(),
-        ...rest,
-      };
-    });
-  }
-
-  return formattedProduct;
 };
 
 const handleProductQuery = async (query, searchParams = {}) => {
@@ -65,6 +48,9 @@ const handleProductQuery = async (query, searchParams = {}) => {
     .paginate();
 
   const productData = await feature.query;
+
+  if (!productData?.length) throw new Error("No products found");
+
   return productData.map(formatProduct);
 };
 
@@ -77,6 +63,8 @@ export async function getAdminProduct() {
       .lean();
     return products.map(formatProduct);
   } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
     throw handleAppError(err);
   }
 }
@@ -84,13 +72,14 @@ export async function getAdminProduct() {
 export async function productSearch(searchQuery) {
   try {
     await dbConnect();
-    searchQuery.limit = 9;
     const products = await handleProductQuery(
-      Product.find().select("name"),
-      searchQuery,
+      Product.find().select("name slug").lean(),
+      { ...searchQuery, limit: 9 },
     );
-    return products.map(({ id, name }) => ({ id, name }));
+    return products.map(({ id, name, slug }) => ({ id, name, slug }));
   } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
     throw handleAppError(err);
   }
 }
@@ -101,8 +90,10 @@ export async function getVariantsByCategory(catName, searchStr = "") {
     let matchCondition = {};
 
     if (searchStr && catName.toLowerCase() === "search") {
-      const searchWords = searchStr.split(" ").map((word) => word.trim());
-      const regexPattern = searchWords.map((word) => `\\b${word}`).join(".*");
+      const regexPattern = searchStr
+        .split(" ")
+        .map((word) => `\\b${word.trim()}`)
+        .join(".*");
       matchCondition = {
         $or: [
           { name: { $regex: regexPattern, $options: "i" } },
@@ -130,40 +121,32 @@ export async function getVariantsByCategory(catName, searchStr = "") {
       variant: { id: variant._id.toString(), ...variant },
     }));
   } catch (err) {
-    throw handleAppError(err);
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
 
 export async function getAllProducts(cat, searchParams = {}) {
   try {
     await dbConnect();
-    const catName =
-      cat && cat.length > 0 ? cat.slice(-1)[0].toLowerCase() : null;
+    const catName = cat?.slice(-1)[0]?.toLowerCase();
+    let baseQuery = Product.find();
 
-    if (catName) {
+    if (catName && catName !== "search") {
       const category = await Category.findOne({ slug: catName }).lean();
-      if (!category) {
-        // Return an empty array or throw an error for invalid category
-        return [];
-        // Alternatively: throw new Error("Category not found");
-      }
+      if (!category) return null;
 
       const categoryIds = [category._id, ...(category.children || [])];
-      const baseQuery = Product.find({ category: { $in: categoryIds } });
-      const populatedQuery = baseQuery.populate("category", "slug").lean();
-      const newSearchParams = getQueryObj(searchParams);
-
-      return await handleProductQuery(populatedQuery, newSearchParams);
-    } else {
-      // If no category is specified, fetch all products
-      const baseQuery = Product.find();
-      const populatedQuery = baseQuery.populate("category", "slug").lean();
-      const newSearchParams = getQueryObj(searchParams);
-
-      return await handleProductQuery(populatedQuery, newSearchParams);
+      baseQuery = Product.find({ category: { $in: categoryIds } });
     }
+
+    const populatedQuery = baseQuery.populate("category", "slug").lean();
+    const newSearchParams = getQueryObj(searchParams);
+
+    return await handleProductQuery(populatedQuery, newSearchParams);
   } catch (err) {
-    throw handleAppError(err);
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
 
@@ -172,14 +155,15 @@ export async function createProduct(formData) {
     await restrictTo("admin");
     await dbConnect();
 
-    const categoryIds = formData.getAll("category");
-    const obj = await handleFormData(formData, Category, categoryIds);
+    const obj = await handleFormData(formData);
     const productDoc = await Product.create(obj);
     if (!productDoc) throw new Error("Product not created");
 
-    revalidatePath("/admin/products");
-    return formatProduct(productDoc.lean());
+    revalidateProduct(productDoc.slug);
+    return formatProduct(productDoc);
   } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
     throw handleAppError(err);
   }
 }
@@ -193,6 +177,7 @@ export async function updateProduct(formData) {
     if (!id) throw new Error("Product not found");
 
     const data = await handleFormData(formData);
+
     const productToUpdate = Object.fromEntries(
       Object.entries(data).filter(
         ([key, value]) =>
@@ -203,26 +188,7 @@ export async function updateProduct(formData) {
     );
 
     if (data.variant) {
-      const existingProduct = await Product.findById(id).lean();
-      if (!existingProduct) throw new Error("Product not found");
-
-      const existingVariantsMap = new Map(
-        existingProduct.variant.map((v) => [v._id.toString(), v]),
-      );
-
-      productToUpdate.variant = data.variant.map((newVariant) => {
-        const existingVariant = existingVariantsMap.get(newVariant._id);
-        if (existingVariant) {
-          return newVariant.image
-            ? { ...existingVariant, ...newVariant }
-            : {
-                ...existingVariant,
-                ...newVariant,
-                image: existingVariant.image,
-              };
-        }
-        return newVariant;
-      });
+      productToUpdate.variant = data.variant;
     }
 
     const productData = await Product.findOneAndUpdate(
@@ -235,10 +201,11 @@ export async function updateProduct(formData) {
       },
     );
 
-    revalidatePath(`/admin/products/${id}`);
+    revalidateProduct(productData.slug);
+
     return formatProduct(productData);
   } catch (err) {
-    throw handleAppError(err);
+    return handleAppError(err);
   }
 }
 
@@ -253,30 +220,20 @@ export const deleteProduct = async (id) => {
     const imagesToDelete = [
       ...product.image,
       ...(product.video || []),
-      ...(product.variant?.map((v) => v.image) || []),
+      ...(product.variant?.flatMap((v) => v.image) || []),
     ].filter(Boolean);
 
     if (imagesToDelete.length) await deleteFiles(imagesToDelete);
 
-    revalidatePath("/admin/products");
+    revalidateProduct(product.slug);
+
     return null;
   } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
     throw handleAppError(err);
   }
 };
-
-export async function searchProduct(searchQuery) {
-  const terms = searchQuery.split(" ");
-  const regex = new RegExp(terms.join("|"), "i");
-
-  return await Product.find({
-    $or: [
-      { $text: { $search: searchQuery } },
-      { tag: { $in: terms } },
-      { cat: regex },
-    ],
-  }).lean();
-}
 
 export async function getProductById(id) {
   await dbConnect();
@@ -290,7 +247,6 @@ export async function getProductsByCategory(cat) {
   const products = await Product.find({ cat }).populate("category").lean();
   return products.map((product) => {
     const formattedProduct = formatProduct(product);
-    // Remove the buffer property from category objects
     if (formattedProduct.category) {
       formattedProduct.category = formattedProduct.category.map(
         ({ id, ...rest }) => ({ id, ...rest }),
@@ -299,3 +255,14 @@ export async function getProductsByCategory(cat) {
     return formattedProduct;
   });
 }
+
+function revalidateProduct(id) {
+  revalidatePath(`/admin/products/${id}`);
+  revalidateTag("single-product-data");
+  revalidateTag("products-all");
+  revalidatePath("/admin/products");
+  revalidateTag("checkout-data");
+}
+
+// Call setupIndexes when the module is first loaded
+// setupIndexes();

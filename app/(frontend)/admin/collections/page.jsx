@@ -214,6 +214,7 @@ const Collections = () => {
             alt={record.name}
             width={50}
             height={50}
+            loading="lazy"
             className="h-[50px] w-[50px] rounded-lg object-cover"
           />
         );
@@ -323,7 +324,7 @@ const Collections = () => {
         return;
       }
       await deleteCategory(id);
-      await mutate();
+      await mutate("/api/allCategories");
       message.success("Deleted");
     } catch (error) {
       message.error("Error");

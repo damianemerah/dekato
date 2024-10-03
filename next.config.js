@@ -10,7 +10,13 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "source.unsplash.com",
+        hostname: "loremflickr.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
         port: "",
         pathname: "/**",
       },
@@ -18,6 +24,7 @@ const nextConfig = {
   },
   logging: {
     fetches: {
+      hmrRefreshes: true,
       fullUrl: true,
     },
   },
@@ -31,11 +38,11 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/",
-        destination: "/home",
-        permanent: true,
-      },
+      // {
+      //   source: "/",
+      //   destination: "/h",
+      //   permanent: true,
+      // },
     ];
   },
 };

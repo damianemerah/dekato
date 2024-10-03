@@ -1,52 +1,38 @@
 "use client";
-import React, { useEffect } from "react";
-import ProductCard from "./product-card";
-import useSWR from "swr";
-import { getAllProducts } from "@/app/action/productAction";
-import { message } from "antd";
-import { useProductStore } from "@/store/store";
+import { lazy } from "react";
+import { useSidebarStore } from "@/store/store";
+import Filter from "@/app/ui/products/filter";
+import HeaderOne from "@/app/ui/heading1";
 
-const fetcher = async (cat, searchParams) => {
-  if (cat === "q") return;
-  const productData = await getAllProducts(cat, searchParams);
-  console.log(productData, "productData🔥🚀💎");
-  return productData;
-};
+// Dynamically import ProductCard (simulating async behavior)
+const ProductCard = lazy(() => import("./product-card"));
 
-const ProductsList = ({ cat, searchParams }) => {
-  const products = useProductStore((state) => state.products);
-  const setProducts = useProductStore((state) => state.setProducts);
-  const isLoading = useProductStore((state) => state.isLoading);
-  const setIsLoading = useProductStore((state) => state.setIsLoading);
-
-  const pCat = cat[0] === "search" ? null : cat;
-
-  const { isLoading: pLoad, error } = useSWR(
-    `products/${pCat}:${searchParams}`,
-    () => fetcher(pCat, searchParams),
-    {
-      revalidateOnFocus: false,
-      onSuccess: (data) => {
-        console.log(data, "data productsList🔥🚀💎");
-        setProducts(data);
-      },
-    },
-  );
-
-  useEffect(() => {
-    setIsLoading(pLoad);
-  }, [pLoad, setIsLoading]);
-
-  if (error) console.log(error, "error🔥🚀💎");
-
+const ProductsList = ({ products, cat, searchParams }) => {
+  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
+  const currentCategory =
+    cat.slice(-1)[0].toLowerCase() === "search"
+      ? `${products.length} results for ${searchParams.q}`
+      : cat.slice(-1)[0];
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {!isLoading &&
-        products &&
-        products.map((product, index) => (
-          <ProductCard key={index} product={product} />
-        ))}
-    </div>
+    <>
+      <div className="flex w-full items-center justify-center bg-gray-100 py-14 uppercase">
+        <HeaderOne>{currentCategory}</HeaderOne>
+      </div>
+      <Filter cat={cat} searchParams={searchParams} />
+      <div
+        className={`${isSidebarOpen ? "w-[calc(100vw-250px)]" : "w-full"} pl-5 pr-8`}
+      >
+        <div
+          className={`${isSidebarOpen && "overflow-hidden"} flex flex-wrap justify-start bg-white`}
+          // className={`${isSidebarOpen && "overflow-hidden"} grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`}
+        >
+          {products &&
+            products.map((product, index) => (
+              <ProductCard key={index} product={product} />
+            ))}
+        </div>
+      </div>
+    </>
   );
 };
 

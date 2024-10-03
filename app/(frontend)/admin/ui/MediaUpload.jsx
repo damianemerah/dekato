@@ -76,6 +76,7 @@ const MediaUpload = ({
           }}
           src={previewImage}
           alt="Preview"
+          loading="lazy"
         />
       )}
     </>
