@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { message } from "antd";
@@ -10,7 +10,7 @@ import { SmallSpinner } from "@/app/ui/spinner";
 const ViewIcon = dynamic(() => import("@/public/assets/icons/view.svg"));
 const ViewOff = dynamic(() => import("@/public/assets/icons/view-off.svg"));
 
-export default function SignIn() {
+function SignInContent() {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [viewPassword, setViewPassword] = useState(false);
   const { data: session, status } = useSession();
@@ -129,5 +129,13 @@ export default function SignIn() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<SmallSpinner />}>
+      <SignInContent />
+    </Suspense>
   );
 }

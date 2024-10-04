@@ -39,7 +39,7 @@ export default function Home() {
 
         <SubPageCampaign
           className="w-full border-primary lg:w-1/2"
-          heading_bg="after:bg-primary before:bg-primary"
+          heading_bg="after:bg-primary before:bg-primary text-white"
         />
       </div>
       <Galley />
