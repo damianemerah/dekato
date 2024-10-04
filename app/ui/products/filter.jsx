@@ -1,18 +1,13 @@
 "use client";
-import { useState, useEffect, useRef, useMemo, use } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import {
-  getAllProducts,
-  getVariantsByCategory,
-} from "@/app/action/productAction";
+import { getVariantsByCategory } from "@/app/action/productAction";
 import { getSubCategories } from "@/app/action/categoryAction";
 import { generateVariantOptions } from "@/utils/getFunc";
 import FilterContent from "./filter-content";
-import { useProductStore, useSearchStore } from "@/store/store";
-import { LoadingOutlined } from "@ant-design/icons";
-import { Spin } from "antd";
 import { ButtonPrimary } from "../button";
+import { createSearchParams } from "@/utils/filterHelpers";
 
 const sortOptions = [
   { value: "+createdAt", label: "Relevance" },
@@ -20,7 +15,14 @@ const sortOptions = [
   { value: "-price", label: "Price: High to Low" },
 ];
 
-export default function Filter({ cat, searchParams }) {
+const priceRanges = [
+  { min: 0, max: 10000 },
+  { min: 10000, max: 30000 },
+  { min: 30000, max: 100000 },
+  { min: 100000, max: Number.MAX_SAFE_INTEGER },
+];
+
+export default function Filter({ cat, searchParams, products }) {
   const catName = cat.slice(-1)[0].toLowerCase();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -35,15 +37,10 @@ export default function Filter({ cat, searchParams }) {
   const router = useRouter();
   const dropdownRef = useRef(null);
 
-  const products = useProductStore((state) => state.products);
-  const isLoading = useProductStore((state) => state.isLoading);
-
   const { data: subCategories } = useSWR(
     catName ? catName : null,
     () => getSubCategories(catName),
-    {
-      revalidateOnFocus: false,
-    },
+    { revalidateOnFocus: false },
   );
 
   const { data: productVariants, isLoading: varIsLoading } = useSWR(
@@ -51,6 +48,9 @@ export default function Filter({ cat, searchParams }) {
     () => catName && getVariantsByCategory(catName, searchStr),
     {
       revalidateOnFocus: false,
+      // onError: (error) => {
+      //   alert(error.message);
+      // },
     },
   );
 
@@ -65,7 +65,6 @@ export default function Filter({ cat, searchParams }) {
           "₦100000 - Above",
         ],
       },
-
       ...variantOptions,
       {
         name: "cat",
@@ -94,31 +93,23 @@ export default function Filter({ cat, searchParams }) {
       const variants = generateVariantOptions(variantOptions);
 
       setVariantOptions(
-        variants.map((v) => {
-          const { values, ...rest } = v;
-          return { ...rest, options: values };
-        }),
+        variants.map(({ values, ...rest }) => ({ ...rest, options: values })),
       );
 
       setSelectedFilters((prev) => {
         const newFilters = { ...prev };
-
         variants.forEach((variant) => {
-          if (variant.name in newFilters) {
-            return;
+          if (!(variant.name in newFilters)) {
+            newFilters[variant.name] = [];
           }
-
-          newFilters[variant.name] = [];
         });
-
         return newFilters;
       });
     }
   }, [varIsLoading, productVariants]);
 
   useEffect(() => {
-    // Handle prefill searchparams with variant options
-    if (searchParams && !isLoading) {
+    if (searchParams) {
       setFilterStatus("idle");
       const params = { ...searchParams };
 
@@ -129,12 +120,6 @@ export default function Filter({ cat, searchParams }) {
         );
 
         if (newKey === "price") {
-          const priceRanges = [
-            { min: 0, max: 10000 },
-            { min: 10000, max: 30000 },
-            { min: 30000, max: 100000 },
-            { min: 100000, max: Number.MAX_SAFE_INTEGER },
-          ];
           const priceValue = value
             .split(",")
             .map((price) => (isFinite(price) ? parseInt(price) : "Above"));
@@ -154,21 +139,14 @@ export default function Filter({ cat, searchParams }) {
               : [],
           }));
         } else if (curFilter || newKey === "cat") {
-          setSelectedFilters((prev) => {
-            if (!curFilter && newKey !== "cat") {
-              return prev;
-            }
-            return {
-              ...prev,
-              [newKey]: Array.isArray(value)
-                ? value.split(",")
-                : value.split(","),
-            };
-          });
+          setSelectedFilters((prev) => ({
+            ...prev,
+            [newKey]: Array.isArray(value) ? value : value.split(","),
+          }));
         }
       }
     }
-  }, [searchParams, variantOptions, filters, isLoading]);
+  }, [searchParams, variantOptions, filters]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -192,7 +170,7 @@ export default function Filter({ cat, searchParams }) {
     setSelectedFilters((prev) => {
       let updatedFilter;
 
-      if (name === "price" || name === "cat") {
+      if (name === "price") {
         updatedFilter = checked ? [value] : [];
       } else {
         const currentFilter = prev[name] || [];
@@ -201,23 +179,19 @@ export default function Filter({ cat, searchParams }) {
           : currentFilter.filter((item) => item !== value);
       }
 
-      return {
-        ...prev,
-        [name]: updatedFilter,
-      };
+      return { ...prev, [name]: updatedFilter };
     });
   };
 
   const handleFilter = () => {
     filterStatus === "idle" && setFilterStatus("active");
     const queryObj = Object.fromEntries(
-      Object.entries(selectedFilters).filter(([key, value]) => {
-        return (
+      Object.entries(selectedFilters).filter(
+        ([key, value]) =>
           value.length > 0 &&
           value.every((v) => v.length > 0) &&
-          key in selectedFilters
-        );
-      }),
+          key in selectedFilters,
+      ),
     );
 
     if (Object.keys(queryObj).length === 0) {
@@ -227,8 +201,7 @@ export default function Filter({ cat, searchParams }) {
 
     for (const [key, value] of Object.entries(queryObj)) {
       if (variantOptions.some((opt) => opt.name === key)) {
-        const newKey = key + "-vr";
-        queryObj[newKey] = value;
+        queryObj[key + "-vr"] = value;
         delete queryObj[key];
       }
     }
@@ -246,26 +219,7 @@ export default function Filter({ cat, searchParams }) {
     toggleDropdown("sort");
   };
 
-  //find product price range and compute variants
-
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-screen w-full items-center justify-center bg-black bg-opacity-10">
-        <Spin
-          indicator={
-            <LoadingOutlined
-              style={{ fontSize: 48 }}
-              spin
-              className="!text-primary"
-            />
-          }
-          size="large"
-        />
-      </div>
-    );
-  }
-
-  if (!isLoading && products?.length === 0) {
+  if (products?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <p className="mb-6 text-center font-roboto text-xl text-grayText">
@@ -295,24 +249,4 @@ export default function Filter({ cat, searchParams }) {
       toggleDropdown={toggleDropdown}
     />
   );
-}
-
-function createSearchParams(params) {
-  const searchParams = new URLSearchParams();
-
-  for (const key in params) {
-    if (params.hasOwnProperty(key)) {
-      const valueArray = params[key];
-      if (key === "price") {
-        const formattedPrice = valueArray.map((priceRange) =>
-          priceRange.replace(/₦|\s/g, "").split("-"),
-        );
-        searchParams.set(key, formattedPrice.join(","));
-      } else {
-        searchParams.set(key, valueArray.join(","));
-      }
-    }
-  }
-
-  return searchParams.toString();
 }

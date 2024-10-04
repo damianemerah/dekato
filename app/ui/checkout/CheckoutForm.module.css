@@ -1,0 +1,33 @@
+/* Floating label container */
+.floatingLabel {
+  position: relative;
+}
+
+/* Input Styles */
+.floatingLabel input {
+  width: 100%;
+
+  outline: none;
+  font-size: 16px;
+  background-color: transparent;
+}
+
+/* Label Styles */
+.floatingLabel label {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.2s ease;
+  color: #6b7280;
+  pointer-events: none;
+  font-size: 16px;
+}
+
+/* Move label to top when input is focused or has content */
+.floatingLabel input:focus + label,
+.floatingLabel input:not(:placeholder-shown) + label {
+  top: 12px;
+  line-height: 16px;
+  font-size: 12px;
+}

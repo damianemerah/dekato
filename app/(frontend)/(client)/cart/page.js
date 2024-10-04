@@ -4,128 +4,130 @@ import { ButtonPrimary } from "@/app/ui/button";
 import CartCards from "@/app/ui/cart/cart-card";
 import { oswald } from "@/font";
 import { useCartStore } from "@/store/store";
-import { Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import Link from "next/link";
+import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
+import ArrowRight from "@/public/assets/icons/arrow_right.svg";
+import Paystack from "@/public/assets/icons/paystack.svg";
+import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
+import { BigSpinner } from "@/app/ui/spinner";
 
 export default function Cart() {
   const cart = useCartStore((state) => state.cart);
   const cartIsLoading = useCartStore((state) => state.cartIsLoading);
 
-  if (cartIsLoading) {
-    return (
-      <div className="flex h-full min-h-screen w-full items-center justify-center bg-black bg-opacity-10">
-        <Spin
-          indicator={
-            <LoadingOutlined
-              style={{ fontSize: 48 }}
-              spin
-              className="!text-primary"
-            />
-          }
-          size="large"
-        />
-      </div>
-    );
-  }
+  console.log(cart, "🔥🔥🔥cart");
 
-  if (!cart || cart.length === 0) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-xl font-semibold text-gray-500">
-          Your cart is empty
-        </p>
-      </div>
-    );
+  if (cartIsLoading) {
+    return <BigSpinner />;
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-      <h1
-        className={`${oswald.className} py-8 text-center text-5xl font-semibold uppercase tracking-wide text-gray-800 sm:text-3xl`}
-      >
-        Shopping Bag
-      </h1>
-      <div className="mt-4 flex flex-col gap-10 lg:flex-row lg:justify-center">
-        <div className="lg:w-2/3">
-          <p
-            className={`${oswald.className} mb-4 text-lg font-medium uppercase text-grayText`}
+    <div className="min-h-screen bg-grayBg">
+      <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
+        {cart.item && cart.item.length > 0 ? (
+          <header className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="flex items-center gap-2 transition-colors duration-200 hover:text-primary"
+            >
+              <ArrowLeft className="text-gray-800" />
+              <span className="text-sm">Continue Shopping</span>
+            </Link>
+            <h1
+              className={`${oswald.className} mx-auto text-center text-2xl font-medium uppercase text-primary`}
+            >
+              Shopping Bag
+            </h1>
+            {/* <Link href="/checkout">
+              <ButtonPrimary className="flex items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
+                <span>Proceed to checkout</span>
+                <ArrowRight className="ml-2 text-white" />
+              </ButtonPrimary>
+            </Link> */}
+          </header>
+        ) : (
+          <h1
+            className={`${oswald.className} text-center text-2xl font-medium uppercase text-primary`}
           >
-            # Items
-          </p>
-          <div className="flex flex-col items-center gap-4 px-2">
-            <CartCards products={cart} />
-          </div>
-        </div>
+            Shopping Bag
+          </h1>
+        )}
 
-        <div className="flex flex-col lg:w-1/3">
-          <div className="flex flex-col gap-5">
-            <div className="space-y-6 border border-grayOutline bg-grayBg p-5">
-              <div className="space-y-2">
-                <h3 className={`${oswald.className} text-2xl leading-5`}>
-                  Estimate Shipping
-                </h3>
-                <p className="text-grayText">
-                  Enter your destination to get a shipping estimate.
-                </p>
-              </div>
-              <label className="flex justify-between gap-8" htmlFor="country">
-                <span className="block text-sm font-medium text-slate-700 after:ml-1.5 after:text-red-500 after:content-['*']">
-                  Country
-                </span>
-                <select
-                  disabled
-                  name="country"
-                  className="block w-full max-w-64 border border-slate-300 bg-white px-3 py-2 pl-2 pr-7 placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 sm:text-sm"
-                >
-                  <option value="NG">Nigeria</option>
-                </select>
-              </label>
-              <label className="flex justify-between gap-8" htmlFor="state">
-                <span className="block text-sm font-medium text-slate-700 after:ml-1.5 after:text-red-500 after:content-['*']">
-                  State
-                </span>
-                <select
-                  name="state"
-                  className="block w-full max-w-64 border border-slate-300 bg-white px-3 py-2 pl-2 pr-7 placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 sm:text-sm"
-                >
-                  <option value="AN">Anambra</option>
-                </select>
-              </label>
-              <div className="flex flex-col gap-1">
-                <h3 className={`${oswald.className} text-lg leading-5`}>DHL</h3>
-                <label className="ml-1 inline-flex items-center">
-                  <input
-                    type="radio"
-                    className="peer hidden"
-                    name="shipping"
-                    value="flat-rate"
-                  />
-                  <span className="inline-block h-2.5 w-2.5 border border-gray-400 outline outline-offset-1 peer-checked:border-transparent peer-checked:bg-black"></span>
-                  <span className="ml-2 text-gray-700">Flat Rate NGN 3000</span>
-                </label>
-              </div>
+        {/* Main Content */}
+        {cart.item && cart.item.length > 0 ? (
+          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:justify-between">
+            {/* Left Side: Cart Items */}
+            <div className="lg:w-2/3">
+              {/* Product List */}
+              <CartCards products={cart.item} />
             </div>
-            <div className="relative border border-grayOutline bg-grayBg p-5">
-              <div className="flex justify-between">
-                <p>Subtotal</p>
-                <p>120 EUR</p>
-              </div>
-              <div className="mt-4 flex justify-between">
-                <p>Shipping</p>
-                <p>Free</p>
-              </div>
-              <div className="mt-4 flex justify-between">
-                <p>Total</p>
-                <p>120 EUR</p>
+            {/* Right Side: Order Summary */}
+            <div className="self-start lg:w-1/3">
+              <ProceedToCheckoutBox
+                totalPrice={cart.totalPrice}
+                amountSaved={cart.amountSaved}
+              />
+
+              <div className="mt-4 flex items-center justify-center gap-2 bg-white p-4 shadow-sm">
+                <p className="text-xs italic text-gray-600">Secured by</p>
+                <Paystack width={123.48} height={22} />
               </div>
             </div>
           </div>
-
-          <ButtonPrimary className="mt-5 w-full">
-            Proceed to Checkout
-          </ButtonPrimary>
-        </div>
+        ) : (
+          <div className="my-12 flex h-[50vh] items-center justify-center bg-white shadow-sm">
+            <p className="text-xl font-semibold text-grayText">
+              Your cart is empty
+            </p>
+          </div>
+        )}
+        <Link
+          href="/"
+          className="mt-6 flex items-center gap-2 transition-colors duration-200 hover:text-primary"
+        >
+          <ArrowLeft className="text-gray-800" />
+          <span className="text-sm">Continue Shopping</span>
+        </Link>
       </div>
+    </div>
+  );
+}
+
+function ProceedToCheckoutBox({ totalPrice, amountSaved }) {
+  return (
+    <div className="bg-white px-6 py-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between border-b pb-4 font-semibold text-primary">
+        <p>Subtotal</p>
+        <p className="text-right">₦{totalPrice}</p>
+      </div>
+
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-primary">Shipping</span>
+        <span className="font-medium text-green-600">TBD</span>
+      </div>
+
+      <div className="mb-6 border-t pt-4">
+        <div className="flex items-center justify-between font-semibold text-primary">
+          <span>Total</span>
+          <span className="text-right">₦{totalPrice}</span>
+        </div>
+        {amountSaved > 0 && (
+          <p className="mt-2 text-sm text-slate-500">
+            You save ₦{amountSaved.toLocaleString()} with this order
+          </p>
+        )}
+      </div>
+
+      <Link href="/checkout">
+        <ButtonPrimary className="flex w-full items-center justify-center !bg-secondary text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
+          <span>Proceed to checkout</span>
+          <ArrowRight className="ml-2 text-white" />
+        </ButtonPrimary>
+      </Link>
+      <ButtonPrimary className="mt-4 flex w-full items-center justify-center bg-[#25D366] text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
+        Whatsapp checkout
+        <WhatsappIcon className="ml-2.5 h-6 w-6 fill-green-500 text-white" />
+      </ButtonPrimary>
     </div>
   );
 }

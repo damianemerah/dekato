@@ -7,20 +7,90 @@ import { oswald } from "@/font";
 import UserIcon from "@/public/assets/icons/user.svg";
 import HeartIcon from "@/public/assets/icons/heart.svg";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { Space, Dropdown } from "antd";
+import { DownOutlined } from "@ant-design/icons";
+import { UserOutlined, LogoutOutlined, HeartOutlined } from "@ant-design/icons";
+import { useEffect } from "react";
 
 function Header() {
   const user = useUserStore((state) => state.user);
-  const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+  const toggleSidebarState = useSidebarStore((state) => state.toggleSidebar);
   const pathname = usePathname();
   const cart = useCartStore((state) => state.cart);
+  const setLgScreenSidebar = useSidebarStore(
+    (state) => state.setLgScreenSidebar,
+  );
+  const setMenuIsClicked = useSidebarStore((state) => state.setMenuIsClicked);
+
+  const handleSideBarToggle = () => {
+    const isBelowThreshold = window.innerWidth < 1250;
+    const currentIsSideBarOpen = useSidebarStore.getState().isSidebarOpen;
+
+    if (!currentIsSideBarOpen && !isBelowThreshold) {
+      setLgScreenSidebar(false);
+    }
+    if (currentIsSideBarOpen && !isBelowThreshold) {
+      setLgScreenSidebar(true);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
+  const items = [
+    {
+      key: "1",
+      label: (
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="/account"
+          className="flex items-center"
+        >
+          <UserOutlined className="mr-2" /> {/* Icon for Account */}
+          Account
+        </a>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <button
+          onClick={() => {
+            toggleSidebarState();
+            handleSignOut();
+          }}
+          className="flex w-full items-center text-left"
+        >
+          <LogoutOutlined className="mr-2" /> {/* Icon for Sign out */}
+          Sign out
+        </button>
+      ),
+    },
+    {
+      key: "3",
+      label: (
+        <Link href="/account/wishlist" className="flex items-center">
+          <HeartOutlined className="mr-2" /> {/* Icon for Wishlist */}
+          Wishlist
+        </Link>
+      ),
+    },
+  ];
 
   return (
     <header
-      className={`${oswald.className} fixed top-0 z-[80] flex h-16 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
+      className={`${oswald.className} sticky top-0 z-[80] flex h-16 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
     >
       <div className="flex h-full flex-1 items-center justify-start space-x-2 sm:space-x-4 lg:space-x-8">
         <button
-          onClick={toggleSidebar}
+          onClick={() => {
+            toggleSidebarState();
+            setMenuIsClicked(true);
+            handleSideBarToggle();
+          }}
           className="hover:bg-primary-dark rounded-full p-1 transition-colors duration-200 sm:p-2"
         >
           <svg
@@ -62,15 +132,27 @@ function Header() {
 
       <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
         {user ? (
-          <Link
-            href="/account"
-            className="flex items-center space-x-1 transition-colors duration-200 hover:text-gray-300"
+          <Dropdown
+            menu={{
+              items,
+            }}
+            overlayStyle={{
+              minWidth: "150px",
+              borderRadius: 0,
+              margin: "0 auto",
+            }}
+            style={{ borderRadius: 0 }}
           >
-            <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
-            <span className="hidden text-xs sm:inline sm:text-sm">
-              Hi, {user.firstname}
-            </span>
-          </Link>
+            <div className="text-center">
+              <Space className="flex items-center">
+                <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
+                <span className="hidden text-xs sm:inline sm:text-sm">
+                  Hi, {user?.firstname}
+                </span>
+                <DownOutlined />
+              </Space>
+            </div>
+          </Dropdown>
         ) : (
           <Link
             href="/signin"
@@ -83,13 +165,13 @@ function Header() {
 
         <Link
           href="/account/wishlist"
-          className="rounded-full p-1 transition-colors duration-200 sm:p-2"
+          className="hover:bg-primary-dark rounded-full p-1 transition-colors duration-200 sm:p-2"
         >
           <HeartIcon className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
         </Link>
         <Link
           href="/cart"
-          className="relative rounded-full p-1 transition-colors duration-200 sm:p-2"
+          className="hover:bg-primary-dark relative rounded-full p-1 transition-colors duration-200 sm:p-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -105,9 +187,9 @@ function Header() {
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <path d="M16 10a4 4 0 0 1-8 0"></path>
           </svg>
-          {cart.length > 0 && (
+          {cart.totalItems > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white sm:h-5 sm:w-5">
-              {cart.length}
+              {cart.totalItems}
             </span>
           )}
         </Link>

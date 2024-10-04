@@ -4,9 +4,7 @@ import React, { useState, memo } from "react";
 import { Button, Flex, Table, Dropdown, Space, message, Modal } from "antd";
 import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import { deleteProduct } from "@/app/action/productAction";
-import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR from "swr";
-import useSWRImmutable from "swr/immutable";
 import Link from "next/link";
 import { getAllUsers } from "@/app/action/userAction";
 import useConfirmModal from "@/app/ui/confirm-modal";
@@ -61,17 +59,11 @@ const ProductsList = () => {
 
   const showConfirmModal = useConfirmModal();
 
-  const { data: collections } = useSWRImmutable(
-    "/api/allCategories",
-    getAllCategories,
-    {
-      revalidateOnFocus: false,
-    },
-  );
-
   const { data: users, isLoading } = useSWR("/api/users", getAllUsers, {
     revalidateOnFocus: false,
   });
+
+  console.log(users, "users");
 
   const dataSource = users?.map((item) => ({
     key: item.id,

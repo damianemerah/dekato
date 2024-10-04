@@ -12,6 +12,7 @@ const OrderCard = () => {
           alt="product image"
           width={96}
           height={96}
+          loading="lazy"
           className="mr-4 h-24 w-24 object-cover"
         />
         <div className="flex flex-col space-y-2">

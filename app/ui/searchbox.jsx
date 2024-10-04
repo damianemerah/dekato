@@ -3,6 +3,7 @@ import { use, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { getAllProducts, productSearch } from "../action/productAction";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // Debounce hook to delay the search input
 function useDebounce(value, delay) {
@@ -43,6 +44,11 @@ const SearchBox = () => {
   const { data: pSearchList, error } = useSWR(
     debouncedSearch && debouncedSearch.length > 1 ? debouncedSearch : null,
     fetcher,
+    {
+      onSuccess: (data) => {
+        console.log(data);
+      },
+    },
   );
 
   useEffect(() => {
@@ -86,7 +92,7 @@ const SearchBox = () => {
             onFocus={() => setActiveDropdown(true)}
             type="text"
             placeholder="Search..."
-            className="h-8 w-72 bg-white px-4 py-2 text-black outline-none placeholder:text-sm"
+            className="h-8 w-72 bg-white px-4 py-2 text-primary outline-none placeholder:text-sm"
             onChange={(e) => setSearchString(e.target.value)}
           />
           <button
@@ -95,7 +101,7 @@ const SearchBox = () => {
             onClick={(e) => handleSearchProduct(e)}
           >
             <svg
-              className="h-5 w-5 text-black"
+              className="h-5 w-5 text-primary"
               xmlns="http://www.w3.org/2000/svg"
               height="24px"
               viewBox="0 -960 960 960"
@@ -116,7 +122,9 @@ const SearchBox = () => {
                 key={product.id}
                 className="cursor-pointer truncate px-4 py-2 text-sm lowercase opacity-90 hover:bg-grayBg"
               >
-                {product.name}
+                <Link href={`/p/${product.slug}-${product.id}`}>
+                  {product.name}
+                </Link>
               </li>
             ))}
           </ul>
@@ -140,14 +148,14 @@ const SearchBox = () => {
         </button>
       </div>
       {showMobileSearch && (
-        <div className="absolute left-0 right-0 top-16 z-[60] !m-0 w-full bg-white py-2 lg:hidden">
+        <div className="absolute left-0 right-0 top-0 z-[60] !m-0 w-full bg-white py-2 lg:hidden">
           <form onSubmit={(e) => handleSearchProduct(e)} className="w-full">
             <input
               ref={mobileSearchRef}
               onFocus={() => setActiveDropdown(true)}
               type="text"
               placeholder="Search..."
-              className="h-10 w-full bg-white px-4 py-2 text-black outline-none placeholder:text-sm"
+              className="h-10 w-full bg-white px-4 py-2 text-primary outline-none placeholder:text-sm"
               onChange={(e) => setSearchString(e.target.value)}
             />
             <button
@@ -156,7 +164,7 @@ const SearchBox = () => {
               onClick={(e) => handleSearchProduct(e)}
             >
               <svg
-                className="h-5 w-5 text-black"
+                className="h-5 w-5 text-primary"
                 xmlns="http://www.w3.org/2000/svg"
                 height="24px"
                 viewBox="0 -960 960 960"
@@ -177,7 +185,9 @@ const SearchBox = () => {
                   key={product.id}
                   className="cursor-pointer truncate px-4 py-2 text-sm lowercase opacity-90 hover:bg-grayBg"
                 >
-                  {product.name}
+                  <Link href={`/p/${product.slug}-${product.id}`}>
+                    {product.name}
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -65,6 +65,21 @@ export async function generateBreadcrumbs(categoryId) {
   }
 }
 
+function formatCategories(categories) {
+  return categories.map(({ _id, parent, createdAt, ...rest }) => {
+    const { _id: pid, ...p } = parent || {};
+    const formattedCategory = {
+      id: _id.toString(),
+      parent: parent ? { id: pid.toString(), ...p } : null,
+      ...rest,
+    };
+    if (createdAt) {
+      formattedCategory.createdAt = createdAt.toISOString();
+    }
+    return formattedCategory;
+  });
+}
+
 export async function getAllCategories() {
   await dbConnect();
 
@@ -77,18 +92,10 @@ export async function getAllCategories() {
       .populate("parent", "name _id slug")
       .lean();
 
-    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
-      const { _id: pid, ...p } = parent || {};
-      return {
-        id: _id.toString(),
-        parent: parent ? { id: pid.toString(), ...p } : null,
-        ...rest,
-      };
-    });
-    return formattedCat;
+    return formatCategories(categories);
   } catch (err) {
     const error = handleAppError(err);
-    throw Error(error.message || "Something went wrong");
+    throw new Error(error.message || "Something went wrong");
   }
 }
 
@@ -97,7 +104,7 @@ export async function getSubCategories(slug) {
   try {
     const category = await Category.findOne({ slug });
     if (!category) {
-      throw new Error("Category not found");
+      return null;
     }
 
     const categories = await Category.find({ parent: category._id })
@@ -105,19 +112,11 @@ export async function getSubCategories(slug) {
       .populate("productCount")
       .sort({ slug: 1 })
       .lean();
-    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
-      const { _id: pid, ...p } = parent || {};
-      return {
-        id: _id.toString(),
-        parent: parent ? { id: pid.toString(), ...p } : null,
-        ...rest,
-      };
-    });
 
-    return formattedCat;
+    return formatCategories(categories);
   } catch (err) {
     const error = handleAppError(err);
-    throw Error(error.message || "Something went wrong");
+    throw new Error(error.message || "Something went wrong");
   }
 }
 
@@ -238,30 +237,36 @@ export async function deleteCategory(id) {
 }
 
 export async function getPinnedCategoriesByParent(parentSlug) {
-  try {
-    await dbConnect();
+  // try {
+  await dbConnect();
 
-    let parentCategory;
-    if (parentSlug) {
-      parentCategory = await Category.findOne({ slug: parentSlug });
-      if (!parentCategory) {
-        console.warn(`Parent category with slug '${parentSlug}' not found`);
-        return []; // Return an empty array instead of throwing an error
-      }
+  let parentCategory;
+  if (parentSlug) {
+    parentCategory = await Category.findOne({ slug: parentSlug });
+    if (!parentCategory) {
+      throw new Error("No categoriess found");
+
+      console.warn(`Parent category with slug '${parentSlug}' not found`);
+      return []; // Return an empty array instead of throwing an error
     }
-
-    const query = parentCategory
-      ? { parent: parentCategory._id, pinned: true }
-      : { parent: null, pinned: true };
-
-    const pinnedCategories = await Category.find(query)
-      .sort({ pinOrder: 1 })
-      .limit(5)
-      .lean();
-
-    return pinnedCategories;
-  } catch (err) {
-    console.error("Error in getPinnedCategoriesByParent:", err);
-    return []; // Return an empty array instead of throwing an error
   }
+
+  const query = parentCategory
+    ? { parent: parentCategory._id, pinned: true }
+    : { parent: null, pinned: true };
+
+  const pinnedCategories = await Category.find(query)
+    .sort({ pinOrder: 1 })
+    .limit(5)
+    .lean();
+
+  const newPinnedCategories = pinnedCategories.map(({ _id, ...rest }) => ({
+    id: _id.toString(),
+    ...rest,
+  }));
+  return newPinnedCategories;
+  // } catch (err) {
+  //   console.error("Error in getPinnedCategoriesByParent:", err);
+  //   return []; // Return an empty array instead of throwing an error
+  // }
 }

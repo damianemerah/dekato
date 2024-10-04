@@ -70,6 +70,7 @@ export const handleFormData = async (formData, Model, id) => {
     }
   });
 
+  //for Model update
   if (Model && id) {
     if (Array.isArray(id)) {
       existingProd = await Model.find({ _id: { $in: id } });

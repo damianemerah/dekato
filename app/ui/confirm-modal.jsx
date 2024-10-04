@@ -10,7 +10,7 @@ const useConfirmModal = () => {
       okText: "Yes",
       cancelText: "No",
       okButtonProps: {
-        className: "!bg-black !text-white !hover:bg-gray-800 !rounded-none",
+        className: "!bg-primary !text-white !hover:bg-gray-800 !rounded-none",
       },
       cancelButtonProps: {
         className:

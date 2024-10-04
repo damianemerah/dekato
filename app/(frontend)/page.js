@@ -9,19 +9,12 @@ import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
 import RecommendedProducts from "@/app/ui/recommended-products";
 import { Suspense } from "react";
-import { Spin } from "antd";
-
+import { BigSpinner } from "@/app/ui/spinner";
 export default function Home() {
   return (
     <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
-      <Suspense
-        fallback={
-          <div className="flex h-40 items-center justify-center">
-            <Spin size="large" />
-          </div>
-        }
-      >
+      <Suspense fallback={<BigSpinner />}>
         <SelectedCategories />
       </Suspense>
       <Campaign />
@@ -45,8 +38,8 @@ export default function Home() {
         </div>
 
         <SubPageCampaign
-          className="w-full border-black lg:w-1/2"
-          heading_bg="after:bg-black before:bg-black"
+          className="w-full border-primary lg:w-1/2"
+          heading_bg="after:bg-primary before:bg-primary text-white"
         />
       </div>
       <Galley />

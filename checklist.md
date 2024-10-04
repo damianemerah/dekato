@@ -6,41 +6,41 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [x] **Database Connection**: Verify that the database connection is established and working.
 
-- [ ] **Dependencies**: Ensure all dependencies are installed and up-to-date (`package.json`).
+- [x] **Dependencies**: Ensure all dependencies are installed and up-to-date (`package.json`).
 
 - [ ] **Markdown Preview**: Use `Ctrl + Shift + V` to preview markdown files in VSCode.
 
 ### 2. **User Management**
 
-- [ ] **User Registration**: Users should be able to register.
+- [x] **User Registration**: Users should be able to register.
 
-- [ ] **User Login**: Users should be able to log in.
+- [x] **User Login**: Users should be able to log in.
 
-- [ ] **User Authentication**: Implement authentication checks for protected routes.
+- [x] **User Authentication**: Implement authentication checks for protected routes.
 
-- [ ] **User Authorization**: Implement role-based access control (e.g., admin, user).
+- [x] **User Authorization**: Implement role-based access control (e.g., admin, user).
 
 ### 3. **Product Management**
 
-- [ ] **Product Listing**: Products should be listed correctly on the frontend.
+- [x] **Product Listing**: Products should be listed correctly on the frontend.
 
-- [ ] **Product Details**: Users should be able to view detailed information about a product.
+- [x] **Product Details**: Users should be able to view detailed information about a product.
 
-- [ ] **Product Search**: Implement search functionality to find products.
+- [x] **Product Search**: Implement search functionality to find products.
 
-- [ ] **Product Categories**: Products should be categorized correctly.
+- [x] **Product Categories**: Products should be categorized correctly.
 
-- [ ] **Product Variants**: Ensure product variants (e.g., size, color) are handled correctly.
+- [x] **Product Variants**: Ensure product variants (e.g., size, color) are handled correctly.
 
 ### 4. **Cart and Checkout**
 
-- [ ] **Add to Cart**: Users should be able to add products to their cart.
+- [x] **Add to Cart**: Users should be able to add products to their cart.
 
-- [ ] **View Cart**: Users should be able to view their cart.
+- [x] **View Cart**: Users should be able to view their cart.
 
-- [ ] **Update Cart**: Users should be able to update quantities or remove items from the cart.
+- [x] **Update Cart**: Users should be able to update quantities or remove items from the cart.
 
-- [ ] **Checkout Process**: Implement a multi-step checkout process.
+- [x] **Checkout Process**: Implement a multi-step checkout process.
 
 - [ ] **Shipping Information**: Collect and validate shipping information.
 
@@ -48,7 +48,7 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 ### 5. **Order Management**
 
-- [ ] **Order Creation**: Orders should be created and saved in the database.
+- [x] **Order Creation**: Orders should be created and saved in the database.
 
 - [ ] **Order Status**: Implement order status updates (e.g., processing, shipped, delivered).
 
@@ -58,9 +58,9 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 ### 6. **Payment Processing**
 
-- [ ] **Payment Gateway Integration**: Integrate with a payment gateway (e.g., Paystack).
+- [x] **Payment Gateway Integration**: Integrate with a payment gateway (e.g., Paystack).
 
-- [ ] **Payment Verification**: Verify payment status and update order status accordingly.
+- [x] **Payment Verification**: Verify payment status and update order status accordingly.
 
 - [ ] **Error Handling**: Implement error handling for payment failures.
 

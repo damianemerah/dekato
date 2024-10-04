@@ -63,7 +63,7 @@ const SignUp = () => {
               name="firstname"
               value={formData.firstname}
               onChange={handleChange}
-              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
             />
           </div>
           <div className="flex flex-1 flex-col">
@@ -76,7 +76,7 @@ const SignUp = () => {
               name="lastname"
               value={formData.lastname}
               onChange={handleChange}
-              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ const SignUp = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+            className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
           />
         </div>
 
@@ -105,7 +105,7 @@ const SignUp = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
             />
             {viewPassword ? (
               <ViewIcon
@@ -132,7 +132,7 @@ const SignUp = () => {
               name="passwordConfirm"
               value={formData.passwordConfirm}
               onChange={handleChange}
-              className="w-full rounded-md bg-gray-100 p-2.5 text-black outline-none"
+              className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
             />
             {viewPassword ? (
               <ViewIcon

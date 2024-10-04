@@ -22,8 +22,10 @@ export default function Galley() {
             key={index}
             className={`${
               index === 4
-                ? "col-span-2 row-span-2 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-2"
-                : ""
+                ? "col-span-2 row-span-2 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2"
+                : index === images.length - 1 && images.length % 4 !== 0
+                  ? "col-span-2"
+                  : ""
             }`}
           >
             <Image

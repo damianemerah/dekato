@@ -1,41 +1,44 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const useUserStore = create((set) => ({
-  user: null,
-  address: [],
-  setUser: (user) => set({ user }),
-  clearUser: () => set({ user: null }),
-  setAddress: (address) => set({ address }),
-  addAddress: (address) =>
-    set((state) => ({ address: [...state.address, address] })),
-  removeAddress: (id) =>
-    set((state) => ({
-      address: state.address.filter((address) => address.id !== id),
-    })),
-  updateAddress: (updatedAddress) =>
-    set((state) => ({
-      address: state.address.map((address) =>
-        address.id === updatedAddress.id ? updatedAddress : address,
-      ),
-    })),
-  userIsLoading: false,
-  setUserIsLoading: (userIsLoading) => set({ userIsLoading }),
-}));
-
-export const useCartStore = create(
+export const useUserStore = create(
   persist(
     (set) => ({
-      cart: [],
-      setCart: (cart) => set({ cart, isFetched: true }),
-      cartIsLoading: false,
-      setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
+      user: null,
+      address: [],
+      setUser: (user) => set({ user }),
+      clearUser: () => set({ user: null }),
+      setAddress: (address) => set({ address }),
+      addAddress: (address) =>
+        set((state) => ({ address: [...state.address, address] })),
+      removeAddress: (id) =>
+        set((state) => ({
+          address: state.address.filter((address) => address.id !== id),
+        })),
+      updateAddress: (updatedAddress) =>
+        set((state) => ({
+          address: state.address.map((address) =>
+            address.id === updatedAddress.id ? updatedAddress : address,
+          ),
+        })),
+      deliveryMethod: "pickup",
+      setDeliveryMethod: (deliveryMethod) => set({ deliveryMethod }),
+      userIsLoading: false,
+      setUserIsLoading: (userIsLoading) => set({ userIsLoading }),
     }),
     {
-      name: "cart-storage",
+      name: "user-storage",
+      partialize: (state) => ({ deliveryMethod: state.deliveryMethod }),
     },
   ),
 );
+
+export const useCartStore = create((set) => ({
+  cart: [],
+  setCart: (cart) => set({ cart, isFetched: true }),
+  cartIsLoading: false,
+  setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
+}));
 
 export const useProductStore = create((set) => ({
   products: [],
@@ -64,6 +67,10 @@ export const useSidebarStore = create(
         set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       closeSidebar: () => set({ isSidebarOpen: false }),
       openSidebar: () => set({ isSidebarOpen: true }),
+      lgScreenSidebar: true,
+      setLgScreenSidebar: (lgScreenSidebar) => set({ lgScreenSidebar }),
+      menuIsClicked: false,
+      setMenuIsClicked: (menuIsClicked) => set({ menuIsClicked }),
     }),
     {
       name: "sidebar-storage",

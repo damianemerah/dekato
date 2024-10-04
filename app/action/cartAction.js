@@ -7,13 +7,15 @@ import { getQuantity } from "@/utils/getFunc";
 import _ from "lodash";
 import { restrictTo } from "@/utils/checkPermission";
 import mongoose from "mongoose";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // Helper function to format cart data
 function formatCartData(cart) {
-  const { _id, item } = cart;
+  const { _id, item, totalPrice, totalItems, amountSaved } = cart;
+
   const formattedItems = item
     .map((cartItem) => {
-      const { _id, productId, variantId, cartId, ...rest } = cartItem;
+      const { _id, productId, variantId, buffer, cartId, ...rest } = cartItem;
 
       if (!productId) {
         console.warn(`Cart item ${_id} has no associated product`);
@@ -34,11 +36,14 @@ function formatCartData(cart) {
         ...rest,
       };
     })
-    .filter(Boolean); // Remove any null items
+    .filter(Boolean);
 
   return {
     item: formattedItems,
     id: _id.toString(),
+    totalPrice,
+    totalItems,
+    amountSaved,
   };
 }
 
@@ -114,6 +119,9 @@ export async function createCartItem(userId, newItem) {
       ).lean();
     }
 
+    revalidateTag("checkout-data");
+    revalidatePath("/checkout");
+
     await session.commitTransaction();
     return formatCartData(cart);
   } catch (error) {
@@ -128,13 +136,17 @@ export async function getCart(userId) {
   await dbConnect();
 
   // Find the cart and populate the product details and variants
-  const cart = await Cart.findOne({ userId }).lean();
+  const cart = await Cart.findOne({ userId }).lean({ virtuals: true });
+
+  console.log(cart, "🔥🔥🔥cart");
 
   if (!cart) {
     return createNewCart(userId);
   }
 
-  return formatCartData(cart);
+  const data = formatCartData(cart);
+  console.log(data, "🔥🔥🔥data");
+  return data;
 }
 
 export async function updateCartItemQuantity(updateData) {
@@ -159,6 +171,9 @@ export async function updateCartItemQuantity(updateData) {
 
   const updatedCart = await Cart.findById(cart._id).lean();
 
+  revalidateTag("checkout-data");
+  revalidatePath("/checkout");
+  revalidatePath("/cart");
   return formatCartData(updatedCart);
 }
 
@@ -179,6 +194,9 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
   }
 
   const updatedCart = await Cart.findById(cart._id).lean();
+
+  revalidateTag("checkout-data");
+  revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }
@@ -209,6 +227,8 @@ export async function selectAllCart(userId, selectAll) {
 
   // Fetch the updated cart with items
   const updatedCart = await Cart.findById(cart._id).lean();
+  revalidateTag("checkout-data");
+  revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }
@@ -222,13 +242,28 @@ export async function removeFromCart(userId, cartItemId) {
     throw new Error("Cart not found");
   }
 
-  const cartItem = cart.item.find((item) => item._id.toString() === cartItemId);
-  if (!cartItem) {
+  // Find the index of the cart item to remove
+  const itemIndex = cart.item.findIndex(
+    (item) => item._id.toString() === cartItemId,
+  );
+  if (itemIndex === -1) {
     throw new Error("Item not found");
   }
 
-  await cartItem.deleteOne();
+  // Remove the item from the cart's item array
+  cart.item.splice(itemIndex, 1);
+
+  // Delete the CartItem document
+  await CartItem.findByIdAndDelete(cartItemId);
+
+  // Save the updated cart
   await cart.save();
 
-  return null;
+  // Fetch the updated cart with items
+  const updatedCart = await Cart.findById(cart._id).lean();
+
+  revalidateTag("checkout-data");
+  revalidatePath("/checkout");
+
+  return formatCartData(updatedCart);
 }

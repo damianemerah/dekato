@@ -24,6 +24,7 @@ const nextConfig = {
   },
   logging: {
     fetches: {
+      hmrRefreshes: true,
       fullUrl: true,
     },
   },
@@ -37,11 +38,11 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/",
-        destination: "/home",
-        permanent: true,
-      },
+      // {
+      //   source: "/",
+      //   destination: "/h",
+      //   permanent: true,
+      // },
     ];
   },
 };

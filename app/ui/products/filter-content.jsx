@@ -19,10 +19,10 @@ export default function FilterContent({
     <>
       <div
         ref={dropdownRef}
-        className="sticky top-16 z-10 flex h-14 w-full items-center justify-between bg-gray-100 px-8 shadow-md"
+        className="sticky top-16 z-10 flex h-14 w-full items-center justify-between bg-gray-100 px-8 capitalize shadow-md"
       >
         <div className="flex items-center">
-          <p className="text-sm">Filter by:</p>
+          <p className="text-nowrap text-[13px]">Filter by:</p>
           <div className="ml-4 flex items-center justify-start space-x-2">
             {filters.map((filter) => (
               <div
@@ -31,22 +31,22 @@ export default function FilterContent({
               >
                 <button
                   onClick={() => toggleDropdown(filter.name)}
-                  className={`flex items-center gap-2 px-3 py-1 text-sm font-medium ${activeDropdown === filter.name ? "bg-white" : ""}`}
+                  className={`flex items-center gap-2 px-3 py-1 text-[13px] font-medium capitalize ${activeDropdown === filter.name ? "bg-white" : ""}`}
                 >
                   {filter.name === "cat"
                     ? "Category"
                     : filter.name.charAt(0).toUpperCase() +
                       filter.name.slice(1)}
                   <span className="relative flex h-6 w-6 items-center justify-center">
-                    <span className="h-0.5 w-2 bg-black transition-transform duration-300" />
+                    <span className="h-0.5 w-2 bg-primary transition-transform duration-300" />
                     <span
-                      className={`absolute h-0.5 w-2 bg-black transition-transform duration-300 ${activeDropdown === filter.name ? "rotate-0" : "rotate-90"}`}
+                      className={`absolute h-0.5 w-2 bg-primary transition-transform duration-300 ${activeDropdown === filter.name ? "rotate-0" : "rotate-90"}`}
                     />
                   </span>
                 </button>
 
                 {activeDropdown === filter.name && (
-                  <div className="absolute left-0 flex w-max flex-col bg-white text-[#303030]">
+                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col overflow-auto bg-white text-[#303030]">
                     {filter.options.map((option, index) => (
                       <label
                         key={index}
@@ -93,19 +93,19 @@ export default function FilterContent({
         </div>
 
         <div className="flex items-center">
-          <p className="text-sm">Sort:</p>
+          <p className="text-[13px]">Sort:</p>
           <div className="relative ml-4">
             <button
               onClick={() => toggleDropdown("sort")}
-              className={`flex items-center gap-2 px-3 py-1 text-sm font-medium ${
+              className={`flex items-center gap-2 px-3 py-1 text-[13px] font-medium capitalize ${
                 activeDropdown === "sort" ? "bg-white" : ""
               } hover:bg-white`}
             >
               {sort}
               <span className="relative flex h-6 w-6 items-center justify-center">
-                <span className="h-0.5 w-2 bg-black transition-transform duration-300" />
+                <span className="h-0.5 w-2 bg-primary transition-transform duration-300" />
                 <span
-                  className={`absolute h-0.5 w-2 bg-black transition-transform duration-300 ${
+                  className={`absolute h-0.5 w-2 bg-primary transition-transform duration-300 ${
                     activeDropdown === "sort" ? "rotate-0" : "rotate-90"
                   }`}
                 />
@@ -118,7 +118,7 @@ export default function FilterContent({
                   <button
                     key={option.value}
                     onClick={() => handleSortChange(option.value)}
-                    className={`block w-full px-4 py-2 text-left text-sm ${
+                    className={`block w-full px-4 py-2 text-left text-[13px] capitalize ${
                       sort === option.value ? "font-medium" : ""
                     } hover:bg-gray-100`}
                   >
@@ -140,7 +140,7 @@ export default function FilterContent({
                   key={key}
                   className="flex items-center gap-2 rounded-3xl hover:bg-gray-100"
                 >
-                  <span className="flex items-center rounded-3xl border p-2 text-sm font-medium">
+                  <span className="flex items-center rounded-3xl border p-2 text-[13px] font-medium">
                     {value.map((item, index) => (
                       <span key={index}>
                         {`${item}${index < value.length - 1 ? ",\u00A0" : ""}`}
@@ -156,7 +156,7 @@ export default function FilterContent({
                         }));
                         setFilterStatus("active");
                       }}
-                      className="ml-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                      className="ml-2 text-[13px] font-medium text-gray-500 hover:text-gray-700"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

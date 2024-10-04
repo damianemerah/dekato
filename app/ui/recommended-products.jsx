@@ -22,7 +22,9 @@ const RecommendedProducts = ({ category }) => {
   if (error) return <div>Failed to load products...</div>;
   if (!data) return <div>Loading...</div>;
 
-  const products = data.products || [];
+  const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
+
+  console.log(products);
 
   if (products.length === 0) return <div>No products found.</div>;
 
@@ -45,7 +47,7 @@ const RecommendedProducts = ({ category }) => {
           </SwiperSlide>
         ))}
         {/* Navigation buttons */}
-        <div className="swiper-button-prev-custom absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
+        <div className="swiper-button-prev-custom absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-primary text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="20px"
@@ -56,7 +58,7 @@ const RecommendedProducts = ({ category }) => {
             <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
           </svg>
         </div>
-        <div className="swiper-button-next-custom absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
+        <div className="swiper-button-next-custom absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-primary text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="20px"

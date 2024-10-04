@@ -63,6 +63,7 @@ export function getQueryObj(searchParams) {
 
   for (const key in params) {
     if (key.includes("-vr")) {
+      console.log(key, "key🚀😎💎🎈🐯⭐😎");
       // Add variant conditions for size and color
       const newKey = key.replace("-vr", "");
       variantConditions.push({ [`options.${newKey}`]: { $in: params[key] } });

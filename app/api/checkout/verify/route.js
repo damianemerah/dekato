@@ -9,13 +9,12 @@ const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 async function updateProductQuantity(order) {
   for (const item of order.cartItem) {
-    const product = await Product.findById(item.product.toString());
+    const product = await Product.findById(item.productId.toString());
 
     if (item.variantId) {
       const variantIndex = product.variant.findIndex(
         (index) => index._id.toString() === item.variantId,
       );
-      console.log("variantIndex💎🚀", product.variant[variantIndex]);
       product.variant[variantIndex].quantity -= item.quantity;
       product.quantity -= item.quantity;
       product.sold += item.quantity;
@@ -57,28 +56,34 @@ async function updateProductQuantitySingle(order) {
 }
 
 export async function POST(req) {
-  await protect();
-  await restrictTo("admin", "user");
+  console.log("VERIFY ROUTE 💎💎💎");
+  // await protect();
+  // await restrictTo("admin", "user");
   try {
     const body = await req.json();
-    console.log("VERIFY ROUTE 💎💎💎");
 
     const {
       reference,
-      metadata: { orderId, userId },
+      metadata: { orderId, userId, receipt_number },
       id: paymentId,
       channel: paymentMethod,
       currency,
     } = body.data;
 
+    console.log(body, "BODY💎💎💎");
+
     const order = await Order.findById(orderId).populate({
       path: "cartItem",
     });
+
+    console.log(order, "ORDER💎💎💎");
 
     if (!order) {
       throw new AppError("Order not found", 404);
     }
     const verification = await Paystack.transaction.verify(reference);
+
+    console.log(verification, "VERIFICATION💎💎💎");
 
     if (verification.data.status !== "success") {
       order.status = "payment_failed";
@@ -95,6 +100,7 @@ export async function POST(req) {
     order.paymentId = paymentId;
     order.paymentMethod = paymentMethod;
     order.currency = currency;
+    order.receiptNumber = receipt_number;
 
     await order.save();
 

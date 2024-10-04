@@ -5,7 +5,7 @@ export function Button({ children, className }) {
   return (
     <Link
       href="#"
-      className={`h-[44px] self-start border-2 px-8 py-2 font-medium no-underline hover:bg-zinc-900 ${className}`}
+      className={`h-[44px] self-start border-2 px-8 py-2 font-medium no-underline ${className}`}
     >
       {children}
     </Link>
@@ -21,7 +21,7 @@ export function ButtonPrimary({
 }) {
   return (
     <button
-      className={`${oswald.className} h-[44px] bg-primary px-8 py-2 text-white active:scale-95 ${className} uppercase`}
+      className={`${oswald.className} h-[44px] px-8 py-2 text-white active:scale-95 ${className} uppercase`}
       onClick={onClick}
       type={type}
       disabled={disabled}

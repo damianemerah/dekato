@@ -1,75 +1,75 @@
 import mongoose from "mongoose";
 import { CartItem } from "./cart";
+import { nanoid } from "nanoid";
 
-const singleProductSchema = new mongoose.Schema({
-  productId: { type: String, required: true },
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  color: String,
-  size: String,
-  variantId: String,
-  image: String,
-});
-
-const orderSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.ObjectId, ref: "User" },
-  cartItem: [
-    {
+const orderSchema = new mongoose.Schema(
+  {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CartItem",
+      ref: "User",
+      required: true,
     },
-  ],
-  singleProduct: {
-    type: singleProductSchema,
-    required: function () {
-      return this.type === "single";
-    },
-  },
-  total: Number,
-  status: {
-    type: String,
-    default: "pending_payment",
-    enum: [
-      "pending_payment",
-      "payment_failed",
-      "payment_confirmed",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-      "returned",
+    cartItems: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CartItem",
+      },
     ],
-  },
-  type: {
-    type: String,
-    enum: ["cart", "single"],
-    required: true,
-  },
-  shippingMethod: {
-    type: String,
-    toLowerCase: true,
-    enum: ["pickup", "delivery"],
-    required: true,
-  },
-  address: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Address",
-    required: function () {
-      // Require address if shippingMethod is "delivery"
-      return this.shippingMethod === "delivery";
+    total: { type: Number, required: true, min: 0 },
+    receiptNumber: {
+      type: String,
+      unique: true,
+      trim: true,
+      default: nanoid(7),
     },
+    status: {
+      type: String,
+      default: "pending_payment",
+      enum: [
+        "pending_payment",
+        "payment_failed",
+        "payment_confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "returned",
+      ],
+    },
+    type: {
+      type: String,
+      enum: ["cart", "single"],
+      required: true,
+    },
+    shippingMethod: {
+      type: String,
+      lowercase: true,
+      enum: ["pickup", "delivery"],
+      required: true,
+    },
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      required: function () {
+        return this.shippingMethod === "delivery";
+      },
+    },
+    paymentRef: { type: String, trim: true },
+    paymentId: { type: String, trim: true },
+    paymentMethod: { type: String, trim: true },
+    currency: { type: String, trim: true, uppercase: true },
+    paidAt: { type: Date },
+    // createdAt: { type: Date, default: Date.now },
+    // updatedAt: { type: Date, default: Date.now },
   },
-  paymentRef: String,
-  paymentId: String,
-  paymentMethod: String,
-  currency: String,
-  paidAt: { type: Date, default: Date.now },
-});
+  {
+    timestamps: true,
+  },
+);
 
-// Static method for address requirement check
-// orderSchema.statics.isAddressRequired = function (orderData) {
-//   return orderData.shippingMethod === "delivery";
-// };
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ receiptNumber: 1 }, { unique: true });
 
-export default mongoose.models.Order || mongoose.model("Order", orderSchema);
+const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
+
+export default Order;

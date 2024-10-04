@@ -46,12 +46,12 @@ export default function Hero() {
             className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
           >
             <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
+              <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                 SUMMER SALE: Get 30% OFF On all dresses.
               </h1>
               <Link
                 href="#"
-                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
+                className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
               >
                 SHOP NOW
               </Link>
@@ -84,12 +84,12 @@ export default function Hero() {
             className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
           >
             <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
+              <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                 Discover the Latest Collection of Women&apos;s Wear.
               </h1>
               <Link
                 href="#"
-                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
+                className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
               >
                 SHOP NOW
               </Link>
@@ -122,12 +122,12 @@ export default function Hero() {
             className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
           >
             <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
+              <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                 New Arrivals: Fresh Styles for Every Occasion.
               </h1>
               <Link
                 href="#"
-                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
+                className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
               >
                 SHOP NOW
               </Link>
@@ -156,7 +156,7 @@ export default function Hero() {
         </SwiperSlide>
 
         <div className="absolute bottom-0 right-0 z-10 mb-4 mr-4 flex justify-center gap-1">
-          <div className="swiper-button-prev-custom !visible flex h-8 w-8 items-center justify-center bg-black text-white sm:h-10 sm:w-10">
+          <div className="swiper-button-prev-custom !visible flex h-8 w-8 items-center justify-center bg-primary text-white sm:h-10 sm:w-10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               height="16px"
@@ -168,7 +168,7 @@ export default function Hero() {
               <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
             </svg>
           </div>
-          <div className="swiper-button-next-custom !visible flex h-8 w-8 items-center justify-center bg-black text-white sm:h-10 sm:w-10">
+          <div className="swiper-button-next-custom !visible flex h-8 w-8 items-center justify-center bg-primary text-white sm:h-10 sm:w-10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               height="16px"
