@@ -22,138 +22,152 @@ export default function Hero() {
       onClick={() => (activeDropdown ? setActiveDropdown(false) : null)}
     >
       <PromoBar />
-      <Swiper
-        modules={[EffectFade, Pagination, Navigation, Autoplay]}
-        spaceBetween={30}
-        centeredSlides={true}
-        effect={"fade"}
-        fadeEffect={{ crossFade: true }}
-        autoplay={{ delay: 8000, disableOnInteraction: false }}
-        navigation={{
-          nextEl: ".swiper-button-next-custom",
-          prevEl: ".swiper-button-prev-custom",
-        }}
-        pagination={{
-          el: ".custom-pagination",
-          clickable: true,
-          renderBullet: (index, className) =>
-            `<span className="${className}"></span>`,
-        }}
-        className="relative"
-      >
-        <SwiperSlide className="h-auto bg-[url('/assets/hero_bg.png')] bg-cover bg-center bg-no-repeat">
-          <div
-            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
-          >
-            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
-                SUMMER SALE: Get 30% OFF On all dresses.
-              </h1>
-              <Link
-                href="#"
-                className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
-              <div className="block w-1/2">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
-                  loading="lazy"
-                  src={image2}
-                />
+      <div className="relative">
+        <Swiper
+          modules={[EffectFade, Pagination, Navigation, Autoplay]}
+          spaceBetween={30}
+          centeredSlides={true}
+          effect={"fade"}
+          fadeEffect={{ crossFade: true }}
+          autoplay={{ delay: 8000, disableOnInteraction: false }}
+          navigation={{
+            nextEl: ".swiper-button-next-custom",
+            prevEl: ".swiper-button-prev-custom",
+          }}
+          pagination={{
+            el: ".custom-pagination",
+            clickable: true,
+            renderBullet: (index, className) =>
+              `<span className="${className}"></span>`,
+          }}
+          className="min-h-[500px]"
+        >
+          <SwiperSlide className="h-auto bg-[url('/assets/hero_bg.png')] bg-cover bg-center bg-no-repeat">
+            <div
+              className={`flex min-h-[500px] flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+            >
+              <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+                <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
+                  SUMMER SALE: Get 30% OFF On all dresses.
+                </h1>
+                <Link
+                  href="#"
+                  className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
+                >
+                  SHOP NOW
+                </Link>
               </div>
-              <div className="block w-1/2 -translate-x-10 scale-110 transform">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
-                  loading="lazy"
-                  src={image3}
-                />
+              <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
+                <div className="block w-1/2">
+                  <Image
+                    alt="cat"
+                    className="max-h-full object-cover"
+                    style={{
+                      boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)",
+                    }}
+                    loading="lazy"
+                    src={image2}
+                  />
+                </div>
+                <div className="block w-1/2 -translate-x-10 scale-110 transform">
+                  <Image
+                    alt="cat"
+                    className="max-h-full object-cover"
+                    style={{
+                      boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)",
+                    }}
+                    loading="lazy"
+                    src={image3}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </SwiperSlide>
+          </SwiperSlide>
 
-        <SwiperSlide className="h-auto bg-[url('/assets/hero_img1.jpg')] bg-cover bg-center bg-no-repeat">
-          <div
-            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
-          >
-            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
-                Discover the Latest Collection of Women&apos;s Wear.
-              </h1>
-              <Link
-                href="#"
-                className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
-              <div className="block w-1/2">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
-                  loading="lazy"
-                  src={image2}
-                />
+          <SwiperSlide className="h-auto bg-[url('/assets/hero_img1.jpg')] bg-cover bg-center bg-no-repeat">
+            <div
+              className={`flex min-h-[500px] flex-col items-center justify-center px-4 sm:px-8 md:flex-row md:px-16`}
+            >
+              <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+                <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
+                  Discover the Latest Collection of Women&apos;s Wear.
+                </h1>
+                <Link
+                  href="#"
+                  className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
+                >
+                  SHOP NOW
+                </Link>
               </div>
-              <div className="block w-1/2 -translate-x-10 scale-110 transform">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
-                  loading="lazy"
-                  src={image3}
-                />
+              <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
+                <div className="block w-1/2">
+                  <Image
+                    alt="cat"
+                    className="max-h-full object-cover"
+                    style={{
+                      boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)",
+                    }}
+                    loading="lazy"
+                    src={image2}
+                  />
+                </div>
+                <div className="block w-1/2 -translate-x-10 scale-110 transform">
+                  <Image
+                    alt="cat"
+                    className="max-h-full object-cover"
+                    style={{
+                      boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)",
+                    }}
+                    loading="lazy"
+                    src={image3}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </SwiperSlide>
+          </SwiperSlide>
 
-        <SwiperSlide className="h-auto bg-[url('/assets/hero_img2.jpg')] bg-cover bg-center bg-no-repeat">
-          <div
-            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
-          >
-            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
-                New Arrivals: Fresh Styles for Every Occasion.
-              </h1>
-              <Link
-                href="#"
-                className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
-              <div className="block w-1/2">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
-                  loading="lazy"
-                  src={image2}
-                />
+          <SwiperSlide className="h-auto bg-[url('/assets/hero_img2.jpg')] bg-cover bg-center bg-no-repeat">
+            <div
+              className={`flex min-h-[500px] flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+            >
+              <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+                <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
+                  New Arrivals: Fresh Styles for Every Occasion.
+                </h1>
+                <Link
+                  href="#"
+                  className="self-start border-2 border-primary px-6 py-2 font-medium text-primary hover:no-underline sm:px-8 sm:py-3"
+                >
+                  SHOP NOW
+                </Link>
               </div>
-              <div className="block w-1/2 -translate-x-10 scale-110 transform">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
-                  loading="lazy"
-                  src={image3}
-                />
+              <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
+                <div className="block w-1/2">
+                  <Image
+                    alt="cat"
+                    className="max-h-full object-cover"
+                    style={{
+                      boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)",
+                    }}
+                    loading="lazy"
+                    src={image2}
+                  />
+                </div>
+                <div className="block w-1/2 -translate-x-10 scale-110 transform">
+                  <Image
+                    alt="cat"
+                    className="max-h-full object-cover"
+                    style={{
+                      boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)",
+                    }}
+                    loading="lazy"
+                    src={image3}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </SwiperSlide>
+          </SwiperSlide>
+        </Swiper>
 
         <div className="absolute bottom-0 right-0 z-10 mb-4 mr-4 flex justify-center gap-1">
           <div className="swiper-button-prev-custom !visible flex h-8 w-8 items-center justify-center bg-primary text-white sm:h-10 sm:w-10">
@@ -183,7 +197,7 @@ export default function Hero() {
         </div>
 
         <div className="custom-pagination absolute bottom-0 left-0 z-10 mb-4 ml-4 flex !w-fit items-center justify-center"></div>
-      </Swiper>
+      </div>
     </section>
   );
 }

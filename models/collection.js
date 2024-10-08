@@ -3,7 +3,7 @@ import slugify from "slugify";
 
 const mongooseLeanVirtuals = require("mongoose-lean-virtuals");
 
-const collectionSchema = new mongoose.Schema(
+const campaignSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -35,14 +35,14 @@ const collectionSchema = new mongoose.Schema(
   },
 );
 
-collectionSchema.index({ slug: 1 });
-collectionSchema.index({ name: "text", description: "text" });
+campaignSchema.index({ slug: 1 });
+campaignSchema.index({ name: "text", description: "text" });
 
 function arrayLimit(val) {
   return val.length <= 5;
 }
 
-collectionSchema.pre("save", function (next) {
+campaignSchema.pre("save", function (next) {
   if (this.isModified("name")) {
     this.slug = slugify(this.name, { lower: true, strict: true });
   }
@@ -53,7 +53,7 @@ collectionSchema.pre("save", function (next) {
   next();
 });
 
-collectionSchema.pre("findOneAndUpdate", function (next) {
+campaignSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate();
   if (update.name && this.isModified("name")) {
     update.slug = slugify(update.name, { lower: true, strict: true });
@@ -61,16 +61,16 @@ collectionSchema.pre("findOneAndUpdate", function (next) {
   next();
 });
 
-collectionSchema.virtual("productCount", {
+campaignSchema.virtual("productCount", {
   ref: "Product",
   localField: "_id",
   foreignField: "collection",
   count: true,
 });
 
-collectionSchema.plugin(mongooseLeanVirtuals);
+campaignSchema.plugin(mongooseLeanVirtuals);
 
-const Collection =
-  mongoose.models.Collection || mongoose.model("Collection", collectionSchema);
+const Campaign =
+  mongoose.models.Campaign || mongoose.model("Campaign", campaignSchema);
 
-export default Collection;
+export default Campaign;

@@ -10,11 +10,20 @@ import image6 from "@/public/assets/image6.png";
 import RecommendedProducts from "@/app/ui/recommended-products";
 import { Suspense } from "react";
 import { SmallSpinner } from "@/app/ui/spinner";
+
+const LoadingSpinner = function LoadingSpinner() {
+  return (
+    <div className="flex min-h-20 w-full items-center justify-center">
+      <SmallSpinner className="!text-primary" />
+    </div>
+  );
+};
+
 export default function Home() {
   return (
     <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
-      <Suspense fallback={<SmallSpinner />}>
+      <Suspense fallback={<LoadingSpinner />}>
         <SelectedCategories />
       </Suspense>
       <Campaign />
