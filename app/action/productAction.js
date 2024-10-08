@@ -2,10 +2,10 @@
 
 import Product from "@/models/product";
 import Category from "@/models/category";
-import Collection from "@/models/collection";
+import Campaign from "@/models/collection";
 import APIFeatures from "@/utils/apiFeatures";
 import { handleFormData } from "@/utils/handleForm";
-import { protect, restrictTo } from "@/utils/checkPermission";
+import { restrictTo } from "@/utils/checkPermission";
 import dbConnect from "@/lib/mongoConnection";
 import { getQueryObj } from "@/utils/getFunc";
 import handleAppError from "@/utils/appError";
@@ -137,7 +137,7 @@ export async function getAllProducts(cat, searchParams = {}) {
 
     if (catName && catName !== "search") {
       const category = await Category.findOne({ slug: catName }).lean();
-      const collection = await Collection.findOne({ slug: catName }).lean();
+      const collection = await Campaign.findOne({ slug: catName }).lean();
 
       if (!category && !collection) return null;
 

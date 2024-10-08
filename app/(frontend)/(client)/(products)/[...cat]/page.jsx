@@ -1,6 +1,6 @@
 import CategoryProducts from "./CategoryProducts";
 import Category from "@/models/category";
-import Collection from "@/models/collection";
+import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
 import { Suspense, memo } from "react";
 import { SmallSpinner } from "@/app/ui/spinner";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 async function getAllCategoryPaths() {
   await dbConnect();
   const categories = await Category.find({}).select("slug parent").lean();
-  const collections = await Collection.find({}).select("slug").lean();
+  const collections = await Campaign.find({}).select("slug").lean();
 
   const buildCategoryPath = (category, allCategories) => {
     const path = [category.slug];
@@ -48,9 +48,13 @@ const LoadingSpinner = memo(function LoadingSpinner() {
 export async function generateStaticParams() {
   const categoryPaths = await getAllCategoryPaths();
 
-  return categoryPaths.map((path) => ({
+  const paths = categoryPaths.map((path) => ({
     cat: path,
   }));
+
+  console.log(paths, "paths🎈🎈🎈");
+
+  return paths;
 }
 
 export default function Product({ params: { cat }, searchParams }) {

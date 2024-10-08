@@ -1,7 +1,8 @@
 "use server";
 
 import dbConnect from "@/lib/mongoConnection";
-import Collection from "@/models/collection";
+import Campaign from "@/models/collection";
+import Product from "@/models/product";
 import { handleFormData } from "@/utils/handleForm";
 import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
@@ -23,14 +24,15 @@ export async function getAllCollections() {
   await dbConnect();
 
   try {
-    const collections = await Collection.find(
+    const collections = await Campaign.find(
       {},
       "name description image slug createdAt productCount",
     ).lean({ virtuals: true });
 
     return formatCollections(collections);
   } catch (err) {
-    throw handleAppError(err, "Something went wrong");
+    const error = handleAppError(err);
+    throw new Error(err.message, "Something went wrong");
   }
 }
 
@@ -40,15 +42,16 @@ export async function createCollection(formData) {
 
   try {
     const body = await handleFormData(formData);
-    const collection = await Collection.create(body);
-    const leanCollection = await Collection.findById(collection._id).lean({
+    const collection = await Campaign.create(body);
+    const leanCollection = await Campaign.findById(collection._id).lean({
       virtuals: true,
     });
 
     revalidatePath(`/admin/collections/${leanCollection.slug}`);
     return formatCollections([leanCollection])[0];
   } catch (err) {
-    throw handleAppError(err, "An error occurred");
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
 
@@ -58,12 +61,12 @@ export async function updateCollection(formData) {
 
   try {
     const id = formData.get("id");
-    const data = await handleFormData(formData, Collection, id);
+    const data = await handleFormData(formData, Campaign, id);
     const body = Object.fromEntries(
       Object.entries(data).filter(([key]) => formData.get(key)),
     );
 
-    const collection = await Collection.findByIdAndUpdate(id, body, {
+    const collection = await Campaign.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
       select: "name description image slug createdAt productCount",
@@ -78,7 +81,8 @@ export async function updateCollection(formData) {
 
     return formatCollections([collection])[0];
   } catch (err) {
-    throw handleAppError(err, "An error occurred");
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
 
@@ -87,7 +91,7 @@ export async function deleteCollection(id) {
   await dbConnect();
 
   try {
-    const deletedCollection = await Collection.findByIdAndDelete(id).lean({
+    const deletedCollection = await Campaign.findByIdAndDelete(id).lean({
       virtuals: true,
     });
 
@@ -100,6 +104,32 @@ export async function deleteCollection(id) {
 
     return null;
   } catch (err) {
-    throw handleAppError(err, "An error occurred");
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
+
+export const addProductToCollection = async (collectionId, productId) => {
+  await restrictTo("admin");
+  await dbConnect();
+
+  try {
+    const collection = await Campaign.findById(collectionId);
+    const product = await Product.findById(productId);
+
+    if (!collection || !product) {
+      throw new Error("Collection or product not found");
+    }
+
+    collection.products.push(product);
+    await collection.save();
+
+    revalidatePath(`/admin/collections/${collection.slug}`);
+    revalidatePath(`/admin/collections`);
+
+    return formatCollections([collection])[0];
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+};

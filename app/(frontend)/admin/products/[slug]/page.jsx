@@ -15,6 +15,7 @@ import {
   updateProduct,
 } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
+import { getAllCollections } from "@/app/action/collectionAction";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import { generateVariantOptions } from "@/utils/getFunc";
 import useConfirmModal from "@/app/ui/confirm-modal";
@@ -30,9 +31,11 @@ const Page = memo(function Page({ params }) {
 
   const [fileList, setFileList] = useState([]);
   const [catList, setCatList] = useState([]);
+  const [collectionList, setCollectionList] = useState([]);
   const [defaultFileList, setDefaultFileList] = useState([]);
   const [switchState, setSwitchState] = useState(false);
   const [selectedCatKeys, setSelectedCatKeys] = useState([]);
+  const [selectedCollectionKeys, setSelectedCollectionKeys] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [openSlider1, setOpenSlider1] = useState(false);
   const [openSlider2, setOpenSlider2] = useState(false);
@@ -74,6 +77,12 @@ const Page = memo(function Page({ params }) {
     },
   );
 
+  const { data: collections, isLoading: collectionIsLoading } = useSWRImmutable(
+    "/api/allCollections",
+    getAllCollections,
+    { revalidateOnFocus: false },
+  );
+
   const initializeEditMode = useCallback(
     (product) => {
       setActionType("edit");
@@ -105,6 +114,17 @@ const Page = memo(function Page({ params }) {
       );
     }
   }, [allCategories, catIsLoading]);
+
+  useEffect(() => {
+    if (!collectionIsLoading && collections?.length) {
+      setCollectionList(
+        collections.map((collection) => ({
+          value: collection.id,
+          label: collection.name,
+        })),
+      );
+    }
+  }, [collections, collectionIsLoading]);
 
   useEffect(() => {
     if (isLoading) return;
