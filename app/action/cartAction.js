@@ -135,17 +135,12 @@ export async function createCartItem(userId, newItem) {
 export async function getCart(userId) {
   await dbConnect();
 
-  // Find the cart and populate the product details and variants
   const cart = await Cart.findOne({ userId }).lean({ virtuals: true });
-
-  console.log(cart, "🔥🔥🔥cart");
-
   if (!cart) {
     return createNewCart(userId);
   }
 
   const data = formatCartData(cart);
-  console.log(data, "🔥🔥🔥data");
   return data;
 }
 

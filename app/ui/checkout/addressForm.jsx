@@ -2,22 +2,20 @@
 
 import { useState, memo, useCallback } from "react";
 import { Modal, message } from "antd";
-import styles from "./CheckoutForm.module.css";
-import { oswald } from "@/font";
+import styles from "@/app/ui/inputStyle.module.css";
 import { ButtonPrimary } from "../button";
 import { updateUserAddress, createUserAddress } from "@/app/action/userAction";
 import { useUserStore } from "@/store/store";
 import { mutate } from "swr";
 import EditIcon from "@/public/assets/icons/edit.svg";
 import { SmallSpinner } from "@/app/ui/spinner";
+import { InputType } from "@/app/ui/inputType";
 
 const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const { user } = useUserStore();
-
-  const floatingLabel = styles.floatingLabel;
+  const user = useUserStore((state) => state.user);
 
   const toggleForm = useCallback(() => {
     setShowForm((prev) => !prev);
@@ -45,8 +43,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
         if (data.get("isDefault") === "on") {
           data.set("isDefault", "true");
         }
-        const updatedAddress = await updateUserAddress(data);
-        console.log(updatedAddress);
+        await updateUserAddress(data);
 
         await mutate("/checkout-data");
         await mutate(`/api/user/${user.id}`);
@@ -61,7 +58,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
         setEditingAddress(null);
       }
     },
-    [setChangeAddress, user.id],
+    [setChangeAddress, user?.id],
   );
   const handleCreateAddress = useCallback(
     async (formData) => {
@@ -72,13 +69,11 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
       try {
         const res = await createUserAddress(formData);
-        console.log(res);
 
         await mutate("/checkout-data");
         await mutate(`/api/user/${user.id}`);
         message.success("Address added successfully");
       } catch (error) {
-        console.log(error);
         message.error("Failed to add address. Please try again.");
       } finally {
         setIsUpdating(false);
@@ -86,7 +81,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
         setShowForm(false);
       }
     },
-    [user.id, setChangeAddress, setShowForm],
+    [user?.id, setChangeAddress, setShowForm],
   );
 
   const renderAddress = useCallback(
@@ -132,27 +127,6 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
     [handleUpdateAddress],
   );
 
-  const renderFormField = useCallback(
-    ({ name, label, required = false, type = "text", value = "" }) => (
-      <div className={`${floatingLabel} flex-grow`}>
-        <input
-          type={type}
-          name={name}
-          placeholder=" "
-          required={required}
-          id={name}
-          defaultValue={value}
-          className="w-full border border-primary px-4 pb-2 pt-6 ring-inset ring-blue-100 focus:outline-none focus:ring-4"
-        />
-        <label htmlFor={name} className="text-gray-500">
-          {label}
-          {required ? "*" : ""}
-        </label>
-      </div>
-    ),
-    [floatingLabel],
-  );
-
   return (
     <Modal
       open={changeAddress}
@@ -168,7 +142,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
         <div className="max-h-[400px] overflow-y-auto">
           <div className="grid gap-4 sm:grid-cols-2">
-            {addresses.map(renderAddress)}
+            {addresses?.map(renderAddress)}
           </div>
         </div>
 
@@ -191,18 +165,18 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
             )}
             <input type="hidden" name="userId" value={user.id} />
             <div className="grid gap-4 sm:grid-cols-2">
-              {renderFormField({
-                name: "firstname",
-                label: "First name",
-                required: true,
-                value: editingAddress?.firstname || "",
-              })}
-              {renderFormField({
-                name: "lastname",
-                label: "Last name",
-                required: true,
-                value: editingAddress?.lastname || "",
-              })}
+              <InputType
+                name="firstname"
+                label="First name"
+                required={true}
+                value={editingAddress?.firstname || ""}
+              />
+              <InputType
+                name="lastname"
+                label="Last name"
+                required={true}
+                value={editingAddress?.lastname || ""}
+              />
             </div>
 
             <div className="flex h-full items-center justify-center">
@@ -213,41 +187,41 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
                 <p className="inline-block h-full text-nowrap">+234</p>
               </div>
 
-              {renderFormField({
-                name: "phone",
-                label: "Phone number",
-                required: true,
-                type: "tel",
-                value: editingAddress?.phone || "",
-              })}
+              <InputType
+                name="phone"
+                label="Phone number"
+                required={true}
+                type="tel"
+                value={editingAddress?.phone || ""}
+              />
             </div>
 
-            {renderFormField({
-              name: "address",
-              label: "Delivery Address",
-              required: true,
-              value: editingAddress?.address || "",
-            })}
+            <InputType
+              name="address"
+              label="Delivery Address"
+              required={true}
+              value={editingAddress?.address || ""}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
-              {renderFormField({
-                name: "city",
-                label: "City",
-                required: true,
-                value: editingAddress?.city || "",
-              })}
-              {renderFormField({
-                name: "state",
-                label: "State",
-                required: true,
-                value: editingAddress?.state || "",
-              })}
+              <InputType
+                name="city"
+                label="City"
+                required={true}
+                value={editingAddress?.city || ""}
+              />
+              <InputType
+                name="state"
+                label="State"
+                required={true}
+                value={editingAddress?.state || ""}
+              />
             </div>
-            {renderFormField({
-              name: "postalCode",
-              label: "Postal code",
-              required: true,
-              value: editingAddress?.postalCode || "",
-            })}
+            <InputType
+              name="postalCode"
+              label="Postal code"
+              required={true}
+              value={editingAddress?.postalCode || ""}
+            />
 
             <div className="text-sm">
               <label className="flex items-center">
@@ -275,7 +249,6 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
         {isUpdating && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-white bg-opacity-70">
-            {alert("Updating address...")}
             <SmallSpinner />
           </div>
         )}

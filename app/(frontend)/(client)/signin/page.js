@@ -6,12 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { message } from "antd";
 import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
+import Link from "next/link";
+import { InputType } from "@/app/ui/inputType";
+import { ButtonPrimary } from "@/app/ui/button";
 
 const ViewIcon = dynamic(() => import("@/public/assets/icons/view.svg"));
 const ViewOff = dynamic(() => import("@/public/assets/icons/view-off.svg"));
 
 function SignInContent() {
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [viewPassword, setViewPassword] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -22,24 +24,21 @@ function SignInContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
+    if (session?.user?.passwordChanged) {
+      alert("Your password has been changed. Please sign in again.");
+    }
     if (status === "authenticated" && !isNewLogin) {
-      router.push(callbackUrl);
+      // router.push(callbackUrl);
       message.info("You are already logged in.");
     }
-  }, [status, router, isNewLogin, callbackUrl]);
-
-  const handleChange = useCallback((e) => {
-    const { id, value } = e.target;
-    setCredentials((prev) => ({ ...prev, [id]: value }));
-  }, []);
+  }, [status, router, isNewLogin, callbackUrl, session]);
 
   const togglePasswordView = useCallback(() => {
     setViewPassword((prev) => !prev);
   }, []);
 
   const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
+    async (formData) => {
       if (status === "authenticated" && !isNewLogin) {
         message.info("You are already logged in.");
         router.push(callbackUrl);
@@ -47,7 +46,8 @@ function SignInContent() {
       }
       setIsLoading(true);
       const result = await signIn("credentials", {
-        ...credentials,
+        email: formData.get("email"),
+        password: formData.get("password"),
         redirect: false,
       });
 
@@ -60,73 +60,59 @@ function SignInContent() {
       }
       setIsLoading(false);
     },
-    [credentials, router, status, isNewLogin, callbackUrl],
+    [router, status, isNewLogin, callbackUrl],
   );
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-[240px] items-center justify-center">
-        <SmallSpinner />
+      <div className="flex min-h-screen items-center justify-center">
+        <SmallSpinner className="!text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex_center mx-auto my-16 max-w-2xl rounded-lg border border-gray-100 bg-white px-20 py-10 shadow-xl">
+    <div className="flex_center mx-auto my-16 max-w-2xl border border-gray-100 bg-white px-20 py-10 shadow-shadowSm">
       <h2>Sign in</h2>
-      <form onSubmit={handleSubmit} className="mt-4 flex w-full flex-col gap-4">
-        <div>
-          <label className="mb-2 block" htmlFor="email">
-            Email:
-          </label>
-          <input
-            type="email"
-            value={credentials.email}
-            id="email"
-            onChange={handleChange}
-            className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
-            required
+      <form action={handleSubmit} className="mt-4 flex w-full flex-col gap-4">
+        <InputType name="email" label="Email" type="email" required={true} />
+        <div className="relative">
+          <InputType
+            name="password"
+            label="Password"
+            type={viewPassword ? "text" : "password"}
+            required={true}
           />
-        </div>
-        <div>
-          <label className="mb-2 block" htmlFor="password">
-            Password:
-          </label>
-          <div className="flex items-center justify-between rounded-md bg-gray-100">
-            <input
-              type={viewPassword ? "text" : "password"}
-              value={credentials.password}
-              id="password"
-              onChange={handleChange}
-              className="w-full rounded-md bg-gray-100 p-2.5 text-primary outline-none"
-              required
-            />
+          <div
+            className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+            onClick={togglePasswordView}
+          >
             {viewPassword ? (
-              <ViewIcon
-                className="mr-2 w-5 cursor-pointer"
-                onClick={togglePasswordView}
-              />
+              <ViewIcon className="w-5" />
             ) : (
-              <ViewOff
-                className="mr-2 w-5 cursor-pointer"
-                onClick={togglePasswordView}
-              />
+              <ViewOff className="w-5" />
             )}
           </div>
         </div>
-        <button
+        <Link
+          href="/forgot-password"
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Forgot password?
+        </Link>
+        <ButtonPrimary
           type="submit"
-          className="mx-auto mt-4 rounded-md bg-slate-900 px-16 py-2.5 text-white"
+          className="mx-auto mt-4 w-full bg-slate-900"
           disabled={isLoading}
         >
           {isLoading ? (
-            <div className="min-h-[224px]">
-              <SmallSpinner />
+            <div className="flex items-center justify-center">
+              <SmallSpinner className="!text-white" />
             </div>
           ) : (
             "Sign in"
           )}
-        </button>
+        </ButtonPrimary>
       </form>
     </div>
   );

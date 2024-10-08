@@ -1,195 +1,112 @@
 "use client";
 
-import { useState, useRef, memo, useEffect, useCallback } from "react";
+import { useState, useRef, memo, useEffect } from "react";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { createCategory, updateCategory } from "@/app/action/categoryAction";
+import {
+  createCollection,
+  updateCollection,
+  getAllCollections,
+} from "@/app/action/collectionAction";
 import { ButtonPrimary } from "@/app/ui/button";
-import { Checkbox, InputNumber, message } from "antd";
-import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
+import { message } from "antd";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
-import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { useRouter } from "next/navigation";
-import { getAllCategories } from "@/app/action/categoryAction";
-import useSWRImmutable from "swr/immutable";
+import useSWR, { mutate } from "swr";
 import { BigSpinner } from "@/app/ui/spinner";
 
 export default memo(function NewCollection({ params }) {
   const slug = params.slug;
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCollection, setSelectedCollection] = useState(null);
   const [fileList, setFileList] = useState([]);
-  const [cParent, setCParent] = useState(null);
   const [actionType, setActionType] = useState("");
   const [defaultFileList, setDefaultFileList] = useState([]);
-  const [catList, setCatList] = useState([]);
-  const [isPinned, setIsPinned] = useState(false);
-  const [pinOrder, setPinOrder] = useState(0);
 
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
-  const pinnedRef = useRef(null);
-  const pinOrderRef = useRef(null);
 
-  const { data: allCategories, isLoading } = useSWRImmutable(
-    "/api/allCategories",
-    getAllCategories,
+  const { data: allCollections, isLoading } = useSWR(
+    "/api/allCollections",
+    getAllCollections,
     {
       revalidateOnFocus: false,
     },
   );
-  const setAllCategories = useCategoryStore((state) => state.setAllCategories);
 
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
-    // Find the category with the highest pinOrder
-    if (allCategories?.length > 0) {
-      const highestPinOrder = allCategories.reduce((maxOrder, category) => {
-        const pinOrder = category.pinOrder || 0;
-        return pinOrder > maxOrder ? pinOrder : maxOrder;
-      }, 0);
-
-      setPinOrder(highestPinOrder + 1);
-
-      // Filter categories to only include those with parent=null
-      const filteredCategories = allCategories.filter(
-        (cat) => cat.parent === null,
+    if (slug !== "new" && allCollections?.length) {
+      const selectedCollection = allCollections.find(
+        (collection) => collection.slug === slug,
       );
 
-      const category = filteredCategories.map((cat) => ({
-        value: cat.id,
-        label: cat.name,
-      }));
-
-      setCatList(category);
-    }
-    if (slug !== "new" && allCategories.length) {
-      const selectedCategory = allCategories.find(
-        (category) => category.slug === slug,
-      );
-
-      if (selectedCategory) {
-        console.log(selectedCategory);
+      if (selectedCollection) {
         setActionType("edit");
-        setSelectedCategory(selectedCategory);
-        setIsPinned(selectedCategory.pinned || false); // Add this line
+        setSelectedCollection(selectedCollection);
       } else {
         window.location.href = "/admin/collections";
       }
     } else if (slug === "new") {
       setActionType("create");
-      setCParent(null);
     }
-  }, [allCategories, isLoading, slug]);
+  }, [allCollections, isLoading, slug]);
 
   useEffect(() => {
-    if (selectedCategory) {
-      selectedCategory.parent && setCParent(selectedCategory?.parent.id);
-      const selectedImgs = selectedCategory.image.map((img, index) => {
-        return {
-          uid: index,
-          name: "image.png",
-          status: "done",
-          url: img,
-        };
-      });
+    if (selectedCollection) {
+      const selectedImgs = selectedCollection.image.map((img, index) => ({
+        uid: index,
+        name: "image.png",
+        status: "done",
+        url: img,
+      }));
       setDefaultFileList(selectedImgs);
 
-      if (titleRef.current) titleRef.current.value = selectedCategory?.name;
+      if (titleRef.current) titleRef.current.value = selectedCollection?.name;
       if (descriptionRef.current)
-        descriptionRef.current.value = selectedCategory?.description || "";
-      if (pinnedRef.current)
-        pinnedRef.current.checked = selectedCategory?.pinned;
-      setIsPinned(selectedCategory?.pinned || false);
-
-      // Update pinOrder state instead of trying to set input value directly
-      setPinOrder(selectedCategory?.pinOrder || 0);
+        descriptionRef.current.value = selectedCollection?.description || "";
     }
-  }, [selectedCategory]);
+  }, [selectedCollection]);
 
   // Handle form submission
-  const handleCreateCategory = async (formData, type) => {
+  const handleCreateCollection = async (formData, type) => {
     try {
-      for (const pair of formData.entries()) {
-      }
-      if (formData.get("pinned") === "true") {
-        formData.set("pinned", true);
-      } else {
-        formData.set("pinned", false);
-      }
       const medias = getFiles(fileList);
       medias.images.forEach((file) => {
         formData.append("image", file);
       });
-      medias.videos.forEach((file) => {
-        formData.append("video", file);
-      });
-
-      if (cParent?.length > 0) {
-        formData.append("parent", cParent);
-      }
-
-      // Ensure top-level categories cannot be pinned
-      if (!cParent) {
-        formData.set("pinned", false);
-      }
-
-      // Check the number of pinned categories under the selected parent
-      const parentCategory = allCategories.find((cat) => cat.id === cParent);
-      const pinnedCount = allCategories.filter(
-        (cat) => cat.parent?.id === cParent && cat.pinned,
-      ).length;
-
-      const isAlreadyPinned = selectedCategory?.pinned;
-      if (pinnedCount >= 5 && !isAlreadyPinned) {
-        message.error(
-          `Cannot pin more than 5 categories under ${parentCategory.name}`,
-        );
-        return;
-      }
 
       if (type === "edit") {
-        const id = allCategories.find((category) => category.slug === slug).id;
+        const id = allCollections.find(
+          (collection) => collection.slug === slug,
+        ).id;
         formData.append("id", id);
 
-        // Prevent category from using itself as a parent
-        if (cParent === id) {
-          message.warning("A category cannot be its own parent.");
-          return;
-        }
+        await updateCollection(formData);
 
-        const updatedCategory = await updateCategory(formData);
-
-        message.success("Category updated");
+        message.success("Collection updated");
         titleRef.current.value = "";
         descriptionRef.current.value = "";
-        setAllCategories(
-          allCategories.map((category) =>
-            category.slug === slug ? updatedCategory : category,
-          ),
-        );
-        router.push(`/admin/collections/${updatedCategory.slug}`);
         return;
       }
 
-      const newCategory = await createCategory(formData);
-      router.push(`/admin/collections/${newCategory.slug}`);
+      await createCollection(formData);
 
-      message.success("Category created");
+      mutate("/api/allCollections");
+      message.success("Collection created");
       titleRef.current.value = "";
       descriptionRef.current.value = "";
-      setAllCategories([...allCategories, newCategory]);
       setFileList([]);
     } catch (error) {
       message.error(error.message);
     }
   };
 
-  if (!allCategories) return <BigSpinner />;
+  if (!allCollections) return <BigSpinner />;
 
   return (
     <form
-      action={(formData) => handleCreateCategory(formData, actionType)}
+      action={(formData) => handleCreateCollection(formData, actionType)}
       className="px-10 py-20"
     >
       <ButtonPrimary
@@ -215,7 +132,7 @@ export default memo(function NewCollection({ params }) {
               required
               id="title"
               autoComplete="off"
-              placeholder="Short sleeve t-shirt"
+              placeholder="Summer Collection"
               className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
             />
           </div>
@@ -230,7 +147,7 @@ export default memo(function NewCollection({ params }) {
               ref={descriptionRef}
               name="description"
               id="description"
-              placeholder="A short sleeve t-shirt made from organic cotton."
+              placeholder="A collection of summer-themed products."
               className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
             ></textarea>
           </div>
@@ -243,51 +160,6 @@ export default memo(function NewCollection({ params }) {
               setFileList={setFileList}
               defaultFileList={defaultFileList}
               setDefaultFileList={setDefaultFileList}
-            />
-          </div>
-
-          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-            <div
-              className={`${!cParent ? "hidden" : ""} mb-4 flex items-center gap-2`}
-            >
-              <h4
-                className="block text-xxs font-bold leading-none tracking-[0.12em] text-primary"
-                title="Pinned categories can be featured on the homepage"
-              >
-                PINNED
-              </h4>
-
-              <Checkbox
-                ref={pinnedRef}
-                name="pinned"
-                value="true"
-                checked={isPinned}
-                onChange={() => setIsPinned(!isPinned)}
-              />
-
-              {/* {isPinned && ( */}
-              <InputNumber
-                name="pinOrder"
-                value={pinOrder}
-                ref={pinOrderRef}
-                onChange={(value) => setPinOrder(value)}
-                className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-              />
-              {/* // )} */}
-            </div>
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
-              Parent Category
-            </h4>
-            <DropDown
-              options={catList}
-              selectedKeys={[cParent]}
-              handleChange={(value) => {
-                if (value === selectedCategory?.id) {
-                  message.warning("A category cannot be its own parent.");
-                  return;
-                }
-                setCParent(value);
-              }}
             />
           </div>
         </div>

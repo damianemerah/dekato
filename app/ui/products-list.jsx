@@ -24,7 +24,6 @@ const ProductsList = ({ products, cat, searchParams }) => {
       >
         <div
           className={`${isSidebarOpen && "overflow-hidden"} flex flex-wrap justify-start bg-white`}
-          // className={`${isSidebarOpen && "overflow-hidden"} grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`}
         >
           {products &&
             products.map((product, index) => (

@@ -8,8 +8,8 @@ import Email from "@/lib/email";
 import Address from "@/models/address";
 import { filterObj, formDataToObject } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
-import Order from "@/models/order";
 import { revalidatePath, revalidateTag } from "next/cache";
+import crypto from "crypto";
 
 export async function createUser(formData) {
   await dbConnect();
@@ -31,12 +31,12 @@ export async function createUser(formData) {
   const url = `${process.env.NEXTAUTH_URL}/signin`;
   await new Email(user, url).sendWelcome();
 
-  return user;
+  return { success: true };
 }
 
 export async function getUser(userId) {
   await dbConnect();
-  await restrictTo("admin");
+  await restrictTo("admin", "user");
 
   if (!userId) {
     return null;
@@ -51,7 +51,7 @@ export async function getUser(userId) {
   }
 
   const { _id, address, wishlist, ...rest } = userData;
-  const addressArr = address.map(({ _id, userId, ...rest }) => ({
+  const addressArr = address?.map(({ _id, userId, ...rest }) => ({
     id: _id.toString(),
     ...rest,
   }));
@@ -59,7 +59,7 @@ export async function getUser(userId) {
   const userObj = {
     id: _id.toString(),
     address: addressArr,
-    wishlist: wishlist.map((item) => item.toString()),
+    wishlist: wishlist?.map((item) => item.toString()),
     ...rest,
   };
 
@@ -85,9 +85,11 @@ export async function getWishlist(userId) {
   }));
 }
 
-export async function updateUserInfo(userId, formData) {
+export async function updateUserInfo(formData) {
   await dbConnect();
   await restrictTo("admin", "user");
+
+  const userId = formData.get("userId");
 
   const userObj = formDataToObject(formData);
   const userData = filterObj(userObj, "firstname", "lastname");
@@ -95,13 +97,28 @@ export async function updateUserInfo(userId, formData) {
   const user = await User.findByIdAndUpdate(userId, userData, {
     new: true,
     runValidators: true,
-  });
+  })
+    .populate("address")
+    .lean({ virtuals: true });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  return user;
+  const { _id, address, wishlist, ...rest } = user;
+  const addressArr = address?.map(({ _id, userId, ...rest }) => ({
+    id: _id.toString(),
+    ...rest,
+  }));
+
+  const userInfo = {
+    id: _id.toString(),
+    address: addressArr,
+    wishlist: wishlist?.map((item) => item.toString()),
+    ...rest,
+  };
+
+  return userInfo;
 }
 
 export async function addToWishlist(userId, productId) {
@@ -195,9 +212,6 @@ export async function updateUserAddress(formData) {
   const userId = formData.get("userId");
   const addressId = formData.get("addressId");
 
-  console.log(addressData, "addressData👇👇👇");
-  console.log(addressId, "addressId👇👇👇");
-
   if (addressData.isDefault) {
     await Address.updateMany({ userId }, { isDefault: false });
   }
@@ -212,7 +226,6 @@ export async function updateUserAddress(formData) {
   }
   revalidatePath("/checkout");
   revalidateTag("checkout-data");
-  console.log(address, "address👇👇👇");
 
   const { _id, ...rest } = address.toObject();
   return { id: _id.toString(), ...rest };
@@ -240,8 +253,6 @@ export async function getAllUsers() {
       .populate("address", "address city state country isDefault")
       .lean({ virtuals: true });
 
-    console.log(usersDoc, "usersDoc👇👇👇");
-
     return usersDoc.map((user) => {
       const { _id, address, ...rest } = user.toObject();
       return {
@@ -256,5 +267,107 @@ export async function getAllUsers() {
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
+  }
+}
+
+export async function sendPasswordResetToken(formData) {
+  await dbConnect();
+
+  const user = await User.findOne({ email: formData.get("email") });
+
+  if (!user) {
+    throw new AppError("User with that email not found", 404);
+  }
+  try {
+    const resetToken = await user.createPasswordResetToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    //send it to user's email
+    const resetURL = `${process.env.NEXTAUTH_URL}/forgot-password/${resetToken}`;
+
+
+    await new Email(user, resetURL).sendPasswordReset();
+
+    return { success: true, message: "Reset Token sent to your email" };
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
+
+export async function updatePassword(formData) {
+  await restrictTo("admin", "user");
+  try {
+    const body = formDataToObject(formData);
+
+    const user = await User.findById(body.userId).select("+password");
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (!(await user.correctPassword(body.currentPassword, user.password)))
+      throw new Error("Incorrect current password");
+
+    user.password = body.password;
+    user.passwordConfirm = body.passwordConfirm;
+    await user.save();
+
+    return { success: true, data: user };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
+
+export async function forgotPassword(formData) {
+  try {
+    const token = formData.get("token");
+    const body = formDataToObject(formData);
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+
+    await dbConnect();
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() - 10 * 60 * 1000 },
+    }).lean({ virtuals: true });
+
+    if (!user) {
+      throw new AppError("Token is invalid or has expired", 400);
+    }
+
+    user.password = body.password;
+    user.passwordConfirm = body.passwordConfirm;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await User.findByIdAndUpdate(user._id, user, {
+      new: true,
+      runValidators: true,
+    });
+
+    const { _id, address, wishlist, ...rest } = user;
+    const addressArr = address?.map(({ _id, userId, ...rest }) => ({
+      id: _id.toString(),
+      ...rest,
+    }));
+
+    const userObj = {
+      id: _id.toString(),
+      address: addressArr,
+      wishlist: wishlist?.map((item) => item.toString()),
+      ...rest,
+    };
+
+    return { success: true, data: userObj };
+  } catch (error) {
+    return handleAppError(error, req);
   }
 }

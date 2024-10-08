@@ -13,8 +13,7 @@ import { usePathname } from "next/navigation";
 
 const { Sider } = Layout;
 
-export default function AdminSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+export default function AdminSidebar({ collapsed, setCollapsed }) {
   const [selectedKeys, setSelectedKeys] = useState(["admin"]);
   const pathname = usePathname();
 
@@ -22,8 +21,6 @@ export default function AdminSidebar() {
     const path = pathname.split("/")[2] || "admin";
     setSelectedKeys([path]);
   }, [pathname]);
-
-  console.log(collapsed);
 
   const menuItems = [
     {
@@ -45,6 +42,11 @@ export default function AdminSidebar() {
       key: "collections",
       icon: <AppstoreOutlined />,
       label: <Link href="/admin/collections">Collections</Link>,
+    },
+    {
+      key: "categories",
+      icon: <AppstoreOutlined />,
+      label: <Link href="/admin/categories">Categories</Link>,
     },
     // {
     //   key: "inventory",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ButtonSecondary } from "@/app/ui/button";
 
 export default function NotFound() {
   return (
@@ -8,11 +9,8 @@ export default function NotFound() {
         Sorry, the category or product you&apos;re looking for doesn&apos;t
         exist.
       </p>
-      <Link
-        href="/"
-        className="hover:bg-primary-dark rounded-md bg-primary px-6 py-3 text-white transition-colors"
-      >
-        Go back to homepage
+      <Link href="/">
+        <ButtonSecondary>Go back to homepage</ButtonSecondary>
       </Link>
     </div>
   );

@@ -94,7 +94,7 @@ export default memo(function EditVariant({
 
   return (
     <ModalWrapper openSlider={openSlider} setOpenSlider={setOpenSlider}>
-      <div className="sticky top-0 z-[25] flex min-h-24 items-center justify-between bg-white px-6 shadow-shadowSm">
+      <div className="sticky top-16 z-[25] flex min-h-24 items-center justify-between bg-white px-6 shadow-shadowSm">
         <h2 className="text-xl font-medium text-primary">Edit Variants</h2>
         <div className="cursor-pointer rounded-md p-1 text-xl hover:bg-grayBg">
           <DeleteIcon onClick={() => setOpenSlider(false)} />
@@ -104,7 +104,7 @@ export default memo(function EditVariant({
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-medium text-primary">Group</h2>
           <ButtonPrimary
-            className="flex items-center gap-1.5 !rounded-full !px-4 !py-1.5"
+            className="flex items-center gap-1.5 !rounded-full bg-primary !px-4 !py-1.5"
             onClick={() =>
               addVariantOptions({
                 id: uuidv4(),
@@ -283,7 +283,7 @@ export default memo(function EditVariant({
           Cancel
         </button>
         <ButtonPrimary
-          className="!rounded-md !px-3.5 py-4"
+          className="!rounded-md bg-primary !px-3.5 py-4"
           onClick={handleSaveVariant}
         >
           Save changes

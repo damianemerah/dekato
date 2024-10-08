@@ -34,7 +34,7 @@ export function ButtonPrimary({
 export function ButtonSecondary({ children, className, onClick }) {
   return (
     <button
-      className={`bg-gray-200 px-3 py-1 hover:scale-105 active:scale-95 ${className}`}
+      className={`bg-gray-200 px-3 py-1 hover:scale-105 ${className}`}
       onClick={onClick}
     >
       {children}

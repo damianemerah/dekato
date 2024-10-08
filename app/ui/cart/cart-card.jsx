@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import HeartIcon from "@/public/assets/icons/heart.svg";
 import DeleteIcon from "@/public/assets/icons/remove.svg";
 import {
@@ -10,17 +10,19 @@ import {
   updateCartItemChecked,
   selectAllCart,
 } from "@/app/action/cartAction";
-import { useUserStore, useCartStore } from "@/store/store";
 import { mutate } from "swr";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { message } from "antd";
 import { addToWishlist } from "@/app/action/userAction";
 import useConfirmModal from "@/app/ui/confirm-modal";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import { SmallSpinner } from "@/app/ui/spinner";
+import { useSession } from "next-auth/react";
 
 const CartCard = ({ cartItem }) => {
-  const user = useUserStore((state) => state.user);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [quantity, setQuantity] = useState(cartItem.quantity.toString());
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
@@ -29,8 +31,8 @@ const CartCard = ({ cartItem }) => {
   const handleCheckboxChange = async () => {
     setIsLoading(true);
     try {
-      await updateCartItemChecked(user.id, cartItem.id, !cartItem.checked);
-      await mutate(`/cart/${user.id}`);
+      await updateCartItemChecked(userId, cartItem.id, !cartItem.checked);
+      await mutate(`/cart/${userId}`);
     } finally {
       setIsLoading(false);
     }
@@ -45,13 +47,12 @@ const CartCard = ({ cartItem }) => {
     setIsLoading(true);
     try {
       const updatedCart = await updateCartItemQuantity({
-        userId: user.id,
+        userId,
         cartItemId: cartItem.id,
         productId: cartItem.productId,
         quantity: parseInt(newQuantity),
       });
-      // Find the updated cart item and set its quantity
-      await mutate(`/cart/${user.id}`);
+      await mutate(`/cart/${userId}`);
       const updatedItem = updatedCart.item.find(
         (item) => item.id === cartItem.id,
       );
@@ -81,12 +82,10 @@ const CartCard = ({ cartItem }) => {
       onOk: async () => {
         setIsLoading(true);
         try {
-          if (!user?.wishlist.includes(cartItem.productId)) {
-            await addToWishlist(user.id, cartItem.productId);
-          }
-          await removeFromCart(user.id, cartItem.id);
-          await mutate(`/cart/${user.id}`);
-          await mutate(`/account/wishlist/${user.id}`);
+          await addToWishlist(userId, cartItem.productId);
+          await removeFromCart(userId, cartItem.id);
+          await mutate(`/cart/${userId}`);
+          await mutate(`/account/wishlist/${userId}`);
           message.success("Item moved to wishlist and removed from cart");
         } catch (error) {
           message.error("Failed to move item to wishlist");
@@ -101,7 +100,7 @@ const CartCard = ({ cartItem }) => {
     <div className="relative">
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white bg-opacity-70">
-          <SmallSpinner />
+          <SmallSpinner className="!text-primary" />
         </div>
       )}
       <div className="relative flex w-full flex-nowrap items-start border-b border-b-gray-300 bg-white px-4 py-6 text-sm">
@@ -110,7 +109,7 @@ const CartCard = ({ cartItem }) => {
             type="checkbox"
             checked={cartItem.checked}
             onChange={handleCheckboxChange}
-            className="mr-2 h-5 w-5 cursor-pointer appearance-none self-center rounded-full border border-gray-300 checked:border-gray-900 checked:bg-primary checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
+            className="mr-2 h-5 w-5 cursor-pointer appearance-none self-center border border-gray-300 checked:border-gray-900 checked:bg-primary checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />
           <div className="w-[120px]">
             <div className="relative aspect-[15/17] w-[120px]">
@@ -124,7 +123,7 @@ const CartCard = ({ cartItem }) => {
             </div>
           </div>
         </div>
-        <div className="ml-4 flex h-full flex-grow flex-col justify-between">
+        <div className="ml-4 flex h-full min-h-[120px] flex-grow flex-col justify-between gap-3">
           <div className="mb-1 flex h-full items-start justify-between">
             <Link
               href={`/p/${cartItem.slug}-${cartItem.productId}`}
@@ -146,8 +145,8 @@ const CartCard = ({ cartItem }) => {
                 onClick={async () => {
                   setIsLoading(true);
                   try {
-                    await removeFromCart(user.id, cartItem.id);
-                    await mutate(`/cart/${user.id}`);
+                    await removeFromCart(userId, cartItem.id);
+                    await mutate(`/cart/${userId}`);
                   } finally {
                     setIsLoading(false);
                   }
@@ -169,7 +168,7 @@ const CartCard = ({ cartItem }) => {
                 </p>
               ))}
           </div>
-          <div className="absolute bottom-6 left-44 right-0 flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <p className="mr-3 text-gray-600">Quantity</p>
               <div className="flex h-9 items-center border border-primary">
@@ -200,13 +199,13 @@ const CartCard = ({ cartItem }) => {
                 </button>
               </div>
             </div>
-            <p className="mr-4 block text-base font-semibold text-[#303030]">
+            <p className="mr-4 flex flex-col items-center justify-center text-primary">
               {cartItem.discountPrice > 0 && (
                 <span className="mr-2 text-sm text-gray-500 line-through">
                   ₦{cartItem.price}
                 </span>
               )}
-              <span className="text-primary">
+              <span className="text-base font-medium text-primary">
                 ₦
                 {cartItem.discountPrice > 0
                   ? cartItem.discountPrice
@@ -221,7 +220,8 @@ const CartCard = ({ cartItem }) => {
 };
 
 export default function CartCards({ products }) {
-  const user = useUserStore((state) => state.user);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -233,8 +233,8 @@ export default function CartCards({ products }) {
     setIsLoading(true);
     try {
       const newSelectAllState = !selectAll;
-      const cart = await selectAllCart(user.id, newSelectAllState);
-      await mutate(`/cart/${user.id}`);
+      const cart = await selectAllCart(userId, newSelectAllState);
+      await mutate(`/cart/${userId}`);
     } catch (error) {
       message.info(error.message);
     } finally {
@@ -248,7 +248,7 @@ export default function CartCards({ products }) {
     <div className="relative">
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white bg-opacity-70">
-          <SmallSpinner />
+          <SmallSpinner className="!text-primary" />
         </div>
       )}
       <div className="flex w-full flex-col bg-white">
@@ -258,7 +258,7 @@ export default function CartCards({ products }) {
             id="select-all-cart"
             checked={selectAll}
             onChange={handleSelectAll}
-            className="mr-2 h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 checked:border-gray-900 checked:bg-gray-900 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
+            className="mr-2 h-5 w-5 cursor-pointer appearance-none border border-gray-300 checked:border-gray-900 checked:bg-gray-900 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />
           <label
             htmlFor="select-all-cart"
@@ -268,9 +268,12 @@ export default function CartCards({ products }) {
           </label>
         </div>
         <div className="bg-white px-6 py-4 shadow-sm">
-          <div className="bg-blue-50 p-4 text-sm text-gray-700">
-            <strong className="mb-1 block">Items not reserved</strong>
-            <p>Checkout now to make them yours</p>
+          <div className="flex items-center border border-primary p-4 text-sm text-gray-600">
+            <InfoCircleOutlined className="mr-2 flex-shrink-0 text-lg" />
+            <div>
+              <strong className="mb-1 block">Items not reserved</strong>
+              <p>Checkout now to make them yours</p>
+            </div>
           </div>
         </div>
         {memoizedProducts?.map((product) => (

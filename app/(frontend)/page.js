@@ -9,19 +9,19 @@ import Image from "next/image";
 import image6 from "@/public/assets/image6.png";
 import RecommendedProducts from "@/app/ui/recommended-products";
 import { Suspense } from "react";
-import { BigSpinner } from "@/app/ui/spinner";
+import { SmallSpinner } from "@/app/ui/spinner";
 export default function Home() {
   return (
     <div className={`${oswald.className} bg-gray-100`}>
       <Hero />
-      <Suspense fallback={<BigSpinner />}>
+      <Suspense fallback={<SmallSpinner />}>
         <SelectedCategories />
       </Suspense>
       <Campaign />
       <div className="">
         <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
         <div className="mb-10">
-          <RecommendedProducts category="men" />
+          {/* <RecommendedProducts category="men" /> */}
         </div>
       </div>
       <div
@@ -38,7 +38,7 @@ export default function Home() {
         </div>
 
         <SubPageCampaign
-          className="w-full border-primary lg:w-1/2"
+          className="w-full border-primary !text-primary lg:w-1/2"
           heading_bg="after:bg-primary before:bg-primary text-white"
         />
       </div>

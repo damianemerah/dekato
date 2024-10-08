@@ -44,11 +44,6 @@ const SearchBox = () => {
   const { data: pSearchList, error } = useSWR(
     debouncedSearch && debouncedSearch.length > 1 ? debouncedSearch : null,
     fetcher,
-    {
-      onSuccess: (data) => {
-        console.log(data);
-      },
-    },
   );
 
   useEffect(() => {

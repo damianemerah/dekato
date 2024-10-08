@@ -80,7 +80,6 @@ cartSchema.virtual("totalPrice").get(function () {
 cartSchema.virtual("amountSaved").get(function () {
   return this.item.reduce((total, item) => {
     if (item.checked && item.productId.isDiscounted) {
-      console.log(item.productId, "item.productId🔥🔥🔥✔️");
       const regularPrice = item.productId.price;
       const discountPrice = item.productId.discountPrice;
       return total + (regularPrice - discountPrice) * item.quantity;

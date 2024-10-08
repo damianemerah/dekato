@@ -280,7 +280,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
               placeholder="Enter quantity"
               value={
                 variants?.find((variant) => variant.id === editVariantWithId)
-                  ?.quantity || ""
+                  ?.quantity || undefined
               }
               className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
               onChange={(e) =>
@@ -299,7 +299,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
               placeholder="Enter price"
               value={
                 variants?.find((variant) => variant.id === editVariantWithId)
-                  ?.price || ""
+                  ?.price || undefined
               }
               className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
               onChange={(e) =>
@@ -317,7 +317,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
           Cancel
         </button>
         <ButtonPrimary
-          className="!rounded-md !px-3.5 py-4 text-base font-bold tracking-wide"
+          className="!rounded-md bg-primary !px-3.5 py-4 text-base font-bold tracking-wide"
           onClick={() => handleSaveSingleVariant()}
         >
           Add variant

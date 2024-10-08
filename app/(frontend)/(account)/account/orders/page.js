@@ -1,12 +1,6 @@
 import OrderCard from "@/app/ui/account/orders/OrderCard";
-import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
 
 export default function Orders() {
-  const breadcrumbs = [
-    { href: "/", label: "Home" },
-    { href: "/account", label: "My Account" },
-    { href: "/account/orders", label: "Orders", active: true },
-  ];
 
   const orders = [
     {
@@ -52,7 +46,7 @@ export default function Orders() {
   ];
 
   return (
-    <AccountLayout title="Orders" breadcrumbs={breadcrumbs}>
+    <>
       {orders.map((order, index) => (
         <OrderCard
           key={index}
@@ -63,6 +57,6 @@ export default function Orders() {
           items={order.items}
         />
       ))}
-    </AccountLayout>
+    </>
   );
 }

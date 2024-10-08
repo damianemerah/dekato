@@ -1,23 +1,24 @@
 "use client";
-import { useSidebarStore, useUserStore, useCartStore } from "@/store/store";
+import { useSidebarStore } from "@/store/store";
 import Link from "next/link";
 import Logo from "./dekato-logo.jsx";
 import SearchBox from "./searchbox.jsx";
 import { oswald } from "@/font";
 import UserIcon from "@/public/assets/icons/user.svg";
-import HeartIcon from "@/public/assets/icons/heart.svg";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { Space, Dropdown } from "antd";
-import { DownOutlined } from "@ant-design/icons";
-import { UserOutlined, LogoutOutlined, HeartOutlined } from "@ant-design/icons";
-import { useEffect } from "react";
+import useUserData from "@/app/ui/useUserData";
+import useCartData from "@/app/ui/useCartData";
+import { useSession } from "next-auth/react";
+import { HeartOutlined, ShoppingOutlined } from "@ant-design/icons";
 
 function Header() {
-  const user = useUserStore((state) => state.user);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const { userData: user } = useUserData(userId);
+  const { cartData: cart } = useCartData(userId);
+
   const toggleSidebarState = useSidebarStore((state) => state.toggleSidebar);
   const pathname = usePathname();
-  const cart = useCartStore((state) => state.cart);
   const setLgScreenSidebar = useSidebarStore(
     (state) => state.setLgScreenSidebar,
   );
@@ -34,51 +35,6 @@ function Header() {
       setLgScreenSidebar(true);
     }
   };
-
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" });
-  };
-
-  const items = [
-    {
-      key: "1",
-      label: (
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="/account"
-          className="flex items-center"
-        >
-          <UserOutlined className="mr-2" /> {/* Icon for Account */}
-          Account
-        </a>
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <button
-          onClick={() => {
-            toggleSidebarState();
-            handleSignOut();
-          }}
-          className="flex w-full items-center text-left"
-        >
-          <LogoutOutlined className="mr-2" /> {/* Icon for Sign out */}
-          Sign out
-        </button>
-      ),
-    },
-    {
-      key: "3",
-      label: (
-        <Link href="/account/wishlist" className="flex items-center">
-          <HeartOutlined className="mr-2" /> {/* Icon for Wishlist */}
-          Wishlist
-        </Link>
-      ),
-    },
-  ];
 
   return (
     <header
@@ -130,65 +86,39 @@ function Header() {
         <Logo className="h-8 w-auto sm:h-10" />
       </Link>
 
-      <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
-        {user ? (
-          <Dropdown
-            menu={{
-              items,
-            }}
-            overlayStyle={{
-              minWidth: "150px",
-              borderRadius: 0,
-              margin: "0 auto",
-            }}
-            style={{ borderRadius: 0 }}
-          >
-            <div className="text-center">
-              <Space className="flex items-center">
-                <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
-                <span className="hidden text-xs sm:inline sm:text-sm">
-                  Hi, {user?.firstname}
-                </span>
-                <DownOutlined />
-              </Space>
-            </div>
-          </Dropdown>
+      <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-6">
+        {user && userId ? (
+          <Link href="/account" className="flex items-center gap-2">
+            <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
+            <span className="hidden text-xs hover:border-b hover:border-b-white sm:inline sm:text-sm">
+              Hi, {user?.firstname || user?.email}
+            </span>
+          </Link>
         ) : (
           <Link
             href="/signin"
-            className="flex items-center space-x-1 transition-colors duration-200 hover:text-gray-300"
+            className="flex items-center space-x-1 transition-colors duration-200"
           >
             <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
-            <span className="hidden text-xs sm:inline sm:text-sm">Login</span>
+            <span className="hidden text-xs hover:border-b hover:border-b-white sm:inline sm:text-sm">
+              Login
+            </span>
           </Link>
         )}
 
-        <Link
-          href="/account/wishlist"
-          className="hover:bg-primary-dark rounded-full p-1 transition-colors duration-200 sm:p-2"
-        >
-          <HeartIcon className="h-5 w-5 fill-white sm:h-6 sm:w-6" />
+        <Link href="/account/wishlist" className="flex items-center gap-1.5">
+          <HeartOutlined className="text-xl" />
+
+          {user?.wishlist?.length > 0 && (
+            <span className="text-sm font-bold text-white">
+              {user.wishlist.length}
+            </span>
+          )}
         </Link>
-        <Link
-          href="/cart"
-          className="hover:bg-primary-dark relative rounded-full p-1 transition-colors duration-200 sm:p-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 sm:h-6 sm:w-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <path d="M16 10a4 4 0 0 1-8 0"></path>
-          </svg>
+        <Link href="/cart" className="flex items-center gap-1.5">
+          <ShoppingOutlined className="text-xl" />
           {cart.totalItems > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white sm:h-5 sm:w-5">
+            <span className="text-sm font-bold text-white">
               {cart.totalItems}
             </span>
           )}

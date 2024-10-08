@@ -1,12 +1,12 @@
 "use client";
 import { ButtonSecondary } from "@/app/ui/button";
 import Wishlist from "@/app/ui/Wishlist";
-import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
 import { oswald } from "@/style/font";
 import useSWR from "swr";
 import { getWishlist } from "@/app/action/userAction";
-import { useUserStore } from "@/store/store";
 import { SmallSpinner } from "@/app/ui/spinner";
+import { useSession } from "next-auth/react";
+import useUserData from "@/app/ui/useUserData";
 
 const fetcher = async (id) => {
   const res = await getWishlist(id);
@@ -14,7 +14,9 @@ const fetcher = async (id) => {
 };
 
 export default function WishlistPage() {
-  const user = useUserStore((state) => state.user);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const { userData: user, isLoading: userIsLoading } = useUserData(userId);
   const wishlist = user?.wishlist || [];
 
   const { data: products, isLoading } = useSWR(
@@ -25,23 +27,17 @@ export default function WishlistPage() {
     },
   );
 
-  if (isLoading) return <SmallSpinner />;
-
-  if (products?.length === 0)
+  if (isLoading || userIsLoading)
     return (
-      <AccountLayout title="Wishlist" breadcrumbs={breadcrumbs}>
-        <div>No products in wishlist</div>
-      </AccountLayout>
+      <div className="flex items-center justify-center">
+        <SmallSpinner className="!text-primary" />
+      </div>
     );
 
-  const breadcrumbs = [
-    { href: "/", label: "Home" },
-    { href: "/account", label: "My Account" },
-    { href: "/account/wishlist", label: "My WishList", active: true },
-  ];
+  if (products?.length === 0) return <div>No products in wishlist</div>;
 
   return (
-    <AccountLayout title="Wishlist" breadcrumbs={breadcrumbs}>
+    <>
       <div className="grid grid-cols-3 gap-8">
         {products?.map((product) => (
           <Wishlist key={product.id} product={product} />
@@ -59,6 +55,6 @@ export default function WishlistPage() {
           Share Wishlist
         </ButtonSecondary>
       </div>
-    </AccountLayout>
+    </>
   );
 }

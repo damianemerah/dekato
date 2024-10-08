@@ -24,7 +24,6 @@ const RecommendedProducts = ({ category }) => {
 
   const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
 
-  console.log(products);
 
   if (products.length === 0) return <div>No products found.</div>;
 

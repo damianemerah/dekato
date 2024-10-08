@@ -2,6 +2,7 @@
 
 import Product from "@/models/product";
 import Category from "@/models/category";
+import Collection from "@/models/collection";
 import APIFeatures from "@/utils/apiFeatures";
 import { handleFormData } from "@/utils/handleForm";
 import { protect, restrictTo } from "@/utils/checkPermission";
@@ -49,7 +50,7 @@ const handleProductQuery = async (query, searchParams = {}) => {
 
   const productData = await feature.query;
 
-  if (!productData?.length) throw new Error("No products found");
+  if (!productData?.length) return [];
 
   return productData.map(formatProduct);
 };
@@ -132,15 +133,26 @@ export async function getAllProducts(cat, searchParams = {}) {
     const catName = cat?.slice(-1)[0]?.toLowerCase();
     let baseQuery = Product.find();
 
+    console.log(catName, "catName🔥🔥🔥");
+
     if (catName && catName !== "search") {
       const category = await Category.findOne({ slug: catName }).lean();
-      if (!category) return null;
+      const collection = await Collection.findOne({ slug: catName }).lean();
 
-      const categoryIds = [category._id, ...(category.children || [])];
-      baseQuery = Product.find({ category: { $in: categoryIds } });
+      if (!category && !collection) return null;
+
+      if (category) {
+        const categoryIds = [category._id, ...(category.children || [])];
+        baseQuery = Product.find({ category: { $in: categoryIds } });
+      } else if (collection) {
+        baseQuery = Product.find({ collection: collection._id });
+      }
     }
 
-    const populatedQuery = baseQuery.populate("category", "slug").lean();
+    const populatedQuery = baseQuery
+      .populate("category", "slug")
+      .populate("collection", "slug")
+      .lean();
     const newSearchParams = getQueryObj(searchParams);
 
     return await handleProductQuery(populatedQuery, newSearchParams);

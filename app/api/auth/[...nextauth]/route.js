@@ -19,7 +19,9 @@ export const OPTIONS = {
 
           await dbConnect();
 
-          const user = await User.findOne({ email: email }).select("+password");
+          const user = await User.findOne({ email: email }).select(
+            "+password +passwordChangedAt",
+          );
           if (!user) {
             throw new Error("User with that email not found");
           }
@@ -36,24 +38,39 @@ export const OPTIONS = {
     }),
   ],
   callbacks: {
-    async jwt({ token, _, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user._id;
         token.role = user.role;
+        token.passwordChangedAt = user.passwordChangedAt?.getTime() || null;
+      }
+
+      if (trigger === "update" && session?.passwordChanged) {
+        token.passwordChangedAt = new Date().getTime();
       }
 
       return token;
     },
     async session({ session, token }) {
-      session.user = {
-        id: token.id,
-        role: token.role,
-        email: token.email, // Optional, if needed
-      };
+      if (token) {
+        session.user = {
+          id: token.id,
+          role: token.role,
+          email: token.email,
+          iat: token.iat,
+        };
+
+        if (token.passwordChangedAt) {
+          if (token.passwordChangedAt > token.iat * 1000) {
+            return null;
+          }
+        }
+      }
 
       return session;
     },
   },
+
   pages: {
     signIn: "/signin",
   },

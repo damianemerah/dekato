@@ -7,7 +7,6 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { BigSpinner } from "@/app/ui/spinner";
 
 export default function CategoryPageCy({ params: { name } }) {
-  console.log(name, "name 🎈🎈🎈🎈");
   return (
     <>
       <Suspense fallback={<BigSpinner />}>
