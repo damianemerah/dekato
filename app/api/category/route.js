@@ -45,7 +45,6 @@ export async function POST(req) {
 export async function GET(req) {
   try {
     await dbConnect();
-    console.log("Finding category 🙏🙏");
 
     const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 

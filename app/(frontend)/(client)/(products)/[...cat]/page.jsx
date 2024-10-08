@@ -1,16 +1,16 @@
 import CategoryProducts from "./CategoryProducts";
 import Category from "@/models/category";
+import Collection from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
-import { Suspense } from "react";
-import { Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
-import { BigSpinner } from "@/app/ui/spinner";
+import { Suspense, memo } from "react";
+import { SmallSpinner } from "@/app/ui/spinner";
 
 export const dynamic = "force-dynamic";
 
 async function getAllCategoryPaths() {
   await dbConnect();
   const categories = await Category.find({}).select("slug parent").lean();
+  const collections = await Collection.find({}).select("slug").lean();
 
   const buildCategoryPath = (category, allCategories) => {
     const path = [category.slug];
@@ -29,8 +29,21 @@ async function getAllCategoryPaths() {
     return path;
   };
 
-  return categories.map((category) => buildCategoryPath(category, categories));
+  const categoryPaths = categories.map((category) =>
+    buildCategoryPath(category, categories),
+  );
+  const collectionPaths = collections.map((collection) => [collection.slug]);
+
+  return [...categoryPaths, ...collectionPaths];
 }
+
+const LoadingSpinner = memo(function LoadingSpinner() {
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center">
+      <SmallSpinner className="!text-primary" />
+    </div>
+  );
+});
 
 export async function generateStaticParams() {
   const categoryPaths = await getAllCategoryPaths();
@@ -43,7 +56,7 @@ export async function generateStaticParams() {
 export default function Product({ params: { cat }, searchParams }) {
   return (
     <>
-      <Suspense fallback={<BigSpinner />}>
+      <Suspense fallback={<LoadingSpinner />}>
         <CategoryProducts cat={cat} searchParams={searchParams} />
       </Suspense>
     </>

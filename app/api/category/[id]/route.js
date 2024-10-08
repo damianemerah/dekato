@@ -11,7 +11,6 @@ export async function GET(req, { params }) {
     await dbConnect();
     const id = params.id;
 
-    console.log(id, "id👇👇");
 
     const category = await Category.findById(id);
 

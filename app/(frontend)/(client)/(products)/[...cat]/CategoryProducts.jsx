@@ -30,7 +30,7 @@ export default async function CategoryProducts({ cat, searchParams }) {
   return (
     products && (
       <>
-        <div>
+        <div className="relative min-h-[80vh]">
           {products && products.length > 0 ? (
             <ProductList
               products={products}
@@ -38,7 +38,7 @@ export default async function CategoryProducts({ cat, searchParams }) {
               searchParams={searchParams}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center p-8">
+            <div className="flex min-h-[80vh] flex-col items-center justify-center p-8">
               <p className="mb-6 text-center font-roboto text-xl text-grayText">
                 No products found.
               </p>
@@ -51,8 +51,8 @@ export default async function CategoryProducts({ cat, searchParams }) {
         >
           <div className="basis-1/2 p-8">
             <SubPageCampaign
-              className="border-white"
-              heading_bg="after:bg-white before:bg-white"
+              className="border-white text-white"
+              heading_bg="after:bg-white before:bg-white text-white"
             />
           </div>
 

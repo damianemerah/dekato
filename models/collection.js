@@ -3,14 +3,14 @@ import slugify from "slugify";
 
 const mongooseLeanVirtuals = require("mongoose-lean-virtuals");
 
-const categorySchema = new mongoose.Schema(
+const collectionSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Category name is required"],
+      required: [true, "Collection name is required"],
       unique: true,
       trim: true,
-      maxlength: [50, "Category name cannot exceed 50 characters"],
+      maxlength: [50, "Collection name cannot exceed 50 characters"],
     },
     description: {
       type: String,
@@ -27,23 +27,6 @@ const categorySchema = new mongoose.Schema(
       index: true,
       lowercase: true,
     },
-    parent: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      default: null,
-      index: true,
-    },
-    pinned: {
-      type: Boolean,
-      default: false,
-    },
-    pinOrder: {
-      type: Number,
-      default: 0,
-    },
-    children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
-    // createdAt: { type: Date, default: Date.now, immutable: true },
-    // updatedAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,
@@ -52,25 +35,25 @@ const categorySchema = new mongoose.Schema(
   },
 );
 
-categorySchema.index({ parent: 1, slug: 1 });
-categorySchema.index({ name: "text", description: "text" });
+collectionSchema.index({ slug: 1 });
+collectionSchema.index({ name: "text", description: "text" });
 
 function arrayLimit(val) {
   return val.length <= 5;
 }
 
-categorySchema.pre("save", function (next) {
+collectionSchema.pre("save", function (next) {
   if (this.isModified("name")) {
     this.slug = slugify(this.name, { lower: true, strict: true });
   }
 
   if (this.name.toLowerCase() === "new") {
-    return next(new Error("'new' is a reserved category name"));
+    return next(new Error("'new' is a reserved collection name"));
   }
   next();
 });
 
-categorySchema.pre("findOneAndUpdate", function (next) {
+collectionSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate();
   if (update.name && this.isModified("name")) {
     update.slug = slugify(update.name, { lower: true, strict: true });
@@ -78,16 +61,16 @@ categorySchema.pre("findOneAndUpdate", function (next) {
   next();
 });
 
-categorySchema.virtual("productCount", {
+collectionSchema.virtual("productCount", {
   ref: "Product",
   localField: "_id",
-  foreignField: "category",
+  foreignField: "collection",
   count: true,
 });
 
-categorySchema.plugin(mongooseLeanVirtuals);
+collectionSchema.plugin(mongooseLeanVirtuals);
 
-const Category =
-  mongoose.models.Category || mongoose.model("Category", categorySchema);
+const Collection =
+  mongoose.models.Collection || mongoose.model("Collection", collectionSchema);
 
-export default Category;
+export default Collection;

@@ -63,8 +63,6 @@ const ProductsList = () => {
     revalidateOnFocus: false,
   });
 
-  console.log(users, "users");
-
   const dataSource = users?.map((item) => ({
     key: item.id,
     customer: item.firstname + " " + item.lastname,

@@ -1,19 +1,31 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import Link from "next/link";
 import { oswald } from "@/font";
 import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
 import { useCategoryStore } from "@/store/store";
-import { Spin } from "antd";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Scrollbar, Mousewheel } from "swiper/modules";
-import { LoadingOutlined } from "@ant-design/icons";
 import "swiper/css";
 import "swiper/css/scrollbar";
 import { BigSpinner } from "../spinner";
 
-export default function HomeCategory() {
+const CategoryLink = ({ category }) => (
+  <Link
+    href={category.slug}
+    className="flex aspect-square w-full items-end justify-center !bg-cover px-2 pb-4 text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
+    style={{
+      background: `linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.5) 50%), url('${category.image[0]}?w=400&h=400&q=75')`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}
+  >
+    {category.name}
+  </Link>
+);
+
+export default memo(function HomeCategory() {
   const { selectedCategory, setSelectedCategory } = useCategoryStore();
   const [categorizedListState, setCategorizedListState] = useState([]);
 
@@ -25,14 +37,17 @@ export default function HomeCategory() {
   );
 
   useEffect(() => {
-    if (categories && categories.length > 0) {
+    if (categories?.length > 0) {
       setCategorizedListState(categories);
     }
   }, [categories]);
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-  };
+  const handleCategoryChange = useCallback(
+    (category) => {
+      setSelectedCategory(category);
+    },
+    [setSelectedCategory],
+  );
 
   if (
     !isLoading &&
@@ -50,22 +65,17 @@ export default function HomeCategory() {
             Filter by:
           </p>
           <ul className="flex gap-4">
-            <li
-              className={`${
-                selectedCategory === "women" ? "active__category" : ""
-              } cursor-pointer text-sm sm:text-base`}
-              onClick={() => handleCategoryChange("women")}
-            >
-              Women
-            </li>
-            <li
-              className={`${
-                selectedCategory === "men" ? "active__category" : ""
-              } cursor-pointer text-sm sm:text-base`}
-              onClick={() => handleCategoryChange("men")}
-            >
-              Men
-            </li>
+            {["women", "men"].map((category) => (
+              <li
+                key={category}
+                className={`${
+                  selectedCategory === category ? "active__category" : ""
+                } cursor-pointer text-sm sm:text-base`}
+                onClick={() => handleCategoryChange(category)}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -92,31 +102,15 @@ export default function HomeCategory() {
               thresholdTime: 100,
             }}
             breakpoints={{
-              640: {
-                slidesPerView: 3,
-              },
-              768: {
-                slidesPerView: 4,
-              },
-              1024: {
-                slidesPerView: 5,
-              },
+              640: { slidesPerView: 3 },
+              768: { slidesPerView: 4 },
+              1024: { slidesPerView: 5 },
             }}
             className="px-3"
           >
             {categorizedListState.map((category, index) => (
               <SwiperSlide key={index}>
-                <Link
-                  href={`${category.slug}`}
-                  className="flex aspect-square w-full items-end justify-center !bg-cover px-2 pb-4 text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
-                  style={{
-                    background: `linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.5) 50%), url('${category.image[0]}?w=400&h=400&q=75')`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  {category.name}
-                </Link>
+                <CategoryLink category={category} />
               </SwiperSlide>
             ))}
           </Swiper>
@@ -133,4 +127,4 @@ export default function HomeCategory() {
       `}</style>
     </div>
   );
-}
+});

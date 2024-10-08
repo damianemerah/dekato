@@ -13,6 +13,7 @@ function AdminLayout({ children }) {
   const selected = paths.length > 0 ? paths[paths.length - 1] : "admin";
   const [selectedNavItem, setSelectedNavItem] = useState(selected);
   const [isLoading, setIsLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     setIsLoading(false);
@@ -29,8 +30,10 @@ function AdminLayout({ children }) {
         <AdminSidebar
           selectedNavItem={selectedNavItem}
           onNavItemClick={handleNavItemClick}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
         />
-        <Layout style={{ marginLeft: 200 }}>
+        <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
           <div style={{ padding: 24, minHeight: 360 }}>
             {isLoading ? <div>Loading...</div> : children}
           </div>

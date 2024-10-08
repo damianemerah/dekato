@@ -12,7 +12,6 @@ import { nanoid } from "nanoid";
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
-  console.log(params, "🕊️GET 🕊️");
   await restrictTo("admin", "user");
   try {
     const { userId } = params;
@@ -122,7 +121,6 @@ export async function POST(req, { params }) {
       { status: 200 },
     );
   } catch (error) {
-    console.log(error, "🔥🔥🔥");
     await session.abortTransaction();
     return NextResponse.json(
       { success: false, message: error.message },

@@ -20,7 +20,7 @@ const SmallSpinner = ({ className }) => (
       <LoadingOutlined
         style={{ fontSize: 24 }}
         spin
-        className={`!text-primary ${className}`}
+        className={`${className}`}
       />
     }
     size="small"

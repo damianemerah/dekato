@@ -39,157 +39,94 @@ export default function Footer() {
         >
           {/* Features */}
           <div className="flex flex-col space-y-7">
-            <h3 className="text-sm font-semibold md:text-base lg:text-lg">
-              Features
-            </h3>
+            <h3 className="text-sm font-semibold md:text-base">Features</h3>
             <div className="footer_items">
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Men
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Women
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Boys
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Girls
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 New Arrivals
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Shoes
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Clothes
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Accessories
               </a>
             </div>
           </div>
           {/* Menu */}
           <div className="flex flex-col space-y-7">
-            <h3 className="text-sm font-semibold md:text-base lg:text-lg">
-              Menu
-            </h3>
+            <h3 className="text-sm font-semibold md:text-base">Menu</h3>
             <div className="footer_items">
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 About Us
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Contact us
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 My Account
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Order history
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 My wishlist
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Blog
               </a>
-              <a
-                href="#"
-                className="text-sm hover:text-white md:text-base lg:text-lg"
-              >
+              <a href="#" className="text-sm hover:text-white">
                 Login
               </a>
             </div>
           </div>
           {/* Contact Information */}
           <div className="flex flex-col space-y-7">
-            <h3 className="text-sm font-semibold md:text-base lg:text-lg">
-              Contact us
-            </h3>
+            <h3 className="text-sm font-semibold md:text-base">Contact us</h3>
             <div className="footer_items">
               <div className="flex flex-col">
-                <p
-                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
-                >
+                <p className={`${oswald.className} text-sm text-white`}>
                   Address
                 </p>
-                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                <p className="text-sm hover:text-white">
                   30A Oseni Street, Anthony Village <br />
                   Opposite GTB, Lagos
                 </p>
               </div>
               <div className="flex flex-col">
-                <p
-                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
-                >
+                <p className={`${oswald.className} text-sm text-white`}>
                   Phone
                 </p>
-                <p className="text-sm hover:text-white md:text-base lg:text-lg">
-                  (234) 802 3024 687
-                </p>
-                <p className="text-sm hover:text-white md:text-base lg:text-lg">
-                  (234) 806 4737 122
-                </p>
+                <p className="text-sm hover:text-white">(234) 802 3024 687</p>
+                <p className="text-sm hover:text-white">(234) 806 4737 122</p>
               </div>
               <div className="flex flex-col">
-                <p
-                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
-                >
+                <p className={`${oswald.className} text-sm text-white`}>
                   Email
                 </p>
-                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                <p className="text-sm hover:text-white">
                   Mail@Dekato-outfit.com
                 </p>
               </div>
               <div className="flex flex-col">
-                <p
-                  className={`${oswald.className} text-sm text-white md:text-base lg:text-lg`}
-                >
+                <p className={`${oswald.className} text-sm text-white`}>
                   Working Days/Hours
                 </p>
-                <p className="text-sm hover:text-white md:text-base lg:text-lg">
+                <p className="text-sm hover:text-white">
                   Mon - Sat / 8am - 8pm
                 </p>
               </div>
@@ -198,19 +135,17 @@ export default function Footer() {
           {/* Socials */}
           <div className="flex flex-col space-y-7">
             <div className="flex flex-col space-y-7">
-              <h3 className="text-sm font-semibold md:text-base lg:text-lg">
-                Follow Us
-              </h3>
+              <h3 className="text-sm font-semibold md:text-base">Follow Us</h3>
               <div className="footer_items">
-                <div className="flex items-center space-x-4 text-sm hover:text-white md:text-base lg:text-lg">
+                <div className="flex items-center space-x-4 text-sm hover:text-white">
                   <FacebookIcon width={21} height={21} />
                   <p>Facebook</p>
                 </div>
-                <div className="flex items-center space-x-4 text-sm hover:text-white md:text-base lg:text-lg">
+                <div className="flex items-center space-x-4 text-sm hover:text-white">
                   <InstagramIcon width={21} height={21} />
                   <p>Instagram</p>
                 </div>
-                <div className="flex items-center space-x-4 text-sm hover:text-white md:text-base lg:text-lg">
+                <div className="flex items-center space-x-4 text-sm hover:text-white">
                   <WhatsappIcon width={21} height={21} />
                   <p>Whatsapp</p>
                 </div>

@@ -43,7 +43,6 @@ async function updateProductQuantitySingle(order) {
     const variantIndex = product.variant.findIndex(
       (index) => index._id.toString() === order.singleProduct.variantId,
     );
-    console.log("variantIndex💎🚀", product.variant[variantIndex]);
     product.variant[variantIndex].quantity -= order.singleProduct.quantity;
     product.quantity -= order.singleProduct.quantity;
     product.sold += order.singleProduct.quantity;
@@ -56,7 +55,6 @@ async function updateProductQuantitySingle(order) {
 }
 
 export async function POST(req) {
-  console.log("VERIFY ROUTE 💎💎💎");
   // await protect();
   // await restrictTo("admin", "user");
   try {
@@ -70,20 +68,14 @@ export async function POST(req) {
       currency,
     } = body.data;
 
-    console.log(body, "BODY💎💎💎");
-
     const order = await Order.findById(orderId).populate({
       path: "cartItem",
     });
-
-    console.log(order, "ORDER💎💎💎");
 
     if (!order) {
       throw new AppError("Order not found", 404);
     }
     const verification = await Paystack.transaction.verify(reference);
-
-    console.log(verification, "VERIFICATION💎💎💎");
 
     if (verification.data.status !== "success") {
       order.status = "payment_failed";
@@ -113,7 +105,6 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (error) {
-    console.log(error, "ERROR💎💎💎");
     return handleAppError(error, req);
   }
 }

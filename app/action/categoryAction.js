@@ -1,6 +1,5 @@
 "use server";
 
-import mongoose from "mongoose";
 import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
 import { handleFormData } from "@/utils/handleForm";
@@ -9,61 +8,60 @@ import handleAppError from "@/utils/appError";
 import { revalidatePath } from "next/cache";
 
 // Function to generate breadcrumbs using aggregation
-export async function generateBreadcrumbs(categoryId) {
-  await dbConnect();
-  try {
-    const result = await Category.aggregate([
-      {
-        $match: { _id: mongoose.Types.ObjectId(categoryId) },
-      },
-      {
-        $graphLookup: {
-          from: "categories", // The collection you're querying
-          startWith: "$parent", // Start with the parent field
-          connectFromField: "parent", // The field from which to start the recursion
-          connectToField: "_id", // The field to match against
-          as: "breadcrumbs", // The output array field
-          maxDepth: 5, // Set a reasonable limit to avoid performance issues
-          depthField: "depth", // Optional: use this field to track the depth of recursion
-        },
-      },
-      {
-        $unwind: "$breadcrumbs", // Unwind the breadcrumbs array
-      },
-      {
-        $sort: { "breadcrumbs.depth": 1 }, // Sort by depth to order correctly
-      },
-      {
-        $project: {
-          name: "$breadcrumbs.name",
-          slug: "$breadcrumbs.slug",
-          _id: 0, // Exclude the original _id
-        },
-      },
-    ]);
+// export async function generateBreadcrumbs(categoryId) {
+//   await dbConnect();
+//   try {
+//     const result = await Category.aggregate([
+//       {
+//         $match: { _id: mongoose.Types.ObjectId(categoryId) },
+//       },
+//       {
+//         $graphLookup: {
+//           from: "categories",
+//           startWith: "$parent",
+//           connectFromField: "parent",
+//           connectToField: "_id",
+//           as: "breadcrumbs",
+//           maxDepth: 5,
+//         },
+//       },
+//       {
+//         $unwind: "$breadcrumbs", // Unwind the breadcrumbs array
+//       },
+//       {
+//         $sort: { "breadcrumbs.depth": 1 }, // Sort by depth to order correctly
+//       },
+//       {
+//         $project: {
+//           name: "$breadcrumbs.name",
+//           slug: "$breadcrumbs.slug",
+//           _id: 0, // Exclude the original _id
+//         },
+//       },
+//     ]);
 
-    // Add the current category to the breadcrumbs
-    const category = await Category.findById(categoryId).select("name slug");
-    const breadcrumbs = result.map((r) => ({
-      name: r.name,
-      slug: r.slug,
-    }));
+//     // Add the current category to the breadcrumbs
+//     const category = await Category.findById(categoryId).select("name slug");
+//     const breadcrumbs = result.map((r) => ({
+//       name: r.name,
+//       slug: r.slug,
+//     }));
 
-    // Add the current category to the end of the breadcrumb array
-    breadcrumbs.push({
-      name: category.name,
-      slug: category.slug,
-    });
+//     // Add the current category to the end of the breadcrumb array
+//     breadcrumbs.push({
+//       name: category.name,
+//       slug: category.slug,
+//     });
 
-    // Add "Home" as the root of the breadcrumb trail
-    breadcrumbs.unshift({ name: "Home", slug: "" });
+//     // Add "Home" as the root of the breadcrumb trail
+//     breadcrumbs.unshift({ name: "Home", slug: "" });
 
-    return breadcrumbs;
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
-  }
-}
+//     return breadcrumbs;
+//   } catch (err) {
+//     const error = handleAppError(err);
+//     throw new Error(error.message || "An error occurred");
+//   }
+// }
 
 function formatCategories(categories) {
   return categories.map(({ _id, parent, createdAt, ...rest }) => {
@@ -147,7 +145,7 @@ export async function createCategory(formData) {
 
     const { _id, ...rest } = category;
 
-    revalidatePath(`/admin/collections/${category.slug}`);
+    revalidatePath(`/admin/categories/${category.slug}`);
     return { id: _id.toString(), ...rest };
   } catch (err) {
     const error = handleAppError(err);
@@ -187,8 +185,8 @@ export async function updateCategory(formData) {
     // Return category with id instead of _id
     const { _id, parent, ...rest } = category;
 
-    revalidatePath(`/admin/collections/${category.slug}`);
-    revalidatePath(`/admin/collections`);
+    revalidatePath(`/admin/categories/${category.slug}`);
+    revalidatePath(`/admin/categories`);
 
     return { id: _id.toString(), ...rest };
   } catch (err) {
@@ -228,7 +226,7 @@ export async function deleteCategory(id) {
       await category.save();
     }
 
-    revalidatePath("/admin/collections");
+    revalidatePath("/admin/categories");
     return null;
   } catch (err) {
     const error = handleAppError(err);
@@ -237,17 +235,13 @@ export async function deleteCategory(id) {
 }
 
 export async function getPinnedCategoriesByParent(parentSlug) {
-  // try {
   await dbConnect();
 
   let parentCategory;
   if (parentSlug) {
     parentCategory = await Category.findOne({ slug: parentSlug });
     if (!parentCategory) {
-      throw new Error("No categoriess found");
-
-      console.warn(`Parent category with slug '${parentSlug}' not found`);
-      return []; // Return an empty array instead of throwing an error
+      return [];
     }
   }
 
@@ -265,8 +259,4 @@ export async function getPinnedCategoriesByParent(parentSlug) {
     ...rest,
   }));
   return newPinnedCategories;
-  // } catch (err) {
-  //   console.error("Error in getPinnedCategoriesByParent:", err);
-  //   return []; // Return an empty array instead of throwing an error
-  // }
 }

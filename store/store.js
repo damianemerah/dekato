@@ -7,38 +7,39 @@ export const useUserStore = create(
       user: null,
       address: [],
       setUser: (user) => set({ user }),
-      clearUser: () => set({ user: null }),
       setAddress: (address) => set({ address }),
-      addAddress: (address) =>
-        set((state) => ({ address: [...state.address, address] })),
-      removeAddress: (id) =>
-        set((state) => ({
-          address: state.address.filter((address) => address.id !== id),
-        })),
-      updateAddress: (updatedAddress) =>
-        set((state) => ({
-          address: state.address.map((address) =>
-            address.id === updatedAddress.id ? updatedAddress : address,
-          ),
-        })),
       deliveryMethod: "pickup",
       setDeliveryMethod: (deliveryMethod) => set({ deliveryMethod }),
-      userIsLoading: false,
-      setUserIsLoading: (userIsLoading) => set({ userIsLoading }),
     }),
     {
       name: "user-storage",
-      partialize: (state) => ({ deliveryMethod: state.deliveryMethod }),
+      partialize: (state) => ({
+        deliveryMethod: state.deliveryMethod,
+        user: {
+          id: state.user?.id,
+          firstname: state.user?.firstname,
+          lastname: state.user?.lastname,
+          address: state.address,
+          wishlist: state.user?.wishlist,
+        },
+      }),
     },
   ),
 );
 
-export const useCartStore = create((set) => ({
-  cart: [],
-  setCart: (cart) => set({ cart, isFetched: true }),
-  cartIsLoading: false,
-  setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
-}));
+export const useCartStore = create(
+  persist(
+    (set) => ({
+      cart: [],
+      setCart: (cart) => set({ cart }),
+      cartIsLoading: false,
+      setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
+    }),
+    {
+      name: "cart-storage",
+    },
+  ),
+);
 
 export const useProductStore = create((set) => ({
   products: [],

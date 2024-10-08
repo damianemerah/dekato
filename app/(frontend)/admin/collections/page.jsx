@@ -1,25 +1,19 @@
 "use client";
 
 import { useState, memo, useEffect } from "react";
+import { Button, Flex, Table, Dropdown, Space, message, Modal } from "antd";
 import {
-  Button,
-  Flex,
-  Table,
-  Dropdown,
-  Space,
-  Checkbox,
-  InputNumber,
-  message,
-} from "antd";
-import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
+  DownOutlined,
+  LoadingOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import Image from "next/image";
 import Link from "next/link";
 import useSWRImmutable from "swr/immutable";
 import {
-  getAllCategories,
-  updateCategory,
-  deleteCategory,
-} from "@/app/action/categoryAction";
+  getAllCollections,
+  deleteCollection,
+} from "@/app/action/collectionAction";
 import image6 from "@/public/assets/no-image.webp";
 
 const Action = memo(function Action({ slug, handleDelete }) {
@@ -69,137 +63,22 @@ const Action = memo(function Action({ slug, handleDelete }) {
 const Collections = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [pinOrders, setPinOrders] = useState({}); // Track pinOrder and isChecked
-  const [changedRows, setChangedRows] = useState({}); // Track which rows have been changed
 
   const {
     data: collections,
     isLoading,
     mutate,
-  } = useSWRImmutable("/api/allCategories", getAllCategories, {
+  } = useSWRImmutable("/api/allCollections", getAllCollections, {
     revalidateOnFocus: false,
   });
-
-  useEffect(() => {
-    if (!collections) return;
-    const pins = collections.reduce((acc, c) => {
-      acc[c.id] = {
-        pinOrder: c.pinOrder, // Set default pin order
-        isChecked: !!c.pinned, // Track whether it's pinned
-      };
-      return acc;
-    }, {});
-
-    setPinOrders(pins);
-  }, [collections]);
-
-  const handlePinChange = (key, isChecked) => {
-    const category = collections.find((cat) => cat.id === key);
-    if (
-      category.name.toLowerCase() === "men" ||
-      category.name.toLowerCase() === "women"
-    ) {
-      message.error("Cannot pin 'men' or 'women' categories");
-      return;
-    }
-
-    const parentCategory = collections.find(
-      (cat) => cat.id === category.parent?.id,
-    );
-    const pinnedCount = collections.filter(
-      (cat) => cat.parent?.id === category.parent?.id && cat.pinned,
-    ).length;
-
-    // Check if the category is already pinned
-    const isAlreadyPinned = category.pinned;
-
-    if (isChecked && pinnedCount >= 5 && !isAlreadyPinned) {
-      message.error(
-        `Cannot pin more than 5 categories under ${parentCategory.name}`,
-      );
-      return;
-    }
-
-    setPinOrders((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        isChecked, // Track checkbox state
-      },
-    }));
-    setChangedRows((prev) => ({
-      ...prev,
-      [key]: true,
-    }));
-  };
-
-  // Handle pin order number input changes
-  const handlePinOrderChange = (key, value) => {
-    setPinOrders((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        pinOrder: value, // Track pin order value
-      },
-    }));
-
-    // Mark the row as changed
-    setChangedRows((prev) => ({
-      ...prev,
-      [key]: true,
-    }));
-  };
-
-  // Handle form submission
-  const submitForm = async (key) => {
-    const { pinOrder, isChecked } = pinOrders[key];
-
-    // Prepare the form data for submission
-    const formData = new FormData();
-    formData.append("id", key);
-    formData.append("pinOrder", pinOrder);
-    formData.append("pinned", isChecked);
-
-    try {
-      // Call the updateCategory API with form data
-      await updateCategory(formData);
-      // Reset the change state for this row after successful submission
-      setChangedRows((prev) => ({
-        ...prev,
-        [key]: false,
-      }));
-      message.info("Updated"); // Ensure this is reached
-    } catch (error) {
-    }
-  };
-
-  const cancelChanges = (key) => {
-    // Reset pin order and checked state for this row
-    setPinOrders((prev) => ({
-      ...prev,
-      [key]: collections.find((item) => item.id === key)
-        ? {
-            pinOrder: collections.find((item) => item.id === key).pinOrder,
-            isChecked: !!collections.find((item) => item.id === key).pinned,
-          }
-        : undefined,
-    }));
-    setChangedRows((prev) => ({
-      ...prev,
-      [key]: false, // Reset the change state
-    }));
-  };
 
   const dataSource = collections?.map((item) => ({
     key: item.id,
     image: item.image[0],
     name: item.name,
     productCount: item.productCount,
-    parent: item?.parent ? item.parent.name : "",
     slug: item.slug,
     action: <Action slug={item.slug} />,
-    pinOrder: pinOrders[item.id]?.pinOrder,
-    isChecked: pinOrders[item.id]?.isChecked,
   }));
 
   const columns = [
@@ -236,18 +115,6 @@ const Collections = () => {
       sorter: (a, b) => a.productCount - b.productCount,
     },
     {
-      title: "Parent Collection",
-      dataIndex: "parent",
-      filters: collections?.map((item) => ({
-        text: item.name ? item.name : "",
-        value: item.name ? item.name : "",
-      })),
-      filterSearch: true,
-      onFilter: (value, record) => {
-        return record?.parent.includes(value);
-      },
-    },
-    {
       title: "Action",
       dataIndex: "action",
       render: (_, record) => {
@@ -258,39 +125,6 @@ const Collections = () => {
           />
         );
       },
-    },
-    {
-      title: "Pin",
-      dataIndex: "pin",
-      sorter: (a, b) => a.pinOrder - b.pinOrder,
-      render: (_, record) => (
-        <Flex gap="small" align="center">
-          <Checkbox
-            checked={record.isChecked}
-            onChange={(e) => handlePinChange(record.key, e.target.checked)}
-          />
-          <InputNumber
-            min={1}
-            disabled={!pinOrders[record.key]?.isChecked}
-            value={record?.pinOrder}
-            onChange={(value) => handlePinOrderChange(record.key, value)}
-          />
-          {changedRows[record.key] && (
-            <Flex className="flex-col">
-              <Button
-                className="!text-blue-500"
-                type="text"
-                onClick={() => submitForm(record.key)}
-              >
-                Submit
-              </Button>
-              <Button type="text" onClick={() => cancelChanges(record.key)}>
-                Cancel
-              </Button>
-            </Flex>
-          )}
-        </Flex>
-      ),
     },
   ];
 
@@ -315,20 +149,53 @@ const Collections = () => {
 
   const handleDelete = async (id) => {
     try {
-      const category = collections.find((category) => category.id === id);
-      if (category.productCount > 0) {
+      const collection = collections.find((collection) => collection.id === id);
+      if (collection.productCount > 0) {
         message.warning(
           "Products in this collection. Move products to other collection",
           4,
         );
         return;
       }
-      await deleteCategory(id);
-      await mutate("/api/allCategories");
+      await deleteCollection(id);
+      await mutate();
       message.success("Deleted");
     } catch (error) {
       message.error("Error");
     }
+  };
+
+  const handleDeleteSelected = () => {
+    Modal.confirm({
+      title: "Are you sure you want to delete these collections?",
+      icon: <ExclamationCircleOutlined />,
+      content: "This action cannot be undone.",
+      onOk: async () => {
+        try {
+          setLoading(true);
+          for (const id of selectedRowKeys) {
+            const collection = collections.find(
+              (collection) => collection.id === id,
+            );
+            if (collection.productCount > 0) {
+              message.warning(
+                `Cannot delete collection "${collection.name}". It contains products.`,
+                4,
+              );
+            } else {
+              await deleteCollection(id);
+            }
+          }
+          await mutate();
+          setSelectedRowKeys([]);
+          message.success("Selected collections deleted");
+        } catch (error) {
+          message.error("Error deleting collections");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -344,6 +211,11 @@ const Collections = () => {
               Add new collection
             </Button>
           </Link>
+          {hasSelected && (
+            <Button danger onClick={handleDeleteSelected} loading={loading}>
+              Delete Selected
+            </Button>
+          )}
           {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
         </Flex>
         <Table

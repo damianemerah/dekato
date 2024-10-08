@@ -1,6 +1,5 @@
 import { roboto } from "@/font";
 import Provider from "@/app/ui/Provider";
-import GlobalFetch from "@/app/ui/globalFetch";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 // Import Swiper styles
 import "swiper/css";
@@ -19,7 +18,6 @@ export default function RootLayout({ children }) {
       <AntdRegistry>
         <Provider>
           <body className={`${roboto.className} antialiased`}>
-            <GlobalFetch />
             <Header />
             <div className="relative flex w-full">
               <div className="sticky top-16 z-30 h-screen overflow-y-auto">

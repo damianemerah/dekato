@@ -8,7 +8,7 @@ import AppError from "@/utils/errorClass";
 export async function getCheckoutData(userId) {
   try {
     await dbConnect();
-    await restrictTo("admin", "user");
+    await restrictTo("user", "admin");
 
     const cart = await Cart.findOne({ userId })
       .populate({

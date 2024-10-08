@@ -69,7 +69,7 @@ const ProductsList = () => {
     revalidateOnFocus: true,
   });
 
-  const { data: collections } = useSWRImmutable(
+  const { data: categories } = useSWRImmutable(
     "/api/allCategories",
     getAllCategories,
     {
@@ -108,6 +108,30 @@ const ProductsList = () => {
     } catch (error) {
       message.error("Failed to delete product");
     }
+  };
+
+  const handleDeleteSelected = async () => {
+    const deleteSelectedProducts = async () => {
+      setLoading(true);
+      try {
+        await Promise.all(selectedRowKeys.map((id) => deleteProduct(id)));
+        await mutate("/admin/products");
+        setSelectedRowKeys([]);
+        message.success("Selected products deleted successfully");
+      } catch (error) {
+        message.error("Failed to delete selected products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    showConfirmModal({
+      title: "Are you sure you want to delete the selected products?",
+      content: "This action cannot be undone",
+      onOk() {
+        deleteSelectedProducts();
+      },
+    });
   };
 
   const columns = [
@@ -158,7 +182,7 @@ const ProductsList = () => {
     {
       title: "Category",
       dataIndex: "category",
-      filters: collections?.map((item) => ({
+      filters: categories?.map((item) => ({
         text: item?.name ? item.name : "",
         value: item?.name ? item.name : "",
       })),
@@ -177,14 +201,6 @@ const ProductsList = () => {
     },
   ];
 
-  const start = () => {
-    setLoading(true);
-    // ajax request after empty completing
-    setTimeout(() => {
-      setSelectedRowKeys([]);
-      setLoading(false);
-    }, 1000);
-  };
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys);
   };
@@ -196,17 +212,25 @@ const ProductsList = () => {
 
   return (
     <Flex gap="middle" vertical className="p-6">
-      <Flex align="center" justify="end" gap="middle">
-        <Link href="/admin/products/new">
+      <Flex align="center" justify="space-between" gap="middle">
+        <Flex align="center" gap="middle">
           <Button
-            className="!bg-primary !text-white"
-            onClick={start}
+            danger
+            onClick={handleDeleteSelected}
+            disabled={!hasSelected}
             loading={loading}
           >
+            Delete Selected
+          </Button>
+          {hasSelected && (
+            <span>{`Selected ${selectedRowKeys.length} items`}</span>
+          )}
+        </Flex>
+        <Link href="/admin/products/new">
+          <Button className="!bg-primary !text-white" loading={loading}>
             Add new product
           </Button>
         </Link>
-        {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
       </Flex>
       <Table
         rowSelection={rowSelection}

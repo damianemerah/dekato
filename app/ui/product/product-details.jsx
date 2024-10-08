@@ -20,8 +20,7 @@ import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { message } from "antd";
 import { useCartStore } from "@/store/store";
 import CheckmarkIcon from "@/public/assets/icons/check.svg?url";
-import Link from "next/link";
-import EditIcon from "@/public/assets/icons/edit.svg";
+
 import { SmallSpinner } from "../spinner";
 
 const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
@@ -63,7 +62,6 @@ export default function ProductDetail({ product }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const user = useUserStore((state) => state.user);
   const userId = user?.id;
-  const setCart = useCartStore((state) => state.setCart);
 
   useEffect(() => {
     if (!product) return;
@@ -131,9 +129,8 @@ export default function ProductDetail({ product }) {
 
       const cartItem = await createCartItem(userId, newItem);
       await mutate(`/api/user/${userId}`);
-      setCart(cartItem.item);
-      message.success("Item added to cart");
       await mutate(`/cart/${userId}`);
+      message.success("Item added to cart");
     } catch (error) {
       message.info(error.message, 4);
     } finally {

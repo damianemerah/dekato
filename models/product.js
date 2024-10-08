@@ -57,6 +57,13 @@ const productSchema = new mongoose.Schema(
         required: [true, "Product must belong to at least one category"],
       },
     ],
+    collection: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Collection",
+        required: [true, "Product must belong to at least one collection"],
+      },
+    ],
     cat: [String],
     createdAt: { type: Date, default: Date.now, immutable: true },
     updatedAt: { type: Date, default: Date.now },

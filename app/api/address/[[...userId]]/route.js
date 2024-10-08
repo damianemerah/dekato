@@ -11,7 +11,6 @@ export async function GET(req, { params }) {
 
     const { userId } = params;
 
-    console.log("userId", userId);
 
     const user = await User.findById(userId);
     if (!user) throw new AppError("No user found with that ID", 404);
