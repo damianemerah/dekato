@@ -20,7 +20,7 @@ function SignInContent({ searchParams }) {
   const [isNewLogin, setIsNewLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams?.callbackUrl || "/";
 
   useEffect(() => {
     if (session?.user?.passwordChanged) {
