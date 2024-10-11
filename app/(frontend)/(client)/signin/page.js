@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { message } from "antd";
 import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
@@ -13,11 +13,10 @@ import { ButtonPrimary } from "@/app/ui/button";
 const ViewIcon = dynamic(() => import("@/public/assets/icons/view.svg"));
 const ViewOff = dynamic(() => import("@/public/assets/icons/view-off.svg"));
 
-function SignInContent() {
+function SignInContent({ searchParams }) {
   const [viewPassword, setViewPassword] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isNewLogin, setIsNewLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 

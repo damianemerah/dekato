@@ -26,7 +26,7 @@ import {
   deleteCategory,
 } from "@/app/action/categoryAction";
 import image6 from "@/public/assets/no-image.webp";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const Action = memo(function Action({ slug, handleDelete }) {
   const items = [
@@ -72,7 +72,8 @@ const Action = memo(function Action({ slug, handleDelete }) {
   );
 });
 
-const Categories = () => {
+const Categories = ({ searchParams }) => {
+  console.log(searchParams, "searchParams🌐🌐");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pinOrders, setPinOrders] = useState({});
@@ -81,10 +82,9 @@ const Categories = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [limit, setLimit] = useState(10);
 
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const page = searchParams.get("page") || 1;
+  const page = searchParams?.page || 1;
 
   const {
     data: categoryData,

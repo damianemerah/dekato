@@ -11,7 +11,7 @@ import useSWRImmutable from "swr/immutable";
 import noImage from "@/public/assets/no-image.webp";
 import Link from "next/link";
 import useConfirmModal from "@/app/ui/confirm-modal";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const Action = memo(function Action({ id, handleDelete }) {
   const items = [
@@ -57,7 +57,7 @@ const Action = memo(function Action({ id, handleDelete }) {
   );
 });
 
-const ProductsList = () => {
+const ProductsList = ({ searchParams }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [products, setProducts] = useState([]);
   const [totalCount, setTotalCount] = useState(1);
@@ -65,10 +65,9 @@ const ProductsList = () => {
   const [loading, setLoading] = useState(false);
   const showConfirmModal = useConfirmModal();
 
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const page = searchParams.get("page") || 1;
+  const page = searchParams?.page || 1;
 
   const {
     data: productData,
