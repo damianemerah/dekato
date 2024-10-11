@@ -1,14 +1,19 @@
-import { getAllCategories } from "@/app/action/categoryAction";
 import { getAllCollections } from "@/app/action/collectionAction";
 import { unstable_cache } from "next/cache";
 import Sidebar from "./sidebar";
-
+import Category from "@/models/category";
+import dbConnect from "@/lib/mongoConnection";
+import { formatCategories } from "@/app/action/categoryAction";
 const getCategories = unstable_cache(
   async () => {
-    return await getAllCategories();
+    await dbConnect();
+    const categories = await Category.find({})
+      .populate("parent", "name _id slug")
+      .lean({ virtuals: true });
+    return formatCategories(categories);
   },
   ["categories"],
-  { revalidate: 3600, tags: ["categories"] },
+  { revalidate: 120, tags: ["categories"] },
 );
 
 const getCollections = unstable_cache(
@@ -16,7 +21,7 @@ const getCollections = unstable_cache(
     return await getAllCollections();
   },
   ["collections"],
-  { revalidate: 3600, tags: ["collections"] },
+  { revalidate: 120, tags: ["collections"] },
 );
 
 export default async function SidebarServer() {

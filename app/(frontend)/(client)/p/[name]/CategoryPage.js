@@ -15,7 +15,7 @@ const getProductData = unstable_cache(
   ["product-data"],
   {
     tags: ["single-product-data"],
-    revalidate: 3600,
+    revalidate: 600,
   },
 );
 
@@ -24,12 +24,10 @@ export default async function CategoryPage({ name }) {
   const product = await getProductData(id);
 
   return (
-    <div className="">
-      <div className="flex justify-center">
-        <Suspense fallback={<SmallSpinner />}>
-          <ProductDetail product={product} />
-        </Suspense>
-      </div>
+    <div>
+      <Suspense fallback={<SmallSpinner />}>
+        <ProductDetail product={product} />
+      </Suspense>
     </div>
   );
 }

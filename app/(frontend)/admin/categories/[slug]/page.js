@@ -4,14 +4,14 @@ import { useState, useRef, memo, useEffect, useCallback } from "react";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { createCategory, updateCategory } from "@/app/action/categoryAction";
 import { ButtonPrimary } from "@/app/ui/button";
-import { Checkbox, InputNumber, message } from "antd";
+import { Checkbox, message } from "antd";
 import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import { useRouter } from "next/navigation";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR, { mutate } from "swr";
-import { BigSpinner } from "@/app/ui/spinner";
+import { SmallSpinner } from "@/app/ui/spinner";
 
 export default function NewCategory({ params }) {
   const slug = params.slug;
@@ -22,12 +22,10 @@ export default function NewCategory({ params }) {
   const [defaultFileList, setDefaultFileList] = useState([]);
   const [catList, setCatList] = useState([]);
   const [isPinned, setIsPinned] = useState(false);
-  const [pinOrder, setPinOrder] = useState(0);
 
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
   const pinnedRef = useRef(null);
-  const pinOrderRef = useRef(null);
 
   const { data: allCategories, isLoading } = useSWR(
     "/api/allCategories",
@@ -42,24 +40,22 @@ export default function NewCategory({ params }) {
 
   useEffect(() => {
     if (isLoading) return;
-    // Find the category with the highest pinOrder
     if (allCategories?.length > 0) {
-      const highestPinOrder = allCategories.reduce((maxOrder, category) => {
-        const pinOrder = category.pinOrder || 0;
-        return pinOrder > maxOrder ? pinOrder : maxOrder;
-      }, 0);
-
-      setPinOrder(highestPinOrder + 1);
-
-      // Filter categories to only include those with parent=null
-      const filteredCategories = allCategories.filter(
-        (cat) => cat.parent === null,
-      );
-
-      const category = filteredCategories.map((cat) => ({
-        value: cat.id,
-        label: cat.name,
-      }));
+      const category = allCategories
+        .map((cat) => ({
+          value: cat.id,
+          label: (
+            <p>
+              {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{" "}
+              {cat.parent?.name
+                ? `(${cat.parent.name.charAt(0).toUpperCase() + cat.parent.name.slice(1)})`
+                : ""}
+            </p>
+          ),
+          parent: cat.parent,
+          disabled: cat.parent !== null,
+        }))
+        .sort((a, b) => a.disabled - b.disabled);
 
       setCatList(category);
     }
@@ -71,13 +67,14 @@ export default function NewCategory({ params }) {
       if (selectedCategory) {
         setActionType("edit");
         setSelectedCategory(selectedCategory);
-        setIsPinned(selectedCategory.pinned || false); // Add this line
+        setIsPinned(selectedCategory.pinned || false);
       } else {
         window.location.href = "/admin/categories";
       }
     } else if (slug === "new") {
       setActionType("create");
       setCParent(null);
+      setIsPinned(false);
     }
   }, [allCategories, isLoading, slug]);
 
@@ -100,17 +97,12 @@ export default function NewCategory({ params }) {
       if (pinnedRef.current)
         pinnedRef.current.checked = selectedCategory?.pinned;
       setIsPinned(selectedCategory?.pinned || false);
-
-      // Update pinOrder state instead of trying to set input value directly
-      setPinOrder(selectedCategory?.pinOrder || 0);
     }
   }, [selectedCategory]);
 
   // Handle form submission
   const handleCreateCategory = async (formData, type) => {
     try {
-      for (const pair of formData.entries()) {
-      }
       if (formData.get("pinned") === "true") {
         formData.set("pinned", true);
       } else {
@@ -135,10 +127,10 @@ export default function NewCategory({ params }) {
 
       // Check the number of pinned categories under the selected parent
       const parentCategory = allCategories.find((cat) => cat.id === cParent);
+      console.log(parentCategory, "parentCategory");
       const pinnedCount = allCategories.filter(
         (cat) => cat.parent?.id === cParent && cat.pinned,
       ).length;
-
       const isAlreadyPinned = selectedCategory?.pinned;
       if (pinnedCount >= 5 && !isAlreadyPinned) {
         message.error(
@@ -183,7 +175,13 @@ export default function NewCategory({ params }) {
     }
   };
 
-  if (!allCategories) return <BigSpinner />;
+  const LoadingSpinner = () => (
+    <div className="flex h-screen items-center justify-center">
+      <SmallSpinner className="!text-primary" />
+    </div>
+  );
+
+  if (!allCategories) return <LoadingSpinner />;
 
   return (
     <form
@@ -262,16 +260,6 @@ export default function NewCategory({ params }) {
                 checked={isPinned}
                 onChange={() => setIsPinned(!isPinned)}
               />
-
-              {/* {isPinned && ( */}
-              <InputNumber
-                name="pinOrder"
-                value={pinOrder}
-                ref={pinOrderRef}
-                onChange={(value) => setPinOrder(value)}
-                className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-              />
-              {/* // )} */}
             </div>
             <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
               Parent Category

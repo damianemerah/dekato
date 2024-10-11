@@ -26,6 +26,7 @@ import {
   deleteCategory,
 } from "@/app/action/categoryAction";
 import image6 from "@/public/assets/no-image.webp";
+import { useRouter } from "next/navigation";
 
 const Action = memo(function Action({ slug, handleDelete }) {
   const items = [
@@ -71,22 +72,43 @@ const Action = memo(function Action({ slug, handleDelete }) {
   );
 });
 
-const Categories = () => {
+const Categories = ({ searchParams }) => {
+  console.log(searchParams, "searchParams🌐🌐");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pinOrders, setPinOrders] = useState({});
   const [changedRows, setChangedRows] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit, setLimit] = useState(10);
+
+  const router = useRouter();
+
+  const page = searchParams?.page || 1;
 
   const {
-    data: categories = [],
+    data: categoryData,
     isLoading,
     mutate,
-  } = useSWR("/api/allCategories", getAllCategories, {
-    revalidateOnFocus: false,
-  });
+  } = useSWR(
+    `/api/allCategories?page=${page}`,
+    () => getAllCategories({ page }),
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   useEffect(() => {
-    if (!categories) return;
+    console.log(categoryData, "categoryData🌐🌐");
+    if (categoryData && Array.isArray(categoryData.data)) {
+      setCategories(categoryData.data);
+      setTotalCount(categoryData.totalCount);
+      setLimit(categoryData.limit);
+    }
+  }, [categoryData]);
+
+  useEffect(() => {
+    if (!categories || !Array.isArray(categories)) return;
     const pins = categories.reduce((acc, c) => {
       acc[c.id] = {
         pinOrder: c.pinOrder,
@@ -120,7 +142,7 @@ const Categories = () => {
 
     if (isChecked && pinnedCount >= 5 && !isAlreadyPinned) {
       message.error(
-        `Cannot pin more than 5 categories under ${parentCategory.name}`,
+        `Cannot pin more than 5 categories under ${parentCategory?.name || "parent category"}`,
       );
       return;
     }
@@ -196,7 +218,7 @@ const Categories = () => {
         parent: item?.parent ? item.parent.name : "",
         slug: item.slug,
         action: <Action slug={item.slug} />,
-        pinOrder: pinOrders[item.id]?.pinOrder,
+        pinOrder: pinOrders[item.id]?.pinOrder || undefined,
         isChecked: pinOrders[item.id]?.isChecked,
       }))
     : [];
@@ -363,6 +385,10 @@ const Categories = () => {
     });
   };
 
+  const handlePageChange = (page) => {
+    router.push(`/admin/categories?page=${page}`);
+  };
+
   return (
     <>
       <Flex gap="middle" vertical className="p-6">
@@ -395,6 +421,13 @@ const Categories = () => {
                 }
               : false
           }
+          pagination={{
+            current: parseInt(page),
+            pageSize: limit,
+            showSizeChanger: false,
+            total: totalCount,
+            onChange: handlePageChange,
+          }}
         />
       </Flex>
     </>

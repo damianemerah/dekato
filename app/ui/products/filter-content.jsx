@@ -132,8 +132,8 @@ export default function FilterContent({
       </div>
 
       {selectedFilters && (
-        <div className="mt-6 flex items-center px-6">
-          <div className="ml-4 flex items-center justify-start space-x-3">
+        <div className="mt-2 flex items-center px-6">
+          <div className="flex items-center justify-start gap-3">
             {Object.entries(selectedFilters)?.map(([key, value]) =>
               value.length > 0 ? (
                 <div

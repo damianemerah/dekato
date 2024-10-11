@@ -50,18 +50,21 @@ const productSchema = new mongoose.Schema(
       type: [String],
       validate: [arrayLimit, "{PATH} exceeds the limit of 5"],
     },
-    category: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-        required: [true, "Product must belong to at least one category"],
+    category: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Category",
+      required: [true, "Product must belong to at least one category"],
+      validate: {
+        validator: function (v) {
+          return v.length > 0;
+        },
+        message: "At least one category is required",
       },
-    ],
-    collection: [
+    },
+    campaign: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Collection",
-        required: [true, "Product must belong to at least one collection"],
+        ref: "Campaign",
       },
     ],
     cat: [String],

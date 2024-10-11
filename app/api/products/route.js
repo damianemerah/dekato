@@ -40,7 +40,6 @@ export async function GET(req) {
     const feature = new APIFeatures(Product.find(), searchParams)
       .filter()
       .sort()
-      .limitFields()
       .paginate();
 
     const product = await feature.query;

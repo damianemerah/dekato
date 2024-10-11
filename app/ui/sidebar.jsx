@@ -57,17 +57,23 @@ export default memo(function Sidebar({ categories, collections }) {
     setUser(null);
   };
 
-  const [expandedItem, setExpandedItem] = useState(null);
+  const [expandedItems, setExpandedItems] = useState([]);
 
   const toggleExpand = (label) => {
-    setExpandedItem(expandedItem === label ? null : label);
+    setExpandedItems((prevItems) => {
+      if (prevItems.includes(label)) {
+        return prevItems.filter((item) => item !== label);
+      } else {
+        return [...prevItems, label];
+      }
+    });
   };
 
-  const toggleIcon = (expandedItem, toggleItem) => (
+  const toggleIcon = (expandedItems, toggleItem) => (
     <span className="relative flex h-6 w-6 items-center justify-center">
       <span className="h-0.5 w-3 bg-primary transition-transform duration-300" />
       <span
-        className={`absolute h-0.5 w-3 bg-primary transition-transform duration-300 ${expandedItem === toggleItem ? "rotate-0" : "rotate-90"}`}
+        className={`absolute h-0.5 w-3 bg-primary transition-transform duration-300 ${expandedItems.includes(toggleItem) ? "rotate-0" : "rotate-90"}`}
       />
     </span>
   );
@@ -165,11 +171,11 @@ export default memo(function Sidebar({ categories, collections }) {
                       className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
                     >
                       {item.label}
-                      {toggleIcon(expandedItem, item.label)}
+                      {toggleIcon(expandedItems, item.label)}
                     </div>
                     <ul
                       className={`mt-2 space-y-2 transition-all duration-300 ease-in-out ${
-                        expandedItem === item.label ? "block" : "hidden"
+                        expandedItems.includes(item.label) ? "block" : "hidden"
                       }`}
                     >
                       {item.children.map((child, childIndex) => (
@@ -181,11 +187,11 @@ export default memo(function Sidebar({ categories, collections }) {
                                 className="flex cursor-pointer items-center justify-between py-2 text-sm text-gray-600 hover:text-primary"
                               >
                                 {child.label}
-                                {toggleIcon(expandedItem, child.label)}
+                                {toggleIcon(expandedItems, child.label)}
                               </div>
                               <ul
                                 className={`ml-4 space-y-2 transition-all duration-300 ease-in-out ${
-                                  expandedItem === child.label
+                                  expandedItems.includes(child.label)
                                     ? "block"
                                     : "hidden"
                                 }`}
@@ -197,7 +203,7 @@ export default memo(function Sidebar({ categories, collections }) {
                                       className="py-1 text-xs"
                                     >
                                       <Link
-                                        href={grandChild.href}
+                                        href={grandChild.href || "#"}
                                         className="text-gray-500 hover:text-primary"
                                       >
                                         {grandChild.label}
@@ -209,7 +215,7 @@ export default memo(function Sidebar({ categories, collections }) {
                             </>
                           ) : (
                             <Link
-                              href={child.href}
+                              href={child.href || "#"}
                               className="block py-2 text-sm text-gray-600 hover:text-primary"
                             >
                               {child.label}
@@ -221,7 +227,7 @@ export default memo(function Sidebar({ categories, collections }) {
                   </>
                 ) : (
                   <Link
-                    href={item.href}
+                    href={item.href || "#"}
                     className="flex items-center justify-between text-gray-800 hover:text-primary"
                   >
                     {item.label}
@@ -235,11 +241,11 @@ export default memo(function Sidebar({ categories, collections }) {
                 className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
               >
                 MY ACCOUNT
-                {toggleIcon(expandedItem, "MY ACCOUNT")}
+                {toggleIcon(expandedItems, "MY ACCOUNT")}
               </div>
               <ul
                 className={`mt-2 space-y-2 transition-all duration-300 ease-in-out ${
-                  expandedItem === "MY ACCOUNT" ? "block" : "hidden"
+                  expandedItems.includes("MY ACCOUNT") ? "block" : "hidden"
                 }`}
               >
                 <li className="pl-4">
@@ -248,11 +254,13 @@ export default memo(function Sidebar({ categories, collections }) {
                     className="flex cursor-pointer items-center justify-between py-2 text-sm text-gray-600 hover:text-primary"
                   >
                     Manage profile
-                    {toggleIcon(expandedItem, "MANAGE PROFILE")}
+                    {toggleIcon(expandedItems, "MANAGE PROFILE")}
                   </div>
                   <ul
                     className={`ml-4 space-y-2 transition-all duration-300 ease-in-out ${
-                      expandedItem === "MANAGE PROFILE" ? "block" : "hidden"
+                      expandedItems.includes("MANAGE PROFILE")
+                        ? "block"
+                        : "hidden"
                     }`}
                   >
                     <li>

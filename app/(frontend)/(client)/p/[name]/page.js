@@ -1,15 +1,18 @@
 import RecommendedProducts from "@/app/ui/recommended-products";
 import CategoryPage from "./CategoryPage";
 import { Suspense } from "react";
-import { Spin } from "antd";
 import { oswald } from "@/style/font";
-import { LoadingOutlined } from "@ant-design/icons";
-import { BigSpinner } from "@/app/ui/spinner";
+import { SmallSpinner } from "@/app/ui/spinner";
 
 export default function CategoryPageCy({ params: { name } }) {
+  const LoadingSpinner = () => (
+    <div className="flex h-screen items-center justify-center">
+      <SmallSpinner className="!text-primary" />
+    </div>
+  );
   return (
     <>
-      <Suspense fallback={<BigSpinner />}>
+      <Suspense fallback={<LoadingSpinner />}>
         <CategoryPage name={name} />
       </Suspense>
 

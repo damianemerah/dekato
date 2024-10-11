@@ -19,6 +19,7 @@ import { useSWRConfig } from "swr";
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
   const userId = session?.user?.id;
+  console.log(userId, "👇👇👇");
   const {
     userData: user,
     isLoading: userIsLoading,
@@ -30,6 +31,8 @@ export default function Overview() {
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { mutate } = useSWRConfig();
+
+  console.log(user, "👇👇👇");
 
   const handleEditClick = useCallback(() => setShowEditModal(true), []);
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
@@ -184,29 +187,49 @@ export default function Overview() {
             Address Book
           </h2>
           <div className="grid gap-8 md:grid-cols-2">
-            <div className="space-y-4">
-              <h3
-                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
-              >
-                Shipping Address
-              </h3>
-              <div className="rounded-md bg-gray-50 p-4 shadow-sm">
-                <p className="mb-2 font-medium">
-                  Your default shipping address:
-                </p>
-                <address className="not-italic">
-                  <p>
-                    {defaultAddress?.firstname} {defaultAddress?.lastname}
+            {defaultAddress ? (
+              <div className="space-y-4">
+                <h3
+                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                >
+                  Shipping Address
+                </h3>
+                <div className="rounded-md bg-gray-50 p-4 shadow-sm">
+                  <p className="mb-2 font-medium">
+                    Your default shipping address:
                   </p>
-                  <p>{defaultAddress?.address}</p>
-                  <p>
-                    {defaultAddress?.city}, {defaultAddress?.state}{" "}
-                    {defaultAddress?.postalCode}
-                  </p>
-                  <p>{defaultAddress?.phone}</p>
-                </address>
+                  <address className="not-italic">
+                    <p>
+                      {defaultAddress?.firstname} {defaultAddress?.lastname}
+                    </p>
+                    <p>{defaultAddress?.address}</p>
+                    <p>
+                      {defaultAddress?.city}
+                      {defaultAddress?.state && defaultAddress?.city
+                        ? ", "
+                        : ""}
+                      {defaultAddress?.state}
+                      {(defaultAddress?.state || defaultAddress?.city) &&
+                      defaultAddress?.postalCode
+                        ? " "
+                        : ""}
+                      {defaultAddress?.postalCode}
+                    </p>
+                    <p>{defaultAddress?.phone}</p>
+                  </address>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <h3
+                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                >
+                  Shipping Address
+                </h3>
+                <p>No default shipping address found.</p>
+                <ButtonSecondary>Add Address</ButtonSecondary>
+              </div>
+            )}
           </div>
         </section>
       </div>

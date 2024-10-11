@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
               <div className="sticky top-16 z-30 h-screen overflow-y-auto">
                 <SidebarServer />
               </div>
-              <div className="flex-1 overflow-x-hidden">
+              <div className="flex-1 overflow-x-hidden md:w-full md:shrink-0">
                 <LayoutWrapper>{children}</LayoutWrapper>
               </div>
             </div>

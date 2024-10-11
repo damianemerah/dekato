@@ -13,7 +13,7 @@ function AdminLayout({ children }) {
   const selected = paths.length > 0 ? paths[paths.length - 1] : "admin";
   const [selectedNavItem, setSelectedNavItem] = useState(selected);
   const [isLoading, setIsLoading] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     setIsLoading(false);

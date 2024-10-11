@@ -94,7 +94,7 @@ export default memo(function EditVariant({
 
   return (
     <ModalWrapper openSlider={openSlider} setOpenSlider={setOpenSlider}>
-      <div className="sticky top-16 z-[25] flex min-h-24 items-center justify-between bg-white px-6 shadow-shadowSm">
+      <div className="sticky top-0 z-[25] flex min-h-24 items-center justify-between bg-white px-6 shadow-shadowSm">
         <h2 className="text-xl font-medium text-primary">Edit Variants</h2>
         <div className="cursor-pointer rounded-md p-1 text-xl hover:bg-grayBg">
           <DeleteIcon onClick={() => setOpenSlider(false)} />

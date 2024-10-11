@@ -59,6 +59,8 @@ export function getQueryObj(searchParams) {
     ]),
   );
 
+  console.log(params, "params🔥🔥🔥");
+
   let variantConditions = [];
 
   for (const key in params) {
@@ -86,6 +88,10 @@ export function getQueryObj(searchParams) {
   if (variantConditions.length > 0) {
     params.variant = { $elemMatch: { $or: variantConditions } };
   }
+
+  // Add default limit and page if not provided
+  params.limit = params.limit || 2;
+  params.page = params.page || 1;
 
   return params;
 }

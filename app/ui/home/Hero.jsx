@@ -6,7 +6,6 @@ import image2 from "@/public/assets/image2.png";
 import image3 from "@/public/assets/image3.png";
 import { oswald } from "@/font";
 import PromoBar from "@/app/ui/promo-bar";
-
 import "swiper/css/effect-fade";
 
 import { Swiper, SwiperSlide } from "swiper/react";

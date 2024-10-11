@@ -5,7 +5,7 @@ const oswald = Oswald({
   display: "swap",
   fallbacks: ["sans-serif"],
   variable: "--font-oswald",
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const inter = Inter({
@@ -20,7 +20,7 @@ const roboto = Roboto({
   display: "swap",
   fallbacks: ["sans-serif"],
   variable: "--font-roboto",
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "700"],
 });
 
 export { oswald, inter, roboto };

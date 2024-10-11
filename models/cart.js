@@ -67,10 +67,12 @@ cartSchema.virtual("totalItems").get(function () {
 
 cartSchema.virtual("totalPrice").get(function () {
   return this.item.reduce((total, item) => {
-    if (item.checked) {
-      const itemPrice = item.productId.isDiscounted
-        ? item.productId.discountPrice
-        : item.price;
+    if (item.checked && item.productId) {
+      const itemPrice =
+        item.productId.discountPrice !== undefined &&
+        item.productId.discountPrice < item.price
+          ? item.productId.discountPrice
+          : item.price;
       return total + itemPrice * item.quantity;
     }
     return total;
@@ -79,8 +81,13 @@ cartSchema.virtual("totalPrice").get(function () {
 
 cartSchema.virtual("amountSaved").get(function () {
   return this.item.reduce((total, item) => {
-    if (item.checked && item.productId.isDiscounted) {
-      const regularPrice = item.productId.price;
+    if (
+      item.checked &&
+      item.productId &&
+      item.productId.discountPrice !== undefined &&
+      item.productId.discountPrice < item.price
+    ) {
+      const regularPrice = item.price;
       const discountPrice = item.productId.discountPrice;
       return total + (regularPrice - discountPrice) * item.quantity;
     }

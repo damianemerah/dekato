@@ -46,7 +46,7 @@ const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
         ref={contentRef}
         className="overflow-hidden transition-all duration-300"
         style={{
-          height: isOpen ? contentRef.current.scrollHeight : 0,
+          height: isOpen ? contentRef.current?.scrollHeight : 0,
         }}
       >
         <div className="pb-4 text-sm font-light text-gray-700">{children}</div>
@@ -243,7 +243,10 @@ export default function ProductDetail({ product }) {
             )}
             <Swiper
               spaceBetween={10}
-              thumbs={{ swiper: thumbsSwiper }}
+              thumbs={{
+                swiper:
+                  thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
+              }}
               modules={[FreeMode, Thumbs]}
               className="mainSwiper !h-[600px] w-full"
               onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}

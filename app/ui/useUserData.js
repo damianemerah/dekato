@@ -11,13 +11,11 @@ export default function useUserData(userId) {
 
   const { isLoading, isValidating, error, data } = useSWR(
     userId ? `/api/user/${userId}` : null,
-    () => fetchUser(userId),
+    () => (userId ? fetchUser(userId) : null),
     {
       onSuccess: setUser,
       revalidateOnFocus: false,
       fallbackData: user,
-      refreshInterval: 300000,
-      revalidateIfStale: false,
     },
   );
 

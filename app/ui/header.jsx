@@ -87,7 +87,7 @@ function Header() {
       </Link>
 
       <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-6">
-        {user && userId ? (
+        {user?.id ? (
           <Link href="/account" className="flex items-center gap-2">
             <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />
             <span className="hidden text-xs hover:border-b hover:border-b-white sm:inline sm:text-sm">

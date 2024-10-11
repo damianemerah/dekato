@@ -31,13 +31,15 @@ const setupIndexes = async () => {
 };
 
 const formatProduct = (product) => {
-  const { _id, category, variant, ...rest } = product;
-  return {
+  const { _id, category, campaign, variant, ...rest } = product;
+  const formattedProduct = {
     id: _id.toString(),
     ...rest,
     category: category?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
+    campaign: campaign?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
     variant: variant?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v })),
   };
+  return formattedProduct;
 };
 
 const handleProductQuery = async (query, searchParams = {}) => {
@@ -45,7 +47,6 @@ const handleProductQuery = async (query, searchParams = {}) => {
     .filter()
     .search()
     .sort()
-    .limitFields()
     .paginate();
 
   const productData = await feature.query;
@@ -55,18 +56,25 @@ const handleProductQuery = async (query, searchParams = {}) => {
   return productData.map(formatProduct);
 };
 
-export async function getAdminProduct() {
+export async function getAdminProduct(params) {
   try {
     await dbConnect();
-    const products = await Product.find()
-      .sort({ createdAt: -1 })
+
+    const query = Product.find()
       .populate("category", "name")
+      .populate("campaign", "name")
       .lean();
-    return products.map(formatProduct);
+    const searchParams = {
+      sort: "-createdAt",
+      page: params.page || 1,
+      limit: params.limit || 2,
+    };
+    const products = await handleProductQuery(query, searchParams);
+    const totalCount = await Product.countDocuments(query.getFilter());
+    return { data: products, totalCount, limit: searchParams.limit };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
-    throw handleAppError(err);
   }
 }
 
@@ -104,12 +112,20 @@ export async function getVariantsByCategory(catName, searchStr = "") {
       };
     } else if (catName && catName !== "search") {
       const category = await Category.findOne({ slug: catName }).lean();
-      if (!category) throw new Error("Category not found");
-      matchCondition = {
-        category: { $in: [category._id, ...category.children] },
-      };
+      if (!category) {
+        // Check if it's a campaign
+        const campaign = await Campaign.findOne({ slug: catName }).lean();
+        if (!campaign) {
+          return []; // Return empty array if neither category nor campaign found
+        }
+        matchCondition = { campaign: campaign._id };
+      } else {
+        matchCondition = {
+          category: { $in: [category._id, ...(category.children || [])] },
+        };
+      }
     } else {
-      return;
+      return [];
     }
 
     const variantData = await Product.aggregate([
@@ -122,44 +138,140 @@ export async function getVariantsByCategory(catName, searchStr = "") {
       variant: { id: variant._id.toString(), ...variant },
     }));
   } catch (err) {
+    console.error("Error in getVariantsByCategory:", err);
+    return []; // Return empty array on error
+  }
+}
+
+export async function getAllProducts(slugArray, searchParams = {}) {
+  try {
+    await dbConnect();
+
+    let categories = [];
+    let campaigns = [];
+    let baseQuery = Product.find();
+    let isFallback = false;
+
+    if (slugArray[slugArray.length - 1] !== "search") {
+      if (slugArray.length === 1) {
+        // Case 1: Single slug (e.g., [men] or [jeans])
+        const topLevelCategory = await Category.findOne({
+          slug: slugArray[0],
+          parent: null,
+        }).lean();
+
+        if (topLevelCategory) {
+          // It's a top-level category, fetch all subcategories
+          categories = await Category.find({
+            parent: topLevelCategory._id,
+          }).lean();
+          categories.push(topLevelCategory);
+        } else {
+          // It's not a top-level category, find all categories with this slug in their path
+          categories = await Category.find({
+            path: { $in: [slugArray[0], new RegExp(`/${slugArray[0]}$`)] },
+          }).lean();
+        }
+
+        // Check for campaigns
+        campaigns = await Campaign.find({
+          path: { $in: [slugArray[0], new RegExp(`/${slugArray[0]}$`)] },
+        }).lean();
+      } else if (slugArray.length > 1) {
+        // Case 2: Multiple slugs (e.g., [men, jeans])
+        const exactPath = slugArray.join("/");
+        categories = await Category.find({ path: exactPath }).lean();
+        campaigns = await Campaign.find({ path: exactPath }).lean();
+
+        if (categories.length === 0 && campaigns.length === 0) {
+          // If no exact match, fallback to the parent category
+          const parentSlug = slugArray[0];
+          const parentCategory = await Category.findOne({
+            slug: parentSlug,
+            parent: null,
+          }).lean();
+          if (parentCategory) {
+            // Get all subcategories with parent = parentCategory
+            const subCategories = await Category.find({
+              parent: parentCategory._id,
+            }).lean();
+            categories = [parentCategory, ...subCategories];
+            isFallback = true;
+          }
+        }
+      }
+
+      if (categories.length === 0 && campaigns.length === 0) return null;
+
+      const categoryIds = categories.map((cat) => cat._id);
+      const campaignIds = campaigns.map((camp) => camp._id);
+
+      baseQuery = Product.find({
+        $or: [
+          { category: { $in: categoryIds } },
+          { campaign: { $in: campaignIds } },
+        ],
+      })
+        .select("name slug _id image price discount")
+        .populate("category", "name slug path")
+        .populate("campaign", "name slug path");
+    }
+
+    const populatedQuery = baseQuery.lean();
+    const newSearchParams = getQueryObj(searchParams);
+
+    // const data = await handleProductQuery(populatedQuery, newSearchParams);
+
+    const feature = new APIFeatures(populatedQuery, newSearchParams)
+      .filter()
+      .search()
+      .sort()
+      .paginate();
+
+    const productData = await feature.query;
+
+    if (!productData?.length) return [];
+
+    const data = productData.map(formatProduct);
+
+    const isCampaign = campaigns.length > 0 && !isFallback;
+
+    const limit = parseInt(newSearchParams.limit) || 20;
+    const page = parseInt(newSearchParams.page) || 1;
+    const totalCount = await Product.countDocuments(feature.query.getFilter());
+
+    let result = {
+      isCampaign,
+      data,
+      totalCount,
+      currentPage: page,
+      limit,
+    };
+
+    if (isCampaign && campaigns.length > 0) {
+      const campaignWithBanner = await Campaign.findById(campaigns[0]._id)
+        .select("banner")
+        .lean();
+      if (campaignWithBanner && campaignWithBanner.banner) {
+        result.banner = campaignWithBanner.banner;
+      }
+    }
+
+    return result;
+  } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
   }
 }
 
-export async function getAllProducts(cat, searchParams = {}) {
-  try {
-    await dbConnect();
-    const catName = cat?.slice(-1)[0]?.toLowerCase();
-    let baseQuery = Product.find();
-
-    console.log(catName, "catName🔥🔥🔥");
-
-    if (catName && catName !== "search") {
-      const category = await Category.findOne({ slug: catName }).lean();
-      const collection = await Campaign.findOne({ slug: catName }).lean();
-
-      if (!category && !collection) return null;
-
-      if (category) {
-        const categoryIds = [category._id, ...(category.children || [])];
-        baseQuery = Product.find({ category: { $in: categoryIds } });
-      } else if (collection) {
-        baseQuery = Product.find({ collection: collection._id });
-      }
-    }
-
-    const populatedQuery = baseQuery
-      .populate("category", "slug")
-      .populate("collection", "slug")
-      .lean();
-    const newSearchParams = getQueryObj(searchParams);
-
-    return await handleProductQuery(populatedQuery, newSearchParams);
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
-  }
+export async function getProductById(id) {
+  await dbConnect();
+  const product = await Product.findById(id)
+    .populate("category", "name slug")
+    .populate("campaign", "name slug")
+    .lean({ virtuals: true });
+  if (!product) throw new Error("Product not found");
+  return formatProduct(product);
 }
 
 export async function createProduct(formData) {
@@ -168,15 +280,16 @@ export async function createProduct(formData) {
     await dbConnect();
 
     const obj = await handleFormData(formData);
+
     const productDoc = await Product.create(obj);
     if (!productDoc) throw new Error("Product not created");
 
     revalidateProduct(productDoc.slug);
-    return formatProduct(productDoc);
+    const product = formatProduct(productDoc);
+    return product;
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
-    throw handleAppError(err);
   }
 }
 
@@ -247,16 +360,12 @@ export const deleteProduct = async (id) => {
   }
 };
 
-export async function getProductById(id) {
-  await dbConnect();
-  const product = await Product.findById(id).lean();
-  if (!product) throw new Error("Product not found");
-  return formatProduct(product);
-}
-
 export async function getProductsByCategory(cat) {
   await dbConnect();
-  const products = await Product.find({ cat }).populate("category").lean();
+  const products = await Product.find({ cat })
+    .populate("category", "name slug")
+    .populate("campaign", "name slug")
+    .lean();
   return products.map((product) => {
     const formattedProduct = formatProduct(product);
     if (formattedProduct.category) {
@@ -266,6 +375,12 @@ export async function getProductsByCategory(cat) {
     }
     return formattedProduct;
   });
+}
+
+export async function getProductByCollection(slug) {
+  await dbConnect();
+  const product = await Product.findOne({ campaign: slug }).lean();
+  return formatProduct(product);
 }
 
 function revalidateProduct(id) {

@@ -11,8 +11,8 @@ export default function useCartData(userId) {
     () => fetchCart(userId),
     {
       onSuccess: setCart,
-      revalidateOnFocus: false,
       fallbackData: cart,
+      revalidateOnFocus: false,
     },
   );
 

@@ -8,7 +8,7 @@ import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { Switch, Space } from "antd";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import dynamic from "next/dynamic";
-import { BigSpinner } from "@/app/ui/spinner";
+import { SmallSpinner } from "@/app/ui/spinner";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -38,13 +38,18 @@ const ProductForm = ({
   priceRef,
   discountRef,
   quantityRef,
+  collectionList,
+  selectedCollectionKeys,
+  setSelectedCollectionKeys,
 }) => {
   const isCreateMode = actionType === "create";
+
+  console.log(selectedProduct, "selectedProduct🔥🔥🔥");
 
   return (
     <div className="relative h-full">
       <div
-        className={`${roboto.className} mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10 lg:py-20`}
+        className={`${roboto.className} mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10`}
       >
         <div className="mb-6 flex items-center sm:mb-8 md:mb-10 lg:mb-12">
           <Link href="/admin/products">
@@ -85,6 +90,9 @@ const ProductForm = ({
               catList={catList}
               selectedCatKeys={selectedCatKeys}
               setSelectedCatKeys={setSelectedCatKeys}
+              collectionList={collectionList}
+              selectedCollectionKeys={selectedCollectionKeys}
+              setSelectedCollectionKeys={setSelectedCollectionKeys}
             />
           </div>
         </form>
@@ -170,7 +178,7 @@ const ProductDetails = ({
         inputRef={priceRef}
         placeholder="100"
         required
-        defaultValue={selectedProduct?.price || ""}
+        defaultValue={selectedProduct?.price || undefined}
       />
       <FormField
         label="DISCOUNT (%)"
@@ -180,7 +188,7 @@ const ProductDetails = ({
         placeholder="0"
         min="0"
         max="100"
-        defaultValue={selectedProduct?.discount || ""}
+        defaultValue={selectedProduct?.discount || undefined}
       />
       <div>
         <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
@@ -194,17 +202,27 @@ const ProductDetails = ({
         </div>
       </div>
     </FormSection>
-    <FormSection>
+    <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
       <FormField
-        label="QUANTITY"
+        label="INVENTORY"
         name="quantity"
         type="number"
         inputRef={quantityRef}
         placeholder="100"
         required
-        className="sm:w-1/2"
-        defaultValue={selectedProduct?.quantity || ""}
+        defaultValue={selectedProduct?.quantity || undefined}
       />
+      <div>
+        <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+          SOLD
+        </label>
+        <div
+          className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
+          title="Not editable"
+        >
+          {selectedProduct?.sold || "N/A"}
+        </div>
+      </div>
     </FormSection>
   </>
 );
@@ -218,6 +236,9 @@ const ProductActions = ({
   catList,
   selectedCatKeys,
   setSelectedCatKeys,
+  collectionList,
+  selectedCollectionKeys,
+  setSelectedCollectionKeys,
 }) => (
   <>
     <FormSection>
@@ -229,7 +250,7 @@ const ProductActions = ({
         >
           <Space>
             Save changes
-            {prodLoading && <BigSpinner />}
+            {prodLoading && <SmallSpinner className="!text-white" />}
           </Space>
         </button>
         <button
@@ -255,6 +276,17 @@ const ProductActions = ({
         mode="tags"
         selectedKeys={selectedCatKeys}
         handleChange={(value) => setSelectedCatKeys(value)}
+      />
+    </FormSection>
+    <FormSection>
+      <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+        COLLECTION
+      </h3>
+      <DropDown
+        options={collectionList}
+        mode="tags"
+        selectedKeys={selectedCollectionKeys}
+        handleChange={(value) => setSelectedCollectionKeys(value)}
       />
     </FormSection>
   </>

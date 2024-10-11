@@ -5,13 +5,10 @@ import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import useSWRImmutable from "swr/immutable";
 import { message } from "antd";
-import {
-  useAdminStore,
-  useProductStore,
-} from "@/app/(frontend)/admin/store/adminStore";
+import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 import {
   createProduct,
-  getAdminProduct,
+  getProductById,
   updateProduct,
 } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
@@ -21,7 +18,6 @@ import { generateVariantOptions } from "@/utils/getFunc";
 import useConfirmModal from "@/app/ui/confirm-modal";
 import "react-quill/dist/quill.snow.css";
 import { useUserStore } from "@/store/store";
-
 import ProductForm from "@/app/(frontend)/admin/ui/products/productForm";
 
 const Page = memo(function Page({ params }) {
@@ -36,7 +32,6 @@ const Page = memo(function Page({ params }) {
   const [switchState, setSwitchState] = useState(false);
   const [selectedCatKeys, setSelectedCatKeys] = useState([]);
   const [selectedCollectionKeys, setSelectedCollectionKeys] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [openSlider1, setOpenSlider1] = useState(false);
   const [openSlider2, setOpenSlider2] = useState(false);
   const [actionType, setActionType] = useState("");
@@ -60,7 +55,6 @@ const Page = memo(function Page({ params }) {
   const setCurVariantOptions = useAdminStore(
     (state) => state.setCurVariantOptions,
   );
-  const setProducts = useProductStore((state) => state.setProducts);
 
   const { data: allCategories, isLoading: catIsLoading } = useSWRImmutable(
     "/api/allCategories",
@@ -70,10 +64,10 @@ const Page = memo(function Page({ params }) {
 
   const { data: products, isLoading } = useSWR(
     `/admin/products/${slug}`,
-    getAdminProduct,
+    () => (slug !== "new" ? getProductById(slug) : null),
     {
-      onSuccess: setProducts,
       revalidateOnFocus: false,
+      refreshInterval: 10000, // 10 seconds
     },
   );
 
@@ -86,7 +80,6 @@ const Page = memo(function Page({ params }) {
   const initializeEditMode = useCallback(
     (product) => {
       setActionType("edit");
-      setSelectedProduct(product);
       setVariants(product?.variant);
       setCurVariantOptions(generateVariantOptions(product?.variant));
       setDefaultFileList(
@@ -98,6 +91,7 @@ const Page = memo(function Page({ params }) {
         })),
       );
       setSelectedCatKeys(product?.category?.map((cat) => cat.id) || []);
+      setSelectedCollectionKeys(product?.campaign?.map((cat) => cat.id) || []);
       setDescription(product.description || "");
       nameRef.current.value = product.name || "";
       priceRef.current.value = product.price || "";
@@ -110,7 +104,18 @@ const Page = memo(function Page({ params }) {
   useEffect(() => {
     if (!catIsLoading && allCategories?.length) {
       setCatList(
-        allCategories.map((cat) => ({ value: cat.id, label: cat.name })),
+        allCategories.map((cat) => ({
+          value: cat.id,
+          label: (
+            <p>
+              {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{" "}
+              {cat.parent?.name
+                ? `(${cat.parent.name.charAt(0).toUpperCase() + cat.parent.name.slice(1)})`
+                : ""}
+            </p>
+          ),
+          parent: cat.parent,
+        })),
       );
     }
   }, [allCategories, catIsLoading]);
@@ -120,7 +125,15 @@ const Page = memo(function Page({ params }) {
       setCollectionList(
         collections.map((collection) => ({
           value: collection.id,
-          label: collection.name,
+          label: (
+            <p>
+              {collection.name.charAt(0).toUpperCase() +
+                collection.name.slice(1)}{" "}
+              {collection.category?.name
+                ? `(${collection.category.name.charAt(0).toUpperCase() + collection.category.name.slice(1)})`
+                : ""}
+            </p>
+          ),
         })),
       );
     }
@@ -129,16 +142,13 @@ const Page = memo(function Page({ params }) {
   useEffect(() => {
     if (isLoading) return;
 
-    if (slug !== "new" && products?.length) {
-      const product = products.find((p) => p.id === slug);
-      if (product) {
-        initializeEditMode(product);
-      }
+    if (slug !== "new" && products) {
+      initializeEditMode(products);
     } else if (slug === "new") {
       setActionType("create");
-      setSelectedProduct(null);
       setCurVariantOptions([]);
     } else {
+      alert("Product not found");
       router.push("/admin/products");
     }
   }, [
@@ -172,6 +182,9 @@ const Page = memo(function Page({ params }) {
       });
 
       selectedCatKeys.forEach((catId) => formData.append("category", catId));
+      selectedCollectionKeys.forEach((collectionId) =>
+        formData.append("campaign", collectionId),
+      );
 
       for (const [key, value] of formData.entries()) {
         console.log(key, value);
@@ -216,7 +229,7 @@ const Page = memo(function Page({ params }) {
       async onOk() {
         setSwitchState(true);
         await setStatusAsync(
-          selectedProduct?.status === "active" ? "draft" : "active",
+          products?.status === "active" ? "draft" : "active",
         );
         submitBtnRef.current.click();
       },
@@ -237,11 +250,14 @@ const Page = memo(function Page({ params }) {
       submitBtnRef={submitBtnRef}
       prodLoading={prodLoading}
       showConfirm={showConfirm}
-      selectedProduct={selectedProduct}
+      selectedProduct={products}
       switchState={switchState}
       catList={catList}
       selectedCatKeys={selectedCatKeys}
+      collectionList={collectionList}
       setSelectedCatKeys={setSelectedCatKeys}
+      selectedCollectionKeys={selectedCollectionKeys}
+      setSelectedCollectionKeys={setSelectedCollectionKeys}
       openSlider1={openSlider1}
       setOpenSlider1={setOpenSlider1}
       openSlider2={openSlider2}

@@ -34,6 +34,14 @@ export default memo(function HomeCategory() {
       ? `/api/pinnedCategories?parent=${selectedCategory}`
       : null,
     () => getPinnedCategoriesByParent(selectedCategory),
+
+    {
+      revalidateOnFocus: false,
+      refreshInterval: 1000 * 60 * 5, // 5 minutes
+      onSuccess: (data) => {
+        console.log(data, "data");
+      },
+    },
   );
 
   useEffect(() => {

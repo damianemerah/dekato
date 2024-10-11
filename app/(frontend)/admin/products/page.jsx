@@ -11,6 +11,7 @@ import useSWRImmutable from "swr/immutable";
 import noImage from "@/public/assets/no-image.webp";
 import Link from "next/link";
 import useConfirmModal from "@/app/ui/confirm-modal";
+import { useRouter } from "next/navigation";
 
 const Action = memo(function Action({ id, handleDelete }) {
   const items = [
@@ -21,7 +22,7 @@ const Action = memo(function Action({ id, handleDelete }) {
           href={`/admin/products/${id}`}
           className="!text-blue-500"
         >
-          View / Edit
+          Edit
         </Link>
       ),
       key: "0",
@@ -56,17 +57,25 @@ const Action = memo(function Action({ id, handleDelete }) {
   );
 });
 
-const ProductsList = () => {
+const ProductsList = ({ searchParams }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [totalCount, setTotalCount] = useState(1);
+  const [limit, setLimit] = useState(2);
   const [loading, setLoading] = useState(false);
   const showConfirmModal = useConfirmModal();
 
+  const router = useRouter();
+
+  const page = searchParams?.page || 1;
+
   const {
-    data: products,
+    data: productData,
     mutate,
     isLoading,
-  } = useSWR("/admin/products", () => getAdminProduct(), {
-    revalidateOnFocus: true,
+  } = useSWR(`/admin/products?page=${page}`, () => getAdminProduct({ page }), {
+    revalidateOnFocus: false,
+    refreshInterval: 100000,
   });
 
   const { data: categories } = useSWRImmutable(
@@ -77,15 +86,26 @@ const ProductsList = () => {
     },
   );
 
-  const dataSource = products?.map((item) => ({
-    key: item.id,
-    image: item.image[0],
-    name: item.name,
-    status: item.status,
-    productCount: item.quantity,
-    category: item.category?.map((cat) => cat.name).join(", ") || "",
-    action: <Action />,
-  }));
+  useEffect(() => {
+    if (productData) {
+      setTotalCount(productData.totalCount);
+      setProducts(productData.data);
+      setLimit(productData.limit);
+    }
+  }, [productData]);
+
+  const dataSource = Array.isArray(products)
+    ? products.map((item) => ({
+        key: item.id,
+        image: item.image[0],
+        name: item.name,
+        status: item.status,
+        productCount: item.quantity,
+        category: item.category?.map((cat) => cat.name).join(", ") || "",
+        collection: item.campaign?.map((camp) => camp.name).join(", ") || "",
+        action: <Action />,
+      }))
+    : [];
 
   const handleDelete = async (id) => {
     const deleteAndUpdateProd = async () => {
@@ -191,7 +211,18 @@ const ProductsList = () => {
         return record?.category.includes(value);
       },
     },
-
+    {
+      title: "Collection",
+      dataIndex: "collection",
+      filters: Array.from(
+        new Set(dataSource.map((item) => item.collection).filter(Boolean)),
+      ).map((collection) => ({
+        text: collection,
+        value: collection,
+      })),
+      filterSearch: true,
+      onFilter: (value, record) => record.collection.includes(value),
+    },
     {
       title: "Action",
       dataIndex: "action",
@@ -209,6 +240,10 @@ const ProductsList = () => {
     onChange: onSelectChange,
   };
   const hasSelected = selectedRowKeys.length > 0;
+
+  const handlePageChange = (page) => {
+    router.push(`/admin/products?page=${page}`);
+  };
 
   return (
     <Flex gap="middle" vertical className="p-6">
@@ -246,9 +281,16 @@ const ProductsList = () => {
         }
         scroll={{ x: "max-content" }}
         className="overflow-x-auto sm:overflow-x-auto md:overflow-x-visible"
+        pagination={{
+          current: parseInt(page),
+          pageSize: limit,
+          showSizeChanger: false,
+          total: totalCount,
+          onChange: handlePageChange,
+        }}
       />
     </Flex>
   );
 };
 
-export default memo(ProductsList);
+export default ProductsList;
