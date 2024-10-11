@@ -4,6 +4,7 @@ import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
 import { Suspense, memo } from "react";
 import { SmallSpinner } from "@/app/ui/spinner";
+import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -46,13 +47,17 @@ const LoadingSpinner = memo(function LoadingSpinner() {
 });
 
 export async function generateStaticParams() {
-  const categoryPaths = await getAllCategoryPaths();
+  const categoryPaths = await unstable_cache(
+    async () => await getAllCategoryPaths(),
+    ["categoryPaths"],
+    { revalidate: 10 }, // Revalidate every 30 seconds
+  )();
 
   const paths = categoryPaths.map((path) => ({
     cat: path,
   }));
 
-  console.log(paths, "paths🎈🎈🎈");
+  // console.log(paths, "paths🔥🔥🔥");
 
   return paths;
 }

@@ -70,6 +70,9 @@ const Collections = () => {
     mutate,
   } = useSWRImmutable("/api/allCollections", getAllCollections, {
     revalidateOnFocus: false,
+    onSuccess: (data) => {
+      console.log(data, "👇👇👇");
+    },
   });
 
   const dataSource = collections?.map((item) => ({
@@ -78,6 +81,7 @@ const Collections = () => {
     name: item.name,
     productCount: item.productCount,
     slug: item.slug,
+    category: item.category?.name || "Uncategorized",
     action: <Action slug={item.slug} />,
   }));
 
@@ -108,6 +112,17 @@ const Collections = () => {
       })),
       filterSearch: true,
       onFilter: (value, record) => record.name.includes(value),
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+      filters: [...new Set(dataSource?.map((item) => item.category))].map(
+        (category) => ({
+          text: category,
+          value: category,
+        }),
+      ),
+      onFilter: (value, record) => record.category === value,
     },
     {
       title: "Products",
@@ -236,4 +251,4 @@ const Collections = () => {
   );
 };
 
-export default memo(Collections);
+export default Collections;

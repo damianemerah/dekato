@@ -5,65 +5,10 @@ import Category from "@/models/category";
 import { handleFormData } from "@/utils/handleForm";
 import { protect, restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
+import APIFeatures from "@/utils/apiFeatures";
 import { revalidatePath } from "next/cache";
 
-// Function to generate breadcrumbs using aggregation
-// export async function generateBreadcrumbs(categoryId) {
-//   await dbConnect();
-//   try {
-//     const result = await Category.aggregate([
-//       {
-//         $match: { _id: mongoose.Types.ObjectId(categoryId) },
-//       },
-//       {
-//         $graphLookup: {
-//           from: "categories",
-//           startWith: "$parent",
-//           connectFromField: "parent",
-//           connectToField: "_id",
-//           as: "breadcrumbs",
-//           maxDepth: 5,
-//         },
-//       },
-//       {
-//         $unwind: "$breadcrumbs", // Unwind the breadcrumbs array
-//       },
-//       {
-//         $sort: { "breadcrumbs.depth": 1 }, // Sort by depth to order correctly
-//       },
-//       {
-//         $project: {
-//           name: "$breadcrumbs.name",
-//           slug: "$breadcrumbs.slug",
-//           _id: 0, // Exclude the original _id
-//         },
-//       },
-//     ]);
-
-//     // Add the current category to the breadcrumbs
-//     const category = await Category.findById(categoryId).select("name slug");
-//     const breadcrumbs = result.map((r) => ({
-//       name: r.name,
-//       slug: r.slug,
-//     }));
-
-//     // Add the current category to the end of the breadcrumb array
-//     breadcrumbs.push({
-//       name: category.name,
-//       slug: category.slug,
-//     });
-
-//     // Add "Home" as the root of the breadcrumb trail
-//     breadcrumbs.unshift({ name: "Home", slug: "" });
-
-//     return breadcrumbs;
-//   } catch (err) {
-//     const error = handleAppError(err);
-//     throw new Error(error.message || "An error occurred");
-//   }
-// }
-
-function formatCategories(categories) {
+export const formatCategories = (categories) => {
   return categories.map(({ _id, parent, createdAt, ...rest }) => {
     const { _id: pid, ...p } = parent || {};
     const formattedCategory = {
@@ -76,24 +21,48 @@ function formatCategories(categories) {
     }
     return formattedCategory;
   });
-}
+};
 
-export async function getAllCategories() {
-  await dbConnect();
-
+export async function getAllCategories(params) {
   try {
-    const categories = await Category.find(
+    await dbConnect();
+
+    const query = Category.find(
       {},
       "name description image slug createdAt parent pinned pinOrder",
     )
-      .populate("productCount")
       .populate("parent", "name _id slug")
-      .lean();
+      .lean({ virtuals: true });
 
-    return formatCategories(categories);
+    const searchParams = {
+      page: params?.page || 1,
+      limit: params?.limit || 2,
+    };
+
+    const feature = new APIFeatures(query, searchParams).paginate().sort();
+
+    const categoryData = await feature.query;
+
+    const formattedData = categoryData.map(({ _id, parent, ...rest }) => ({
+      id: _id.toString(),
+      parent: parent
+        ? {
+            id: parent._id.toString(),
+            name: parent.name,
+            slug: parent.slug,
+          }
+        : null,
+      ...rest,
+    }));
+
+    const totalCount = await Category.countDocuments(query.getFilter());
+
+    console.log(formattedData, "data🌐33🌐", totalCount, searchParams.limit);
+
+    return { data: formattedData, totalCount, limit: searchParams.limit };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Something went wrong");
+    throw new Error(error.message);
   }
 }
 

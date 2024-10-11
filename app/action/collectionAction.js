@@ -26,13 +26,15 @@ export async function getAllCollections() {
   try {
     const collections = await Campaign.find(
       {},
-      "name description image slug createdAt productCount",
-    ).lean({ virtuals: true });
+      "name description image slug createdAt productCount category banner",
+    )
+      .populate("category", "name slug")
+      .lean({ virtuals: true });
 
     return formatCollections(collections);
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(err.message, "Something went wrong");
+    throw new Error(error.message);
   }
 }
 
@@ -42,6 +44,7 @@ export async function createCollection(formData) {
 
   try {
     const body = await handleFormData(formData);
+
     const collection = await Campaign.create(body);
     const leanCollection = await Campaign.findById(collection._id).lean({
       virtuals: true,
@@ -69,7 +72,8 @@ export async function updateCollection(formData) {
     const collection = await Campaign.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
-      select: "name description image slug createdAt productCount",
+      select:
+        "name description image slug createdAt productCount category banner",
     }).lean({ virtuals: true });
 
     if (!collection) {

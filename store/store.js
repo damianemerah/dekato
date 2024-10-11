@@ -41,13 +41,6 @@ export const useCartStore = create(
   ),
 );
 
-export const useProductStore = create((set) => ({
-  products: [],
-  setProducts: (products) => set({ products }),
-  isLoading: false,
-  setIsLoading: (isLoading) => set({ isLoading }),
-}));
-
 export const useCategoryStore = create(
   persist(
     (set) => ({

@@ -18,7 +18,7 @@ const Action = memo(function Action({ id, handleDelete }) {
           href={`/admin/products/${id}`}
           className="!text-blue-500"
         >
-          View / Edit
+          Edit
         </Link>
       ),
       key: "0",

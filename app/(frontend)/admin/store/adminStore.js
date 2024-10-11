@@ -93,8 +93,3 @@ export const useCategoryStore = create((set) => ({
   isLoading: false,
   setIsLoading: (isLoading) => set({ isLoading }),
 }));
-
-export const useProductStore = create((set) => ({
-  products: [],
-  setProducts: (products) => set({ products }),
-}));

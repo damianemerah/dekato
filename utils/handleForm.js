@@ -6,17 +6,28 @@ export const handleFormData = async (formData, Model, id) => {
   const obj = {
     image: [],
     video: [],
+    banner: [],
     category: [],
+    campaign: [],
     variant: [],
   };
-  const filesToUpload = [];
+  const imagesToUpload = [];
+  const videosToUpload = [];
+  const bannerToUpload = [];
   const variantsFilesToUpload = [];
   const filesToDelete = [];
   let existingProd;
 
   validateFormData(formData);
 
-  processFormEntries(formData, obj, filesToUpload, variantsFilesToUpload);
+  processFormEntries(
+    formData,
+    obj,
+    imagesToUpload,
+    videosToUpload,
+    bannerToUpload,
+    variantsFilesToUpload,
+  );
 
   if (Model && id) {
     existingProd = await findExistingProduct(Model, id);
@@ -26,8 +37,13 @@ export const handleFormData = async (formData, Model, id) => {
     await handleExistingFiles(existingProd, obj, filesToDelete);
   }
 
-  const uploadedFileNames = await uploadNewFiles(filesToUpload);
-  updateObjWithUploadedFiles(obj, uploadedFileNames);
+  const uploadedImageNames = await uploadNewFiles(imagesToUpload, "image");
+  const uploadedVideoNames = await uploadNewFiles(videosToUpload, "video");
+  const uploadedBannerNames = await uploadNewFiles(bannerToUpload, "banner");
+
+  updateObjWithUploadedFiles(obj, uploadedImageNames, "image");
+  updateObjWithUploadedFiles(obj, uploadedVideoNames, "video");
+  updateObjWithUploadedFiles(obj, uploadedBannerNames, "banner");
 
   await handleVariantImages(obj, variantsFilesToUpload);
 
@@ -42,13 +58,14 @@ function validateFormData(formData) {
   const status = formData.get("status");
   const images = formData.getAll("image");
   const videos = formData.getAll("video");
+  const banners = formData.getAll("banner");
 
   if (status === "active") {
     if (!formData.get("category")) {
       throw new AppError("Category is required", 400);
     }
-    if (images.length === 0 && videos.length === 0) {
-      throw new AppError("Please upload image", 400);
+    if (images.length === 0 && videos.length === 0 && banners.length === 0) {
+      throw new AppError("Please upload image, video, or banner", 400);
     }
   }
 }
@@ -56,7 +73,9 @@ function validateFormData(formData) {
 function processFormEntries(
   formData,
   obj,
-  filesToUpload,
+  imagesToUpload,
+  videosToUpload,
+  bannerToUpload,
   variantsFilesToUpload,
 ) {
   for (const [key, value] of formData.entries()) {
@@ -66,8 +85,14 @@ function processFormEntries(
       processVariantImage(obj, variantsFilesToUpload, key, value);
     } else if (key === "category") {
       obj.category.push(value);
-    } else if (key === "image" || key === "video") {
-      processMediaFile(obj, filesToUpload, key, value);
+    } else if (key === "campaign") {
+      obj.campaign.push(value);
+    } else if (key === "image") {
+      processMediaFile(obj, imagesToUpload, key, value);
+    } else if (key === "video") {
+      processMediaFile(obj, videosToUpload, key, value);
+    } else if (key === "banner") {
+      processMediaFile(obj, bannerToUpload, key, value);
     } else {
       obj[key] = value;
     }
@@ -119,32 +144,32 @@ async function handleExistingFiles(existingProd, obj, filesToDelete) {
   const videosToDelete = existingProd.video
     ? existingProd.video.filter((vid) => !obj.video.includes(vid))
     : [];
+  const bannersToDelete = existingProd.banner
+    ? existingProd.banner.filter((ban) => !obj.banner.includes(ban))
+    : [];
 
-  filesToDelete.push(...imagesToDelete, ...videosToDelete);
+  filesToDelete.push(...imagesToDelete, ...videosToDelete, ...bannersToDelete);
 
   if (filesToDelete.length > 0) {
     await deleteFiles(filesToDelete);
   }
 }
 
-async function uploadNewFiles(filesToUpload) {
-  return filesToUpload.length > 0 ? await uploadFiles(filesToUpload) : [];
+async function uploadNewFiles(filesToUpload, fileType) {
+  return filesToUpload.length > 0
+    ? await uploadFiles(filesToUpload, fileType)
+    : [];
 }
 
-function updateObjWithUploadedFiles(obj, uploadedFileNames) {
-  obj.image.push(
-    ...uploadedFileNames.filter((file) => file.includes("com/image/")),
-  );
-  obj.video.push(
-    ...uploadedFileNames.filter((file) => file.includes("com/video/")),
-  );
+function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
+  obj[fileType].push(...uploadedFileNames);
 }
 
 async function handleVariantImages(obj, variantsFilesToUpload) {
   const variantImages = await Promise.all(
     variantsFilesToUpload.map(async (file) => {
       if (file.size > 0) {
-        return await uploadFiles([file]);
+        return await uploadFiles([file], "variant");
       }
     }),
   );

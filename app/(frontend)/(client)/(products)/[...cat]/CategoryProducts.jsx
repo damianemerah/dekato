@@ -15,27 +15,33 @@ const cachedProducts = unstable_cache(
     `products-${cat.join("-")}-${searchParams.toString()}`,
   ],
   {
-    revalidate: 3600,
+    revalidate: 10, // 30 seconds
     tags: ["products-all"],
   },
 );
 
 export default async function CategoryProducts({ cat, searchParams }) {
-  const products = await cachedProducts(cat, searchParams);
+  const data = await cachedProducts(cat, searchParams);
 
-  if (!products) {
+  console.log(data, "data😎🌐🌐");
+
+  if (!data) {
     notFound();
   }
 
   return (
-    products && (
+    data && (
       <>
         <div className="relative min-h-[80vh]">
-          {products && products.length > 0 ? (
+          {data && data?.data.length > 0 ? (
             <ProductList
-              products={products}
+              products={data.data}
               cat={cat}
               searchParams={searchParams}
+              banner={data?.banner}
+              totalCount={data?.totalCount}
+              currentPage={data?.currentPage}
+              limit={data?.limit}
             />
           ) : (
             <div className="flex min-h-[80vh] flex-col items-center justify-center p-8">

@@ -1,7 +1,7 @@
-import { useProductStore, useSearchStore } from "@/store/store";
+import { useSearchStore } from "@/store/store";
 import { use, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
-import { getAllProducts, productSearch } from "../action/productAction";
+import { productSearch } from "../action/productAction";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -143,19 +143,22 @@ const SearchBox = () => {
         </button>
       </div>
       {showMobileSearch && (
-        <div className="absolute left-0 right-0 top-0 z-[60] !m-0 w-full bg-white py-2 lg:hidden">
-          <form onSubmit={(e) => handleSearchProduct(e)} className="w-full">
+        <div className="absolute left-0 right-0 top-16 z-[60] !m-0 w-full bg-white py-2 lg:hidden">
+          <form
+            onSubmit={(e) => handleSearchProduct(e)}
+            className="relative w-full"
+          >
             <input
               ref={mobileSearchRef}
               onFocus={() => setActiveDropdown(true)}
               type="text"
               placeholder="Search..."
-              className="h-10 w-full bg-white px-4 py-2 text-primary outline-none placeholder:text-sm"
+              className="h-10 w-full bg-white px-4 py-2 pr-12 text-primary outline-none placeholder:text-sm"
               onChange={(e) => setSearchString(e.target.value)}
             />
             <button
               type="button"
-              className="absolute right-6 top-1/2 -translate-y-1/2 transform"
+              className="absolute right-4 top-1/2 z-10 -translate-y-1/2 transform"
               onClick={(e) => handleSearchProduct(e)}
             >
               <svg

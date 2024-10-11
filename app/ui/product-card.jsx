@@ -1,7 +1,50 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { useState, useEffect } from "react";
+import { useUserStore } from "@/store/store";
+import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
+import { message } from "antd";
+import { mutate } from "swr";
 
 export default function ProductCard({ product }) {
+  const user = useUserStore((state) => state.user);
+  const userId = user?.id;
+  const [isFavorite, setIsFavorite] = useState(
+    user?.wishlist?.includes(product.id),
+  );
+
+  useEffect(() => {
+    if (user?.wishlist.length < 0) return;
+    setIsFavorite(user?.wishlist?.includes(product.id));
+  }, [user?.wishlist, product.id]);
+
+  const handleFavoriteClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!userId) {
+      message.error("Please login to add to wishlist");
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await removeFromWishlist(userId, product.id);
+        message.success("Removed from wishlist");
+      } else {
+        await addToWishlist(userId, product.id);
+        message.success("Added to wishlist");
+      }
+      setIsFavorite(!isFavorite);
+      await mutate(`/api/user/${userId}`);
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
   const discountedPrice =
     product.price - (product.price * product.discount) / 100;
 
@@ -17,6 +60,8 @@ export default function ProductCard({ product }) {
             alt={product.name}
             fill={true}
             loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:..."
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="absolute left-0 top-0 h-full w-full object-cover object-center"
           />
@@ -25,6 +70,12 @@ export default function ProductCard({ product }) {
               -{product.discount}%
             </div>
           )}
+          <div
+            className="absolute right-2 top-2 cursor-pointer text-2xl text-primary transition-all duration-300 hover:scale-110"
+            onClick={handleFavoriteClick}
+          >
+            {isFavorite ? <HeartFilled /> : <HeartOutlined />}
+          </div>
         </div>
         <div className="flex flex-1 flex-col items-center pb-8 pt-1 text-[13px]">
           <p className="mb-0.5 w-full truncate overflow-ellipsis whitespace-nowrap text-nowrap text-sm capitalize">

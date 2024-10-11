@@ -28,7 +28,7 @@ function SignInContent() {
       alert("Your password has been changed. Please sign in again.");
     }
     if (status === "authenticated" && !isNewLogin) {
-      // router.push(callbackUrl);
+      router.push(callbackUrl);
       message.info("You are already logged in.");
     }
   }, [status, router, isNewLogin, callbackUrl, session]);

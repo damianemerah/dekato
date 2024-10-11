@@ -7,6 +7,7 @@ import {
   AppstoreOutlined,
   UserOutlined,
   DatabaseOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -36,17 +37,50 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
     {
       key: "products",
       icon: <ShoppingOutlined />,
-      label: <Link href="/admin/products">Products</Link>,
+      label: "Products",
+      children: [
+        {
+          key: "products-list",
+          label: <Link href="/admin/products">All Products</Link>,
+        },
+        {
+          key: "products-new",
+          icon: <PlusOutlined />,
+          label: <Link href="/admin/products/new">New Product</Link>,
+        },
+      ],
     },
     {
       key: "collections",
       icon: <AppstoreOutlined />,
-      label: <Link href="/admin/collections">Collections</Link>,
+      label: "Collections",
+      children: [
+        {
+          key: "collections-list",
+          label: <Link href="/admin/collections">All Collections</Link>,
+        },
+        {
+          key: "collections-new",
+          icon: <PlusOutlined />,
+          label: <Link href="/admin/collections/new">New Collection</Link>,
+        },
+      ],
     },
     {
       key: "categories",
       icon: <AppstoreOutlined />,
-      label: <Link href="/admin/categories">Categories</Link>,
+      label: "Categories",
+      children: [
+        {
+          key: "categories-list",
+          label: <Link href="/admin/categories">All Categories</Link>,
+        },
+        {
+          key: "categories-new",
+          icon: <PlusOutlined />,
+          label: <Link href="/admin/categories/new">New Category</Link>,
+        },
+      ],
     },
     // {
     //   key: "inventory",
