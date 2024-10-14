@@ -5,11 +5,14 @@ import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { protect, restrictTo } from "@/utils/checkPermission";
+import { revalidatePath } from "next/cache";
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 async function updateProductQuantity(order) {
   for (const item of order.cartItem) {
-    const product = await Product.findById(item.productId.toString());
+    const product = await Product.findById(item.product._id.toString());
+
+    console.log(product, "product💎💎");
 
     if (item.variantId) {
       const variantIndex = product.variant.findIndex(
@@ -27,7 +30,7 @@ async function updateProductQuantity(order) {
     await CartItem.deleteOne({ _id: item._id });
 
     await Cart.updateOne(
-      { user: userId },
+      { userId: order.userId },
       { $pull: { item: item._id } },
       { new: true },
     );
@@ -37,7 +40,7 @@ async function updateProductQuantity(order) {
 }
 
 async function updateProductQuantitySingle(order) {
-  const product = await Product.findById(order.singleProduct.productId);
+  const product = await Product.findById(order.singleProduct.product);
 
   if (order.singleProduct.variantId) {
     const variantIndex = product.variant.findIndex(
@@ -55,9 +58,9 @@ async function updateProductQuantitySingle(order) {
 }
 
 export async function POST(req) {
-  // await protect();
   // await restrictTo("admin", "user");
   try {
+    console.log("verify💎💎");
     const body = await req.json();
 
     const {
@@ -72,22 +75,20 @@ export async function POST(req) {
       path: "cartItem",
     });
 
+    console.log(order, "order💎💎");
+
     if (!order) {
-      throw new AppError("Order not found", 404);
+      throw new AppError("Something went wrong", 404);
     }
     const verification = await Paystack.transaction.verify(reference);
 
-    if (verification.data.status !== "success") {
-      order.status = "payment_failed";
-    } else {
-      order.status = "payment_confirmed";
-
-      //update product quantity (variants considered)
-
+    //update product quantity (variants considered)
+    if (verification.data.status === "success") {
       if (order.type === "cart") updateProductQuantity(order);
       else if (order.type === "single") updateProductQuantitySingle(order);
     }
 
+    order.status = verification?.data?.status;
     order.paymentRef = reference;
     order.paymentId = paymentId;
     order.paymentMethod = paymentMethod;
@@ -95,6 +96,8 @@ export async function POST(req) {
     order.receiptNumber = receipt_number;
 
     await order.save();
+
+    revalidatePath("/?payment=success");
 
     return NextResponse.json(
       {

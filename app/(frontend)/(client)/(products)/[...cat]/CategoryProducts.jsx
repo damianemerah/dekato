@@ -23,8 +23,6 @@ const cachedProducts = unstable_cache(
 export default async function CategoryProducts({ cat, searchParams }) {
   const data = await cachedProducts(cat, searchParams);
 
-  console.log(data, "data😎🌐🌐");
-
   if (!data) {
     notFound();
   }
@@ -33,7 +31,7 @@ export default async function CategoryProducts({ cat, searchParams }) {
     data && (
       <>
         <div className="relative min-h-[80vh]">
-          {data && data?.data.length > 0 ? (
+          {data && data?.data?.length > 0 ? (
             <ProductList
               products={data.data}
               cat={cat}

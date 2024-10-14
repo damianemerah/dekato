@@ -78,9 +78,9 @@ const ProductsList = ({ searchParams }) => {
     refreshInterval: 100000,
   });
 
-  const { data: categories } = useSWRImmutable(
+  const { data: categoryData } = useSWRImmutable(
     "/api/allCategories",
-    getAllCategories,
+    () => getAllCategories({ limit: 1000 }),
     {
       revalidateOnFocus: false,
     },
@@ -202,10 +202,11 @@ const ProductsList = ({ searchParams }) => {
     {
       title: "Category",
       dataIndex: "category",
-      filters: categories?.map((item) => ({
-        text: item?.name ? item.name : "",
-        value: item?.name ? item.name : "",
-      })),
+      filters:
+        categoryData?.data?.map((item) => ({
+          text: item?.name ? item.name : "",
+          value: item?.name ? item.name : "",
+        })) || [],
       filterSearch: true,
       onFilter: (value, record) => {
         return record?.category.includes(value);

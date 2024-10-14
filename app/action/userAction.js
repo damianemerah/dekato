@@ -72,7 +72,7 @@ export async function getWishlist(userId) {
 
   const { wishlist } = await User.findById(userId)
     .select("wishlist")
-    .populate("wishlist", "name price image variant")
+    .populate("wishlist", "name price image variant slug")
     .lean();
 
   return wishlist.map(({ _id, variant, ...rest }) => ({
@@ -286,7 +286,6 @@ export async function sendPasswordResetToken(formData) {
     //send it to user's email
     const resetURL = `${process.env.NEXTAUTH_URL}/forgot-password/${resetToken}`;
 
-
     await new Email(user, resetURL).sendPasswordReset();
 
     return { success: true, message: "Reset Token sent to your email" };
@@ -330,7 +329,6 @@ export async function forgotPassword(formData) {
     const body = formDataToObject(formData);
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
 
     await dbConnect();
 

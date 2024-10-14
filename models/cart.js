@@ -3,14 +3,11 @@ const mongooseLeanVirtuals = require("mongoose-lean-virtuals");
 
 const cartItemSchema = new mongoose.Schema(
   {
-    productId: {
+    product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
     },
-    name: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 },
-    discountPrice: { type: Number, default: 0, min: 0 },
     quantity: { type: Number, default: 1, min: 1 },
     checked: { type: Boolean, default: true },
     option: { type: Object },
@@ -20,13 +17,36 @@ const cartItemSchema = new mongoose.Schema(
       ref: "Cart",
       required: true,
     },
-    createdAt: { type: Date, default: Date.now, immutable: true },
-    updatedAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+cartItemSchema.virtual("currentPrice").get(function () {
+  if (!this.product) return 0;
+
+  let price = this.product.price;
+  let discountPrice = this.product.discountPrice;
+
+  if (this.variantId && this.product.variant) {
+    const variant = this.product.variant.find(
+      (v) => v._id.toString() === this.variantId,
+    );
+    if (variant) {
+      price = variant.price;
+      discountPrice = variant.discountPrice;
+    }
+  }
+
+  if (this.product.discount > 0) {
+    return discountPrice || price * (1 - this.product.discount / 100);
+  }
+
+  return price;
+});
 
 const cartSchema = new mongoose.Schema(
   {
@@ -51,7 +71,7 @@ cartSchema.pre(/^find/, function (next) {
   this.populate({
     path: "item",
     populate: {
-      path: "productId",
+      path: "product",
       select:
         "name variant image slug price discount discountPrice discountDuration",
     },
@@ -67,13 +87,8 @@ cartSchema.virtual("totalItems").get(function () {
 
 cartSchema.virtual("totalPrice").get(function () {
   return this.item.reduce((total, item) => {
-    if (item.checked && item.productId) {
-      const itemPrice =
-        item.productId.discountPrice !== undefined &&
-        item.productId.discountPrice < item.price
-          ? item.productId.discountPrice
-          : item.price;
-      return total + itemPrice * item.quantity;
+    if (item.checked && item.product) {
+      return total + item.currentPrice * item.quantity;
     }
     return total;
   }, 0);
@@ -81,31 +96,24 @@ cartSchema.virtual("totalPrice").get(function () {
 
 cartSchema.virtual("amountSaved").get(function () {
   return this.item.reduce((total, item) => {
-    if (
-      item.checked &&
-      item.productId &&
-      item.productId.discountPrice !== undefined &&
-      item.productId.discountPrice < item.price
-    ) {
-      const regularPrice = item.price;
-      const discountPrice = item.productId.discountPrice;
-      return total + (regularPrice - discountPrice) * item.quantity;
+    if (item.checked && item.product && item.product.discount > 0) {
+      let regularPrice = item.product.price;
+      if (item.variantId && item.product.variant) {
+        const variant = item.product.variant.find(
+          (v) => v._id.toString() === item.variantId.toString(),
+        );
+        if (variant) {
+          regularPrice = variant.price;
+        }
+      }
+      return total + (regularPrice - item.currentPrice) * item.quantity;
     }
     return total;
   }, 0);
 });
 
-cartItemSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-cartSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
 cartSchema.plugin(mongooseLeanVirtuals);
+cartItemSchema.plugin(mongooseLeanVirtuals);
 
 export const Cart = mongoose.models.Cart || mongoose.model("Cart", cartSchema);
 export const CartItem =

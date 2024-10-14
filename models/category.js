@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import validator from "validator";
 
 const mongooseLeanVirtuals = require("mongoose-lean-virtuals");
 
@@ -10,15 +11,36 @@ const categorySchema = new mongoose.Schema(
       required: [true, "Category name is required"],
       trim: true,
       maxlength: [50, "Category name cannot exceed 50 characters"],
+      validate: {
+        validator: function (v) {
+          return validator.escape(v) === v;
+        },
+        message: "Name contains invalid characters",
+      },
     },
     description: {
       type: String,
       trim: true,
       maxlength: [500, "Description cannot exceed 500 characters"],
+      validate: {
+        validator: function (v) {
+          return validator.escape(v) === v;
+        },
+        message: "Description contains invalid characters",
+      },
     },
     image: {
       type: [String],
-      validate: [arrayLimit, "{PATH} exceeds the limit of 5"],
+      validate: [
+        arrayLimit,
+        "{PATH} exceeds the limit of 5",
+        {
+          validator: function (v) {
+            return v.every((url) => validator.isURL(url));
+          },
+          message: "Invalid URL in image array",
+        },
+      ],
     },
     slug: {
       type: String,

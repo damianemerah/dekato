@@ -30,7 +30,7 @@ export default function Home() {
       <div className="">
         <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
         <div className="mb-10">
-          {/* <RecommendedProducts category="men" /> */}
+          <RecommendedProducts category="men" />
         </div>
       </div>
       <div

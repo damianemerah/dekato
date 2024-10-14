@@ -23,6 +23,8 @@ export default function Cart() {
     error: cartError,
   } = useCartData(userId);
 
+  console.log(cart, "cart🚀💎💎");
+
   if (!cart || cartIsLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
@@ -41,6 +43,7 @@ export default function Cart() {
   }
 
   if (cartError) {
+    console.log(cartError);
     return (
       <div className="flex h-screen items-center justify-center">
         <p>Error loading cart</p>
@@ -49,18 +52,18 @@ export default function Cart() {
   }
   return (
     <div className="min-h-screen bg-grayBg">
-      {cartIsValidating && (
+      {/* {cartIsValidating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <SmallSpinner className="!text-primary" />
         </div>
-      )}
+      )} */}
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <CartHeader />
-        <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:justify-between">
-          <div className="lg:w-2/3">
+        <div className="mt-8 flex flex-col gap-8 md:flex-row md:justify-between">
+          <div className="md:w-2/3">
             <CartCards products={cart?.item} />
           </div>
-          <div className="self-start lg:w-1/3">
+          <div className="lg:w-1/3">
             <ProceedToCheckoutBox
               totalPrice={cart?.totalPrice}
               amountSaved={cart?.amountSaved}

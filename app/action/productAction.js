@@ -11,6 +11,7 @@ import { getQueryObj } from "@/utils/getFunc";
 import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { deleteFiles } from "@/lib/s3Func";
+import _ from "lodash";
 
 const setupIndexes = async () => {
   try {
@@ -32,12 +33,16 @@ const setupIndexes = async () => {
 
 const formatProduct = (product) => {
   const { _id, category, campaign, variant, ...rest } = product;
+
+  console.log(rest, "re");
   const formattedProduct = {
     id: _id.toString(),
     ...rest,
     category: category?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
     campaign: campaign?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
-    variant: variant?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v })),
+    variant: variant
+      ?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v }))
+      .filter((v) => v.quantity > 0),
   };
   return formattedProduct;
 };
@@ -52,8 +57,9 @@ const handleProductQuery = async (query, searchParams = {}) => {
   const productData = await feature.query;
 
   if (!productData?.length) return [];
+  return productData;
 
-  return productData.map(formatProduct);
+  // return productData.map(formatProduct);
 };
 
 export async function getAdminProduct(params) {
@@ -69,7 +75,8 @@ export async function getAdminProduct(params) {
       page: params.page || 1,
       limit: params.limit || 2,
     };
-    const products = await handleProductQuery(query, searchParams);
+    const productData = await handleProductQuery(query, searchParams);
+    const products = productData.map(formatProduct);
     const totalCount = await Product.countDocuments(query.getFilter());
     return { data: products, totalCount, limit: searchParams.limit };
   } catch (err) {
@@ -81,15 +88,27 @@ export async function getAdminProduct(params) {
 export async function productSearch(searchQuery) {
   try {
     await dbConnect();
-    const products = await handleProductQuery(
-      Product.find().select("name slug").lean(),
+    const productData = await handleProductQuery(
+      Product.find().select("name slug image status").lean(),
       { ...searchQuery, limit: 9 },
     );
-    return products.map(({ id, name, slug }) => ({ id, name, slug }));
+
+    const products = productData.map(({ _id, ...rest }) => ({
+      id: _id.toString(),
+      ...rest,
+    }));
+
+    const categories = await handleProductQuery(
+      Category.find().select("name slug").lean(),
+      { ...searchQuery, limit: 3 },
+    );
+
+    console.log(categories, "categories🔥🔥🔥");
+
+    return { products, categories };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
-    throw handleAppError(err);
   }
 }
 
@@ -149,7 +168,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
 
     let categories = [];
     let campaigns = [];
-    let baseQuery = Product.find();
+    let baseQuery = Product.find({ quantity: { $gt: 0 } });
     let isFallback = false;
 
     if (slugArray[slugArray.length - 1] !== "search") {
@@ -207,12 +226,17 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       const campaignIds = campaigns.map((camp) => camp._id);
 
       baseQuery = Product.find({
-        $or: [
-          { category: { $in: categoryIds } },
-          { campaign: { $in: campaignIds } },
+        $and: [
+          { quantity: { $gt: 0 } },
+          {
+            $or: [
+              { category: { $in: categoryIds } },
+              { campaign: { $in: campaignIds } },
+            ],
+          },
         ],
       })
-        .select("name slug _id image price discount")
+        .select("name slug _id image price discount status quantity")
         .populate("category", "name slug path")
         .populate("campaign", "name slug path");
     }

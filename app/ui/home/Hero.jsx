@@ -45,7 +45,7 @@ export default function Hero() {
             <div
               className={`flex min-h-[500px] flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
             >
-              <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
+              <div className="heading_bd relative m-4 mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center md:m-8 md:mb-0 md:mr-4 md:basis-1/2">
                 <h1 className="mb-6 text-3xl font-bold leading-tight text-primary sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
                   SUMMER SALE: Get 30% OFF On all dresses.
                 </h1>

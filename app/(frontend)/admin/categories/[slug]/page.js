@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, memo, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { createCategory, updateCategory } from "@/app/action/categoryAction";
 import { ButtonPrimary } from "@/app/ui/button";
@@ -29,7 +29,7 @@ export default function NewCategory({ params }) {
 
   const { data: allCategories, isLoading } = useSWR(
     "/api/allCategories",
-    getAllCategories,
+    () => getAllCategories({ limit: 100 }),
     {
       revalidateOnFocus: false,
     },
@@ -40,8 +40,8 @@ export default function NewCategory({ params }) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (allCategories?.length > 0) {
-      const category = allCategories
+    if (allCategories?.data?.length > 0) {
+      const category = allCategories?.data
         .map((cat) => ({
           value: cat.id,
           label: (
@@ -59,8 +59,8 @@ export default function NewCategory({ params }) {
 
       setCatList(category);
     }
-    if (slug !== "new" && allCategories.length) {
-      const selectedCategory = allCategories.find(
+    if (slug !== "new" && allCategories?.data.length) {
+      const selectedCategory = allCategories?.data.find(
         (category) => category.slug === slug,
       );
 
@@ -76,7 +76,7 @@ export default function NewCategory({ params }) {
       setCParent(null);
       setIsPinned(false);
     }
-  }, [allCategories, isLoading, slug]);
+  }, [allCategories?.data, isLoading, slug]);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -126,9 +126,11 @@ export default function NewCategory({ params }) {
       }
 
       // Check the number of pinned categories under the selected parent
-      const parentCategory = allCategories.find((cat) => cat.id === cParent);
+      const parentCategory = allCategories?.data.find(
+        (cat) => cat.id === cParent,
+      );
       console.log(parentCategory, "parentCategory");
-      const pinnedCount = allCategories.filter(
+      const pinnedCount = allCategories?.data.filter(
         (cat) => cat.parent?.id === cParent && cat.pinned,
       ).length;
       const isAlreadyPinned = selectedCategory?.pinned;
@@ -140,7 +142,9 @@ export default function NewCategory({ params }) {
       }
 
       if (type === "edit") {
-        const id = allCategories.find((category) => category.slug === slug).id;
+        const id = allCategories?.data.find(
+          (category) => category.slug === slug,
+        ).id;
         formData.append("id", id);
 
         // Prevent category from using itself as a parent
@@ -155,7 +159,7 @@ export default function NewCategory({ params }) {
         titleRef.current.value = "";
         descriptionRef.current.value = "";
         setAllCategories(
-          allCategories.map((category) =>
+          allCategories?.data.map((category) =>
             category.slug === slug ? updatedCategory : category,
           ),
         );
@@ -168,7 +172,7 @@ export default function NewCategory({ params }) {
       message.success("Category created");
       titleRef.current.value = "";
       descriptionRef.current.value = "";
-      setAllCategories([...allCategories, newCategory]);
+      setAllCategories([...allCategories?.data, newCategory]);
       setFileList([]);
     } catch (error) {
       message.error(error.message);
@@ -181,7 +185,7 @@ export default function NewCategory({ params }) {
     </div>
   );
 
-  if (!allCategories) return <LoadingSpinner />;
+  if (!allCategories?.data) return <LoadingSpinner />;
 
   return (
     <form

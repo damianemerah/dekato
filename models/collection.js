@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import validator from "validator";
 
 const mongooseLeanVirtuals = require("mongoose-lean-virtuals");
 
@@ -10,11 +11,23 @@ const campaignSchema = new mongoose.Schema(
       required: [true, "Campaign name is required"],
       trim: true,
       maxlength: [50, "Campaign name cannot exceed 50 characters"],
+      validate: {
+        validator: function (v) {
+          return validator.escape(v) === v;
+        },
+        message: "Campaign name contains invalid characters",
+      },
     },
     description: {
       type: String,
       trim: true,
       maxlength: [500, "Description cannot exceed 500 characters"],
+      validate: {
+        validator: function (v) {
+          return validator.escape(v) === v;
+        },
+        message: "Description contains invalid characters",
+      },
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -23,11 +36,33 @@ const campaignSchema = new mongoose.Schema(
     },
     image: {
       type: [String],
-      validate: [arrayLimit, "{PATH} exceeds the limit of 5"],
+      validate: [
+        arrayLimit,
+        "{PATH} exceeds the limit of 5",
+        {
+          validator: function (v) {
+            return v.every(
+              (url) => validator.isURL(url) && validator.escape(url) === url,
+            );
+          },
+          message: "Invalid image URL format or contains invalid characters",
+        },
+      ],
     },
     banner: {
       type: [String],
-      validate: [arrayLimit, "{PATH} exceeds the limit of 5"],
+      validate: [
+        arrayLimit,
+        "{PATH} exceeds the limit of 5",
+        {
+          validator: function (v) {
+            return v.every(
+              (url) => validator.isURL(url) && validator.escape(url) === url,
+            );
+          },
+          message: "Invalid banner URL format or contains invalid characters",
+        },
+      ],
     },
     path: {
       type: [String],

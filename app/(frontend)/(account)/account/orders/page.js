@@ -1,7 +1,20 @@
 import OrderCard from "@/app/ui/account/orders/OrderCard";
+import { getServerSession } from "next-auth";
+import { OPTIONS } from "@/app/api/auth/[...nextauth]/route";
+import Order from "@/models/order";
+import dbConnect from "@/lib/mongoConnection";
+import { unstable_cache } from "next/cache";
 
-export default function Orders() {
+async function getOrders(userId) {
+  await dbConnect();
+  const orders = await Order.find({ userId });
 
+  console.log(orders, "orderss⭐⭐⭐", userId);
+
+  return orders;
+}
+
+export default async function Orders() {
   const orders = [
     {
       status: "Processing",
@@ -44,6 +57,15 @@ export default function Orders() {
       ],
     },
   ];
+
+  // const session = await getServerSession(OPTIONS);
+  // const userId = session?.user?.id;
+
+  // const orders = await unstable_cache(
+  //   async () => await getOrders(userId),
+  //   ["user-orders"],
+  //   { revalidate: 10 }, // Revalidate every 30 seconds
+  // )();
 
   return (
     <>

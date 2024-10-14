@@ -23,7 +23,7 @@ import { useSession } from "next-auth/react";
 const CartCard = ({ cartItem }) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [quantity, setQuantity] = useState(cartItem.quantity.toString());
+  const [quantity, setQuantity] = useState(cartItem.quantity.toString() || "");
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
   const showConfirmModal = useConfirmModal();
@@ -49,7 +49,8 @@ const CartCard = ({ cartItem }) => {
       const updatedCart = await updateCartItemQuantity({
         userId,
         cartItemId: cartItem.id,
-        productId: cartItem.productId,
+        product: cartItem?.product.id,
+        variantId: cartItem?.variantId,
         quantity: parseInt(newQuantity),
       });
       await mutate(`/cart/${userId}`);
@@ -82,10 +83,15 @@ const CartCard = ({ cartItem }) => {
       onOk: async () => {
         setIsLoading(true);
         try {
-          await addToWishlist(userId, cartItem.productId);
+          alert(cartItem?.product.id);
+          await addToWishlist(userId, cartItem?.product.id);
           await removeFromCart(userId, cartItem.id);
           await mutate(`/cart/${userId}`);
           await mutate(`/account/wishlist/${userId}`);
+          await mutate(`/api/user/${userId}`, (user) => ({
+            ...user,
+            wishlist: [...(user.wishlist || []), cartItem?.product.id],
+          }));
           message.success("Item moved to wishlist and removed from cart");
         } catch (error) {
           message.error("Failed to move item to wishlist");
@@ -115,7 +121,7 @@ const CartCard = ({ cartItem }) => {
             <div className="relative aspect-[15/17] w-[120px]">
               <Image
                 src={cartItem.image}
-                alt={cartItem.name}
+                alt={cartItem.product.name}
                 fill
                 className="h-full w-full object-cover object-center"
                 loading="lazy"
@@ -126,10 +132,10 @@ const CartCard = ({ cartItem }) => {
         <div className="ml-4 flex h-full min-h-[120px] flex-grow flex-col justify-between gap-3">
           <div className="mb-1 flex h-full items-start justify-between">
             <Link
-              href={`/p/${cartItem.slug}-${cartItem.productId}`}
+              href={`/p/${cartItem?.product?.slug}-${cartItem?.product?.id}`}
               className={`${oswald.className} mr-2 line-clamp-2 overflow-ellipsis text-base capitalize text-gray-800 hover:opacity-70`}
             >
-              {cartItem.name}
+              {cartItem?.product?.name}
             </Link>
 
             <div className="flex items-center gap-2">
@@ -145,7 +151,7 @@ const CartCard = ({ cartItem }) => {
                 onClick={async () => {
                   setIsLoading(true);
                   try {
-                    await removeFromCart(userId, cartItem.id);
+                    await removeFromCart(userId, cartItem?.id);
                     await mutate(`/cart/${userId}`);
                   } finally {
                     setIsLoading(false);
@@ -158,7 +164,7 @@ const CartCard = ({ cartItem }) => {
           </div>
           <div className="flex flex-wrap items-center">
             {cartItem?.option &&
-              Object.entries(cartItem.option).map(([key, value]) => (
+              Object.entries(cartItem?.option).map(([key, value]) => (
                 <p
                   key={`${key}-${value}`}
                   className="pr-3 capitalize text-[#6c757d]"
@@ -183,7 +189,7 @@ const CartCard = ({ cartItem }) => {
                 </button>
                 <input
                   type="number"
-                  value={quantity}
+                  value={quantity || ""}
                   onChange={(e) => handleQuantityChange(e.target.value)}
                   onBlur={handleQuantityBlur}
                   className="w-12 text-center font-medium [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -200,16 +206,13 @@ const CartCard = ({ cartItem }) => {
               </div>
             </div>
             <p className="mr-4 flex flex-col items-center justify-center text-primary">
-              {cartItem.discountPrice > 0 && (
+              {cartItem.product.discountPrice && (
                 <span className="mr-2 text-sm text-gray-500 line-through">
-                  ₦{cartItem.price}
+                  ₦{cartItem.product.price.toLocaleString()}
                 </span>
               )}
               <span className="text-base font-medium text-primary">
-                ₦
-                {cartItem.discountPrice > 0
-                  ? cartItem.discountPrice
-                  : cartItem.price}
+                ₦{cartItem.currentPrice.toLocaleString()}
               </span>
             </p>
           </div>
@@ -224,6 +227,8 @@ export default function CartCards({ products }) {
   const userId = session?.user?.id;
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  console.log(products, "products🚀💎💎");
 
   useEffect(() => {
     setSelectAll(products?.every((product) => product.checked));
@@ -256,7 +261,7 @@ export default function CartCards({ products }) {
           <input
             type="checkbox"
             id="select-all-cart"
-            checked={selectAll}
+            checked={selectAll !== undefined ? selectAll : false}
             onChange={handleSelectAll}
             className="mr-2 h-5 w-5 cursor-pointer appearance-none border border-gray-300 checked:border-gray-900 checked:bg-gray-900 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />

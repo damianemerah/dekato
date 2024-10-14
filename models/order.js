@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
-import { CartItem } from "./cart";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet("0123456789", 10);
 
 const orderSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    cartItems: [
+    cartItem: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "CartItem",
@@ -20,24 +21,12 @@ const orderSchema = new mongoose.Schema(
       type: String,
       unique: true,
       trim: true,
-      default: nanoid(7),
+      default: () => nanoid(),
     },
-    status: {
-      type: String,
-      default: "pending_payment",
-      enum: [
-        "pending_payment",
-        "payment_failed",
-        "payment_confirmed",
-        "processing",
-        "shipped",
-        "delivered",
-        "cancelled",
-        "returned",
-      ],
-    },
+    status: String,
     type: {
       type: String,
+      default: "cart",
       enum: ["cart", "single"],
       required: true,
     },
@@ -59,8 +48,6 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: { type: String, trim: true },
     currency: { type: String, trim: true, uppercase: true },
     paidAt: { type: Date },
-    // createdAt: { type: Date, default: Date.now },
-    // updatedAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,

@@ -57,17 +57,15 @@ export async function generateStaticParams() {
     cat: path,
   }));
 
-  // console.log(paths, "paths🔥🔥🔥");
-
   return paths;
 }
 
 export default function Product({ params: { cat }, searchParams }) {
   return (
-    <>
+    <main>
       <Suspense fallback={<LoadingSpinner />}>
         <CategoryProducts cat={cat} searchParams={searchParams} />
       </Suspense>
-    </>
+    </main>
   );
 }
