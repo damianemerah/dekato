@@ -76,9 +76,7 @@ const ProductList = ({
       )}
       <Filter cat={cat} searchParams={searchParams} />
 
-      <div
-        className={`${isSidebarOpen ? "w-[calc(100vw-250px)]" : "w-full"} pl-5 pr-8`}
-      >
+      <div>
         <h4
           className={`${oswald.className} text-priamry pl-2 text-[13px] font-bold leading-[58px] tracking-widest`}
         >

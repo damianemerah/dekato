@@ -56,9 +56,9 @@ const Page = memo(function Page({ params }) {
     (state) => state.setCurVariantOptions,
   );
 
-  const { data: allCategories, isLoading: catIsLoading } = useSWRImmutable(
+  const { data: allCategoriesData, isLoading: catIsLoading } = useSWRImmutable(
     "/api/allCategories",
-    getAllCategories,
+    () => getAllCategories({ limit: 100 }),
     { revalidateOnFocus: false },
   );
 
@@ -102,9 +102,9 @@ const Page = memo(function Page({ params }) {
   );
 
   useEffect(() => {
-    if (!catIsLoading && allCategories?.length) {
+    if (!catIsLoading && allCategoriesData?.data?.length) {
       setCatList(
-        allCategories.map((cat) => ({
+        allCategoriesData.data.map((cat) => ({
           value: cat.id,
           label: (
             <p>
@@ -118,7 +118,7 @@ const Page = memo(function Page({ params }) {
         })),
       );
     }
-  }, [allCategories, catIsLoading]);
+  }, [allCategoriesData, catIsLoading]);
 
   useEffect(() => {
     if (!collectionIsLoading && collections?.length) {
@@ -189,6 +189,8 @@ const Page = memo(function Page({ params }) {
       for (const [key, value] of formData.entries()) {
         console.log(key, value);
       }
+
+      // return;
 
       const action = actionType === "create" ? createProduct : updateProduct;
       if (actionType === "edit") formData.append("id", slug);

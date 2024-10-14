@@ -18,7 +18,6 @@ import { createCartItem } from "@/app/action/cartAction";
 import { useUserStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { message } from "antd";
-import { useCartStore } from "@/store/store";
 import CheckmarkIcon from "@/public/assets/icons/check.svg?url";
 
 import { SmallSpinner } from "../spinner";
@@ -116,20 +115,18 @@ export default function ProductDetail({ product }) {
       const selectedVariant = product.variant.find(
         (variant) => variant.id === selectedVariantId,
       );
+      // console.log(selectedVariant, "product11");
       const newItem = {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        discountPrice: product.discountPrice || null,
+        product: product.id,
         quantity: 1,
         option: selectedVariant?.options || null,
         variantId: selectedVariant?.id || null,
-        userId,
       };
 
       const cartItem = await createCartItem(userId, newItem);
       await mutate(`/api/user/${userId}`);
       await mutate(`/cart/${userId}`);
+      await mutate(`/checkout-data`);
       message.success("Item added to cart");
     } catch (error) {
       message.info(error.message, 4);
@@ -207,8 +204,8 @@ export default function ProductDetail({ product }) {
   return (
     <div className="mx-auto mb-8 w-full max-w-7xl">
       <div className="flex flex-col lg:flex-row">
-        <div className="mb-8 w-full lg:mb-0 lg:w-2/3">
-          <div className="relative w-full">
+        <div className="mb-8 w-screen lg:mb-0 lg:w-2/3">
+          <div className="relative w-full md:h-screen">
             {product?.image && product.image.length > 1 && (
               <div className="absolute bottom-8 left-8 z-10 md:mb-0">
                 <Swiper
@@ -248,7 +245,7 @@ export default function ProductDetail({ product }) {
                   thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
               }}
               modules={[FreeMode, Thumbs]}
-              className="mainSwiper !h-[600px] w-full"
+              className="mainSwiper !h-[600px] w-full md:!h-screen"
               onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
             >
               {product?.image &&
@@ -294,24 +291,57 @@ export default function ProductDetail({ product }) {
           </div>
         </div>
 
-        <div className="w-full px-2 sm:px-4 lg:w-1/3 lg:px-6">
+        <div className="w-full px-2 sm:px-4 lg:w-1/3 lg:p-5">
           <h3
             className={`${oswald.className} mb-3 text-center text-xl font-[900] uppercase lg:text-left`}
           >
             {product.name}
           </h3>
           <div className="mb-6 text-center lg:text-left">
-            {product.discount > 0 ? (
+            {selectedVariantId &&
+            product.variant.find((v) => v.id === selectedVariantId)?.price ? (
               <div className="flex items-center justify-center gap-3 lg:justify-start">
-                <p className="text-gray-500 line-through">
-                  ₦{product.price.toLocaleString()}
-                </p>
-                <p className="font-bold text-green-600">
-                  ₦{product.discountPrice.toLocaleString()}
-                </p>
+                {product.discount > 0 ? (
+                  <>
+                    <p className="text-gray-500 line-through">
+                      ₦
+                      {product.variant
+                        .find((v) => v.id === selectedVariantId)
+                        .price.toLocaleString()}
+                    </p>
+                    <p className="font-bold text-green-600">
+                      ₦
+                      {(
+                        product.variant.find((v) => v.id === selectedVariantId)
+                          .price *
+                        (1 - product.discount / 100)
+                      ).toLocaleString()}
+                    </p>
+                  </>
+                ) : (
+                  <p className="font-bold">
+                    ₦
+                    {product.variant
+                      .find((v) => v.id === selectedVariantId)
+                      .price.toLocaleString()}
+                  </p>
+                )}
               </div>
             ) : (
-              <p className="font-bold">₦{product.price.toLocaleString()}</p>
+              <div className="flex items-center justify-center gap-3 lg:justify-start">
+                {product.discount > 0 ? (
+                  <>
+                    <p className="text-gray-500 line-through">
+                      ₦{product.price.toLocaleString()}
+                    </p>
+                    <p className="font-bold text-green-600">
+                      ₦{product.discountPrice.toLocaleString()}
+                    </p>
+                  </>
+                ) : (
+                  <p className="font-bold">₦{product.price.toLocaleString()}</p>
+                )}
+              </div>
             )}
           </div>
 
@@ -348,6 +378,7 @@ export default function ProductDetail({ product }) {
                             }
                             alt={`Variant ${value}`}
                             width={64}
+                            loading="lazy"
                             height={64}
                             className="h-full w-full rounded-full object-cover"
                           />

@@ -1,8 +1,12 @@
-import AppError from "./errorClass";
-import { v4 as uuidv4 } from "uuid";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet("0123456789", 10);
 
 export function getQuantity(item, product) {
   // Check if product exists or variant exists
+
+  console.log(item, product, "item, product💎💎💎");
+
   if (item.variantId && product?.variant.length > 0) {
     const variant = product.variant.find(
       (doc) => doc._id.toString() === item.variantId,
@@ -32,6 +36,8 @@ export function getQuantity(item, product) {
 export const generateVariantOptions = (variants) => {
   const clonedVariants = [...variants];
 
+  // console.log(clonedVariants, "clonedVariants");
+
   const result = {};
   clonedVariants.forEach((variant) => {
     Object.entries(variant.options).forEach(([key, value]) => {
@@ -43,11 +49,16 @@ export const generateVariantOptions = (variants) => {
     });
   });
 
+  console.log(result, "result");
+
   const formattedResult = Object.keys(result).map((key) => ({
-    id: key.id || uuidv4(),
+    id: key.id || nanoid(),
     name: key,
     values: Array.from(result[key]),
   }));
+
+  console.log(formattedResult, "formattedResult");
+
   return formattedResult;
 };
 

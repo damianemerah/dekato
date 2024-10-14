@@ -409,26 +409,31 @@ const Categories = ({ searchParams }) => {
           )}
           {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
         </Flex>
-        <Table
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={dataSource || []}
-          loading={
-            isLoading
-              ? {
-                  indicator: <LoadingOutlined spin className="!text-primary" />,
-                  size: "large",
-                }
-              : false
-          }
-          pagination={{
-            current: parseInt(page),
-            pageSize: limit,
-            showSizeChanger: false,
-            total: totalCount,
-            onChange: handlePageChange,
-          }}
-        />
+        <div className="overflow-x-auto">
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={dataSource || []}
+            loading={
+              isLoading
+                ? {
+                    indicator: (
+                      <LoadingOutlined spin className="!text-primary" />
+                    ),
+                    size: "large",
+                  }
+                : false
+            }
+            pagination={{
+              current: parseInt(page),
+              pageSize: limit,
+              showSizeChanger: false,
+              total: totalCount,
+              onChange: handlePageChange,
+            }}
+            scroll={{ x: "max-content" }}
+          />
+        </div>
       </Flex>
     </>
   );

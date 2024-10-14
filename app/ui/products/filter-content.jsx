@@ -16,10 +16,10 @@ export default function FilterContent({
   sortOptions,
 }) {
   return (
-    <>
+    <div className="sticky top-16 z-10">
       <div
         ref={dropdownRef}
-        className="sticky top-16 z-10 flex h-14 w-full items-center justify-between bg-gray-100 px-8 capitalize shadow-md"
+        className="flex h-14 w-full items-center justify-between bg-gray-100 px-8 capitalize shadow-md"
       >
         <div className="flex items-center">
           <p className="text-nowrap text-[13px]">Filter by:</p>
@@ -46,7 +46,7 @@ export default function FilterContent({
                 </button>
 
                 {activeDropdown === filter.name && (
-                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col overflow-auto bg-white text-[#303030]">
+                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col bg-white text-[#303030]">
                     {filter.options.map((option, index) => (
                       <label
                         key={index}
@@ -184,6 +184,6 @@ export default function FilterContent({
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }

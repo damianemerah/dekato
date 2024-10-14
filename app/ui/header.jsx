@@ -41,7 +41,7 @@ function Header() {
       className={`${oswald.className} sticky top-0 z-[80] flex h-16 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
     >
       <div className="flex h-full flex-1 items-center justify-start space-x-2 sm:space-x-4 lg:space-x-8">
-        <button
+        <div
           onClick={() => {
             toggleSidebarState();
             setMenuIsClicked(true);
@@ -63,7 +63,7 @@ function Header() {
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
-        </button>
+        </div>
         <nav className="hidden space-x-2 sm:flex sm:space-x-4">
           {["women", "men"].map((category) => (
             <Link key={category} href={`/${category}`}>

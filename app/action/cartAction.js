@@ -13,26 +13,39 @@ import { revalidatePath, revalidateTag } from "next/cache";
 function formatCartData(cart) {
   const { _id, item, totalPrice, totalItems, amountSaved } = cart;
 
+  console.log(cart, "cart🚀💎💎");
+
   const formattedItems = item
     .map((cartItem) => {
-      const { _id, productId, variantId, buffer, cartId, ...rest } = cartItem;
+      const { _id, product, variantId, cartId, ...rest } = cartItem;
 
-      if (!productId) {
+      if (!product) {
         console.warn(`Cart item ${_id} has no associated product`);
         return null;
       }
 
-      const variant = productId?.variant?.find(
-        (v) => v._id.toString() === variantId?.toString(),
+      const variant = product?.variant?.find(
+        (v) => v.id.toString() === variantId?.toString(),
       );
+
+      console.log(product, "product🚀💎💎");
 
       return {
         id: _id.toString(),
-        slug: productId.slug,
-        productId: productId._id.toString(),
+        slug: product.slug,
+        product: {
+          id: product._id.toString(),
+          ..._.omit(product, ["_id"]),
+          variant: variant
+            ? {
+                id: variant._id.toString(),
+                ..._.omit(variant, ["_id"]),
+              }
+            : null,
+        },
         variantId: variantId?.toString(),
         cartId: cartId.toString(),
-        image: variant ? variant.image : productId.image?.[0],
+        image: variant ? variant.image : product.image?.[0],
         ...rest,
       };
     })
@@ -58,48 +71,54 @@ export async function createCartItem(userId, newItem) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  console.log(newItem, "newItem🚀💎💎");
+
   try {
     await dbConnect();
 
-    if (
-      !newItem.quantity ||
-      !newItem.productId ||
-      !newItem.name ||
-      !newItem.price
-    ) {
+    if (!newItem.quantity || !newItem.product) {
       throw new Error("Missing required fields for cart item");
     }
 
-    const existingProduct = await Product.findById(newItem.productId).session(
+    const existingProduct = await Product.findById(newItem.product).session(
       session,
     );
+
+    console.log(existingProduct, "existingProduct🚀💎💎");
+
     if (!existingProduct) {
       throw new Error("Product not found");
     }
 
     const correctQuantity = getQuantity(newItem, existingProduct);
 
-    let cart = await Cart.findOne({ userId }).lean().session(session);
+    let cart = await Cart.findOne({ userId })
+      .lean({ virtuals: true })
+      .session(session);
+
+    console.log(cart, "cart0🚀💎💎");
 
     if (!cart) {
       cart = await createNewCart(userId, session);
+
+      console.log(cart, "cart1🚀💎💎");
     }
 
     const query = {
-      productId: newItem.productId,
+      product: newItem.product,
       cartId: cart._id,
       ...(newItem.variantId
         ? { variantId: newItem.variantId }
         : { variantId: { $exists: false } }),
     };
 
+    console.log(query, "query🚀💎💎");
+
     const existingItemCart = await CartItem.findOne(query).session(session);
 
     if (existingItemCart) {
       existingItemCart.quantity += correctQuantity;
       await existingItemCart.save({ session });
-
-      // throw new Error("Item not added to cart or already exists");
     } else {
       const cartItem = await CartItem.create(
         [
@@ -107,16 +126,21 @@ export async function createCartItem(userId, newItem) {
             ...newItem,
             cartId: cart._id,
             quantity: correctQuantity,
+            product: newItem.product,
           },
         ],
         { session },
       );
 
+      console.log(cartItem, "cartItem🚀💎💎");
+
       cart = await Cart.findByIdAndUpdate(
         cart._id,
         { $push: { item: cartItem[0]._id } },
         { session, new: true },
-      ).lean();
+      ).lean({ virtuals: true });
+
+      console.log(cart, "cart2🚀💎💎");
     }
 
     revalidateTag("checkout-data");
@@ -135,7 +159,21 @@ export async function createCartItem(userId, newItem) {
 export async function getCart(userId) {
   await dbConnect();
 
-  const cart = await Cart.findOne({ userId }).lean({ virtuals: true });
+  console.log(userId, "userId🚀💎💎");
+
+  const cart = await Cart.findOne({ userId })
+    .populate({
+      path: "item",
+      populate: {
+        path: "product",
+        select:
+          "name variant image slug price discount discountPrice discountDuration",
+      },
+    })
+    .lean({ virtuals: true });
+
+  console.log(cart, "cart🚀💎💎");
+
   if (!cart) {
     return createNewCart(userId);
   }
@@ -148,23 +186,34 @@ export async function updateCartItemQuantity(updateData) {
   await restrictTo("admin", "user");
   await dbConnect();
 
-  const { userId, cartItemId, productId, quantity } = updateData;
+  console.log(updateData, "updateData🚀💎💎");
+  const { userId, cartItemId, product } = updateData;
 
-  const cart = await Cart.findOne({ userId });
+  console.log(userId, cartItemId, product, "updateData🚀💎💎");
+
+  const cart = await Cart.findOne({ userId }).populate({
+    path: "item.product",
+    select: "name price discountPrice slug variant image",
+  });
   if (!cart) {
     throw new Error("Something went wrong, try again");
   }
   const cartItem = cart.item.find((item) => item._id.toString() === cartItemId);
   if (!cartItem) throw new Error("Item not found");
 
-  const product = await Product.findById(productId);
+  const existingProduct = await Product.findById(product);
 
-  const itemQuantity = getQuantity(updateData, product);
+  const itemQuantity = getQuantity(updateData, existingProduct);
 
   cartItem.quantity = itemQuantity;
   await cartItem.save();
 
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
 
   revalidateTag("checkout-data");
   revalidatePath("/checkout");
@@ -176,7 +225,10 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
   await restrictTo("admin", "user");
   await dbConnect();
 
-  const cart = await Cart.findOne({ userId });
+  const cart = await Cart.findOne({ userId }).populate({
+    path: "item.product",
+    select: "name price discountPrice slug variant image",
+  });
   if (!cart) {
     throw new Error("Cart not found");
   }
@@ -188,7 +240,12 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
     throw new Error("Item not found");
   }
 
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
 
   revalidateTag("checkout-data");
   revalidatePath("/checkout");
@@ -221,7 +278,12 @@ export async function selectAllCart(userId, selectAll) {
   );
 
   // Fetch the updated cart with items
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
   revalidateTag("checkout-data");
   revalidatePath("/checkout");
 
@@ -255,7 +317,12 @@ export async function removeFromCart(userId, cartItemId) {
   await cart.save();
 
   // Fetch the updated cart with items
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
 
   revalidateTag("checkout-data");
   revalidatePath("/checkout");

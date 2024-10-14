@@ -9,7 +9,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Scrollbar, Mousewheel } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/scrollbar";
-import { BigSpinner } from "../spinner";
+import { SmallSpinner } from "../spinner";
 
 const CategoryLink = ({ category }) => (
   <Link
@@ -50,6 +50,7 @@ export default memo(function HomeCategory() {
     }
   }, [categories]);
 
+  // setting the selected category (men, women) to local storage
   const handleCategoryChange = useCallback(
     (category) => {
       setSelectedCategory(category);
@@ -67,7 +68,9 @@ export default memo(function HomeCategory() {
   return (
     <div className={`mb-8 mt-4 py-5 ${oswald.className} px-4 sm:px-6 md:px-8`}>
       <div className="ml-2 flex flex-col gap-1 sm:ml-4 md:ml-8">
-        <h2 className="text-2xl text-primary sm:text-3xl">Selected Category</h2>
+        <h2 className="mb-2 text-2xl text-primary sm:text-3xl">
+          SELECTED CATEGORY
+        </h2>
         <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
           <p className="whitespace-nowrap text-nowrap text-[12px] font-normal sm:text-[13px]">
             Filter by:
@@ -78,7 +81,7 @@ export default memo(function HomeCategory() {
                 key={category}
                 className={`${
                   selectedCategory === category ? "active__category" : ""
-                } cursor-pointer text-sm sm:text-base`}
+                } cursor-pointer text-sm uppercase sm:text-base`}
                 onClick={() => handleCategoryChange(category)}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -89,7 +92,7 @@ export default memo(function HomeCategory() {
       </div>
 
       {isLoading ? (
-        <BigSpinner />
+        <SmallSpinner />
       ) : (
         <div className="relative">
           <Swiper

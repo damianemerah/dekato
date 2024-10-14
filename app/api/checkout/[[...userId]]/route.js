@@ -7,7 +7,6 @@ import handleAppError from "@/utils/appError";
 import { NextResponse } from "next/server";
 import { startSession } from "mongoose";
 import { restrictTo } from "@/utils/checkPermission";
-import { nanoid } from "nanoid";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
@@ -54,7 +53,9 @@ export async function POST(req, { params }) {
   try {
     session.startTransaction();
 
-    const { userId } = params;
+    const {
+      userId: [userId],
+    } = params;
     const body = await req.json();
     const { shippingMethod, address, items, amount, email } = body;
 
@@ -63,19 +64,16 @@ export async function POST(req, { params }) {
     }
 
     if (shippingMethod?.toLowerCase() === "delivery") {
-      const userAddress = await Address.findOne({ userId: userId }).session(
-        session,
-      );
+      const userAddress = await Address.findOne({
+        userId,
+        _id: address.id,
+        isDefault: true,
+      }).session(session);
 
       if (!userAddress) {
         throw new AppError("User address not found", 404);
       }
     }
-
-    const defaultAddress = await Address.findOne({
-      userId: userId,
-      isDefault: true,
-    }).session(session);
 
     const orderData = {
       userId: userId,
@@ -84,10 +82,10 @@ export async function POST(req, { params }) {
       type: "cart",
       shippingMethod: shippingMethod?.toLowerCase(),
       address:
-        shippingMethod?.toLowerCase() === "delivery"
-          ? defaultAddress._id
-          : undefined,
+        shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
     };
+
+    console.log(orderData, "orderData👇👇👇");
 
     //session require array of objects
     const order = await Order.create([orderData], { session });
@@ -106,7 +104,7 @@ export async function POST(req, { params }) {
       metadata: {
         orderId: createdOrder["_id"].toString(),
         userId,
-        receipt_number: nanoid(7),
+        receipt_number: createdOrder.receiptNumber,
       },
     });
 
@@ -121,6 +119,7 @@ export async function POST(req, { params }) {
       { status: 200 },
     );
   } catch (error) {
+    console.log(error);
     await session.abortTransaction();
     return NextResponse.json(
       { success: false, message: error.message },

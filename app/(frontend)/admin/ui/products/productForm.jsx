@@ -5,10 +5,12 @@ import Link from "next/link";
 import { roboto } from "@/style/font";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { Switch, Space } from "antd";
+import { Switch, Space, DatePicker } from "antd";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
 import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -43,8 +45,13 @@ const ProductForm = ({
   setSelectedCollectionKeys,
 }) => {
   const isCreateMode = actionType === "create";
+  const [discountDuration, setDiscountDuration] = useState(null);
 
-  console.log(selectedProduct, "selectedProduct🔥🔥🔥");
+  useEffect(() => {
+    if (selectedProduct?.discountDuration) {
+      setDiscountDuration(dayjs(selectedProduct.discountDuration));
+    }
+  }, [selectedProduct?.discountDuration]);
 
   return (
     <div className="relative h-full">
@@ -77,6 +84,8 @@ const ProductForm = ({
               discountRef={discountRef}
               quantityRef={quantityRef}
               selectedProduct={selectedProduct}
+              discountDuration={discountDuration}
+              setDiscountDuration={setDiscountDuration}
             />
             <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
           </div>
@@ -123,6 +132,8 @@ const ProductDetails = ({
   priceRef,
   discountRef,
   quantityRef,
+  discountDuration,
+  setDiscountDuration,
   selectedProduct,
 }) => (
   <>
@@ -200,6 +211,20 @@ const ProductDetails = ({
         >
           {selectedProduct?.discountPrice || "N/A"}
         </div>
+      </div>
+      <div>
+        <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+          DISCOUNT DURATION
+        </label>
+        <DatePicker
+          className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm"
+          name="discountDuration"
+          value={discountDuration}
+          onChange={(value) => {
+            setDiscountDuration(value);
+          }}
+          size="large"
+        />
       </div>
     </FormSection>
     <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">

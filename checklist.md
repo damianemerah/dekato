@@ -42,9 +42,9 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [x] **Checkout Process**: Implement a multi-step checkout process.
 
-- [ ] **Shipping Information**: Collect and validate shipping information.
+- [*] **Shipping Information**: Collect and validate shipping information.
 
-- [ ] **Order Summary**: Display an order summary before finalizing the purchase.
+- [*] **Order Summary**: Display an order summary before finalizing the purchase.
 
 ### 5. **Order Management**
 
@@ -100,7 +100,7 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [ ] **HTTPS**: Ensure the app is served over HTTPS.
 
-- [ ] **Password Encryption**: Encrypt user passwords before storing them in the database.
+- [*] **Password Encryption**: Encrypt user passwords before storing them in the database.
 
 ### 10. **Performance**
 

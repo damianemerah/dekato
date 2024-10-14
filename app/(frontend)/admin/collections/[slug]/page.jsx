@@ -40,14 +40,14 @@ export default memo(function NewCollection({ params }) {
 
   const { data: allCategories, isLoading: catIsLoading } = useSWR(
     "/api/allCategories",
-    getAllCategories,
+    () => getAllCategories({ limit: 100 }),
     { revalidateOnFocus: false },
   );
 
   useEffect(() => {
-    if (!catIsLoading && allCategories?.length) {
+    if (!catIsLoading && allCategories?.data.length) {
       setCatList(
-        allCategories.map((cat) => ({
+        allCategories?.data.map((cat) => ({
           value: cat.id,
           label: (
             <p>
@@ -62,7 +62,7 @@ export default memo(function NewCollection({ params }) {
         })),
       );
     }
-  }, [allCategories, catIsLoading]);
+  }, [allCategories?.data, catIsLoading]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -141,6 +141,10 @@ export default memo(function NewCollection({ params }) {
         return;
       }
 
+      for (const [key, val] of formData.entries()) {
+        console.log(key, val);
+      }
+
       await createCollection(formData);
 
       mutate("/api/allCollections");
@@ -161,7 +165,7 @@ export default memo(function NewCollection({ params }) {
     </div>
   );
 
-  if (!allCollections || !allCategories) return <LoadingSpinner />;
+  if (!allCollections || !allCategories?.data) return <LoadingSpinner />;
 
   return (
     <form
