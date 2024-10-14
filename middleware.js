@@ -11,6 +11,8 @@ export async function middleware(request) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
+    console.log(request.url, "request.url");
+    console.log(process.env.NEXTAUTH_SECRET, "process.env.NEXTAUTH_SECRET");
     console.log(token, "token❤️❤️");
 
     if (!token) {
