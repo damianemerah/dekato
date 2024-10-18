@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, memo, useCallback } from "react";
 import { useSidebarStore, useUserStore } from "@/store/store";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 

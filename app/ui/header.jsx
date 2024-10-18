@@ -3,7 +3,7 @@ import { useSidebarStore } from "@/store/store";
 import Link from "next/link";
 import Logo from "./dekato-logo.jsx";
 import SearchBox from "./searchbox.jsx";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import UserIcon from "@/public/assets/icons/user.svg";
 import { usePathname } from "next/navigation";
 import useUserData from "@/app/hooks/useUserData.js";

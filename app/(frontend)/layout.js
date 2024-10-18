@@ -1,4 +1,4 @@
-import { roboto } from "@/font";
+import { roboto } from "@/style/font";
 import Provider from "@/app/ui/Provider";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 // Import Swiper styles

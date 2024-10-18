@@ -17,7 +17,7 @@ import { message } from "antd";
 import useSWR from "swr";
 import Link from "next/link";
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font"
 import { useSession } from "next-auth/react";
 import usePaymentData from "@/app/hooks/usePaymentData";
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, memo } from "react";
 import Link from "next/link";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font"
 import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
 import { useCategoryStore } from "@/store/store";

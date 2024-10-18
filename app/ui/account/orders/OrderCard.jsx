@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font"
 import React from "react";
 
 function OrderCard({ order }) {

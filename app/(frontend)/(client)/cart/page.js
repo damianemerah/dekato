@@ -2,7 +2,7 @@
 
 import { ButtonPrimary } from "@/app/ui/button";
 import CartCards from "@/app/ui/cart/cart-card";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import Link from "next/link";
 import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
 import ArrowRight from "@/public/assets/icons/arrow_right.svg";

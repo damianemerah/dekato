@@ -1,5 +1,5 @@
 import { Modal } from "antd";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 
 const useConfirmModal = () => {
   const showConfirmModal = ({ title, content, onOk }) => {

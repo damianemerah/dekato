@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font"
 import usePaymentData from "@/app/hooks/usePaymentData";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { CloseOutlined } from "@ant-design/icons";
