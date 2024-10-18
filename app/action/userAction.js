@@ -10,6 +10,7 @@ import { filterObj, formDataToObject } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "crypto";
+import _ from "lodash";
 
 export async function createUser(formData) {
   await dbConnect();
@@ -42,23 +43,16 @@ export async function getUser(userId) {
     return null;
   }
 
-  const userData = await User.findById(userId)
-    .populate("address")
-    .lean({ virtuals: true });
+  const userData = await User.findById(userId).lean({ virtuals: true });
 
   if (!userData) {
     throw new Error("No user found with that ID");
   }
 
-  const { _id, address, wishlist, ...rest } = userData;
-  const addressArr = address?.map(({ _id, userId, ...rest }) => ({
-    id: _id.toString(),
-    ...rest,
-  }));
+  const { _id, wishlist, ...rest } = userData;
 
   const userObj = {
     id: _id.toString(),
-    address: addressArr,
     wishlist: wishlist?.map((item) => item.toString()),
     ...rest,
   };
@@ -170,14 +164,17 @@ export async function deleteUser(userId) {
 
 export async function getUserAddress(userId) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  // await restrictTo("admin", "user");
 
-  const address = await Address.find({ userId });
+  const address = await Address.find({ userId }).lean();
 
   if (!address.length) {
     throw new Error("No address found for that user");
   }
-  return address;
+  return address.map(({ _id, userId, ...rest }) => ({
+    id: _id.toString(),
+    ..._.omit(rest, ["_id", "userId"]),
+  }));
 }
 
 export async function createUserAddress(formData) {
@@ -199,8 +196,8 @@ export async function createUserAddress(formData) {
 
   const newAddress = { id: _id.toString(), ...rest };
 
-  revalidatePath("/checkout");
-  revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
+  // revalidateTag("checkout-data");
   return newAddress;
 }
 
@@ -224,8 +221,8 @@ export async function updateUserAddress(formData) {
   if (!address) {
     throw new Error("No address found with that ID");
   }
-  revalidatePath("/checkout");
-  revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
+  // revalidateTag("checkout-data");
 
   const { _id, ...rest } = address.toObject();
   return { id: _id.toString(), ...rest };

@@ -412,7 +412,7 @@ function revalidateProduct(id) {
   revalidateTag("single-product-data");
   revalidateTag("products-all");
   revalidatePath("/admin/products");
-  revalidateTag("checkout-data");
+  // revalidateTag("checkout-data");
 }
 
 // Call setupIndexes when the module is first loaded

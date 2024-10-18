@@ -7,7 +7,6 @@ import AppError from "@/utils/errorClass";
 import _ from "lodash";
 
 export async function getCheckoutData(userId) {
-  console.log(userId, "userId🚀💎💎");
   try {
     await dbConnect();
     await restrictTo("user", "admin");
@@ -28,15 +27,11 @@ export async function getCheckoutData(userId) {
 
     const checkedItems = cart.item.filter((item) => item.checked);
 
-    console.log(checkedItems, "checkedItems🚀💎💎");
-
     if (checkedItems.length === 0) {
       throw new AppError("No items selected", 400);
     }
 
     const formattedItems = checkedItems.map(formatCartItem);
-
-    console.log(formattedItems, "formattedItems🚀💎💎");
 
     const itemCount = checkedItems.reduce(
       (total, item) => total + item.quantity,

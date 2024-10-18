@@ -45,6 +45,7 @@ const categorySchema = new mongoose.Schema(
     slug: {
       type: String,
       lowercase: true,
+      index: true,
     },
     path: {
       type: [String],

@@ -2,7 +2,6 @@
 
 import { useState, memo, useCallback } from "react";
 import { Modal, message } from "antd";
-import styles from "@/app/ui/inputStyle.module.css";
 import { ButtonPrimary } from "../button";
 import { updateUserAddress, createUserAddress } from "@/app/action/userAction";
 import { useUserStore } from "@/store/store";
@@ -34,6 +33,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
           await updateUserAddress(formData);
           await mutate("/checkout-data");
           await mutate(`/api/user/${user.id}`);
+          await mutate(`/api/userAddress/${user.id}`);
 
           message.success("Address updated successfully");
 
@@ -47,7 +47,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
         await mutate("/checkout-data");
         await mutate(`/api/user/${user.id}`);
-
+        await mutate(`/api/userAddress/${user.id}`);
         message.success("Address updated successfully");
       } catch (error) {
         console.error("Error updating address:", error);
@@ -72,6 +72,8 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
         await mutate("/checkout-data");
         await mutate(`/api/user/${user.id}`);
+        await mutate(`/api/userAddress/${user.id}`);
+
         message.success("Address added successfully");
       } catch (error) {
         message.error("Failed to add address. Please try again.");

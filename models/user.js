@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema(
     passwordResetExpires: Date,
     createdAt: { type: Date, default: Date.now, immutable: true },
     active: { type: Boolean, default: true, select: false },
-    address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
+    // address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
   },
   {
     timestamps: true,

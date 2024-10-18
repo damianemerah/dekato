@@ -13,8 +13,6 @@ import { revalidatePath, revalidateTag } from "next/cache";
 function formatCartData(cart) {
   const { _id, item, totalPrice, totalItems, amountSaved } = cart;
 
-  console.log(cart, "cart🚀💎💎");
-
   const formattedItems = item
     .map((cartItem) => {
       const { _id, product, variantId, cartId, ...rest } = cartItem;
@@ -27,8 +25,6 @@ function formatCartData(cart) {
       const variant = product?.variant?.find(
         (v) => v.id.toString() === variantId?.toString(),
       );
-
-      console.log(product, "product🚀💎💎");
 
       return {
         id: _id.toString(),
@@ -71,8 +67,6 @@ export async function createCartItem(userId, newItem) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  console.log(newItem, "newItem🚀💎💎");
-
   try {
     await dbConnect();
 
@@ -84,8 +78,6 @@ export async function createCartItem(userId, newItem) {
       session,
     );
 
-    console.log(existingProduct, "existingProduct🚀💎💎");
-
     if (!existingProduct) {
       throw new Error("Product not found");
     }
@@ -96,12 +88,8 @@ export async function createCartItem(userId, newItem) {
       .lean({ virtuals: true })
       .session(session);
 
-    console.log(cart, "cart0🚀💎💎");
-
     if (!cart) {
       cart = await createNewCart(userId, session);
-
-      console.log(cart, "cart1🚀💎💎");
     }
 
     const query = {
@@ -111,8 +99,6 @@ export async function createCartItem(userId, newItem) {
         ? { variantId: newItem.variantId }
         : { variantId: { $exists: false } }),
     };
-
-    console.log(query, "query🚀💎💎");
 
     const existingItemCart = await CartItem.findOne(query).session(session);
 
@@ -132,19 +118,15 @@ export async function createCartItem(userId, newItem) {
         { session },
       );
 
-      console.log(cartItem, "cartItem🚀💎💎");
-
       cart = await Cart.findByIdAndUpdate(
         cart._id,
         { $push: { item: cartItem[0]._id } },
         { session, new: true },
       ).lean({ virtuals: true });
-
-      console.log(cart, "cart2🚀💎💎");
     }
 
-    revalidateTag("checkout-data");
-    revalidatePath("/checkout");
+    // revalidateTag("checkout-data");
+    // revalidatePath("/checkout");
 
     await session.commitTransaction();
     return formatCartData(cart);
@@ -159,8 +141,6 @@ export async function createCartItem(userId, newItem) {
 export async function getCart(userId) {
   await dbConnect();
 
-  console.log(userId, "userId🚀💎💎");
-
   const cart = await Cart.findOne({ userId })
     .populate({
       path: "item",
@@ -171,8 +151,6 @@ export async function getCart(userId) {
       },
     })
     .lean({ virtuals: true });
-
-  console.log(cart, "cart🚀💎💎");
 
   if (!cart) {
     return createNewCart(userId);
@@ -186,10 +164,7 @@ export async function updateCartItemQuantity(updateData) {
   await restrictTo("admin", "user");
   await dbConnect();
 
-  console.log(updateData, "updateData🚀💎💎");
   const { userId, cartItemId, product } = updateData;
-
-  console.log(userId, cartItemId, product, "updateData🚀💎💎");
 
   const cart = await Cart.findOne({ userId }).populate({
     path: "item.product",
@@ -215,8 +190,8 @@ export async function updateCartItemQuantity(updateData) {
     })
     .lean({ virtuals: true });
 
-  revalidateTag("checkout-data");
-  revalidatePath("/checkout");
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
   revalidatePath("/cart");
   return formatCartData(updatedCart);
 }
@@ -247,8 +222,8 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
     })
     .lean({ virtuals: true });
 
-  revalidateTag("checkout-data");
-  revalidatePath("/checkout");
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }
@@ -284,8 +259,8 @@ export async function selectAllCart(userId, selectAll) {
       select: "name price discountPrice slug variant image",
     })
     .lean({ virtuals: true });
-  revalidateTag("checkout-data");
-  revalidatePath("/checkout");
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }
@@ -324,8 +299,8 @@ export async function removeFromCart(userId, cartItemId) {
     })
     .lean({ virtuals: true });
 
-  revalidateTag("checkout-data");
-  revalidatePath("/checkout");
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }

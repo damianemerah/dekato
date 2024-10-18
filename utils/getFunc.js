@@ -70,8 +70,6 @@ export function getQueryObj(searchParams) {
     ]),
   );
 
-  console.log(params, "params🔥🔥🔥");
-
   let variantConditions = [];
 
   for (const key in params) {

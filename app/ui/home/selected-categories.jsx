@@ -33,14 +33,10 @@ export default memo(function HomeCategory() {
     selectedCategory
       ? `/api/pinnedCategories?parent=${selectedCategory}`
       : null,
-    () => getPinnedCategoriesByParent(selectedCategory),
-
+    () => selectedCategory && getPinnedCategoriesByParent(selectedCategory),
     {
       revalidateOnFocus: false,
       refreshInterval: 1000 * 60 * 5, // 5 minutes
-      onSuccess: (data) => {
-        console.log(data, "data");
-      },
     },
   );
 
@@ -50,7 +46,6 @@ export default memo(function HomeCategory() {
     }
   }, [categories]);
 
-  // setting the selected category (men, women) to local storage
   const handleCategoryChange = useCallback(
     (category) => {
       setSelectedCategory(category);
@@ -60,7 +55,7 @@ export default memo(function HomeCategory() {
 
   if (
     !isLoading &&
-    (!Array.isArray(categorizedListState) || categorizedListState.length === 0)
+    (!Array.isArray(categorizedListState) || categorizedListState?.length === 0)
   ) {
     return null;
   }
@@ -91,10 +86,13 @@ export default memo(function HomeCategory() {
         </div>
       </div>
 
-      {isLoading ? (
-        <SmallSpinner />
-      ) : (
-        <div className="relative">
+      <div
+        className="relative"
+        style={{ minHeight: isLoading ? "200px" : "auto" }}
+      >
+        {isLoading ? (
+          <SmallSpinner />
+        ) : (
           <Swiper
             modules={[Scrollbar, Mousewheel]}
             spaceBetween={15}
@@ -125,8 +123,8 @@ export default memo(function HomeCategory() {
               </SwiperSlide>
             ))}
           </Swiper>
-        </div>
-      )}
+        )}
+      </div>
       <style jsx global>{`
         .swiper-scrollbar {
           background: rgba(0, 0, 0, 0.1) !important;

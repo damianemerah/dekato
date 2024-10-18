@@ -57,7 +57,7 @@ export async function POST(req, { params }) {
       userId: [userId],
     } = params;
     const body = await req.json();
-    const { shippingMethod, address, items, amount, email } = body;
+    const { shippingMethod, address, items, amount, email, saveCard } = body;
 
     if (shippingMethod?.toLowerCase() === "delivery" && !address) {
       throw new AppError("Address is required for delivery", 400);
@@ -75,17 +75,25 @@ export async function POST(req, { params }) {
       }
     }
 
+    console.log(items, "items💎💎");
+
     const orderData = {
       userId: userId,
-      cartItem: items.map((item) => item.id),
+      product: items.map((item) => ({
+        productId: item.product.id,
+        name: item.product.name,
+        price: item.product.price,
+        image: item.image,
+        quantity: item.quantity,
+        option: item.option,
+        variantId: item.variantId,
+      })),
       total: amount,
       type: "cart",
       shippingMethod: shippingMethod?.toLowerCase(),
       address:
         shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
     };
-
-    console.log(orderData, "orderData👇👇👇");
 
     //session require array of objects
     const order = await Order.create([orderData], { session });
@@ -97,6 +105,7 @@ export async function POST(req, { params }) {
     }
 
     const payment = await Paystack.transaction.initialize({
+      // authorization_code: "AUTH_CODE",
       email: email,
       amount: Math.round(amount * 100),
       callback_url: `${req.nextUrl.origin}`,
@@ -105,6 +114,7 @@ export async function POST(req, { params }) {
         orderId: createdOrder["_id"].toString(),
         userId,
         receipt_number: createdOrder.receiptNumber,
+        saveCard: saveCard,
       },
     });
 

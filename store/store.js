@@ -27,6 +27,17 @@ export const useUserStore = create(
   ),
 );
 
+export const useAddressStore = create(
+  persist(
+    (set) => ({
+      address: [],
+      setAddress: (address) => set({ address }),
+    }),
+    {
+      name: "address-storage",
+    },
+  ),
+);
 export const useCartStore = create(
   persist(
     (set) => ({

@@ -10,7 +10,7 @@ import Paystack from "@/public/assets/icons/paystack.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { useSession } from "next-auth/react";
-import useCartData from "@/app/ui/useCartData";
+import useCartData from "@/app/hooks/useCartData";
 
 export default function Cart() {
   const { data: session } = useSession();
@@ -121,7 +121,7 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved }) {
 
       <div className="mb-4 flex items-center justify-between">
         <span className="text-primary">Shipping</span>
-        <span className="font-medium text-green-600">TBD</span>
+        <span className="font-medium">TBD</span>
       </div>
 
       <div className="mb-6 border-t pt-4">

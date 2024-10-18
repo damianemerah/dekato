@@ -6,13 +6,13 @@ import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
 import { protect, restrictTo } from "@/utils/checkPermission";
 import { revalidatePath } from "next/cache";
+import Payment from "@/models/payment";
+
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 async function updateProductQuantity(order) {
-  for (const item of order.cartItem) {
-    const product = await Product.findById(item.product._id.toString());
-
-    console.log(product, "product💎💎");
+  for (const item of order.product) {
+    const product = await Product.findById(item.productId.toString());
 
     if (item.variantId) {
       const variantIndex = product.variant.findIndex(
@@ -60,22 +60,17 @@ async function updateProductQuantitySingle(order) {
 export async function POST(req) {
   // await restrictTo("admin", "user");
   try {
-    console.log("verify💎💎");
     const body = await req.json();
 
     const {
       reference,
-      metadata: { orderId, userId, receipt_number },
+      metadata: { orderId, userId, receipt_number, saveCard },
       id: paymentId,
       channel: paymentMethod,
       currency,
     } = body.data;
 
-    const order = await Order.findById(orderId).populate({
-      path: "cartItem",
-    });
-
-    console.log(order, "order💎💎");
+    const order = await Order.findById(orderId);
 
     if (!order) {
       throw new AppError("Something went wrong", 404);
@@ -84,8 +79,9 @@ export async function POST(req) {
 
     //update product quantity (variants considered)
     if (verification.data.status === "success") {
-      if (order.type === "cart") updateProductQuantity(order);
-      else if (order.type === "single") updateProductQuantitySingle(order);
+      if (order.type === "cart") await updateProductQuantity(order);
+      else if (order.type === "single")
+        await updateProductQuantitySingle(order);
     }
 
     order.status = verification?.data?.status;
@@ -94,10 +90,29 @@ export async function POST(req) {
     order.paymentMethod = paymentMethod;
     order.currency = currency;
     order.receiptNumber = receipt_number;
+    order.paidAt = verification?.data?.paidAt;
 
     await order.save();
 
-    revalidatePath("/?payment=success");
+    console.log(saveCard, "saveCard💎💎");
+
+    if (saveCard && verification?.data?.authorization?.reusable) {
+      const cardData = {
+        userId,
+        email: verification?.data?.customer?.email,
+        cardType: verification?.data?.authorization?.card_type,
+        last4: verification?.data?.authorization?.last4,
+        expiryMonth: verification?.data?.authorization?.exp_month,
+        expiryYear: verification?.data?.authorization?.exp_year,
+        authorizationCode:
+          verification?.data?.authorization?.authorization_code,
+      };
+
+      const payment = await Payment.create(cardData);
+      console.log(payment, "payment💎💎");
+    }
+
+    revalidatePath("/account/orders");
 
     return NextResponse.json(
       {
@@ -108,6 +123,14 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (error) {
-    return handleAppError(error, req);
+    console.log(error, "payment_error💎💎");
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Payment verification failed",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }

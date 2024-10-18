@@ -2,7 +2,8 @@
 
 import CheckoutProgress from "@/app/ui/checkout-progress";
 import { useUserStore } from "@/store/store";
-import useUserData from "@/app/ui/useUserData";
+import useUserData from "@/app/hooks/useUserData";
+import useAddressData from "@/app/hooks/useAddressData";
 import Image from "next/image";
 import StoreIcon from "@/public/assets/icons/store.svg";
 import HomeIcon from "@/public/assets/icons/home.svg";
@@ -18,26 +19,25 @@ import Link from "next/link";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { oswald } from "@/font";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import usePaymentData from "@/app/hooks/usePaymentData";
 
 export default function CheckoutPage() {
   const [changeAddress, setChangeAddress] = useState(false);
-  const [address, setAddress] = useState(null);
   const { deliveryMethod, setDeliveryMethod } = useUserStore();
-
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  const router = useRouter();
-
+  const { paymentData: paymentMethods, isLoading: paymentIsLoading } =
+    usePaymentData(userId);
+  const { addressData: address } = useAddressData(userId);
   const { userData: user, isLoading: userIsLoading } = useUserData(userId);
 
-  useEffect(() => {
-    setAddress(user?.address?.find((add) => add.isDefault));
-  }, [user]);
   const { data: checkoutData, isLoading: checkoutIsLoading } = useSWR(
     userId ? "/checkout-data" : null,
     () => userId && getCheckoutData(userId),
+    {
+      revalidateOnFocus: true,
+    },
   );
 
   const handleDeliveryMethodClick = (method) => {
@@ -45,13 +45,16 @@ export default function CheckoutPage() {
   };
 
   const handlePayment = async () => {
+    const saveCard = document.querySelector('input[name="saveCard"]').checked;
+
     const data = {
       userId: user?.id,
       shippingMethod: deliveryMethod,
-      address: user?.address.find((add) => add.isDefault),
+      address: address?.find((add) => add.isDefault),
       email: user?.email,
       items: checkoutData?.items,
       amount: checkoutData?.totalPrice,
+      saveCard: saveCard,
     };
 
     try {
@@ -97,20 +100,22 @@ export default function CheckoutPage() {
     </div>
   );
 
-  const renderAddress = () => {
-    if (address && deliveryMethod === "delivery") {
+  const renderAddress = (address) => {
+    const defaultAddress = address?.find((add) => add.isDefault);
+
+    if (defaultAddress && deliveryMethod === "delivery") {
       return (
         <div className="flex items-center justify-between border border-primary px-6 py-4 text-sm">
           <div className="flex items-center gap-4">
             <div>
               <p className="mb-1 flex items-center gap-3">
                 <span className="font-medium tracking-wide text-primary">
-                  {address?.firstname} {address?.lastname}
+                  {defaultAddress?.firstname} {defaultAddress?.lastname}
                 </span>
-                <span className="text-gray-600">{address?.phone}</span>
+                <span className="text-gray-600">{defaultAddress?.phone}</span>
               </p>
-              <p className="text-gray-700">{address?.address}</p>
-              <p className="text-gray-700">{`${address?.city ? address?.city + ", " : ""}${address?.state ? address?.state + ", " : ""}${address?.country ? address?.country : ""}`}</p>
+              <p className="text-gray-700">{defaultAddress?.address}</p>
+              <p className="text-gray-700">{`${defaultAddress?.city ? defaultAddress?.city + ", " : ""}${defaultAddress?.state ? defaultAddress?.state + ", " : ""}${defaultAddress?.country ? defaultAddress?.country : ""}`}</p>
             </div>
           </div>
           <button
@@ -144,7 +149,6 @@ export default function CheckoutPage() {
   };
 
   const renderCartItems = useMemo(() => {
-    console.log(checkoutData?.items, "checkoutData?.items🚀🚀🚀");
     return checkoutData?.items?.map((item, index) => (
       <div key={index} className="flex min-h-20 items-start border-b pb-4">
         <div className="h-20 w-20 flex-shrink-0">
@@ -206,107 +210,140 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[942px]">
-      <CheckoutProgress />
-      {/* {userIsValidating && (
+    <div className="bg-grayBg">
+      <div className="mx-auto max-w-[942px]">
+        <CheckoutProgress />
+        {/* {userIsValidating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <SmallSpinner className="!text-primary" />
         </div>
       )} */}
-      <div className="mx-auto flex flex-col gap-8 md:flex-row">
-        {/* Left Section */}
-        <div className="w-full md:w-2/3">
-          {/* Delivery Method */}
-          <section className="mb-8 bg-white px-6 py-8 shadow-sm">
-            <h2 className="mb-6 text-lg font-medium text-primary">
-              Choose delivery method
-            </h2>
-            <div className="mx-auto max-w-[320px] space-y-4 text-sm">
-              {renderDeliveryMethod(
-                "delivery",
-                <HomeIcon className="h-8 w-8 stroke-2 text-primary" />,
-                "Home or work address",
-                "4 - 7 days",
-                "FREE",
-              )}
-              {renderDeliveryMethod(
-                "pickup",
-                <StoreIcon className="h-8 w-8 stroke-2 text-primary" />,
-                "Store pickup",
-                "2 - 16 days",
-                "FREE",
-              )}
-            </div>
+        <div className="mx-auto flex flex-col gap-8 md:flex-row">
+          {/* Left Section */}
+          <div className="w-full md:w-2/3">
+            {/* Delivery Method */}
+            <section className="mb-8 bg-white px-6 py-8 shadow-sm">
+              <h2 className="mb-6 text-lg font-medium text-primary">
+                Choose delivery method
+              </h2>
+              <div className="mx-auto max-w-[320px] space-y-4 text-sm">
+                {renderDeliveryMethod(
+                  "delivery",
+                  <HomeIcon className="h-8 w-8 stroke-2 text-primary" />,
+                  "Home or work address",
+                  "4 - 7 days",
+                  "FREE",
+                )}
+                {renderDeliveryMethod(
+                  "pickup",
+                  <StoreIcon className="h-8 w-8 stroke-2 text-primary" />,
+                  "Store pickup",
+                  "2 - 16 days",
+                  "FREE",
+                )}
+              </div>
 
-            <h2
-              className={`${oswald.className} mb-6 mt-10 text-xl font-bold tracking-wide text-primary`}
-            >
-              Shipping address
-            </h2>
-            {renderAddress()}
-
-            {deliveryMethod === "delivery" && (
-              <AddressOption
-                {...{
-                  changeAddress,
-                  setChangeAddress,
-                  addresses: user?.address,
-                }}
-              />
-            )}
-          </section>
-        </div>
-
-        {/* Right Section - Cart Summary */}
-        <div className="w-full md:w-1/3">
-          <section className="bg-white px-6 py-8 shadow-sm">
-            <div className="mb-4 flex items-center justify-between pb-4">
-              <h2 className="text-xl font-semibold text-primary">{`${checkoutData?.itemCount || 0} Item${
-                checkoutData?.itemCount > 1 ? "s" : ""
-              }`}</h2>
-              <Link
-                href="/cart"
-                className="border-b border-gray-600 text-sm text-gray-600 transition-colors duration-200 hover:text-primary"
+              <h2
+                className={`${oswald.className} mb-6 mt-10 text-xl font-bold tracking-wide text-primary`}
               >
-                Edit
-              </Link>
-            </div>
-            <div className="mb-4 flex items-center border border-primary px-4 py-2 text-sm text-gray-600">
-              <InfoCircleOutlined className="mr-2 flex-shrink-0 text-lg" />
-              <div>
-                <strong className="mb-1 block">Items not reserved</strong>
-                <p>Checkout now to make them yours</p>
-              </div>
-            </div>
+                Shipping address
+              </h2>
+              {renderAddress(address)}
 
-            <div className="mb-6 space-y-4">{renderCartItems}</div>
+              {deliveryMethod === "delivery" && (
+                <AddressOption
+                  {...{
+                    changeAddress,
+                    setChangeAddress,
+                    addresses: address,
+                  }}
+                />
+              )}
 
-            {/* Total Section */}
-            <div className="space-y-2 text-sm font-medium tracking-wide text-primary">
-              <div className="flex items-center justify-between">
-                <p>Subtotal</p>
-                <p>₦{checkoutData?.totalPrice}</p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p>Shipping</p>
-                <p className="text-green-600">Free</p>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <p>Total</p>
-                <p>₦{checkoutData?.totalPrice}</p>
-              </div>
-            </div>
+              {paymentMethods && paymentMethods.length > 0 && (
+                <PaymentOption paymentMethods={paymentMethods} />
+              )}
+            </section>
+          </div>
 
-            <div className="mt-6">
-              <ButtonPrimary
-                className="w-full bg-secondary py-3 text-sm font-medium tracking-wider"
-                onClick={handlePayment}
-              >
-                Review & Pay
-              </ButtonPrimary>
-            </div>
-          </section>
+          {/* Right Section - Cart Summary */}
+          <div className="w-full md:w-1/3">
+            <section className="mb-8 bg-white px-6 py-8 shadow-sm">
+              <div className="mb-4 flex items-center justify-between pb-4">
+                <h2 className="text-xl font-semibold text-primary">{`${checkoutData?.itemCount || 0} Item${
+                  checkoutData?.itemCount > 1 ? "s" : ""
+                }`}</h2>
+                <Link
+                  href="/cart"
+                  className="border-b border-gray-600 text-sm text-gray-600 transition-colors duration-200 hover:text-primary"
+                >
+                  Edit
+                </Link>
+              </div>
+              <div className="mb-4 flex items-center border border-primary px-4 py-2 text-sm text-gray-600">
+                <InfoCircleOutlined className="mr-2 flex-shrink-0 text-lg" />
+                <div>
+                  <strong className="mb-1 block">Items not reserved</strong>
+                  <p>Checkout now to make them yours</p>
+                </div>
+              </div>
+
+              <div className="mb-6 space-y-4">{renderCartItems}</div>
+
+              {/* Total Section */}
+              <div className="space-y-2 text-sm font-medium tracking-wide text-primary">
+                <div className="flex items-center justify-between">
+                  <p>Subtotal</p>
+                  <p>₦{checkoutData?.totalPrice}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p>Shipping</p>
+                  <p className="text-green-600">Free</p>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <p>Total</p>
+                  <p>₦{checkoutData?.totalPrice}</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="saveCard"
+                    className="mr-2 h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 checked:border-primary checked:bg-primary checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+                  />
+                  <span className="text-sm text-gray-600">
+                    Save card for future purchases
+                  </span>
+                </label>
+              </div>
+
+              <div className="mt-6">
+                <ButtonPrimary
+                  className="w-full bg-secondary py-3 text-sm font-medium tracking-wider"
+                  onClick={handlePayment}
+                >
+                  Review & Pay
+                </ButtonPrimary>
+              </div>
+            </section>
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PaymentOption({ paymentMethods }) {
+  return (
+    <div className="mt-4 text-sm">
+      <h2 className="mb-6 text-lg font-medium text-primary">
+        Choose payment method
+      </h2>
+      <div className="mx-auto max-w-[320px] space-y-4 text-sm">
+        {paymentMethods?.map((paymentMethod) => (
+          <div key={paymentMethod.id}>{paymentMethod.name}</div>
+        ))}
       </div>
     </div>
   );

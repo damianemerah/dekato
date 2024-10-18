@@ -50,7 +50,7 @@ export async function generateStaticParams() {
   const categoryPaths = await unstable_cache(
     async () => await getAllCategoryPaths(),
     ["categoryPaths"],
-    { revalidate: 10 }, // Revalidate every 30 seconds
+    { revalidate: 1800 },
   )();
 
   const paths = categoryPaths.map((path) => ({

@@ -19,5 +19,7 @@ export default function useUserData(userId) {
     },
   );
 
+  console.log(data, "👇👇👇");
+
   return { userData: data, isLoading, isValidating, error };
 }

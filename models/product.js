@@ -51,6 +51,7 @@ const productSchema = new mongoose.Schema(
         },
         message: "Discount duration must be in the future",
       },
+      index: true,
     },
     image: {
       type: [String],

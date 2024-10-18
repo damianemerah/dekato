@@ -9,7 +9,7 @@ import "swiper/css/free-mode";
 import "swiper/css/thumbs";
 import "@/style/globals.css";
 import LayoutWrapper from "@/app/ui/layout-wrapper";
-import SidebarServer from "@/app/ui/sidebar-server";
+import SidebarServer from "@/app/ui/sidebar/sidebar-server";
 import Header from "@/app/ui/header";
 
 export default function RootLayout({ children }) {
@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <AntdRegistry>
         <Provider>
-          <body className={`${roboto.className} antialiased`}>
+          <body className={`${roboto.className} min-h-screen antialiased`}>
             <Header />
             <div className="relative flex w-full">
               <div className="sticky top-16 z-30 h-screen overflow-y-auto">
