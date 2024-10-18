@@ -1,6 +1,7 @@
 import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 export async function GET() {
   try {
@@ -10,28 +11,31 @@ export async function GET() {
 
     const products = await Product.find({ discountDuration: { $lte: now } });
 
+    console.log(products, "👇👇👇");
+
     for (const product of products) {
       product.discount = 0;
-      product.discountPrice = undefined;
+      product.discountPrice = 0;
       product.discountDuration = undefined;
 
       if (product.variant && Array.isArray(product.variant)) {
         product.variant.forEach((variant) => {
-          variant.discountPrice = undefined;
+          variant.discountPrice = 0;
         });
       }
 
       await product.save();
-    }
+      revalidateTag(`product-${product.slug}`);
 
-    console.log(
-      `Reset discounts for ${products.length} products`,
-      "success💎💎💎😎",
-    );
-    return NextResponse.json(
-      { message: "Discounts reset successfully" },
-      { status: 200 },
-    );
+      console.log(
+        `Reset discounts for ${products.length} products`,
+        "success💎💎💎😎",
+      );
+      return NextResponse.json(
+        { message: "Discounts reset successfully" },
+        { status: 200 },
+      );
+    }
   } catch (error) {
     console.error("Error resetting expired discounts:", error);
     return NextResponse.json(
