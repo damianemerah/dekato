@@ -26,16 +26,16 @@ export async function GET() {
 
       await product.save();
       revalidateTag(`product-${product.slug}`);
-
-      console.log(
-        `Reset discounts for ${products.length} products`,
-        "success💎💎💎😎",
-      );
-      return NextResponse.json(
-        { message: "Discounts reset successfully" },
-        { status: 200 },
-      );
     }
+
+    console.log(
+      `Reset discounts for ${products.length} products`,
+      "success💎💎💎😎",
+    );
+    return NextResponse.json(
+      { message: "Discounts reset successfully" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error resetting expired discounts:", error);
     return NextResponse.json(
@@ -44,3 +44,4 @@ export async function GET() {
     );
   }
 }
+``;
