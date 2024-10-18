@@ -1,4 +1,4 @@
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import Link from "next/link";
 
 export default function Campaign() {

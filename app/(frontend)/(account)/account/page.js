@@ -4,7 +4,8 @@ import { useState, useCallback } from "react";
 import { ButtonSecondary } from "@/app/ui/button";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { oswald } from "@/style/font";
-import useUserData from "@/app/ui/useUserData";
+import useUserData from "@/app/hooks/useUserData";
+import useAddressData from "@/app/hooks/useAddressData";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Modal, message } from "antd";
@@ -19,20 +20,19 @@ import { useSWRConfig } from "swr";
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
   const userId = session?.user?.id;
-  console.log(userId, "👇👇👇");
   const {
     userData: user,
     isLoading: userIsLoading,
     isValidating,
   } = useUserData(userId);
-  const defaultAddress = user?.address?.find((address) => address.isDefault);
+
+  const { addressData: address } = useAddressData(userId);
+  const defaultAddress = address?.find((address) => address.isDefault);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { mutate } = useSWRConfig();
-
-  console.log(user, "👇👇👇");
 
   const handleEditClick = useCallback(() => setShowEditModal(true), []);
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);

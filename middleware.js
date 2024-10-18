@@ -11,8 +11,6 @@ export async function middleware(request) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    console.log(token, "token❤️❤️");
-
     if (!token) {
       const callbackUrl = encodeURIComponent(request.url);
       return NextResponse.redirect(

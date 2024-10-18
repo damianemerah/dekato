@@ -3,11 +3,11 @@ import { useSidebarStore } from "@/store/store";
 import Link from "next/link";
 import Logo from "./dekato-logo.jsx";
 import SearchBox from "./searchbox.jsx";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import UserIcon from "@/public/assets/icons/user.svg";
 import { usePathname } from "next/navigation";
-import useUserData from "@/app/ui/useUserData";
-import useCartData from "@/app/ui/useCartData";
+import useUserData from "@/app/hooks/useUserData.js";
+import useCartData from "@/app/hooks/useCartData.js";
 import { useSession } from "next-auth/react";
 import { HeartOutlined, ShoppingOutlined } from "@ant-design/icons";
 

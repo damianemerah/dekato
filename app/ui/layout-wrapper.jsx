@@ -11,12 +11,7 @@ const LayoutWrapper = ({ children }) => {
   const pathname = usePathname();
 
   return (
-    <SWRConfig
-      value={{
-        refreshInterval: 100000,
-        revalidateOnFocus: false,
-      }}
-    >
+    <SWRConfig value={{}}>
       <div
         className={`${
           isSidebarOpen &&

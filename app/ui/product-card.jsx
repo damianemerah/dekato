@@ -66,12 +66,12 @@ export default function ProductCard({ product }) {
             className="absolute left-0 top-0 h-full w-full object-cover object-center"
           />
           {product.discount > 0 && (
-            <div className="absolute bottom-3 left-0 bg-green-500 px-2.5 py-1 text-[13px] text-white">
+            <div className="absolute bottom-3 left-0 bg-red-500 px-2.5 py-1 text-[13px] text-white">
               -{product.discount}%
             </div>
           )}
           <div
-            className="absolute right-2 top-2 cursor-pointer text-2xl text-primary transition-all duration-300 hover:scale-110"
+            className="absolute right-2 top-2 cursor-pointer text-2xl text-red-500 transition-all duration-300 hover:scale-110"
             onClick={handleFavoriteClick}
           >
             {isFavorite ? <HeartFilled /> : <HeartOutlined />}
@@ -83,16 +83,18 @@ export default function ProductCard({ product }) {
           </p>
           <div className="mb-1">
             {product.discount ? (
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-2 text-[15px]">
                 <p className="font-medium text-gray-500 line-through">
                   ₦{product.price.toLocaleString()}
                 </p>
-                <p className="font-medium text-[#12A100]">
+                <p className="font-medium text-primary">
                   ₦{discountedPrice.toLocaleString()}
                 </p>
               </div>
             ) : (
-              <p className="font-medium">₦{product.price.toLocaleString()}</p>
+              <p className="text-[15px] font-medium">
+                ₦{product.price.toLocaleString()}
+              </p>
             )}
           </div>
         </div>

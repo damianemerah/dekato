@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import OrderCard from "@/app/ui/order-card";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 
 const OrderSummary = () => {
   // State to track visibility of the order cards

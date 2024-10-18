@@ -47,19 +47,25 @@ export default memo(function NewCollection({ params }) {
   useEffect(() => {
     if (!catIsLoading && allCategories?.data.length) {
       setCatList(
-        allCategories?.data.map((cat) => ({
-          value: cat.id,
-          label: (
-            <p>
-              {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{" "}
-              {cat.parent?.name
-                ? `(${cat.parent.name.charAt(0).toUpperCase() + cat.parent.name.slice(1)})`
-                : ""}
-            </p>
-          ),
-          parent: cat.parent,
-          disabled: cat.parent !== null,
-        })),
+        allCategories?.data
+          .sort((a, b) => {
+            if (a.parent === null && b.parent !== null) return -1;
+            if (a.parent !== null && b.parent === null) return 1;
+            return 0;
+          })
+          .map((cat) => ({
+            value: cat.id,
+            label: (
+              <p>
+                {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{" "}
+                {cat.parent?.name
+                  ? `(${cat.parent.name.charAt(0).toUpperCase() + cat.parent.name.slice(1)})`
+                  : ""}
+              </p>
+            ),
+            parent: cat.parent,
+            disabled: cat.parent !== null,
+          })),
       );
     }
   }, [allCategories?.data, catIsLoading]);
@@ -173,15 +179,19 @@ export default memo(function NewCollection({ params }) {
       className="px-10 py-20"
     >
       <div className="mb-4 flex justify-between">
-        <Link href="/admin/collections/new" passHref>
-          <ButtonPrimary className="!rounded-md bg-secondary px-2 text-base font-bold tracking-wide text-white">
-            New Collection
-          </ButtonPrimary>
-        </Link>
+        {actionType !== "create" && (
+          <Link href="/admin/collections/new" passHref>
+            <ButtonPrimary className="!rounded-md bg-secondary px-2 text-base font-bold tracking-wide text-white">
+              New Collection
+            </ButtonPrimary>
+          </Link>
+        )}
         <ButtonPrimary
           type="submit"
           loading={isLoading}
-          className={`!rounded-md bg-primary px-2 text-right text-base font-bold tracking-wide text-white`}
+          className={`!rounded-md bg-primary px-2 text-right text-base font-bold tracking-wide text-white ${
+            actionType === "create" ? "ml-auto" : ""
+          }`}
         >
           {actionType === "edit" ? "Update collection" : "Create collection"}
         </ButtonPrimary>
@@ -221,32 +231,34 @@ export default memo(function NewCollection({ params }) {
               className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
             ></textarea>
           </div>
+          <div>
+            <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+              <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+                Images
+              </h4>
+              <MediaUpload
+                multiple={true}
+                fileList={fileList}
+                setFileList={setFileList}
+                defaultFileList={defaultFileList}
+                setDefaultFileList={setDefaultFileList}
+              />
+            </div>
+            <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+              <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+                Banner
+              </h4>
+              <MediaUpload
+                multiple={true}
+                fileList={bannerFileList}
+                setFileList={setBannerFileList}
+                defaultFileList={defaultBannerFileList}
+                setDefaultFileList={setDefaultBannerFileList}
+              />
+            </div>
+          </div>
         </div>
         <div>
-          <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
-              Images
-            </h4>
-            <MediaUpload
-              multiple={true}
-              fileList={fileList}
-              setFileList={setFileList}
-              defaultFileList={defaultFileList}
-              setDefaultFileList={setDefaultFileList}
-            />
-          </div>
-          <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
-              Banner
-            </h4>
-            <MediaUpload
-              multiple={true}
-              fileList={bannerFileList}
-              setFileList={setBannerFileList}
-              defaultFileList={defaultBannerFileList}
-              setDefaultFileList={setDefaultBannerFileList}
-            />
-          </div>
           <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
             <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
               Category

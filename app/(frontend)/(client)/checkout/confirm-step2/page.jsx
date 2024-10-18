@@ -3,7 +3,7 @@
 import CheckoutProgress from "@/app/ui/checkout-progress";
 import { ButtonPrimary } from "@/app/ui/button";
 import OrderSummary from "@/app/ui/order-summary";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font"
 import Link from "next/link";
 
 export default function ConfirmCheckoutStep2() {

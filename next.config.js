@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const path = require("path");
+
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -28,11 +31,19 @@ const nextConfig = {
       fullUrl: true,
     },
   },
-  webpack(config) {
+  webpack(config, { webpack }) {
     config.module.rules.push({
       test: /\.svg$/,
       use: [{ loader: "@svgr/webpack", options: { icon: true } }],
     });
+
+    // Add ContextReplacementPlugin to handle dynamic requires
+    config.plugins.push(
+      new webpack.ContextReplacementPlugin(
+        /pug-filters/,
+        path.resolve(__dirname, "node_modules"),
+      ),
+    );
 
     return config;
   },

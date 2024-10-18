@@ -6,7 +6,7 @@ import HeaderOne from "@/app/ui/heading1";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Image from "next/image";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import { Pagination as AntdPagination } from "antd";
 import { useRouter } from "next/navigation";
 

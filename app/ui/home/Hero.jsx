@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import image2 from "@/public/assets/image2.png";
 import image3 from "@/public/assets/image3.png";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 import PromoBar from "@/app/ui/promo-bar";
 import "swiper/css/effect-fade";
 
@@ -56,27 +56,31 @@ export default function Hero() {
                   SHOP NOW
                 </Link>
               </div>
-              <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
+              <div className="relative flex h-64 w-full flex-1 justify-center sm:h-80 md:h-96">
                 <div className="block w-1/2">
                   <Image
-                    alt="cat"
+                    alt="Summer sale dress"
                     className="max-h-full object-cover"
                     style={{
                       boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)",
                     }}
-                    loading="lazy"
+                    loading="eager"
                     src={image2}
+                    width={300}
+                    height={400}
                   />
                 </div>
                 <div className="block w-1/2 -translate-x-10 scale-110 transform">
                   <Image
-                    alt="cat"
+                    alt="Summer sale dress"
                     className="max-h-full object-cover"
                     style={{
                       boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)",
                     }}
-                    loading="lazy"
+                    loading="eager"
                     src={image3}
+                    width={300}
+                    height={400}
                   />
                 </div>
               </div>
@@ -98,27 +102,31 @@ export default function Hero() {
                   SHOP NOW
                 </Link>
               </div>
-              <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
+              <div className="relative flex h-64 w-full flex-1 justify-center sm:h-80 md:h-96">
                 <div className="block w-1/2">
                   <Image
-                    alt="cat"
+                    alt="Women's wear collection"
                     className="max-h-full object-cover"
                     style={{
                       boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)",
                     }}
-                    loading="lazy"
+                    loading="eager"
                     src={image2}
+                    width={300}
+                    height={400}
                   />
                 </div>
                 <div className="block w-1/2 -translate-x-10 scale-110 transform">
                   <Image
-                    alt="cat"
+                    alt="Women's wear collection"
                     className="max-h-full object-cover"
                     style={{
                       boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)",
                     }}
-                    loading="lazy"
+                    loading="eager"
                     src={image3}
+                    width={300}
+                    height={400}
                   />
                 </div>
               </div>
@@ -140,27 +148,31 @@ export default function Hero() {
                   SHOP NOW
                 </Link>
               </div>
-              <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
+              <div className="relative flex h-64 w-full flex-1 justify-center sm:h-80 md:h-96">
                 <div className="block w-1/2">
                   <Image
-                    alt="cat"
+                    alt="New arrivals"
                     className="max-h-full object-cover"
                     style={{
                       boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)",
                     }}
-                    loading="lazy"
+                    loading="eager"
                     src={image2}
+                    width={300}
+                    height={400}
                   />
                 </div>
                 <div className="block w-1/2 -translate-x-10 scale-110 transform">
                   <Image
-                    alt="cat"
+                    alt="New arrivals"
                     className="max-h-full object-cover"
                     style={{
                       boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)",
                     }}
-                    loading="lazy"
+                    loading="eager"
                     src={image3}
+                    width={300}
+                    height={400}
                   />
                 </div>
               </div>

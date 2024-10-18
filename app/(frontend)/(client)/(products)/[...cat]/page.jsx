@@ -10,30 +10,14 @@ export const dynamic = "force-dynamic";
 
 async function getAllCategoryPaths() {
   await dbConnect();
-  const categories = await Category.find({}).select("slug parent").lean();
-  const collections = await Campaign.find({}).select("slug").lean();
 
-  const buildCategoryPath = (category, allCategories) => {
-    const path = [category.slug];
-    let currentCategory = category;
-    while (currentCategory.parent) {
-      const parentCategory = allCategories.find(
-        (c) => c._id.toString() === currentCategory.parent.toString(),
-      );
-      if (parentCategory) {
-        path.unshift(parentCategory.slug);
-        currentCategory = parentCategory;
-      } else {
-        break;
-      }
-    }
-    return path;
-  };
+  const [categories, collections] = await Promise.all([
+    Category.find().select("slug path").lean(),
+    Campaign.find().select("slug path").lean(),
+  ]);
 
-  const categoryPaths = categories.map((category) =>
-    buildCategoryPath(category, categories),
-  );
-  const collectionPaths = collections.map((collection) => [collection.slug]);
+  const categoryPaths = categories.map((category) => category.path);
+  const collectionPaths = collections.map((collection) => collection.path);
 
   return [...categoryPaths, ...collectionPaths];
 }
@@ -47,17 +31,15 @@ const LoadingSpinner = memo(function LoadingSpinner() {
 });
 
 export async function generateStaticParams() {
-  const categoryPaths = await unstable_cache(
-    async () => await getAllCategoryPaths(),
-    ["categoryPaths"],
-    { revalidate: 10 }, // Revalidate every 30 seconds
-  )();
+  const paths = await unstable_cache(getAllCategoryPaths, ["categoryPaths"], {
+    revalidate: 1800,
+  })();
 
-  const paths = categoryPaths.map((path) => ({
-    cat: path,
+  const filteredPaths = paths.map((path) => ({
+    cat: path.map((p) => (p.includes("/") ? p.split("/")[1] : p)),
   }));
 
-  return paths;
+  return filteredPaths;
 }
 
 export default function Product({ params: { cat }, searchParams }) {

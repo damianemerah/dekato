@@ -1,5 +1,5 @@
 import { useSidebarStore } from "@/store/store";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 
 export default function HeaderOne({ children }) {
   const isSideBarOpen = useSidebarStore((state) => state.isSidebarOpen);

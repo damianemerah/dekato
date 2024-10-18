@@ -1,6 +1,6 @@
 import Image from "next/image";
 import image10 from "@/public/assets/image10.png";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font"
 import React from "react";
 
 const OrderCard = () => {

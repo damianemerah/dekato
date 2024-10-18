@@ -70,9 +70,6 @@ const Collections = () => {
     mutate,
   } = useSWRImmutable("/api/allCollections", getAllCollections, {
     revalidateOnFocus: false,
-    onSuccess: (data) => {
-      console.log(data, "👇👇👇");
-    },
   });
 
   const dataSource = collections?.map((item) => ({

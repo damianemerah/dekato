@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { getWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { useSession } from "next-auth/react";
-import useUserData from "@/app/ui/useUserData";
+import useUserData from "@/app/hooks/useUserData";
 import Link from "next/link";
 import { createCartItem } from "@/app/action/cartAction";
 import { mutate } from "swr";
