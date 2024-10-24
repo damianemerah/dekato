@@ -31,19 +31,23 @@ const setupIndexes = async () => {
   }
 };
 
-const formatProduct = (product) => {
-  const { _id, category, campaign, variant, ...rest } = product;
+const formatProduct = (product, isAdmin = false) => {
+  const { _id, category, campaign, variant = [], ...rest } = product;
 
-  console.log(rest, "re");
   const formattedProduct = {
     id: _id.toString(),
     ...rest,
     category: category?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
     campaign: campaign?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
-    variant: variant
-      ?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v }))
-      .filter((v) => v.quantity > 0),
+    variant: variant?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v })),
   };
+
+  if (!isAdmin) {
+    formattedProduct.variant = formattedProduct.variant.filter(
+      (v) => v.quantity > 0,
+    );
+  }
+
   return formattedProduct;
 };
 
@@ -76,7 +80,7 @@ export async function getAdminProduct(params) {
       limit: params.limit || 2,
     };
     const productData = await handleProductQuery(query, searchParams);
-    const products = productData.map(formatProduct);
+    const products = productData.map((product) => formatProduct(product, true));
     const totalCount = await Product.countDocuments(query.getFilter());
     return { data: products, totalCount, limit: searchParams.limit };
   } catch (err) {
@@ -236,15 +240,15 @@ export async function getAllProducts(slugArray, searchParams = {}) {
           },
         ],
       })
-        .select("name slug _id image price discount status quantity")
+        .select(
+          "name slug _id image price discount status quantity isDiscounted",
+        )
         .populate("category", "name slug path")
         .populate("campaign", "name slug path");
     }
 
-    const populatedQuery = baseQuery.lean();
+    const populatedQuery = baseQuery.lean({ virtuals: true });
     const newSearchParams = getQueryObj(searchParams);
-
-    // const data = await handleProductQuery(populatedQuery, newSearchParams);
 
     const feature = new APIFeatures(populatedQuery, newSearchParams)
       .filter()
@@ -281,6 +285,8 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       }
     }
 
+    console.log(result, "result🔥🔥🔥");
+
     return result;
   } catch (err) {
     const error = handleAppError(err);
@@ -297,6 +303,15 @@ export async function getProductById(id) {
   if (!product) throw new Error("Product not found");
   return formatProduct(product);
 }
+export async function getAdminProductById(id) {
+  await dbConnect();
+  const product = await Product.findById(id)
+    .populate("category", "name slug")
+    .populate("campaign", "name slug")
+    .lean({ virtuals: true });
+  if (!product) throw new Error("Product not found");
+  return formatProduct(product, true);
+}
 
 export async function createProduct(formData) {
   try {
@@ -305,8 +320,13 @@ export async function createProduct(formData) {
 
     const obj = await handleFormData(formData);
 
-    const productDoc = await Product.create(obj);
-    if (!productDoc) throw new Error("Product not created");
+    console.log(obj.variant[0], "obj🔥🔥🔥");
+    console.log(obj, "obj.variant[0].options🔥🔥🔥");
+
+    const createdProduct = await Product.create(obj);
+    if (!createdProduct) throw new Error("Product not created");
+
+    const productDoc = createdProduct.toObject();
 
     revalidateProduct(productDoc.slug);
     const product = formatProduct(productDoc);
@@ -318,6 +338,7 @@ export async function createProduct(formData) {
 }
 
 export async function updateProduct(formData) {
+  console.log("formData🔥🔥🔥");
   try {
     await restrictTo("admin");
     await dbConnect();

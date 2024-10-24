@@ -23,7 +23,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: [true, "Product description is required"],
       trim: true,
-      maxlength: [1000, "Description cannot exceed 1000 characters"],
+      maxlength: [2000, "Description cannot exceed 1000 characters"],
     },
     price: {
       type: Number,
@@ -116,6 +116,17 @@ const productSchema = new mongoose.Schema(
             message: "Variant options contain invalid characters",
           },
         },
+        optionType: [
+          {
+            labelId: {
+              type: [mongoose.Schema.Types.ObjectId],
+              ref: "OptionGroup",
+            },
+            label: {
+              type: String,
+            },
+          },
+        ],
         price: {
           type: Number,
           required: [true, "Variant price is required"],

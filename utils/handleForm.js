@@ -1,6 +1,7 @@
 import AppError from "@/utils/errorClass";
 import { uploadFiles, deleteFiles } from "@/lib/s3Func";
 import Category from "@/models/category";
+import { partition, endsWith, fromPairs, keys } from "lodash";
 
 export const handleFormData = async (formData, Model, id) => {
   const obj = {
@@ -102,7 +103,25 @@ function processFormEntries(
 function processVariantData(obj, key, value) {
   const index = key.match(/\d+/)[0];
   const data = JSON.parse(value);
-  obj.variant[index] = { ...obj.variant[index], ...data };
+
+  const options = data.options;
+  const labelEntries = Object.entries(data).filter(([key]) =>
+    key.endsWith("_label"),
+  );
+
+  const optionType = labelEntries.map(([key, value]) => ({
+    labelId: value,
+    label: key.replace("_label", ""),
+  }));
+
+  console.log(optionType, "optionType🔥🔥🔥");
+
+  obj.variant[index] = {
+    ...obj.variant[index],
+    options,
+    optionType,
+    ...data,
+  };
 }
 
 function processVariantImage(obj, variantsFilesToUpload, key, value) {
@@ -156,9 +175,12 @@ async function handleExistingFiles(existingProd, obj, filesToDelete) {
 }
 
 async function uploadNewFiles(filesToUpload, fileType) {
-  return filesToUpload.length > 0
-    ? await uploadFiles(filesToUpload, fileType)
-    : [];
+  const files =
+    filesToUpload.length > 0 ? await uploadFiles(filesToUpload, fileType) : [];
+
+  console.log(files, "files🔥🔥🔥");
+
+  return files;
 }
 
 function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
@@ -166,6 +188,7 @@ function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
 }
 
 async function handleVariantImages(obj, variantsFilesToUpload) {
+  console.log(variantsFilesToUpload, "variantsFilesToUpload🔥🔥🔥");
   const variantImages = await Promise.all(
     variantsFilesToUpload.map(async (file) => {
       if (file.size > 0) {
@@ -173,6 +196,8 @@ async function handleVariantImages(obj, variantsFilesToUpload) {
       }
     }),
   );
+
+  console.log(variantImages, "variantImages🔥🔥🔥");
 
   obj.variant = obj.variant.map((variant, index) => {
     if (variantImages[index]) {

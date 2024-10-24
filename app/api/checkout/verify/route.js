@@ -10,51 +10,63 @@ import Payment from "@/models/payment";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
-async function updateProductQuantity(order) {
-  for (const item of order.product) {
-    const product = await Product.findById(item.productId.toString());
+const mongoose = require('mongoose');
 
-    if (item.variantId) {
-      const variantIndex = product.variant.findIndex(
-        (index) => index._id.toString() === item.variantId,
-      );
-      product.variant[variantIndex].quantity -= item.quantity;
-      product.quantity -= item.quantity;
-      product.sold += item.quantity;
-    } else {
-      product.quantity -= item.quantity;
-      product.sold += item.quantity;
+async function updateProductQuantity(order) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const products = order.type === "cart" ? order.product : [order.singleProduct];
+
+    for (const item of products) {
+      const product = await Product.findById(item.productId || item.product).session(session);
+
+      if (!product) {
+        throw new Error('Product not found');
+      }
+
+      const variantId = item.variantId;
+      const quantity = item.quantity;
+
+      if (variantId) {
+        const variantIndex = product.variant.findIndex(
+          (index) => index._id.toString() === variantId
+        );
+
+        if (variantIndex === -1 || product.variant[variantIndex].quantity < quantity) {
+          throw new Error('Insufficient variant quantity');
+        }
+
+        product.variant[variantIndex].quantity -= quantity;
+      } else {
+        if (product.quantity < quantity) {
+          throw new Error('Insufficient product quantity');
+        }
+      }
+
+      product.quantity -= quantity;
+      product.sold += quantity;
+
+      await product.save({ session });
+
+      if (order.type === "cart") {
+        await CartItem.deleteOne({ _id: item._id }, { session });
+        await Cart.updateOne(
+          { userId: order.userId },
+          { $pull: { item: item._id } },
+          { new: true, session }
+        );
+      }
     }
 
-    //delete cartItem
-    await CartItem.deleteOne({ _id: item._id });
-
-    await Cart.updateOne(
-      { userId: order.userId },
-      { $pull: { item: item._id } },
-      { new: true },
-    );
-
-    await product.save();
+    await session.commitTransaction();
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-}
-
-async function updateProductQuantitySingle(order) {
-  const product = await Product.findById(order.singleProduct.product);
-
-  if (order.singleProduct.variantId) {
-    const variantIndex = product.variant.findIndex(
-      (index) => index._id.toString() === order.singleProduct.variantId,
-    );
-    product.variant[variantIndex].quantity -= order.singleProduct.quantity;
-    product.quantity -= order.singleProduct.quantity;
-    product.sold += order.singleProduct.quantity;
-  } else {
-    product.quantity -= order.singleProduct.quantity;
-    product.sold += order.singleProduct.quantity;
-  }
-
-  await product.save();
 }
 
 export async function POST(req) {
@@ -70,6 +82,8 @@ export async function POST(req) {
       currency,
     } = body.data;
 
+    console.log(paymentId, "paymentId💎💎");
+
     const order = await Order.findById(orderId);
 
     if (!order) {
@@ -77,14 +91,25 @@ export async function POST(req) {
     }
     const verification = await Paystack.transaction.verify(reference);
 
+    console.log(verification, "verification💎💎");
+
     //update product quantity (variants considered)
     if (verification.data.status === "success") {
-      if (order.type === "cart") await updateProductQuantity(order);
-      else if (order.type === "single")
-        await updateProductQuantitySingle(order);
+      await updateProductQuantity(order);
     }
+    const OrderStatus = {
+      FAILED: "failed",
+      PENDING: "pending",
+      SUCCESS: "success",
+    };
 
-    order.status = verification?.data?.status;
+    order.status =
+      verification?.data?.status === "success"
+        ? OrderStatus.SUCCESS
+        : verification?.data?.status === "failed"
+          ? OrderStatus.FAILED
+          : OrderStatus.PENDING;
+
     order.paymentRef = reference;
     order.paymentId = paymentId;
     order.paymentMethod = paymentMethod;

@@ -1,8 +1,7 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState, useCallback } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { Image, Upload } from "antd";
 import { getBase64 } from "../utils/utils";
-import { set } from "lodash";
 
 const MediaUpload = ({
   multiple = true,
@@ -20,27 +19,32 @@ const MediaUpload = ({
     }
   }, [defaultFileList, fileList?.length, setFileList]);
 
-  const handlePreview = async (file) => {
+  const handlePreview = useCallback(async (file) => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
     setPreviewImage(file.url || file.preview);
     setPreviewOpen(true);
-  };
+  }, []);
 
-  const handleChange = ({ fileList: newFileList }) => {
-    if (!multiple) {
-      newFileList = newFileList.slice(-1);
-    }
-    setFileList(newFileList);
-  };
+  const handleChange = useCallback(
+    ({ fileList: newFileList }) => {
+      if (!multiple) {
+        newFileList = newFileList.slice(-1);
+      }
+      setFileList(newFileList);
+    },
+    [multiple, setFileList],
+  );
 
-  const handleRemove = (file) => {
-    const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
-
-    setDefaultFileList(updatedFileList);
-    setFileList(updatedFileList);
-  };
+  const handleRemove = useCallback(
+    (file) => {
+      const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
+      setDefaultFileList(updatedFileList);
+      setFileList(updatedFileList);
+    },
+    [fileList, setDefaultFileList, setFileList],
+  );
 
   const uploadButton = (
     <div>
@@ -80,4 +84,5 @@ const MediaUpload = ({
     </>
   );
 };
+
 export default memo(MediaUpload);

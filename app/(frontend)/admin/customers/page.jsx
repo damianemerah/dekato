@@ -61,13 +61,16 @@ const ProductsList = () => {
 
   const { data: users, isLoading } = useSWR("/api/users", getAllUsers, {
     revalidateOnFocus: false,
+    onSuccess: (data) => {
+      console.log(data, "data🔥🔥🔥");
+    },
   });
 
   const dataSource = users?.map((item) => ({
     key: item.id,
     customer: item.firstname + " " + item.lastname,
     email: item.email,
-    location: item?.address?.find((add) => add.isDefault)?.address,
+    // location: item?.address?.find((add) => add.isDefault)?.address,
     orders: item?.orderCount,
     amountSpent: "1000",
     action: <Action />,
@@ -117,11 +120,11 @@ const ProductsList = () => {
       title: "Email",
       dataIndex: "email",
     },
-    {
-      title: "Location",
-      dataIndex: "location",
-      sorter: (a, b) => a.quantity - b.quantity,
-    },
+    // {
+    //   title: "Location",
+    //   dataIndex: "location",
+    //   sorter: (a, b) => a.quantity - b.quantity,
+    // },
     {
       title: "Orders",
       dataIndex: "orders",

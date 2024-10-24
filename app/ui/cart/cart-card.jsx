@@ -19,6 +19,7 @@ import useConfirmModal from "@/app/ui/confirm-modal";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { useSession } from "next-auth/react";
+import { formatToNaira } from "@/utils/getFunc";
 
 const CartCard = ({ cartItem }) => {
   const { data: session } = useSession();
@@ -206,13 +207,13 @@ const CartCard = ({ cartItem }) => {
               </div>
             </div>
             <p className="mr-4 flex flex-col items-center justify-center text-primary">
-              {cartItem.product.discountPrice && (
+              {cartItem.product.isDiscounted && (
                 <span className="mr-2 text-sm text-gray-500 line-through">
-                  ₦{cartItem.product.price.toLocaleString()}
+                  {formatToNaira(cartItem.product.price)}
                 </span>
               )}
               <span className="text-base font-medium text-primary">
-                ₦{cartItem.currentPrice.toLocaleString()}
+                {formatToNaira(cartItem.currentPrice)}
               </span>
             </p>
           </div>

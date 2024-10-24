@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckOutlined } from "@ant-design/icons";
+import { formatToNaira } from "@/utils/getFunc";
 
 const PromoBar = () => {
   return (
@@ -15,7 +16,7 @@ const PromoBar = () => {
       </svg> */}
       <CheckOutlined className="font-bold" />
       <p className="text-primary text-opacity-80">
-        Free shipping on all orders over ₦150000
+        Free shipping on all orders over {formatToNaira(150000)}
       </p>
     </div>
   );

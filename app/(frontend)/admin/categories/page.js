@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo, useEffect } from "react";
+import { useState, memo, useEffect, useMemo } from "react";
 import {
   Button,
   Flex,
@@ -25,7 +25,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "@/app/action/categoryAction";
-import image6 from "@/public/assets/no-image.webp";
+import noImage from "@/public/assets/no-image.webp";
 import { useRouter } from "next/navigation";
 
 const Action = memo(function Action({ slug, handleDelete }) {
@@ -84,7 +84,7 @@ const Categories = ({ searchParams }) => {
 
   const router = useRouter();
 
-  const page = searchParams?.page || 1;
+  const page = useMemo(() => searchParams.page || 1, [searchParams]);
 
   const {
     data: categoryData,
@@ -228,7 +228,7 @@ const Categories = ({ searchParams }) => {
       title: "Image",
       dataIndex: "image",
       render: (_, record) => {
-        const imageSrc = record?.image ? record.image : image6;
+        const imageSrc = record?.image ? record.image : noImage;
         return (
           <Image
             src={imageSrc}

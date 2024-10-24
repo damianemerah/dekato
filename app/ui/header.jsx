@@ -9,7 +9,11 @@ import { usePathname } from "next/navigation";
 import useUserData from "@/app/hooks/useUserData.js";
 import useCartData from "@/app/hooks/useCartData.js";
 import { useSession } from "next-auth/react";
-import { HeartOutlined, ShoppingOutlined } from "@ant-design/icons";
+import {
+  HeartOutlined,
+  ShoppingOutlined,
+  CompassOutlined,
+} from "@ant-design/icons";
 
 function Header() {
   const { data: session } = useSession();
@@ -35,6 +39,8 @@ function Header() {
       setLgScreenSidebar(true);
     }
   };
+
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <header
@@ -87,6 +93,14 @@ function Header() {
       </Link>
 
       <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-6">
+        {user?.role === "admin" && (
+          <Link href="/admin">
+            <span className="flex items-center text-sm uppercase transition-all duration-200 ease-in-out hover:text-gray-300 sm:text-base">
+              <CompassOutlined className="mr-1" />
+              Admin Dashboard
+            </span>
+          </Link>
+        )}
         {user?.id ? (
           <Link href="/account" className="flex items-center gap-2">
             <UserIcon className="h-5 w-5 stroke-2 sm:h-6 sm:w-6" />

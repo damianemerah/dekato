@@ -27,19 +27,24 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
+import { getDashboardData } from "@/app/action/userAction";
+import useSWR from "swr";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
 const AdminDashboard = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-
   // Mock data for active discounts
   const [activeDiscounts, setActiveDiscounts] = useState([
     { key: "1", name: "Summer Sale", discount: "20%", endDate: "2023-08-31" },
     { key: "2", name: "New Customer", discount: "10%", endDate: "2023-12-31" },
   ]);
+
+  const { data, isLoading } = useSWR("/api/dashboard", getDashboardData, {
+    onSuccess: (data) => {
+      console.log(data, "data💎💎");
+    },
+  });
 
   // Mock data for recent orders
   const recentOrders = [
@@ -94,38 +99,6 @@ const AdminDashboard = () => {
       ),
     },
   ];
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        form.resetFields();
-        setIsModalVisible(false);
-        // Here you would typically update the discounts in your backend
-        // For this example, we'll just update the local state
-        setActiveDiscounts([
-          ...activeDiscounts,
-          {
-            key: String(activeDiscounts.length + 1),
-            name: values.name,
-            discount: values.discount + "%",
-            endDate: values.endDate.format("YYYY-MM-DD"),
-          },
-        ]);
-        message.success("Discount added successfully");
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
 
   return (
     <Layout>
@@ -232,46 +205,6 @@ const AdminDashboard = () => {
             </Card>
           </Col>
         </Row>
-
-        <Modal
-          title="Manage Discounts"
-          visible={isModalVisible}
-          onOk={handleOk}
-          onCancel={handleCancel}
-        >
-          <Form form={form} layout="vertical" name="discount_form">
-            <Form.Item
-              name="name"
-              label="Discount Name"
-              rules={[
-                { required: true, message: "Please input the discount name!" },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="discount"
-              label="Discount Percentage"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input the discount percentage!",
-                },
-              ]}
-            >
-              <Input type="number" min={0} max={100} />
-            </Form.Item>
-            <Form.Item
-              name="endDate"
-              label="End Date"
-              rules={[
-                { required: true, message: "Please select the end date!" },
-              ]}
-            >
-              <DatePicker />
-            </Form.Item>
-          </Form>
-        </Modal>
       </Content>
     </Layout>
   );

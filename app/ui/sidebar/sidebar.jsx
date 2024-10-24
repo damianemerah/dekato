@@ -1,11 +1,12 @@
 "use client";
-import React, { useEffect, useState, memo, useCallback } from "react";
+import React, { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { useSidebarStore, useUserStore } from "@/store/store";
 import { oswald } from "@/style/font";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-
+import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
 import { signOut } from "next-auth/react";
+
 export default memo(function Sidebar({ categories, collections }) {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
@@ -19,9 +20,9 @@ export default memo(function Sidebar({ categories, collections }) {
   const setMenuIsClicked = useSidebarStore((state) => state.setMenuIsClicked);
   const setUser = useUserStore((state) => state.setUser);
   const pathname = usePathname();
+  const isBelowThreshold = useIsBelowThreshold();
 
   const handleResize = useCallback(() => {
-    const isBelowThreshold = window.innerWidth < 1250;
     setIsMobile(isBelowThreshold);
 
     if (isBelowThreshold && !useSidebarStore.getState().menuIsClicked) {
@@ -31,7 +32,14 @@ export default memo(function Sidebar({ categories, collections }) {
       openSidebar();
     }
     setMenuIsClicked(false);
-  }, [closeSidebar, openSidebar, lgScreenSidebar, setMenuIsClicked, pathname]);
+  }, [
+    closeSidebar,
+    openSidebar,
+    lgScreenSidebar,
+    setMenuIsClicked,
+    pathname,
+    isBelowThreshold,
+  ]);
 
   useEffect(() => {
     handleResize();
@@ -158,7 +166,7 @@ export default memo(function Sidebar({ categories, collections }) {
           isSidebarOpen
             ? "visible min-w-[250px] translate-x-0"
             : "invisible w-0 -translate-x-full"
-        } relative z-30 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
+        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-30 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
       >
         <nav className="h-full overflow-y-auto">
           <ul className={`${oswald.className} divide-y divide-gray-200`}>

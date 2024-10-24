@@ -1,6 +1,6 @@
 import SubPageCampaign from "@/app/ui/page-campaign";
 import Image from "next/image";
-import image6 from "@/public/assets/image6.png";
+import noImage from "@/public/assets/image6.png";
 import ProductList from "@/app/ui/products-list";
 import { unstable_cache } from "next/cache";
 import { getAllProducts } from "@/app/action/productAction";
@@ -66,7 +66,7 @@ export default async function CategoryProducts({ cat, searchParams }) {
               className="h-full max-h-full object-cover"
               style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
               loading="lazy"
-              src={image6}
+              src={noImage}
             />
           </div>
         </div>

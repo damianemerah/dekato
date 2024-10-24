@@ -17,9 +17,10 @@ import { message } from "antd";
 import useSWR from "swr";
 import Link from "next/link";
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { oswald } from "@/style/font"
+import { oswald } from "@/style/font";
 import { useSession } from "next-auth/react";
 import usePaymentData from "@/app/hooks/usePaymentData";
+import { formatToNaira } from "@/utils/getFunc";
 
 export default function CheckoutPage() {
   const [changeAddress, setChangeAddress] = useState(false);
@@ -184,14 +185,17 @@ export default function CheckoutPage() {
               {item?.product?.isDiscounted && (
                 <span className="mr-2 text-sm text-gray-500 line-through">
                   {item?.variantId
-                    ? item?.product?.variant?.find(
-                        (v) => v._id.toString() === item?.variantId.toString(),
-                      )?.price
-                    : item?.product?.price}
+                    ? formatToNaira(
+                        item?.product?.variant?.find(
+                          (v) =>
+                            v._id.toString() === item?.variantId.toString(),
+                        )?.price,
+                      )
+                    : formatToNaira(item?.product?.price)}
                 </span>
               )}
               <span className="text-base font-medium text-primary">
-                ₦{item.currentPrice}
+                {formatToNaira(item.currentPrice)}
               </span>
             </p>
           </div>
@@ -294,7 +298,7 @@ export default function CheckoutPage() {
               <div className="space-y-2 text-sm font-medium tracking-wide text-primary">
                 <div className="flex items-center justify-between">
                   <p>Subtotal</p>
-                  <p>₦{checkoutData?.totalPrice}</p>
+                  <p>{formatToNaira(checkoutData?.totalPrice)}</p>
                 </div>
                 <div className="flex items-center justify-between">
                   <p>Shipping</p>
@@ -302,7 +306,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex items-center justify-between pt-2">
                   <p>Total</p>
-                  <p>₦{checkoutData?.totalPrice}</p>
+                  <p>{formatToNaira(checkoutData?.totalPrice)}</p>
                 </div>
               </div>
               <div className="mt-4">

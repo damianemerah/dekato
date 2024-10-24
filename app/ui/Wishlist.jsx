@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { CloseOutlined } from "@ant-design/icons";
+import { formatToNaira } from "@/utils/getFunc";
 
 export default function Wishlist({ product }) {
   const { data: session } = useSession();
@@ -90,14 +91,14 @@ export default function Wishlist({ product }) {
               {product.discount ? (
                 <div className="flex items-center justify-center gap-2">
                   <p className="font-medium text-gray-500 line-through">
-                    ₦{product.price.toLocaleString()}
+                    {formatToNaira(product.price)}
                   </p>
                   <p className="font-medium text-[#12A100]">
-                    ₦{discountedPrice.toLocaleString()}
+                    {formatToNaira(discountedPrice)}
                   </p>
                 </div>
               ) : (
-                <p className="font-medium">₦{product.price.toLocaleString()}</p>
+                <p className="font-medium">{formatToNaira(product.price)}</p>
               )}
             </div>
           </div>

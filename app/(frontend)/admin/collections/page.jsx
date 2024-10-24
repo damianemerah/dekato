@@ -14,7 +14,8 @@ import {
   getAllCollections,
   deleteCollection,
 } from "@/app/action/collectionAction";
-import image6 from "@/public/assets/no-image.webp";
+import noImage from "@/public/assets/no-image.webp";
+
 
 const Action = memo(function Action({ slug, handleDelete }) {
   const items = [
@@ -87,7 +88,7 @@ const Collections = () => {
       title: "Image",
       dataIndex: "image",
       render: (_, record) => {
-        const imageSrc = record?.image ? record.image : image6;
+        const imageSrc = record?.image ? record.image : noImage;
         return (
           <Image
             src={imageSrc}

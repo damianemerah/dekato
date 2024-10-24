@@ -8,6 +8,7 @@ import { useUserStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { message } from "antd";
 import { mutate } from "swr";
+import { formatToNaira } from "@/utils/getFunc";
 
 export default function ProductCard({ product }) {
   const user = useUserStore((state) => state.user);
@@ -45,8 +46,9 @@ export default function ProductCard({ product }) {
     }
   };
 
-  const discountedPrice =
-    product.price - (product.price * product.discount) / 100;
+  const discountedPrice = product.isDiscounted
+    ? product.price - (product.price * product.discount) / 100
+    : product.price;
 
   return (
     <Link
@@ -82,18 +84,18 @@ export default function ProductCard({ product }) {
             {product.name}
           </p>
           <div className="mb-1">
-            {product.discount ? (
+            {product.isDiscounted ? (
               <div className="flex items-center justify-center gap-2 text-[15px]">
                 <p className="font-medium text-gray-500 line-through">
-                  ₦{product.price.toLocaleString()}
+                  {formatToNaira(product.price)}
                 </p>
                 <p className="font-medium text-primary">
-                  ₦{discountedPrice.toLocaleString()}
+                  {formatToNaira(discountedPrice)}
                 </p>
               </div>
             ) : (
               <p className="text-[15px] font-medium">
-                ₦{product.price.toLocaleString()}
+                {formatToNaira(product.price)}
               </p>
             )}
           </div>

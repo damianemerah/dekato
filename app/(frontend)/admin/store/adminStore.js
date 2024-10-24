@@ -2,6 +2,14 @@ import { create } from "zustand";
 
 export const useAdminStore = create((set) => ({
   variants: [],
+  variantOptions: [],
+  defaultVariantOptions: [],
+  variantIsSaved: true,
+  actionType: "",
+  editVariantWithId: null,
+  optionIsSaved: true,
+
+  setOptionIsSaved: (optionIsSaved) => set({ optionIsSaved }),
   setVariants: (variants) => set({ variants }),
   updateVariant: (variantId, newVariant) =>
     set((state) => {
@@ -25,13 +33,12 @@ export const useAdminStore = create((set) => ({
       variants: state.variants.filter((variant) => variant.id !== id),
     })),
 
-  variantOptions: [],
   addVariantOptions: (option) =>
     set((state) => ({ variantOptions: [...state.variantOptions, option] })),
   setVariantOptions: (variantOptions) => set({ variantOptions }),
 
-  curVariantOptions: [],
-  setCurVariantOptions: (curVariantOptions) => set({ curVariantOptions }),
+  setDefaultVariantOptions: (defaultVariantOptions) =>
+    set({ defaultVariantOptions }),
   updateVariantOptionName: (id, value) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
@@ -78,11 +85,8 @@ export const useAdminStore = create((set) => ({
       variantOptions: state.variantOptions.filter((opt) => opt.id !== id),
     })),
 
-  variantIsSaved: false,
-  actionType: "",
   setActionType: (actionType) => set({ actionType }),
   setVariantIsSaved: (variantIsSaved) => set({ variantIsSaved }),
-  editVariantWithId: null,
   setEditVariantWithId: (editVariantWithId) => set({ editVariantWithId }),
 }));
 

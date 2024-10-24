@@ -1,6 +1,4 @@
 "use client";
-import { lazy, useEffect, useState } from "react";
-import { useSidebarStore } from "@/store/store";
 import Filter from "@/app/ui/products/filter";
 import HeaderOne from "@/app/ui/heading1";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -9,14 +7,19 @@ import Image from "next/image";
 import { oswald } from "@/style/font";
 import { Pagination as AntdPagination } from "antd";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import ProductCardSkeleton from "@/app/ui/product-card-skeleton";
 
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// Dynamically import ProductCard (simulating async behavior)
-const ProductCard = lazy(() => import("./product-card"));
+// Dynamically import ProductCard
+const ProductCard = dynamic(() => import("./product-card"), {
+  loading: () => <ProductCardSkeleton />,
+  ssr: false,
+});
 
 const ProductList = ({
   products,
@@ -27,7 +30,6 @@ const ProductList = ({
   currentPage,
   limit,
 }) => {
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const router = useRouter();
 
   const currentCategory =

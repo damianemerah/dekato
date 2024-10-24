@@ -144,3 +144,14 @@ input[type="password"]::-webkit-clear-button {
 .swiper-pagination-bullet-active {
   @apply h-4 w-4 bg-primary;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and newer Edge */
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and older Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}

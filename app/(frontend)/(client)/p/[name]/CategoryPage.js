@@ -15,7 +15,7 @@ const getProductData = unstable_cache(
   ["product-data"],
   {
     tags: ["single-product-data"],
-    revalidate: 600,
+    revalidate: 10,
   },
 );
 
