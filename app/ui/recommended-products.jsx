@@ -3,10 +3,10 @@ import useSWR from "swr";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import dynamic from "next/dynamic";
-import ProductCardSkeleton from "@/app/ui/product-card-skeleton";
+import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
 import { SmallSpinner } from "./spinner";
 
-const ProductCard = dynamic(() => import("./product-card"), {
+const ProductCard = dynamic(() => import("@/app/ui/products/product-card"), {
   loading: () => <ProductCardSkeleton />,
   ssr: false,
 });

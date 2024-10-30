@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
-import { CartItem } from "./cart";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet("0123456789", 10);
 
 const orderSchema = new mongoose.Schema(
   {
@@ -8,39 +9,33 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
-    cartItems: [
+    product: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "CartItem",
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        name: { type: String },
+        price: { type: Number },
+        image: { type: String },
+        quantity: { type: Number, default: 1, min: 1 },
+        option: { type: Object },
+        variantId: { type: String },
+        cartItemId: { type: String },
       },
     ],
+    cartItems: [String],
     total: { type: Number, required: true, min: 0 },
     receiptNumber: {
       type: String,
       unique: true,
       trim: true,
-      default: nanoid(7),
+      default: () => nanoid(6),
     },
-    status: {
-      type: String,
-      default: "pending_payment",
-      enum: [
-        "pending_payment",
-        "payment_failed",
-        "payment_confirmed",
-        "processing",
-        "shipped",
-        "delivered",
-        "cancelled",
-        "returned",
-      ],
-    },
-    type: {
-      type: String,
-      enum: ["cart", "single"],
-      required: true,
-    },
+    status: String,
     shippingMethod: {
       type: String,
       lowercase: true,
@@ -54,21 +49,24 @@ const orderSchema = new mongoose.Schema(
         return this.shippingMethod === "delivery";
       },
     },
+    deliveryStatus: {
+      type: String,
+      default: "pending",
+      enum: ["pending", "shipped", "delivered", "cancelled"],
+    },
+    note: { type: String },
     paymentRef: { type: String, trim: true },
     paymentId: { type: String, trim: true },
     paymentMethod: { type: String, trim: true },
     currency: { type: String, trim: true, uppercase: true },
     paidAt: { type: Date },
-    // createdAt: { type: Date, default: Date.now },
-    // updatedAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,
   },
 );
 
-orderSchema.index({ userId: 1, createdAt: -1 });
-orderSchema.index({ receiptNumber: 1 }, { unique: true });
+orderSchema.index({ paymentRef: 1, userId: 1 });
 
 const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 

@@ -1,9 +1,12 @@
-import { getAllCollections } from "@/app/action/collectionAction";
+import { getCollections } from "@/app/action/collectionAction";
 import { unstable_cache } from "next/cache";
 import Sidebar from "./sidebar";
 import Category from "@/models/category";
+import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
 import { formatCategories } from "@/app/action/categoryAction";
+import { omit } from "lodash";
+
 const getCategories = unstable_cache(
   async () => {
     await dbConnect();
@@ -16,9 +19,9 @@ const getCategories = unstable_cache(
   { revalidate: 120, tags: ["categories"] },
 );
 
-const getCollections = unstable_cache(
+const getAllCollections = unstable_cache(
   async () => {
-    return await getAllCollections();
+    return await getCollections();
   },
   ["collections"],
   { revalidate: 120, tags: ["collections"] },
@@ -27,7 +30,7 @@ const getCollections = unstable_cache(
 export default async function SidebarServer() {
   const [categories, collections] = await Promise.all([
     getCategories(),
-    getCollections(),
+    getAllCollections(),
   ]);
   return <Sidebar categories={categories} collections={collections} />;
 }

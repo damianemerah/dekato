@@ -99,7 +99,7 @@ const seedProducts = async () => {
         ],
         quantity: faker.number.int({ min: 10, max: 1000 }),
         sold: faker.number.int({ min: 0, max: 500 }),
-        status: faker.helpers.arrayElement(["draft", "active", "archive"]),
+        status: faker.helpers.arrayElement(["inactive", "active", "archive"]),
       });
 
       products.push(product);

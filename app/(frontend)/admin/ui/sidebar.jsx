@@ -6,8 +6,8 @@ import {
   ShoppingOutlined,
   AppstoreOutlined,
   UserOutlined,
-  DatabaseOutlined,
   PlusOutlined,
+  TagOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
@@ -58,7 +58,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
     },
     {
       key: "collections",
-      icon: <AppstoreOutlined />,
+      icon: <TagOutlined />,
       label: "Collections",
       children: [
         {

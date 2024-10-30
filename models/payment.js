@@ -1,43 +1,24 @@
 import mongoose from "mongoose";
 
-const paymentSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-    },
-    last4: {
-      type: String,
-      required: true,
-    },
-    expiryMonth: {
-      type: String,
-      required: true,
-    },
-    expiryYear: {
-      type: String,
-      required: true,
-    },
-    authorizationCode: {
-      type: String,
-      required: true,
-    },
-    isDefault: {
-      type: Boolean,
-      default: false,
-    },
-    cardType: {
-      type: String,
-      required: true,
-    },
+const paymentSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-  { timestamps: true },
-);
+  email: {
+    type: String,
+    required: true,
+  },
+  authorization: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
+  isDefault: {
+    type: Boolean,
+    default: true,
+  },
+});
 
 const Payment =
   mongoose.models.Payment || mongoose.model("Payment", paymentSchema);

@@ -11,92 +11,62 @@ import {
   Table,
   Tag,
   Button,
-  Modal,
-  Form,
-  Input,
-  DatePicker,
   message,
   List,
   Avatar,
+  Progress,
 } from "antd";
 import {
   ShoppingCartOutlined,
-  DollarOutlined,
   UserOutlined,
   TagOutlined,
   EditOutlined,
+  ShopOutlined,
+  InboxOutlined,
+  PercentageOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { getDashboardData } from "@/app/action/userAction";
 import useSWR from "swr";
+import { formatToNaira } from "@/utils/getFunc";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
 const AdminDashboard = () => {
-  // Mock data for active discounts
-  const [activeDiscounts, setActiveDiscounts] = useState([
-    { key: "1", name: "Summer Sale", discount: "20%", endDate: "2023-08-31" },
-    { key: "2", name: "New Customer", discount: "10%", endDate: "2023-12-31" },
-  ]);
+  const { data: dashboardData, isLoading } = useSWR(
+    "/api/dashboard",
+    getDashboardData,
+    {
+      revalidateOnFocus: true,
+    },
+  );
 
-  const { data, isLoading } = useSWR("/api/dashboard", getDashboardData, {
-    onSuccess: (data) => {
-      console.log(data, "data💎💎");
-    },
-  });
-
-  // Mock data for recent orders
-  const recentOrders = [
-    {
-      key: "1",
-      order: "#1020",
-      customer: "John Doe",
-      total: "$969.44",
-      status: "Paid",
-    },
-    {
-      key: "2",
-      order: "#1019",
-      customer: "Jane Smith",
-      total: "$701.19",
-      status: "Processing",
-    },
-  ];
-
-  // Mock data for recent admin activities
-  const recentAdminActivities = [
-    {
-      admin: "Alice Johnson",
-      action: "Added new product",
-      item: "Summer T-Shirt",
-      time: "2 hours ago",
-    },
-    {
-      admin: "Bob Smith",
-      action: "Updated inventory",
-      item: "Denim Jeans",
-      time: "4 hours ago",
-    },
-    {
-      admin: "Carol Williams",
-      action: "Modified discount",
-      item: "Winter Sale",
-      time: "Yesterday",
-    },
-  ];
+  const recentOrders = dashboardData?.recentOrders?.map((order) => ({
+    key: order._id,
+    order: order.receiptNumber,
+    customer: `${order?.user?.firstname} ${order?.user?.lastname}`,
+    total: formatToNaira(order.total),
+    status: order.deliveryStatus,
+  }));
 
   const columns = [
-    { title: "Order", dataIndex: "order", key: "order" },
+    { title: "Receipt #", dataIndex: "order", key: "order" },
     { title: "Customer", dataIndex: "customer", key: "customer" },
     { title: "Total", dataIndex: "total", key: "total" },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-        <Tag color={status === "Paid" ? "green" : "blue"}>{status}</Tag>
-      ),
+      render: (status) => {
+        const colors = {
+          pending: "gold",
+          shipped: "blue",
+          delivered: "green",
+          cancelled: "red",
+        };
+        return <Tag color={colors[status]}>{status.toUpperCase()}</Tag>;
+      },
     },
   ];
 
@@ -109,8 +79,7 @@ const AdminDashboard = () => {
             <Card>
               <Statistic
                 title="Total Sales"
-                value={112893}
-                prefix={<DollarOutlined />}
+                value={formatToNaira(dashboardData?.totalSales)}
                 valueStyle={{ color: "#3f8600" }}
               />
             </Card>
@@ -119,7 +88,7 @@ const AdminDashboard = () => {
             <Card>
               <Statistic
                 title="Total Orders"
-                value={1528}
+                value={dashboardData?.totalOrders}
                 prefix={<ShoppingCartOutlined />}
                 valueStyle={{ color: "#1890ff" }}
               />
@@ -129,7 +98,7 @@ const AdminDashboard = () => {
             <Card>
               <Statistic
                 title="Total Customers"
-                value={3120}
+                value={dashboardData?.totalCustomers}
                 prefix={<UserOutlined />}
                 valueStyle={{ color: "#722ed1" }}
               />
@@ -138,9 +107,9 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} lg={6}>
             <Card>
               <Statistic
-                title="Active Discounts"
-                value={activeDiscounts.length}
-                prefix={<TagOutlined />}
+                title="Total Products"
+                value={dashboardData?.products?.total}
+                prefix={<ShopOutlined />}
                 valueStyle={{ color: "#fa8c16" }}
               />
             </Card>
@@ -148,7 +117,7 @@ const AdminDashboard = () => {
         </Row>
 
         <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
-          <Col span={24} lg={12}>
+          <Col span={24} lg={16}>
             <Card
               title="Recent Orders"
               extra={
@@ -161,43 +130,125 @@ const AdminDashboard = () => {
                 columns={columns}
                 dataSource={recentOrders}
                 pagination={false}
+                loading={isLoading}
               />
             </Card>
           </Col>
-          <Col span={24} lg={12}>
-            <Card
-              title="Active Discounts"
-              extra={
-                <Link href="/admin/collections">
-                  <Button type="link">View All</Button>
-                </Link>
-              }
-            >
-              <Table
-                dataSource={activeDiscounts}
-                columns={[
-                  { title: "Name", dataIndex: "name", key: "name" },
-                  { title: "Discount", dataIndex: "discount", key: "discount" },
-                  { title: "End Date", dataIndex: "endDate", key: "endDate" },
-                ]}
-                pagination={false}
-              />
+          <Col span={24} lg={8}>
+            <Card title="Order Status Overview">
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Statistic
+                    title="Pending Orders"
+                    value={dashboardData?.orderStatus?.pending}
+                    valueStyle={{ color: "#faad14" }}
+                  />
+                  <Progress
+                    percent={Math.round(
+                      (dashboardData?.orderStatus?.pending /
+                        dashboardData?.totalOrders) *
+                        100,
+                    )}
+                    strokeColor="#faad14"
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Shipped Orders"
+                    value={dashboardData?.orderStatus?.shipped}
+                    valueStyle={{ color: "#1890ff" }}
+                  />
+                  <Progress
+                    percent={Math.round(
+                      (dashboardData?.orderStatus?.shipped /
+                        dashboardData?.totalOrders) *
+                        100,
+                    )}
+                    strokeColor="#1890ff"
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Delivered Orders"
+                    value={dashboardData?.orderStatus?.delivered}
+                    valueStyle={{ color: "#52c41a" }}
+                  />
+                  <Progress
+                    percent={Math.round(
+                      (dashboardData?.orderStatus?.delivered /
+                        dashboardData?.totalOrders) *
+                        100,
+                    )}
+                    strokeColor="#52c41a"
+                  />
+                </Col>
+              </Row>
             </Card>
           </Col>
         </Row>
 
         <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
-          <Col span={24}>
-            <Card title="Recent Admin Activities">
+          <Col span={24} lg={12}>
+            <Card title="Product Statistics">
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <Statistic
+                    title="Active Products"
+                    value={dashboardData?.products?.active}
+                    prefix={<InboxOutlined />}
+                    valueStyle={{ color: "#52c41a" }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="Out of Stock"
+                    value={dashboardData?.products?.outOfStock}
+                    prefix={<InboxOutlined />}
+                    valueStyle={{ color: "#ff4d4f" }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="Discounted Products"
+                    value={dashboardData?.products?.discounted}
+                    prefix={<PercentageOutlined />}
+                    valueStyle={{ color: "#722ed1" }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="Collections"
+                    value={dashboardData?.collections?.total}
+                    prefix={<TagOutlined />}
+                    valueStyle={{ color: "#13c2c2" }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+          <Col span={24} lg={12}>
+            <Card title="Recent Notifications">
               <List
                 itemLayout="horizontal"
-                dataSource={recentAdminActivities}
+                dataSource={dashboardData?.recentNotifications}
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
-                      avatar={<Avatar icon={<EditOutlined />} />}
-                      title={`${item.admin} ${item.action}`}
-                      description={`${item.item} - ${item.time}`}
+                      avatar={
+                        <Avatar
+                          icon={<EditOutlined />}
+                          style={{
+                            backgroundColor:
+                              item.type === "info"
+                                ? "#1890ff"
+                                : item.type === "warning"
+                                  ? "#faad14"
+                                  : "#ff4d4f",
+                          }}
+                        />
+                      }
+                      title={item.title}
+                      description={item.message}
                     />
                   </List.Item>
                 )}

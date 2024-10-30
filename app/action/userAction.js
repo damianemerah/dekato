@@ -13,7 +13,23 @@ import crypto from "crypto";
 import _ from "lodash";
 import Order from "@/models/order";
 import Product from "@/models/product";
-import Collection from "@/models/collection"; // Assuming you have a Collection model
+import Collection from "@/models/collection";
+import Notification from "@/models/notification";
+
+export async function createProductNotification(productName, adminName) {
+  await dbConnect();
+  try {
+    await Notification.create({
+      userId: null, // Admin notification
+      title: "New Product Added",
+      message: `Admin ${adminName} added new product "${productName}" to inventory`,
+      type: "info",
+    });
+  } catch (error) {
+    console.error("Error creating product notification:", error);
+    throw error;
+  }
+}
 
 export async function getDashboardData() {
   await dbConnect();
@@ -24,8 +40,9 @@ export async function getDashboardData() {
       salesData,
       customersCount,
       ordersData,
-      productsCount,
-      collectionsCount,
+      productsData,
+      collectionsData,
+      notificationsData,
     ] = await Promise.all([
       Order.aggregate([
         {
@@ -33,6 +50,17 @@ export async function getDashboardData() {
             _id: null,
             totalSales: { $sum: "$total" },
             totalOrders: { $sum: 1 },
+            pendingOrders: {
+              $sum: { $cond: [{ $eq: ["$deliveryStatus", "pending"] }, 1, 0] },
+            },
+            shippedOrders: {
+              $sum: { $cond: [{ $eq: ["$deliveryStatus", "shipped"] }, 1, 0] },
+            },
+            deliveredOrders: {
+              $sum: {
+                $cond: [{ $eq: ["$deliveryStatus", "delivered"] }, 1, 0],
+              },
+            },
           },
         },
       ]),
@@ -49,31 +77,92 @@ export async function getDashboardData() {
           },
         },
         {
+          $unwind: "$user",
+        },
+        {
           $project: {
             _id: 1,
             receiptNumber: 1,
             total: 1,
-            status: 1,
+            deliveryStatus: 1,
             createdAt: 1,
             "user.firstname": 1,
             "user.lastname": 1,
           },
         },
       ]),
-      Product.countDocuments(),
-      Collection.countDocuments(),
+      Product.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalProducts: { $sum: 1 },
+            activeProducts: {
+              $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
+            },
+            outOfStock: {
+              $sum: { $cond: [{ $eq: ["$status", "outofstock"] }, 1, 0] },
+            },
+            discountedProducts: {
+              $sum: { $cond: [{ $gt: ["$discount", 0] }, 1, 0] },
+            },
+          },
+        },
+      ]),
+      Collection.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalCollections: { $sum: 1 },
+            saleCollections: {
+              $sum: { $cond: [{ $eq: ["$isSale", true] }, 1, 0] },
+            },
+          },
+        },
+      ]),
+      Notification.aggregate([
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+        {
+          $project: {
+            title: 1,
+            message: 1,
+            type: 1,
+            status: 1,
+            createdAt: 1,
+          },
+        },
+      ]),
     ]);
 
     const totalSales = salesData[0]?.totalSales || 0;
     const totalOrders = salesData[0]?.totalOrders || 0;
+    const orderStatus = {
+      pending: salesData[0]?.pendingOrders || 0,
+      shipped: salesData[0]?.shippedOrders || 0,
+      delivered: salesData[0]?.deliveredOrders || 0,
+    };
+
+    const products = {
+      total: productsData[0]?.totalProducts || 0,
+      active: productsData[0]?.activeProducts || 0,
+      outOfStock: productsData[0]?.outOfStock || 0,
+      discounted: productsData[0]?.discountedProducts || 0,
+    };
+
+    const collections = {
+      total: collectionsData[0]?.totalCollections || 0,
+      onSale: collectionsData[0]?.saleCollections || 0,
+    };
 
     return {
       totalSales,
       totalCustomers: customersCount,
       totalOrders,
+      orderStatus,
       recentOrders: ordersData,
-      totalProducts: productsCount,
-      totalCollections: collectionsCount,
+      products,
+      collections,
+      recentNotifications: notificationsData,
     };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

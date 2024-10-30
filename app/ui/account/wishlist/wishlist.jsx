@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
-import { ButtonPrimary } from "./button";
-import { oswald } from "@/style/font";
+import { ButtonPrimary } from "@/app/ui/button";
 import { removeFromWishlist } from "@/app/action/userAction";
 import { createCartItem } from "@/app/action/cartAction";
 import { mutate } from "swr";

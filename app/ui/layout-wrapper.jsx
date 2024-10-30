@@ -1,11 +1,13 @@
 "use client";
 
-import Footer from "@/app/ui/footer";
 import { memo } from "react";
 import { usePathname } from "next/navigation";
 import { SWRConfig } from "swr";
 import { useSidebarStore } from "@/store/store";
 import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
+import dynamic from "next/dynamic";
+
+const Footer = dynamic(() => import("@/app/ui/footer"), { ssr: false });
 
 const LayoutWrapper = ({ children }) => {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);

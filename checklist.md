@@ -50,11 +50,11 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [x] **Order Creation**: Orders should be created and saved in the database.
 
-- [ ] **Order Status**: Implement order status updates (e.g., processing, shipped, delivered).
+- [*] **Order Status**: Implement order status updates (e.g., processing, shipped, delivered).
 
 - [ ] **Order History**: Users should be able to view their order history.
 
-- [ ] **Admin Order Management**: Admins should be able to manage orders (e.g., update status, view details).
+- [*] **Admin Order Management**: Admins should be able to manage orders (e.g., update status, view details).
 
 ### 6. **Payment Processing**
 
@@ -62,7 +62,7 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [x] **Payment Verification**: Verify payment status and update order status accordingly.
 
-- [ ] **Error Handling**: Implement error handling for payment failures.
+- [*] **Error Handling**: Implement error handling for payment failures.
 
 ### 7. **UI/UX**
 

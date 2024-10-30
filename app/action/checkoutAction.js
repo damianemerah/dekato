@@ -27,10 +27,6 @@ export async function getCheckoutData(userId) {
 
     const checkedItems = cart.item.filter((item) => item.checked);
 
-    if (checkedItems.length === 0) {
-      throw new AppError("No items selected", 400);
-    }
-
     const formattedItems = checkedItems.map(formatCartItem);
 
     const itemCount = checkedItems.reduce(

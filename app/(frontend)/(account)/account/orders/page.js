@@ -1,18 +1,22 @@
-import OrderList from "@/app/ui/account/orders/OrderCard";
+// import OrderList from "@/app/ui/account/orders/OrderCard";
 import { getServerSession } from "next-auth";
 import { OPTIONS } from "@/app/api/auth/[...nextauth]/route";
 import Order from "@/models/order";
 import dbConnect from "@/lib/mongoConnection";
 import { unstable_cache } from "next/cache";
-import _ from "lodash";
+import { omit } from "lodash";
 import { SmallSpinner } from "@/app/ui/spinner";
-import { Suspense } from "react";
+import dynamic from "next/dynamic";
+
+const OrderList = dynamic(() => import("@/app/ui/account/orders/OrderCard"), {
+  ssr: false,
+  loading: () => <SmallSpinner className="!text-primary" />,
+});
 
 const getOrders = unstable_cache(
   async (userId) => {
     await dbConnect();
     const orders = await Order.find({ userId })
-      .populate("product", "name variant image currentPrice")
       .sort({ createdAt: -1 })
       .lean({ virtuals: true });
 
@@ -20,10 +24,10 @@ const getOrders = unstable_cache(
       id: order._id.toString(),
       product: order.product.map(({ _id, ...product }) => ({
         id: _id.toString(),
-        ..._.omit(product, ["_id"]),
+        ...omit(product, ["_id"]),
       })),
 
-      ..._.omit(order, ["_id", "userId"]),
+      ...omit(order, ["_id", "userId"]),
     }));
   },
   ["orders"],
@@ -36,13 +40,5 @@ export default async function Orders() {
 
   const orders = await getOrders(userId);
 
-  console.log(orders, "orders🚀🔥");
-
-  return (
-    <>
-      <Suspense fallback={<SmallSpinner />}>
-        <OrderList orders={orders} />
-      </Suspense>
-    </>
-  );
+  return <OrderList orders={orders} />;
 }

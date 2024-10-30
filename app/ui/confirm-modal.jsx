@@ -19,19 +19,21 @@ const useConfirmModal = () => {
       className: `${oswald.className}`,
       maskClosable: true,
       wrapClassName: "custom-modal-wrap",
-      bodyStyle: {
-        fontFamily: oswald.style.fontFamily,
-        fontSize: "16px",
-        color: "#333",
-      },
-      maskStyle: {
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-      },
-      titleStyle: {
-        fontFamily: oswald.style.fontFamily,
-        fontSize: "24px",
-        fontWeight: "bold",
-        color: "#000",
+      styles: {
+        mask: {
+          backgroundColor: "rgba(0, 0, 0, 0.6)",
+        },
+        body: {
+          fontFamily: oswald.style.fontFamily,
+          fontSize: "16px",
+          color: "#333",
+        },
+        title: {
+          fontFamily: oswald.style.fontFamily,
+          fontSize: "24px",
+          fontWeight: "bold",
+          color: "#000",
+        },
       },
       icon: null,
     });

@@ -8,14 +8,12 @@ import { oswald } from "@/style/font";
 import { Pagination as AntdPagination } from "antd";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import ProductCardSkeleton from "@/app/ui/product-card-skeleton";
+import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
 
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// Dynamically import ProductCard
 const ProductCard = dynamic(() => import("./product-card"), {
   loading: () => <ProductCardSkeleton />,
   ssr: false,

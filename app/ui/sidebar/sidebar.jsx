@@ -110,7 +110,7 @@ export default memo(function Sidebar({ categories, collections }) {
 
     return topLevelCategories.map((topCat) => ({
       label: topCat.name.toUpperCase(),
-      href: `/${topCat.slug}`,
+      href: `/${topCat.path[topCat.path.length - 1]}`,
       children: categories
         ?.filter((cat) => cat.parent?.id === topCat.id)
         .map((subCat) => {
@@ -128,7 +128,7 @@ export default memo(function Sidebar({ categories, collections }) {
                 return {
                   label:
                     childLabel.charAt(0).toUpperCase() + childLabel.slice(1),
-                  href: `/${topCat.slug}/${subCat.slug}/${childCat.slug}`,
+                  href: `/${topCat.path[topCat.path.length - 1]}/${subCat.slug}/${childCat.slug}`,
                 };
               }),
           };
