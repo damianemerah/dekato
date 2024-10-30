@@ -16,6 +16,7 @@
     "@aws-sdk/client-s3": "^3.490.0",
     "@aws-sdk/client-ses": "^3.511.0",
     "@faker-js/faker": "^9.0.1",
+    "@next/bundle-analyzer": "^15.0.2",
     "@sendgrid/mail": "^8.1.0",
     "@svgr/webpack": "^8.1.0",
     "antd": "^5.20.2",
