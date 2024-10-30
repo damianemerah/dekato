@@ -2,8 +2,9 @@ import Campaign from "@/app/ui/home/Campaign";
 import { oswald } from "@/style/font";
 import Hero from "@/app/ui/home/Hero";
 import dynamic from "next/dynamic";
+import { SmallSpinner } from "@/app/ui/spinner";
 
-const BelowFold = dynamic(() => import("./components/BelowFold"), {
+const BelowFold = dynamic(() => import("@/app/ui/home/BelowFold"), {
   loading: () => <LoadingSpinner />,
   ssr: false,
 });
@@ -36,13 +37,11 @@ const SelectedCategories = dynamic(
         </div>
         <div className="relative">
           <div className="flex gap-4 overflow-x-auto px-3">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="flex-shrink-0">
-                <div className="aspect-square w-24 animate-pulse bg-gray-200 sm:w-32 md:w-40"></div>
-                <div className="mt-2 h-4 w-20 animate-pulse bg-gray-200 sm:w-28 md:w-36"></div>
-                <div className="mt-1 h-3 w-16 animate-pulse bg-gray-200 sm:w-24 md:w-32"></div>
-              </div>
-            ))}
+            <div className="flex-shrink-0">
+              <div className="aspect-square w-24 animate-pulse bg-gray-200 sm:w-32 md:w-40"></div>
+              <div className="mt-2 h-4 w-20 animate-pulse bg-gray-200 sm:w-28 md:w-36"></div>
+              <div className="mt-1 h-3 w-16 animate-pulse bg-gray-200 sm:w-24 md:w-32"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -53,7 +52,7 @@ const SelectedCategories = dynamic(
 function LoadingSpinner() {
   return (
     <div className="flex min-h-20 w-full items-center justify-center">
-      <div className="h-20 w-full animate-pulse bg-gray-300"></div>
+      <SmallSpinner className="!text-primary" />
     </div>
   );
 }

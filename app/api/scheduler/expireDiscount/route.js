@@ -10,8 +10,6 @@ export async function GET() {
 
     const products = await Product.find({ discountDuration: { $lte: now } });
 
-    console.log(products, "👇👇👇");
-
     for (const product of products) {
       product.discount = 0;
       product.discountPrice = 0;

@@ -7,7 +7,7 @@ import { ButtonPrimary } from "@/app/ui/button";
 import { v4 as uuidv4 } from "uuid";
 import ModalWrapper from "./ModalWrapper";
 import { message } from "antd";
-import DropDown from "../DropDown2";
+import DropDown from "../DropDown";
 import { omit, endsWith, filter, keys } from "lodash";
 
 export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {

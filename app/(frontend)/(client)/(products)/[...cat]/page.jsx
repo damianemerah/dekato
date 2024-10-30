@@ -1,12 +1,25 @@
-import CategoryProducts from "./CategoryProducts";
 import Category from "@/models/category";
 import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
-import { Suspense, memo } from "react";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { unstable_cache } from "next/cache";
+import dynamic from "next/dynamic";
 
-export const dynamic = "force-dynamic";
+const CategoryProducts = dynamic(
+  () => import("@/app/ui/products/categoried-products"),
+  {
+    loading: () => <LoadingSpinner />,
+    ssr: true,
+  },
+);
+
+function LoadingSpinner() {
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center">
+      <SmallSpinner className="!text-primary" />
+    </div>
+  );
+}
 
 async function getAllCategoryPaths() {
   await dbConnect();
@@ -21,14 +34,6 @@ async function getAllCategoryPaths() {
 
   return [...categoryPaths, ...collectionPaths];
 }
-
-const LoadingSpinner = memo(function LoadingSpinner() {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
-});
 
 export async function generateStaticParams() {
   const paths = await unstable_cache(getAllCategoryPaths, ["categoryPaths"], {
@@ -45,9 +50,7 @@ export async function generateStaticParams() {
 export default function Product({ params: { cat }, searchParams }) {
   return (
     <main>
-      <Suspense fallback={<LoadingSpinner />}>
-        <CategoryProducts cat={cat} searchParams={searchParams} />
-      </Suspense>
+      <CategoryProducts cat={cat} searchParams={searchParams} />
     </main>
   );
 }

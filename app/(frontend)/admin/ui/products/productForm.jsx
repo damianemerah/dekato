@@ -6,7 +6,7 @@ import { roboto } from "@/style/font";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { Switch, Space, DatePicker } from "antd";
-import DropDown from "@/app/(frontend)/admin/ui/DropDown2";
+import DropDown from "@/app/(frontend)/admin/ui/DropDown";
 import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
 import dayjs from "dayjs";
@@ -16,6 +16,7 @@ const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const ProductForm = ({
   handleFormSubmit,
+  isSwitchDisabled,
   nameRef,
   description,
   setDescription,
@@ -102,6 +103,7 @@ const ProductForm = ({
             <ProductActions
               submitBtnRef={submitBtnRef}
               prodLoading={prodLoading}
+              isSwitchDisabled={isSwitchDisabled}
               showConfirm={showConfirm}
               selectedProduct={selectedProduct}
               switchState={switchState}
@@ -262,6 +264,7 @@ const ProductDetails = ({
 );
 
 const ProductActions = ({
+  isSwitchDisabled,
   submitBtnRef,
   prodLoading,
   showConfirm,
@@ -273,58 +276,63 @@ const ProductActions = ({
   collectionList,
   selectedCollectionKeys,
   setSelectedCollectionKeys,
-}) => (
-  <>
-    <FormSection>
-      <div className="flex w-full items-center justify-center">
-        <button
-          type="submit"
-          className="grow-1 mr-4 flex-1 rounded-md bg-primary px-4 py-2.5 text-white sm:px-8 md:px-16"
-          ref={submitBtnRef}
-        >
-          <Space>
-            Save changes
-            {prodLoading && <SmallSpinner className="!text-white" />}
-          </Space>
-        </button>
-        <button
-          className="text-xl font-bold tracking-wider text-primary"
-          type="button"
-        >
-          ...
-        </button>
-      </div>
-      <hr className="my-3 opacity-60" />
-      <Switch
-        loading={switchState}
-        onClick={showConfirm}
-        checked={selectedProduct?.status === "active" || false}
-      />
-    </FormSection>
-    <FormSection>
-      <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-        CATEGORY
-      </h3>
-      <DropDown
-        options={catList}
-        mode="tags"
-        selectedKeys={selectedCatKeys}
-        handleChange={(value) => setSelectedCatKeys(value)}
-      />
-    </FormSection>
-    <FormSection>
-      <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-        COLLECTION
-      </h3>
-      <DropDown
-        options={collectionList}
-        mode="tags"
-        selectedKeys={selectedCollectionKeys}
-        handleChange={(value) => setSelectedCollectionKeys(value)}
-      />
-    </FormSection>
-  </>
-);
+}) => {
+  console.log("switch disabled", isSwitchDisabled);
+
+  return (
+    <>
+      <FormSection>
+        <div className="flex w-full items-center justify-center">
+          <button
+            type="submit"
+            className="grow-1 mr-4 flex-1 rounded-md bg-primary px-4 py-2.5 text-white sm:px-8 md:px-16"
+            ref={submitBtnRef}
+          >
+            <Space>
+              Save changes
+              {prodLoading && <SmallSpinner className="!text-white" />}
+            </Space>
+          </button>
+          <button
+            className="text-xl font-bold tracking-wider text-primary"
+            type="button"
+          >
+            ...
+          </button>
+        </div>
+        <hr className="my-3 opacity-60" />
+        <Switch
+          loading={switchState}
+          onClick={showConfirm}
+          checked={selectedProduct?.status === "active" || false}
+          disabled={isSwitchDisabled}
+        />
+      </FormSection>
+      <FormSection>
+        <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+          CATEGORY
+        </h3>
+        <DropDown
+          options={catList}
+          mode="tags"
+          selectedKeys={selectedCatKeys}
+          handleChange={(value) => setSelectedCatKeys(value)}
+        />
+      </FormSection>
+      <FormSection>
+        <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+          COLLECTION
+        </h3>
+        <DropDown
+          options={collectionList}
+          mode="tags"
+          selectedKeys={selectedCollectionKeys}
+          handleChange={(value) => setSelectedCollectionKeys(value)}
+        />
+      </FormSection>
+    </>
+  );
+};
 
 const FormSection = ({ children, className = "" }) => (
   <div className={`mb-4 rounded-lg bg-white p-4 shadow-shadowSm ${className}`}>

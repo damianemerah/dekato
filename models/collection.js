@@ -77,6 +77,10 @@ const campaignSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isSale: {
+      type: Boolean,
+      default: false,
+    },
     isPinned: {
       type: Boolean,
       default: false,
@@ -145,7 +149,7 @@ campaignSchema.pre("findOneAndUpdate", async function (next) {
     if (existingCampaign) {
       return next(
         new Error(
-          "A campaign with this name already exists for the selected category",
+          "A campaign with this name already exists for thea selected category",
         ),
       );
     }
@@ -184,13 +188,6 @@ campaignSchema.pre("save", async function (next) {
     }
   }
   next();
-});
-
-campaignSchema.virtual("productCount", {
-  ref: "Product",
-  localField: "_id",
-  foreignField: "campaign",
-  count: true,
 });
 
 campaignSchema.plugin(mongooseLeanVirtuals);

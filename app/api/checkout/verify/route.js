@@ -1,29 +1,55 @@
+import mongoose from "mongoose";
 import Order from "@/models/order";
 import Product from "@/models/product";
+import Notification from "@/models/notification";
 import { Cart, CartItem } from "@/models/cart";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
-import handleAppError from "@/utils/appError";
-import { protect, restrictTo } from "@/utils/checkPermission";
 import { revalidatePath } from "next/cache";
+import dbConnect from "@/lib/mongoConnection";
 import Payment from "@/models/payment";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
-const mongoose = require('mongoose');
+async function handleOutOfStock(item, order, message, session) {
+  await dbConnect();
+  try {
+    await Product.updateOne(
+      { _id: item.productId },
+      { $set: { status: "outofstock" } },
+      { session },
+    );
+
+    await Notification.create(
+      {
+        userId: order.userId,
+        title: "Out of Stock Alert",
+        message,
+        orderId: order._id,
+        type: "warning",
+      },
+      { session },
+    );
+  } catch (error) {
+    console.log(error, "error💎💎");
+  }
+}
 
 async function updateProductQuantity(order) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const products = order.type === "cart" ? order.product : [order.singleProduct];
+    const products = order.product;
 
     for (const item of products) {
-      const product = await Product.findById(item.productId || item.product).session(session);
+      const product = await Product.findById(item.productId).session(session);
 
       if (!product) {
-        throw new Error('Product not found');
+        console.warn(
+          `Product with ID ${item.productId} not found. Skipping update.`,
+        );
+        continue;
       }
 
       const variantId = item.variantId;
@@ -31,46 +57,80 @@ async function updateProductQuantity(order) {
 
       if (variantId) {
         const variantIndex = product.variant.findIndex(
-          (index) => index._id.toString() === variantId
+          (index) => index._id.toString() === variantId,
         );
 
-        if (variantIndex === -1 || product.variant[variantIndex].quantity < quantity) {
-          throw new Error('Insufficient variant quantity');
-        }
+        if (variantIndex !== -1) {
+          if (product.variant[variantIndex].quantity < quantity) {
+            const message = `${item.name} variant ${Object.entries(
+              product.variant[variantIndex].options,
+            )
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ")} is out of stock`;
+            console.log("Out of Stock Alert11🔥🔥");
+            await handleOutOfStock(item, order, message, session);
+            continue;
+          }
+          product.variant[variantIndex].quantity -= quantity;
 
-        product.variant[variantIndex].quantity -= quantity;
+          if (product.variant[variantIndex].quantity === 0) {
+            const message = `${item.name} variant ${Object.entries(
+              product.variant[variantIndex].options,
+            )
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ")} is out of stock`;
+            console.log("Out of Stock Alert33🔥🔥");
+            await handleOutOfStock(item, order, message, session);
+          }
+        } else {
+          console.warn(
+            `Variant with ID ${variantId} not found. Skipping update for variant.`,
+          );
+        }
       } else {
         if (product.quantity < quantity) {
-          throw new Error('Insufficient product quantity');
+          console.log("Out of Stock Alert22🔥🔥");
+          const message = `${item.name} is out of stock`;
+          await handleOutOfStock(item, order, message, session);
+          continue;
         }
       }
 
       product.quantity -= quantity;
       product.sold += quantity;
 
-      await product.save({ session });
-
-      if (order.type === "cart") {
-        await CartItem.deleteOne({ _id: item._id }, { session });
-        await Cart.updateOne(
-          { userId: order.userId },
-          { $pull: { item: item._id } },
-          { new: true, session }
-        );
+      if (product.quantity === 0) {
+        console.log("Out of Stock Alert44🔥🔥");
+        const message = `${item.name} is out of stock`;
+        await handleOutOfStock(item, order, message, session);
       }
+
+      await product.save({ session, validateModifiedOnly: true });
+    }
+
+    // Move cart operations outside product loop
+    if (order) {
+      await CartItem.deleteMany({ _id: { $in: order.cartItems } }, { session });
+      await Cart.updateOne(
+        { userId: order.userId },
+        { $pull: { item: { $in: order.cartItems } } },
+        { new: true, session },
+      );
     }
 
     await session.commitTransaction();
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
     session.endSession();
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    session.endSession();
+    throw error;
   }
 }
 
 export async function POST(req) {
-  // await restrictTo("admin", "user");
+  await dbConnect();
   try {
     const body = await req.json();
 
@@ -91,9 +151,7 @@ export async function POST(req) {
     }
     const verification = await Paystack.transaction.verify(reference);
 
-    console.log(verification, "verification💎💎");
-
-    //update product quantity (variants considered)
+    // Update product quantity (variants considered)
     if (verification.data.status === "success") {
       await updateProductQuantity(order);
     }
@@ -114,27 +172,30 @@ export async function POST(req) {
     order.paymentId = paymentId;
     order.paymentMethod = paymentMethod;
     order.currency = currency;
-    order.receiptNumber = receipt_number;
     order.paidAt = verification?.data?.paidAt;
 
     await order.save();
 
-    console.log(saveCard, "saveCard💎💎");
-
-    if (saveCard && verification?.data?.authorization?.reusable) {
+    if (saveCard === true && verification?.data?.authorization) {
       const cardData = {
         userId,
         email: verification?.data?.customer?.email,
-        cardType: verification?.data?.authorization?.card_type,
-        last4: verification?.data?.authorization?.last4,
-        expiryMonth: verification?.data?.authorization?.exp_month,
-        expiryYear: verification?.data?.authorization?.exp_year,
-        authorizationCode:
-          verification?.data?.authorization?.authorization_code,
+        authorization: verification?.data?.authorization,
       };
 
       const payment = await Payment.create(cardData);
-      console.log(payment, "payment💎💎");
+    }
+
+    // Create notification for admin about successful payment
+    if (verification?.data?.status === "success") {
+      console.log("creating notification💎💎");
+      await Notification.create({
+        userId: null, // Admin notification
+        title: "New Order Payment",
+        message: `New payment received: ${currency} ${order.total} for order #${order.receiptNumber}`,
+        orderId: order._id,
+        type: "info",
+      });
     }
 
     revalidatePath("/account/orders");

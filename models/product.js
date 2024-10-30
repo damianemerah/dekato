@@ -41,7 +41,12 @@ const productSchema = new mongoose.Schema(
     discountPrice: {
       type: Number,
       min: [0, "Discounted price cannot be negative"],
-      set: (v) => Math.round(v),
+      set: function (v) {
+        if (isNaN(v)) {
+          return undefined;
+        }
+        return Math.round(v);
+      },
     },
     discountDuration: {
       type: Date,
@@ -52,6 +57,12 @@ const productSchema = new mongoose.Schema(
         message: "Discount duration must be in the future",
       },
       index: true,
+      required: [
+        function () {
+          return this.discount > 0;
+        },
+        "Discount duration is required when discount is applied",
+      ],
     },
     image: {
       type: [String],
@@ -131,14 +142,17 @@ const productSchema = new mongoose.Schema(
           type: Number,
           required: [true, "Variant price is required"],
           min: [0, "Variant price cannot be negative"],
-          max: [1000000, "Variant price cannot exceed 1,000,000"],
           set: (v) => Math.round(v),
         },
         discountPrice: {
           type: Number,
           min: [0, "Variant price cannot be negative"],
-          max: [1000000, "Variant price cannot exceed 1,000,000"],
-          set: (v) => Math.round(v),
+          set: function (v) {
+            if (isNaN(v)) {
+              return undefined;
+            }
+            return Math.round(v);
+          },
         },
         quantity: {
           type: Number,
@@ -173,9 +187,9 @@ const productSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: "draft",
+      default: "inactive",
       enum: {
-        values: ["draft", "active", "archive"],
+        values: ["inactive", "active", "archived", "outofstock"],
         message: "{VALUE} is not a valid status",
       },
     },
@@ -233,10 +247,8 @@ async function updateCategorySlug(doc) {
 
     if (categories && categories.length > 0) {
       doc.cat = categories.map((cat) => cat.slug);
-    } else if (doc.status !== "draft") {
-      throw new Error(
-        "At least one category slug is required for non-draft products",
-      );
+    } else if (doc.status !== "inactive") {
+      throw new Error("At least one category is required to activate product");
     }
   } catch (error) {
     throw error;
@@ -248,6 +260,11 @@ function validateAndSetDiscount(doc) {
     doc.discount = Math.min(doc.discount, 100);
     if (doc.discount > 0 && doc.price) {
       doc.discountPrice = Math.round(doc.price * (1 - doc.discount / 100));
+      if (!doc.discountDuration) {
+        throw new Error(
+          "Discount duration is required when discount is applied",
+        );
+      }
     } else {
       doc.discountPrice = undefined;
       doc.discountDuration = undefined;

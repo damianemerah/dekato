@@ -7,6 +7,8 @@ import { handleFormData } from "@/utils/handleForm";
 import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
 import { revalidatePath } from "next/cache";
+import APIFeatures from "@/utils/apiFeatures";
+import _ from "lodash";
 
 function formatCollections(collections) {
   const formattedCollections = collections.map(
@@ -20,18 +22,45 @@ function formatCollections(collections) {
   return formattedCollections;
 }
 
-export async function getAllCollections() {
+export async function getAllCollections(params) {
   await dbConnect();
 
   try {
-    const collections = await Campaign.find(
+    const query = Campaign.find(
       {},
-      "name description image slug createdAt productCount category banner",
-    )
-      .populate("category", "name slug")
-      .lean({ virtuals: true });
+      "name description image slug createdAt category banner isSale",
+    ).lean({ virtuals: true });
 
-    return formatCollections(collections);
+    const searchParams = {
+      page: params?.page || 1,
+      limit: params?.limit || 20,
+    };
+
+    console.log(searchParams, "searchPaeams🎈");
+
+    const feature = new APIFeatures(query, searchParams).paginate().sort();
+
+    console.log(feature, "feature🔥🔥");
+
+    const collectionData = await feature.query;
+
+    const formattedData = await Promise.all(
+      collectionData.map(async ({ _id, ...rest }) => {
+        const productCount = await Product.countDocuments({
+          collections: _id,
+        });
+
+        return {
+          id: _id.toString(),
+          productCount,
+          ...rest,
+        };
+      }),
+    );
+
+    const totalCount = await Campaign.countDocuments(query.getFilter());
+
+    return { data: formattedData, totalCount, limit: searchParams.limit };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
@@ -50,8 +79,12 @@ export async function createCollection(formData) {
       virtuals: true,
     });
 
+    const productCount = await Product.countDocuments({
+      collections: collection._id,
+    });
+
     revalidatePath(`/admin/collections/${leanCollection.slug}`);
-    return formatCollections([leanCollection])[0];
+    return { ...formatCollections([leanCollection])[0], productCount };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
@@ -72,18 +105,21 @@ export async function updateCollection(formData) {
     const collection = await Campaign.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
-      select:
-        "name description image slug createdAt productCount category banner",
+      select: "name description image slug createdAt category banner",
     }).lean({ virtuals: true });
 
     if (!collection) {
       throw new Error("Collection not found");
     }
 
+    const productCount = await Product.countDocuments({
+      collections: collection._id,
+    });
+
     revalidatePath(`/admin/collections/${collection.slug}`);
     revalidatePath(`/admin/collections`);
 
-    return formatCollections([collection])[0];
+    return { ...formatCollections([collection])[0], productCount };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
@@ -128,12 +164,69 @@ export const addProductToCollection = async (collectionId, productId) => {
     collection.products.push(product);
     await collection.save();
 
+    const productCount = await Product.countDocuments({
+      collections: collection._id,
+    });
+
     revalidatePath(`/admin/collections/${collection.slug}`);
     revalidatePath(`/admin/collections`);
 
-    return formatCollections([collection])[0];
+    return { ...formatCollections([collection.toObject()])[0], productCount };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
   }
 };
+
+export async function getSaleCollections() {
+  await dbConnect();
+
+  try {
+    const saleCollections = await Campaign.find({ isSale: true }).lean({
+      virtuals: true,
+    });
+
+    if (!saleCollections || saleCollections.length === 0) {
+      return [];
+    }
+
+    const formattedCollections = await Promise.all(
+      saleCollections.map(async (collection) => {
+        const productCount = await Product.countDocuments({
+          collections: collection._id,
+        });
+        return { ...collection, productCount };
+      }),
+    );
+
+    return formatCollections(formattedCollections);
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
+
+export async function getCollections() {
+  try {
+    await dbConnect();
+
+    const collections = await Campaign.find({})
+      .populate("category", "name slug")
+      .lean({ virtuals: true })
+      .exec(); // Add exec() to ensure proper promise handling
+
+    if (!collections) {
+      throw new Error("No collections found");
+    }
+
+    return collections.map((collection) => ({
+      id: collection._id.toString(),
+      ..._.omit(collection, ["category", "_id"]),
+      category: collection.category?.name || null,
+    }));
+  } catch (err) {
+    console.error("Error fetching collections:", err);
+    const error = handleAppError(err);
+    throw new Error(error.message || "Failed to fetch collections");
+  }
+}

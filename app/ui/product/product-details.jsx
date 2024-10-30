@@ -344,6 +344,7 @@ export default function ProductDetail({ product }) {
       await mutate(`/checkout-data`);
       message.success("Item added to cart");
     } catch (error) {
+      console.log(error, "error");
       message.info("Unable to add item to cart", 4);
     } finally {
       setIsAddingToCart(false);

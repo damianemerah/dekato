@@ -3,6 +3,8 @@ import Product from "@/models/product";
 import Category from "@/models/category";
 import dbConnect from "@/lib/mongoConnection";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req) {
   try {
     await dbConnect();

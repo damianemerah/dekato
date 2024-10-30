@@ -1,12 +1,16 @@
-import { Suspense, lazy } from "react";
-import { Spin } from "antd";
 import "react-quill/dist/quill.snow.css";
 import { unstable_cache } from "next/cache";
 import { getProductById } from "@/app/action/productAction";
-import RecommendedProducts from "@/app/ui/recommended-products";
 import { SmallSpinner } from "@/app/ui/spinner";
+import dynamic from "next/dynamic";
 
-const ProductDetail = lazy(() => import("@/app/ui/product/product-details"));
+const ProductDetail = dynamic(
+  () => import("@/app/ui/product/product-details"),
+  {
+    ssr: false,
+    loading: SmallSpinner,
+  },
+);
 
 const getProductData = unstable_cache(
   async (id) => {
@@ -19,15 +23,13 @@ const getProductData = unstable_cache(
   },
 );
 
-export default async function CategoryPage({ name }) {
+export default async function ProductInfo({ name }) {
   const id = name.split("-").slice(-1)[0];
   const product = await getProductData(id);
 
   return (
     <div>
-      <Suspense fallback={<SmallSpinner />}>
-        <ProductDetail product={product} />
-      </Suspense>
+      <ProductDetail product={product} />
     </div>
   );
 }

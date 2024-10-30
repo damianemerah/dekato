@@ -1,6 +1,7 @@
 import Order from "@/models/order";
 import Address from "@/models/address";
-import { Cart } from "@/models/cart";
+import Payment from "@/models/payment";
+import { Cart, CartItem } from "@/models/cart";
 import dbConnect from "@/lib/mongoConnection";
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
@@ -57,7 +58,8 @@ export async function POST(req, { params }) {
       userId: [userId],
     } = params;
     const body = await req.json();
-    const { shippingMethod, address, items, amount, email, saveCard } = body;
+    const { shippingMethod, address, items, amount, email, saveCard, cardId } =
+      body;
 
     if (shippingMethod?.toLowerCase() === "delivery" && !address) {
       throw new AppError("Address is required for delivery", 400);
@@ -75,7 +77,7 @@ export async function POST(req, { params }) {
       }
     }
 
-    console.log(items, "items💎💎");
+    console.log(body, "body💎💎");
 
     const orderData = {
       userId: userId,
@@ -88,8 +90,8 @@ export async function POST(req, { params }) {
         option: item.option,
         variantId: item.variantId,
       })),
+      cartItems: items.map((item) => item.id),
       total: amount,
-      type: "cart",
       shippingMethod: shippingMethod?.toLowerCase(),
       address:
         shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
@@ -104,19 +106,37 @@ export async function POST(req, { params }) {
       throw new AppError("Order could not be created", 500);
     }
 
-    const payment = await Paystack.transaction.initialize({
-      // authorization_code: "AUTH_CODE",
+    let paymentInitializeOptions = {
       email: email,
       amount: Math.round(amount * 100),
-      callback_url: `${req.nextUrl.origin}`,
+      callback_url: `${process.env.NEXTAUTH_URL}/checkout/success`,
       currency: "NGN",
       metadata: {
         orderId: createdOrder["_id"].toString(),
         userId,
-        receipt_number: createdOrder.receiptNumber,
         saveCard: saveCard,
       },
-    });
+    };
+
+    if (cardId) {
+      const paymentMethod = await Payment.findOne({
+        _id: cardId,
+        userId,
+      });
+      if (!paymentMethod) {
+        throw new AppError("Payment method not found", 404);
+      }
+      paymentInitializeOptions.authorization_code =
+        paymentMethod.authorization.authorization_code;
+
+      paymentInitializeOptions.email = paymentMethod.email || email;
+    }
+
+    const payment = await Paystack.transaction.initialize(
+      paymentInitializeOptions,
+    );
+
+    console.log(payment, "payment💎💎");
 
     if (!payment || payment.status === false) {
       throw new AppError(payment.message, 500);

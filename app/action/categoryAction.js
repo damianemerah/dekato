@@ -2,8 +2,9 @@
 
 import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
+import Product from "@/models/product";
 import { handleFormData } from "@/utils/handleForm";
-import { protect, restrictTo } from "@/utils/checkPermission";
+import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import { revalidatePath } from "next/cache";
@@ -29,7 +30,7 @@ export async function getAllCategories(params) {
 
     const query = Category.find(
       {},
-      "name description image slug createdAt parent pinned pinOrder",
+      "name description image slug createdAt parent pinned pinOrder ",
     )
       .populate("parent", "name _id slug")
       .lean({ virtuals: true });
@@ -43,17 +44,28 @@ export async function getAllCategories(params) {
 
     const categoryData = await feature.query;
 
-    const formattedData = categoryData.map(({ _id, parent, ...rest }) => ({
-      id: _id.toString(),
-      parent: parent
-        ? {
-            id: parent._id.toString(),
-            name: parent.name,
-            slug: parent.slug,
-          }
-        : null,
-      ...rest,
-    }));
+    const formattedData = await Promise.all(
+      categoryData.map(async ({ _id, parent, ...rest }) => {
+        const productCount = await Product.countDocuments({
+          category: _id,
+        });
+
+        console.log(productCount, "productCount🌐🌐");
+
+        return {
+          id: _id.toString(),
+          parent: parent
+            ? {
+                id: parent._id.toString(),
+                name: parent.name,
+                slug: parent.slug,
+              }
+            : null,
+          productCount,
+          ...rest,
+        };
+      }),
+    );
 
     const totalCount = await Category.countDocuments(query.getFilter());
 
@@ -74,7 +86,6 @@ export async function getSubCategories(slug) {
 
     const categories = await Category.find({ parent: category._id })
       .select("name description image slug createdAt")
-      .populate("productCount")
       .sort({ slug: 1 })
       .lean();
 
@@ -112,8 +123,13 @@ export async function createCategory(formData) {
 
     const { _id, ...rest } = category;
 
+    // Get products count
+    const productCount = await Product.countDocuments({
+      category: _id,
+    });
+
     revalidatePath(`/admin/categories/${category.slug}`);
-    return { id: _id.toString(), ...rest };
+    return { id: _id.toString(), productCount, ...rest };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
@@ -140,7 +156,6 @@ export async function updateCategory(formData) {
       runValidators: true,
     })
       .select("name description image slug createdAt parent pinned pinOrder")
-      .populate("productCount")
       .populate("parent", "name _id slug");
 
     if (!categoryDoc) {
@@ -149,13 +164,29 @@ export async function updateCategory(formData) {
 
     const category = categoryDoc.toObject();
 
+    // Get products count
+    const productCount = await Product.countDocuments({
+      category: category._id,
+    });
+
     // Return category with id instead of _id
     const { _id, parent, ...rest } = category;
 
     revalidatePath(`/admin/categories/${category.slug}`);
     revalidatePath(`/admin/categories`);
 
-    return { id: _id.toString(), ...rest };
+    return {
+      id: _id.toString(),
+      parent: parent
+        ? {
+            id: parent._id.toString(),
+            name: parent.name,
+            slug: parent.slug,
+          }
+        : null,
+      productCount,
+      ...rest,
+    };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
@@ -167,11 +198,24 @@ export async function deleteCategory(id) {
   await dbConnect();
 
   try {
-    const deletedCategory = await Category.findByIdAndDelete(id);
+    const categoryToDelete = await Category.findById(id);
 
-    if (!deletedCategory) {
+    if (!categoryToDelete) {
       throw new Error("Category not found");
     }
+
+    // Check if any products are using this category
+    const productsUsingCategory = await Product.countDocuments({
+      category: id,
+    });
+
+    if (productsUsingCategory > 0) {
+      throw new Error(
+        "Cannot delete category. It is still being used by products.",
+      );
+    }
+
+    const deletedCategory = await Category.findByIdAndDelete(id);
 
     const orphanedCategories = await Category.find({
       parent: deletedCategory._id,

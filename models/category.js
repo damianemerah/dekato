@@ -21,7 +21,7 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
-      maxlength: [500, "Description cannot exceed 500 characters"],
+      maxlength: [2000, "Description cannot exceed 500 characters"],
       validate: {
         validator: function (v) {
           return validator.escape(v) === v;
@@ -31,16 +31,13 @@ const categorySchema = new mongoose.Schema(
     },
     image: {
       type: [String],
-      validate: [
-        arrayLimit,
-        "{PATH} exceeds the limit of 5",
-        {
-          validator: function (v) {
-            return v.every((url) => validator.isURL(url));
-          },
-          message: "Invalid URL in image array",
+      maxLength: [15, "Image array cannot exceed 5 elements"],
+      validate: {
+        validator: function (v) {
+          return v.every((url) => validator.isURL(url));
         },
-      ],
+        message: "Invalid URL in image array",
+      },
     },
     slug: {
       type: String,
@@ -77,10 +74,6 @@ const categorySchema = new mongoose.Schema(
 
 categorySchema.index({ parent: 1, slug: 1 }, { unique: true });
 categorySchema.index({ name: "text", description: "text" });
-
-function arrayLimit(val) {
-  return val.length <= 5;
-}
 
 categorySchema.pre("save", async function (next) {
   if (this.isModified("name")) {
@@ -166,13 +159,6 @@ categorySchema.pre("findOneAndUpdate", async function (next) {
   }
 
   next();
-});
-
-categorySchema.virtual("productCount", {
-  ref: "Product",
-  localField: "_id",
-  foreignField: "category",
-  count: true,
 });
 
 categorySchema.plugin(mongooseLeanVirtuals);

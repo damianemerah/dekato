@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CartItem } from "./cart";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("0123456789", 10);
@@ -25,8 +24,10 @@ const orderSchema = new mongoose.Schema(
         quantity: { type: Number, default: 1, min: 1 },
         option: { type: Object },
         variantId: { type: String },
+        cartItemId: { type: String },
       },
     ],
+    cartItems: [String],
     total: { type: Number, required: true, min: 0 },
     receiptNumber: {
       type: String,
@@ -35,12 +36,6 @@ const orderSchema = new mongoose.Schema(
       default: () => nanoid(6),
     },
     status: String,
-    type: {
-      type: String,
-      default: "cart",
-      enum: ["cart", "single"],
-      required: true,
-    },
     shippingMethod: {
       type: String,
       lowercase: true,
@@ -57,7 +52,7 @@ const orderSchema = new mongoose.Schema(
     deliveryStatus: {
       type: String,
       default: "pending",
-      enum: ["shipped", "delivered", "cancelled"],
+      enum: ["pending", "shipped", "delivered", "cancelled"],
     },
     note: { type: String },
     paymentRef: { type: String, trim: true },
@@ -70,6 +65,8 @@ const orderSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+orderSchema.index({ paymentRef: 1, userId: 1 });
 
 const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 

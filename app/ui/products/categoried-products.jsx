@@ -1,7 +1,7 @@
 import SubPageCampaign from "@/app/ui/page-campaign";
 import Image from "next/image";
 import noImage from "@/public/assets/image6.png";
-import ProductList from "@/app/ui/products-list";
+import ProductList from "@/app/ui/products/products-list";
 import { unstable_cache } from "next/cache";
 import { getAllProducts } from "@/app/action/productAction";
 import { notFound } from "next/navigation";

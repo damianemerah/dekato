@@ -11,25 +11,6 @@ import { getQueryObj } from "@/utils/getFunc";
 import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { deleteFiles } from "@/lib/s3Func";
-import _ from "lodash";
-
-const setupIndexes = async () => {
-  try {
-    await dbConnect();
-    await Promise.all([
-      Product.collection.createIndex({
-        name: "text",
-        description: "text",
-        tag: "text",
-      }),
-      Product.collection.createIndex({ cat: 1 }),
-      Product.collection.createIndex({ price: 1 }),
-      Product.collection.createIndex({ slug: 1 }),
-    ]);
-  } catch (error) {
-    console.error("Error setting up indexes:", error);
-  }
-};
 
 const formatProduct = (product, isAdmin = false) => {
   const { _id, category, campaign, variant = [], ...rest } = product;
@@ -50,6 +31,79 @@ const formatProduct = (product, isAdmin = false) => {
 
   return formattedProduct;
 };
+
+const setupIndexes = async () => {
+  try {
+    await dbConnect();
+    await Promise.all([
+      Product.collection.createIndex({
+        name: "text",
+        description: "text",
+        tag: "text",
+      }),
+      Product.collection.createIndex({ cat: 1 }),
+      Product.collection.createIndex({ price: 1 }),
+      Product.collection.createIndex({ slug: 1 }),
+    ]);
+  } catch (error) {
+    console.error("Error setting up indexes:", error);
+  }
+};
+
+export async function setProductStatus(id, status) {
+  await dbConnect();
+  try {
+    const product = await Product.findByIdAndUpdate(id, { status }).lean({
+      virtuals: true,
+    });
+    return formatProduct(product);
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
+
+export async function updateProductDiscount(
+  productId,
+  discountData,
+  campaignId = null,
+) {
+  await restrictTo("admin");
+  await dbConnect();
+
+  try {
+    const { discount, discountDuration } = discountData;
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    product.discount = discount;
+    product.discountDuration = discountDuration;
+
+    if (campaignId) {
+      // Use $addToSet to ensure uniqueness
+      await Product.findByIdAndUpdate(
+        productId,
+        { $addToSet: { campaign: campaignId } },
+        { new: true },
+      );
+    }
+
+    await product.save();
+
+    revalidateProduct(product._id.toString());
+
+    // Fetch the updated product to ensure we have the latest data
+    const updatedProduct = await Product.findById(productId);
+    return formatProduct(updatedProduct.toObject(), true);
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
+}
 
 const handleProductQuery = async (query, searchParams = {}) => {
   const feature = new APIFeatures(query, searchParams)
@@ -77,7 +131,7 @@ export async function getAdminProduct(params) {
     const searchParams = {
       sort: "-createdAt",
       page: params.page || 1,
-      limit: params.limit || 2,
+      limit: params.limit || 20,
     };
     const productData = await handleProductQuery(query, searchParams);
     const products = productData.map((product) => formatProduct(product, true));
@@ -232,6 +286,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       baseQuery = Product.find({
         $and: [
           { quantity: { $gt: 0 } },
+          { status: "active" },
           {
             $or: [
               { category: { $in: categoryIds } },
@@ -241,7 +296,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
         ],
       })
         .select(
-          "name slug _id image price discount status quantity isDiscounted",
+          "name slug _id image price discount status quantity isDiscounted discountPrice",
         )
         .populate("category", "name slug path")
         .populate("campaign", "name slug path");
@@ -293,24 +348,34 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     throw new Error(error.message);
   }
 }
-
 export async function getProductById(id) {
-  await dbConnect();
-  const product = await Product.findById(id)
-    .populate("category", "name slug")
-    .populate("campaign", "name slug")
-    .lean({ virtuals: true });
-  if (!product) throw new Error("Product not found");
-  return formatProduct(product);
+  try {
+    await dbConnect();
+    const product = await Product.findById(id)
+      .populate("category", "name slug")
+      .populate("campaign", "name slug")
+      .lean({ virtuals: true });
+    if (!product) throw new Error("Product not found");
+    return formatProduct(product);
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
+
 export async function getAdminProductById(id) {
-  await dbConnect();
-  const product = await Product.findById(id)
-    .populate("category", "name slug")
-    .populate("campaign", "name slug")
-    .lean({ virtuals: true });
-  if (!product) throw new Error("Product not found");
-  return formatProduct(product, true);
+  try {
+    await dbConnect();
+    const product = await Product.findById(id)
+      .populate("category", "name slug")
+      .populate("campaign", "name slug")
+      .lean({ virtuals: true });
+    if (!product) throw new Error("Product not found");
+    return formatProduct(product, true);
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function createProduct(formData) {
@@ -319,9 +384,6 @@ export async function createProduct(formData) {
     await dbConnect();
 
     const obj = await handleFormData(formData);
-
-    console.log(obj.variant[0], "obj🔥🔥🔥");
-    console.log(obj, "obj.variant[0].options🔥🔥🔥");
 
     const createdProduct = await Product.create(obj);
     if (!createdProduct) throw new Error("Product not created");
@@ -375,7 +437,8 @@ export async function updateProduct(formData) {
 
     return formatProduct(productData);
   } catch (err) {
-    return handleAppError(err);
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
 }
 
