@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo, useEffect } from "react";
+import { useState, memo, useEffect, useMemo } from "react";
 import { Button, Flex, Table, Dropdown, Space, message, Modal } from "antd";
 import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import Image from "next/image";
@@ -67,7 +67,7 @@ const ProductsList = ({ searchParams }) => {
 
   const router = useRouter();
 
-  const page = searchParams?.page || 1;
+  const page = useMemo(() => searchParams.page || 1, [searchParams]);
 
   const {
     data: productData,

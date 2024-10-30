@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Table,
   Card,
@@ -12,95 +12,178 @@ import {
   Row,
   Col,
 } from "antd";
-import { PlusOutlined, ExportOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  ExportOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
 import Link from "next/link";
+import { getAllOrders } from "@/app/action/orderAction";
+import useSWR from "swr";
+import dayjs from "dayjs";
+import { useRouter } from "next/navigation";
 
 const { Title } = Typography;
 const { Content } = Layout;
 
-function Orders() {
-  const orders = [
-    {
-      key: "1020",
-      order: "#1020",
-      date: "Jul 20 at 4:34pm",
-      customer: "Jaydon Stanton",
-      total: "$969.44",
-      paymentStatus: <Tag color="green">Paid</Tag>,
-      fulfillmentStatus: <Tag color="red">Unfulfilled</Tag>,
-    },
-    {
-      key: "1019",
-      order: "#1019",
-      date: "Jul 20 at 3:46pm",
-      customer: "Ruben Westerfelt",
-      total: "$701.19",
-      paymentStatus: <Tag color="orange">Partially paid</Tag>,
-      fulfillmentStatus: <Tag color="red">Unfulfilled</Tag>,
-    },
-    {
-      key: "1018",
-      order: "#1018",
-      date: "Jul 20 at 3.44pm",
-      customer: "Leo Carder",
-      total: "$798.24",
-      paymentStatus: <Tag color="green">Paid</Tag>,
-      fulfillmentStatus: <Tag color="red">Unfulfilled</Tag>,
-    },
-  ];
+const Orders = React.memo(function Orders({ searchParams }) {
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const router = useRouter();
 
-  const columns = [
-    {
-      title: "Order",
-      dataIndex: "order",
-      key: "order",
-    },
-    {
-      title: "Date",
-      dataIndex: "date",
-      key: "date",
-    },
-    {
-      title: "Customer",
-      dataIndex: "customer",
-      key: "customer",
-    },
-    {
-      title: "Total",
-      dataIndex: "total",
-      key: "total",
-      align: "right",
-    },
-    {
-      title: "Payment Status",
-      dataIndex: "paymentStatus",
-      key: "paymentStatus",
-    },
-    {
-      title: "Fulfillment Status",
-      dataIndex: "fulfillmentStatus",
-      key: "fulfillmentStatus",
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Link href={`/admin/orders/details/${record.key}`}>
-          <Button type="link">View Details</Button>
-        </Link>
-      ),
-    },
-  ];
+  const page = useMemo(() => searchParams.page || 1, [searchParams]);
 
-  const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(
-        `selectedRowKeys: ${selectedRowKeys}`,
-        "selectedRows: ",
-        selectedRows,
-      );
+  const { data: orderData, isLoading } = useSWR(
+    `/admin/orders?page=${page}`,
+    () => getAllOrders({ page }),
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        console.log(data, "data💎💎");
+      },
     },
-  };
+  );
+
+  useEffect(() => {
+    if (orderData) {
+      setTotalCount(orderData.totalCount || 0);
+      setLimit(orderData.limit || 10);
+    }
+  }, [orderData]);
+
+  const orders = useMemo(
+    () =>
+      orderData?.orders?.map((item) => ({
+        key: item.id,
+        id: item.id,
+        fulfillmentStatus: (
+          <Tag
+            color={
+              item.status === "success"
+                ? "green"
+                : item.status === "failed"
+                  ? "red"
+                  : "orange"
+            }
+          >
+            {item.status === "success"
+              ? "Fulfilled"
+              : item.status === "failed"
+                ? "Failed"
+                : "Pending"}
+          </Tag>
+        ),
+        paymentStatus: (
+          <Tag
+            color={
+              item.status === "success"
+                ? "green"
+                : item.status === "failed"
+                  ? "red"
+                  : "orange"
+            }
+          >
+            {item.status === "success"
+              ? "Paid"
+              : item.status === "failed"
+                ? "Failed"
+                : "Pending"}
+          </Tag>
+        ),
+        total: item.total,
+        date: dayjs(item.createdAt).format("MMM D, YYYY HH:mm"),
+        customer: item.user.firstname + " " + item.user.lastname,
+        order: item.receiptNumber,
+      })) || [],
+    [orderData],
+  );
+
+  const columns = useMemo(
+    () => [
+      {
+        title: "Order",
+        dataIndex: "order",
+        key: "order",
+        sorter: (a, b) => a.order.localeCompare(b.order),
+      },
+      {
+        title: "Date",
+        dataIndex: "date",
+        key: "date",
+        sorter: (a, b) => new Date(a.date) - new Date(b.date),
+      },
+      {
+        title: "Customer",
+        dataIndex: "customer",
+        key: "customer",
+        sorter: (a, b) => a.customer.localeCompare(b.customer),
+      },
+      {
+        title: "Total",
+        dataIndex: "total",
+        key: "total",
+        align: "right",
+        sorter: (a, b) => a.total - b.total,
+      },
+      {
+        title: "Payment Status",
+        dataIndex: "paymentStatus",
+        key: "paymentStatus",
+        filters: [
+          { text: "Paid", value: "Paid" },
+          { text: "Failed", value: "Failed" },
+          { text: "Pending", value: "Pending" },
+        ],
+        onFilter: (value, record) =>
+          record.paymentStatus.props.children === value,
+      },
+      {
+        title: "Fulfillment Status",
+        dataIndex: "fulfillmentStatus",
+        key: "fulfillmentStatus",
+        filters: [
+          { text: "Fulfilled", value: "Fulfilled" },
+          { text: "Failed", value: "Failed" },
+          { text: "Pending", value: "Pending" },
+        ],
+        onFilter: (value, record) =>
+          record.fulfillmentStatus.props.children === value,
+      },
+      {
+        title: "Action",
+        key: "action",
+        render: (_, record) => (
+          <Link href={`/admin/orders/${record.key}`}>
+            <Button type="link">View Details</Button>
+          </Link>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const onSelectChange = useCallback((newSelectedRowKeys) => {
+    console.log(newSelectedRowKeys, "newSelectedRowKeys🔥🔥🔥");
+    setSelectedRowKeys(newSelectedRowKeys);
+  }, []);
+
+  const rowSelection = useMemo(
+    () => ({
+      selectedRowKeys,
+      onChange: onSelectChange,
+    }),
+    [selectedRowKeys, onSelectChange],
+  );
+
+  const handlePageChange = useCallback(
+    (newPage) => {
+      router.push(`/admin/orders?page=${newPage}`);
+    },
+    [router],
+  );
+
+  const hasSelected = selectedRowKeys.length > 0;
 
   return (
     <Layout>
@@ -123,20 +206,41 @@ function Orders() {
           </Col>
         </Row>
         <Card>
+          <Row style={{ marginBottom: "16px" }}>
+            <Col>
+              {hasSelected && (
+                <span>{`Selected ${selectedRowKeys.length} items`}</span>
+              )}
+            </Col>
+          </Row>
           <Table
             rowSelection={rowSelection}
             columns={columns}
             dataSource={orders}
             pagination={{
-              total: orders.length,
-              showSizeChanger: true,
-              showQuickJumper: true,
+              current: parseInt(page),
+              pageSize: limit,
+              showSizeChanger: false,
+              total: totalCount,
+              onChange: handlePageChange,
             }}
+            loading={
+              isLoading
+                ? {
+                    indicator: (
+                      <LoadingOutlined spin className="!text-primary" />
+                    ),
+                    size: "large",
+                  }
+                : false
+            }
+            scroll={{ x: "max-content" }}
+            className="overflow-x-auto sm:overflow-x-auto md:overflow-x-visible"
           />
         </Card>
       </Content>
     </Layout>
   );
-}
+});
 
 export default Orders;

@@ -1,7 +1,6 @@
 import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 
 export async function GET() {
   try {
@@ -25,7 +24,6 @@ export async function GET() {
       }
 
       await product.save();
-      revalidateTag(`product-${product.slug}`);
     }
 
     console.log(
@@ -44,4 +42,3 @@ export async function GET() {
     );
   }
 }
-``;

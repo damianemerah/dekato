@@ -32,7 +32,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
       unique: true,
       trim: true,
-      default: () => nanoid(),
+      default: () => nanoid(6),
     },
     status: String,
     type: {
@@ -54,6 +54,12 @@ const orderSchema = new mongoose.Schema(
         return this.shippingMethod === "delivery";
       },
     },
+    deliveryStatus: {
+      type: String,
+      default: "pending",
+      enum: ["shipped", "delivered", "cancelled"],
+    },
+    note: { type: String },
     paymentRef: { type: String, trim: true },
     paymentId: { type: String, trim: true },
     paymentMethod: { type: String, trim: true },

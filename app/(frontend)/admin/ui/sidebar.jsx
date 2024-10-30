@@ -8,6 +8,7 @@ import {
   UserOutlined,
   DatabaseOutlined,
   PlusOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,6 +25,11 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
   }, [pathname]);
 
   const menuItems = [
+    {
+      key: "app-home",
+      icon: <ArrowLeftOutlined />,
+      label: <Link href="/">Back to App</Link>,
+    },
     {
       key: "admin",
       icon: <HomeOutlined />,
@@ -105,15 +111,12 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
         height: "100vh",
         position: "fixed",
         left: 0,
-        top: "4rem",
+        top: 0,
         bottom: 0,
         borderRight: "1px solid #f0f0f0",
       }}
     >
-      {/* <div
-        className="logo"
-        style={{ height: 32, margin: 16, background: "rgba(0, 0, 0, 0.2)" }}
-      /> */}
+      <div className="logo" style={{ height: 20, margin: 16 }} />
       <Menu
         theme="light"
         mode="inline"

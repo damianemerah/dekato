@@ -11,6 +11,75 @@ import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "crypto";
 import _ from "lodash";
+import Order from "@/models/order";
+import Product from "@/models/product";
+import Collection from "@/models/collection"; // Assuming you have a Collection model
+
+export async function getDashboardData() {
+  await dbConnect();
+  await restrictTo("admin");
+
+  try {
+    const [
+      salesData,
+      customersCount,
+      ordersData,
+      productsCount,
+      collectionsCount,
+    ] = await Promise.all([
+      Order.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalSales: { $sum: "$total" },
+            totalOrders: { $sum: 1 },
+          },
+        },
+      ]),
+      User.countDocuments({ role: "user" }),
+      Order.aggregate([
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            receiptNumber: 1,
+            total: 1,
+            status: 1,
+            createdAt: 1,
+            "user.firstname": 1,
+            "user.lastname": 1,
+          },
+        },
+      ]),
+      Product.countDocuments(),
+      Collection.countDocuments(),
+    ]);
+
+    const totalSales = salesData[0]?.totalSales || 0;
+    const totalOrders = salesData[0]?.totalOrders || 0;
+
+    return {
+      totalSales,
+      totalCustomers: customersCount,
+      totalOrders,
+      recentOrders: ordersData,
+      totalProducts: productsCount,
+      totalCollections: collectionsCount,
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    throw new Error("Failed to fetch dashboard data");
+  }
+}
 
 export async function createUser(formData) {
   await dbConnect();
@@ -23,7 +92,9 @@ export async function createUser(formData) {
     passwordConfirm: formData.get("passwordConfirm"),
   };
 
-  const user = await User.create(userData);
+  const createdUser = await User.create(userData);
+
+  const user = createdUser.toObject();
 
   if (user) {
     await Cart.create({ userId: user._id, items: [] });
@@ -91,23 +162,16 @@ export async function updateUserInfo(formData) {
   const user = await User.findByIdAndUpdate(userId, userData, {
     new: true,
     runValidators: true,
-  })
-    .populate("address")
-    .lean({ virtuals: true });
+  }).lean({ virtuals: true });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  const { _id, address, wishlist, ...rest } = user;
-  const addressArr = address?.map(({ _id, userId, ...rest }) => ({
-    id: _id.toString(),
-    ...rest,
-  }));
+  const { _id, wishlist, ...rest } = user;
 
   const userInfo = {
     id: _id.toString(),
-    address: addressArr,
     wishlist: wishlist?.map((item) => item.toString()),
     ...rest,
   };
@@ -126,11 +190,10 @@ export async function addToWishlist(userId, productId) {
 
   await user.addToWishlist(productId);
 
-  const { _id, wishlist, address, ...rest } = user.toObject();
+  const { _id, wishlist, ...rest } = user.toObject();
 
   return {
     id: _id.toString(),
-    address: address.map((item) => item.toString()),
     wishlist: wishlist.map((item) => item.toString()),
     ...rest,
   };
@@ -192,8 +255,6 @@ export async function createUserAddress(formData) {
 
   const { _id, userId: id, ...rest } = address.toObject();
 
-  await User.findByIdAndUpdate(userId, { $push: { address: _id } });
-
   const newAddress = { id: _id.toString(), ...rest };
 
   // revalidatePath("/checkout");
@@ -246,18 +307,12 @@ export async function getAllUsers() {
     await dbConnect();
     await restrictTo("admin");
 
-    const usersDoc = await User.find()
-      .populate("address", "address city state country isDefault")
-      .lean({ virtuals: true });
+    const usersDoc = await User.find().lean({ virtuals: true });
 
     return usersDoc.map((user) => {
-      const { _id, address, ...rest } = user.toObject();
+      const { _id, ...rest } = user;
       return {
         id: _id.toString(),
-        address: address.map(({ _id, userId, ...addrRest }) => ({
-          id: _id.toString(),
-          ...addrRest,
-        })),
         ...rest,
       };
     });
@@ -348,15 +403,10 @@ export async function forgotPassword(formData) {
       runValidators: true,
     });
 
-    const { _id, address, wishlist, ...rest } = user;
-    const addressArr = address?.map(({ _id, userId, ...rest }) => ({
-      id: _id.toString(),
-      ...rest,
-    }));
+    const { _id, wishlist, ...rest } = user;
 
     const userObj = {
       id: _id.toString(),
-      address: addressArr,
       wishlist: wishlist?.map((item) => item.toString()),
       ...rest,
     };

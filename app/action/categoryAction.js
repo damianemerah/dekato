@@ -57,8 +57,6 @@ export async function getAllCategories(params) {
 
     const totalCount = await Category.countDocuments(query.getFilter());
 
-    console.log(formattedData, "data🌐33🌐", totalCount, searchParams.limit);
-
     return { data: formattedData, totalCount, limit: searchParams.limit };
   } catch (err) {
     const error = handleAppError(err);

@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, Suspense } from "react";
 import Link from "next/link";
-import { oswald } from "@/style/font"
+import { oswald } from "@/style/font";
 import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
 import { useCategoryStore } from "@/store/store";
@@ -9,7 +9,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Scrollbar, Mousewheel } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/scrollbar";
-import { SmallSpinner } from "../spinner";
 
 const CategoryLink = ({ category }) => (
   <Link
@@ -86,44 +85,37 @@ export default memo(function HomeCategory() {
         </div>
       </div>
 
-      <div
-        className="relative"
-        style={{ minHeight: isLoading ? "200px" : "auto" }}
-      >
-        {isLoading ? (
-          <SmallSpinner />
-        ) : (
-          <Swiper
-            modules={[Scrollbar, Mousewheel]}
-            spaceBetween={15}
-            slidesPerView={2}
-            scrollbar={{
-              hide: false,
-              draggable: true,
-              dragSize: 100,
-            }}
-            mousewheel={{
-              forceToAxis: true,
-              sensitivity: 1,
-              releaseOnEdges: true,
-              eventsTarget: "container",
-              thresholdDelta: 50,
-              thresholdTime: 100,
-            }}
-            breakpoints={{
-              640: { slidesPerView: 3 },
-              768: { slidesPerView: 4 },
-              1024: { slidesPerView: 5 },
-            }}
-            className="px-3"
-          >
-            {categorizedListState.map((category, index) => (
-              <SwiperSlide key={index}>
-                <CategoryLink category={category} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        )}
+      <div className="relative">
+        <Swiper
+          modules={[Scrollbar, Mousewheel]}
+          spaceBetween={15}
+          slidesPerView={2}
+          scrollbar={{
+            hide: false,
+            draggable: true,
+            dragSize: 100,
+          }}
+          mousewheel={{
+            forceToAxis: true,
+            sensitivity: 1,
+            releaseOnEdges: true,
+            eventsTarget: "container",
+            thresholdDelta: 50,
+            thresholdTime: 100,
+          }}
+          breakpoints={{
+            640: { slidesPerView: 3 },
+            768: { slidesPerView: 4 },
+            1024: { slidesPerView: 5 },
+          }}
+          className="px-3"
+        >
+          {categorizedListState.map((category, index) => (
+            <SwiperSlide key={index}>
+              <CategoryLink category={category} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
       <style jsx global>{`
         .swiper-scrollbar {

@@ -2,11 +2,13 @@ import { memo } from "react";
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 
 function VariantRow() {
-  const curVariantOptions = useAdminStore((state) => state.curVariantOptions);
+  const defaultVariantOptions = useAdminStore(
+    (state) => state.defaultVariantOptions,
+  );
 
   return (
     <>
-      {curVariantOptions.map((group, i) => (
+      {defaultVariantOptions.map((group, i) => (
         <tr className="border-b border-gray-200 hover:bg-gray-50" key={i}>
           <td className="px-6 py-3 text-left font-medium">
             {group.name.toUpperCase()}

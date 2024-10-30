@@ -1,13 +1,26 @@
 "use client";
 import useSWR from "swr";
-import ProductCard from "@/app/ui/product-card";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import dynamic from "next/dynamic";
+import ProductCardSkeleton from "@/app/ui/product-card-skeleton";
+import { SmallSpinner } from "./spinner";
+
+const ProductCard = dynamic(() => import("./product-card"), {
+  loading: () => <ProductCardSkeleton />,
+  ssr: false,
+});
+
+const LoadingSpinner = () => (
+  <div className="flex min-h-80 w-full items-center justify-center">
+    <SmallSpinner className="!text-primary" />
+  </div>
+);
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
 const RecommendedProducts = ({ category }) => {
-  const { data, error } = useSWR(
+  const { data, error, isLoading } = useSWR(
     `/api/recommendations?category=${category}&limit=10`,
     fetcher,
   );
@@ -20,7 +33,7 @@ const RecommendedProducts = ({ category }) => {
   };
 
   if (error) return <div>Failed to load products...</div>;
-  if (!data) return <div>Loading...</div>;
+  if (isLoading) return <LoadingSpinner />;
 
   const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
 

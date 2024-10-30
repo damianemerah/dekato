@@ -58,11 +58,20 @@ const ProductForm = ({
       <div
         className={`${roboto.className} mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10`}
       >
-        <div className="mb-6 flex items-center sm:mb-8 md:mb-10 lg:mb-12">
-          <Link href="/admin/products">
-            <BackIcon className="mr-2 cursor-pointer text-lg font-bold sm:mr-3 sm:text-xl md:mr-4" />
-          </Link>
-          <h3 className="text-lg font-medium sm:text-xl">Products</h3>
+        <div className="mb-6 flex items-center justify-between sm:mb-8 md:mb-10 lg:mb-12">
+          <div className="flex items-center">
+            <Link href="/admin/products">
+              <BackIcon className="mr-2 cursor-pointer text-lg font-bold sm:mr-3 sm:text-xl md:mr-4" />
+            </Link>
+            <h3 className="text-lg font-medium sm:text-xl">Products</h3>
+          </div>
+          {!isCreateMode && (
+            <Link href="/admin/products/new">
+              <button className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                Add New Product
+              </button>
+            </Link>
+          )}
         </div>
         <h2 className="mb-4 text-xl font-medium tracking-wide sm:mb-6 sm:text-2xl md:mb-8">
           {isCreateMode ? "Add Product" : "Edit Product"}

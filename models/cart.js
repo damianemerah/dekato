@@ -41,7 +41,7 @@ cartItemSchema.virtual("currentPrice").get(function () {
     }
   }
 
-  if (this.product.discount > 0) {
+  if (this.product.isDiscounted) {
     return discountPrice || price * (1 - this.product.discount / 100);
   }
 

@@ -8,7 +8,7 @@ import { message } from "antd";
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 import {
   createProduct,
-  getProductById,
+  getAdminProductById,
   updateProduct,
 } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
@@ -52,8 +52,8 @@ const Page = memo(function Page({ params }) {
   );
   const variants = useAdminStore((state) => state.variants);
   const setVariants = useAdminStore((state) => state.setVariants);
-  const setCurVariantOptions = useAdminStore(
-    (state) => state.setCurVariantOptions,
+  const setDefaultVariantOptions = useAdminStore(
+    (state) => state.setDefaultVariantOptions,
   );
 
   const { data: allCategoriesData, isLoading: catIsLoading } = useSWRImmutable(
@@ -64,7 +64,7 @@ const Page = memo(function Page({ params }) {
 
   const { data: products, isLoading } = useSWR(
     `/admin/products/${slug}`,
-    () => (slug !== "new" ? getProductById(slug) : null),
+    () => (slug !== "new" ? getAdminProductById(slug) : null),
     {
       revalidateOnFocus: false,
       refreshInterval: 10000, // 10 seconds
@@ -81,15 +81,16 @@ const Page = memo(function Page({ params }) {
     (product) => {
       setActionType("edit");
       setVariants(product?.variant);
-      setCurVariantOptions(generateVariantOptions(product?.variant));
-      setDefaultFileList(
-        product.image.map((img, index) => ({
-          uid: index,
-          name: "image.png",
-          status: "done",
-          url: img,
-        })),
-      );
+      setDefaultVariantOptions(generateVariantOptions(product?.variant));
+      if (Array.isArray(product?.image))
+        setDefaultFileList(
+          product?.image.map((img, index) => ({
+            uid: index,
+            name: "image.png",
+            status: "done",
+            url: img,
+          })),
+        );
       setSelectedCatKeys(product?.category?.map((cat) => cat.id) || []);
       setSelectedCollectionKeys(product?.campaign?.map((cat) => cat.id) || []);
       setDescription(product.description || "");
@@ -98,7 +99,7 @@ const Page = memo(function Page({ params }) {
       quantityRef.current.value = product.quantity || "";
       discountRef.current.value = product?.discount || "";
     },
-    [setCurVariantOptions, setVariants],
+    [setDefaultVariantOptions, setVariants],
   );
 
   useEffect(() => {
@@ -146,7 +147,7 @@ const Page = memo(function Page({ params }) {
       initializeEditMode(products);
     } else if (slug === "new") {
       setActionType("create");
-      setCurVariantOptions([]);
+      setDefaultVariantOptions([]);
     } else {
       alert("Product not found");
       router.push("/admin/products");
@@ -157,7 +158,7 @@ const Page = memo(function Page({ params }) {
     isLoading,
     router,
     initializeEditMode,
-    setCurVariantOptions,
+    setDefaultVariantOptions,
   ]);
 
   const handleFormSubmit = async (formData) => {
@@ -171,7 +172,7 @@ const Page = memo(function Page({ params }) {
       medias.videos.forEach((file) => formData.append("video", file));
 
       variants.forEach((variant, index) => {
-        const { id, imageURL, image, ...rest } = variant;
+        const { id, image, imageURL, ...rest } = variant;
         if (!isUUID(id)) rest._id = id;
         formData.append(`variantData[${index}]`, JSON.stringify(rest));
         if (image?.originFileObj instanceof File) {
@@ -185,12 +186,6 @@ const Page = memo(function Page({ params }) {
       selectedCollectionKeys.forEach((collectionId) =>
         formData.append("campaign", collectionId),
       );
-
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
-      // return;
 
       const action = actionType === "create" ? createProduct : updateProduct;
       if (actionType === "edit") formData.append("id", slug);

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Layout,
   Typography,
@@ -24,43 +24,57 @@ import {
   DollarOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
+import useSWR from "swr";
+import { getOrderById } from "@/app/action/orderAction";
+import { SmallSpinner } from "@/app/ui/spinner";
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
 
-function OrderDetails() {
-  const menu = (
-    <Menu>
-      <Menu.Item key="1">Print packing slip</Menu.Item>
-      <Menu.Item key="2" danger>
-        Cancel fulfillment
-      </Menu.Item>
-    </Menu>
+const OrderDetails = React.memo(function OrderDetails({ params }) {
+  const { id } = params;
+
+  const { data: order, isLoading } = useSWR(
+    `/admin/orders/${id}`,
+    () => getOrderById(id),
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        console.log(data);
+      },
+    },
   );
 
-  const orderItems = [
-    {
-      id: "145",
-      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
-      sku: "9504957",
-      qty: 1,
-      price: "200",
-      size: 9,
-      color: "black",
-      image:
-        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
-    },
-    {
-      id: "146",
-      name: "Tucan scarf",
-      sku: "0404957",
-      qty: 1,
-      price: "500",
-      size: 9,
-      color: "white",
-      image: "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
-    },
-  ];
+  const menu = useMemo(
+    () => (
+      <Menu
+        items={[
+          {
+            key: "1",
+            label: "Print packing slip",
+          },
+          {
+            key: "2",
+            label: "Cancel fulfillment",
+            danger: true,
+          },
+        ]}
+      />
+    ),
+    [],
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-20 w-full items-center justify-center">
+        <SmallSpinner className="!text-primary" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return <div>Order not found</div>;
+  }
 
   return (
     <Layout>
@@ -69,14 +83,14 @@ function OrderDetails() {
           <Col>
             <Link href="/admin/orders">
               <Button icon={<LeftOutlined />} type="link">
-                Products
+                Orders
               </Button>
             </Link>
             <Title
               level={4}
               style={{ display: "inline-block", margin: "0 16px" }}
             >
-              #1033
+              #{order.receiptNumber}
             </Title>
             <Tag color="green">Paid</Tag>
             <Tag color="blue">Fulfilled</Tag>
@@ -85,7 +99,7 @@ function OrderDetails() {
             <Space>
               <Button>Restock</Button>
               <Button type="primary">Edit</Button>
-              <Dropdown overlay={menu} trigger={["click"]}>
+              <Dropdown menu={menu} trigger={["click"]}>
                 <Button icon={<MoreOutlined />}>More actions</Button>
               </Dropdown>
             </Space>
@@ -103,14 +117,14 @@ function OrderDetails() {
                 </Space>
               }
               extra={
-                <Dropdown overlay={menu} trigger={["click"]}>
+                <Dropdown menu={menu} trigger={["click"]}>
                   <Button icon={<MoreOutlined />} />
                 </Dropdown>
               }
             >
               <List
                 itemLayout="horizontal"
-                dataSource={orderItems}
+                dataSource={order.product}
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
@@ -120,27 +134,35 @@ function OrderDetails() {
                       title={item.name}
                       description={
                         <Space direction="vertical">
-                          <Tag>
-                            {item.size} / {item.color}
-                          </Tag>
-                          <Text type="secondary">SKU: {item.sku}</Text>
+                          {item.option && (
+                            <Tag>
+                              {item.option.color} / {item.option.length}
+                            </Tag>
+                          )}
+                          <Text type="secondary">SKU: {item.productId}</Text>
                         </Space>
                       }
                     />
                     <div>
                       <Text>
-                        ${item.price} x {item.qty}
+                        ${item.price} x {item.quantity}
                       </Text>
                       <br />
-                      <Text strong>${item.price * item.qty}</Text>
+                      <Text strong>${item.price * item.quantity}</Text>
                     </div>
                   </List.Item>
                 )}
               />
               <Divider />
-              <Button type="primary" block>
-                Fulfill items
-              </Button>
+              <Link
+                href="/admin/orders/[id]/fulfill"
+                as={`/admin/orders/${order.id}/fulfill`}
+                passHref
+              >
+                <Button type="primary" block>
+                  Fulfill items
+                </Button>
+              </Link>
             </Card>
             <Card
               style={{ marginTop: 24 }}
@@ -154,9 +176,9 @@ function OrderDetails() {
               <Row justify="space-between">
                 <Col>Subtotal</Col>
                 <Col>
-                  <Text type="secondary">2 Items</Text>
+                  <Text type="secondary">{order.product.length} Items</Text>
                   <Text strong style={{ marginLeft: 8 }}>
-                    $40
+                    ${order.total}
                   </Text>
                 </Col>
               </Row>
@@ -166,13 +188,13 @@ function OrderDetails() {
                   <Text strong>Total</Text>
                 </Col>
                 <Col>
-                  <Text strong>$40</Text>
+                  <Text strong>${order.total}</Text>
                 </Col>
               </Row>
               <Divider />
               <Row justify="space-between">
                 <Col>Paid by customer</Col>
-                <Col>$40</Col>
+                <Col>${order.total}</Col>
               </Row>
             </Card>
           </Col>
@@ -184,27 +206,33 @@ function OrderDetails() {
               <Text type="secondary">No notes from customer</Text>
             </Card>
             <Card style={{ marginTop: 24 }} title="Customer">
-              <Text>John Smith</Text>
+              <Text>{`${order.user.firstname} ${order.user.lastname}`}</Text>
               <br />
-              <Text>4 orders</Text>
+              <Text>{order.user.orderCount.length} orders</Text>
               <Divider />
               <Title level={5}>Contact Information</Title>
-              <Text>john.smith@example.com</Text>
+              <Text>{order.user.email}</Text>
               <br />
-              <Text>+234957304755</Text>
+              <Text>{order.address?.phone || "No phone provided"}</Text>
               <Divider />
-              <Title level={5}>Shipping address</Title>
-              <Text>
-                Tyler Ware
-                <br />
-                3508 Pharetra. Av.
-                <br />
-                42621 Nantes
-                <br />
-                Paraguay
-                <br />
-                +59546811470
-              </Text>
+              <Title level={5}>Shipping Method</Title>
+              <Text>{order.shippingMethod}</Text>
+              {order.shippingMethod === "delivery" && (
+                <>
+                  <Divider />
+                  <Title level={5}>Shipping address</Title>
+                  <Text>
+                    {order.address.firstname} {order.address.lastname}
+                    <br />
+                    {order.address.address}
+                    <br />
+                    {order.address.city}, {order.address.state}{" "}
+                    {order.address.postalCode}
+                    <br />
+                    {order.address.phone}
+                  </Text>
+                </>
+              )}
               <Divider />
               <Title level={5}>Billing address</Title>
               <Text type="secondary">Same as shipping address</Text>
@@ -214,6 +242,6 @@ function OrderDetails() {
       </Content>
     </Layout>
   );
-}
+});
 
 export default OrderDetails;

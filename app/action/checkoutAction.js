@@ -57,7 +57,13 @@ function formatCartItem(cartItem) {
   );
 
   const price = variant ? variant.price : product.price;
-  const discountPrice = variant ? variant.discountPrice : product.discountPrice;
+  const discountPrice = product.isDiscounted
+    ? variant
+      ? variant.discountPrice
+      : product.discountPrice
+    : null;
+
+  console.log(discountPrice, "discountPrice⭐⭐");
 
   return {
     id: _id.toString(),

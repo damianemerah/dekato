@@ -62,6 +62,10 @@ function SignInContent({ searchParams }) {
     [router, status, isNewLogin, callbackUrl],
   );
 
+  const handleContinueShopping = useCallback(() => {
+    router.push("/");
+  }, [router]);
+
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -113,6 +117,12 @@ function SignInContent({ searchParams }) {
           )}
         </ButtonPrimary>
       </form>
+      <ButtonPrimary
+        onClick={handleContinueShopping}
+        className="mx-auto mt-4 w-full bg-gray-500"
+      >
+        Continue Shopping
+      </ButtonPrimary>
     </div>
   );
 }

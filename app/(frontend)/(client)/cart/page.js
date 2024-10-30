@@ -11,6 +11,7 @@ import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { useSession } from "next-auth/react";
 import useCartData from "@/app/hooks/useCartData";
+import { formatToNaira } from "@/utils/getFunc";
 
 export default function Cart() {
   const { data: session } = useSession();
@@ -116,7 +117,7 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved }) {
     <div className="bg-white px-6 py-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between border-b pb-4 font-semibold text-primary">
         <p>Subtotal</p>
-        <p className="text-right">₦{totalPrice}</p>
+        <p className="text-right">{formatToNaira(totalPrice)}</p>
       </div>
 
       <div className="mb-4 flex items-center justify-between">
@@ -127,11 +128,11 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved }) {
       <div className="mb-6 border-t pt-4">
         <div className="flex items-center justify-between font-semibold text-primary">
           <span>Total</span>
-          <span className="text-right">₦{totalPrice}</span>
+          <span className="text-right">{formatToNaira(totalPrice)}</span>
         </div>
         {amountSaved > 0 && (
           <p className="mt-2 text-sm text-slate-500">
-            You save ₦{amountSaved.toLocaleString()} with this order
+            You save {formatToNaira(amountSaved)} with this order
           </p>
         )}
       </div>
