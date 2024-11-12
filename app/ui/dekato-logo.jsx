@@ -2,7 +2,9 @@ import { oswald } from "@/style/font";
 
 const Logo = () => {
   return (
-    <p className={`text-2xl uppercase ${oswald.className}`}>dekato-outfit</p>
+    <p className={`text-xl font-semibold uppercase ${oswald.className}`}>
+      dekato-outfit
+    </p>
   );
 };
 

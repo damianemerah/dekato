@@ -1,32 +1,24 @@
 "use client";
-import { useState, useEffect, useCallback, memo, Suspense } from "react";
-import Link from "next/link";
+import { useState, useEffect, useCallback, memo } from "react";
 import { oswald } from "@/style/font";
 import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
 import { useCategoryStore } from "@/store/store";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Scrollbar, Mousewheel } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/scrollbar";
+import dynamic from "next/dynamic";
 
-const CategoryLink = ({ category }) => (
-  <Link
-    href={category.slug}
-    className="flex aspect-square w-full items-end justify-center !bg-cover px-2 pb-4 text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
-    style={{
-      background: `linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.5) 50%), url('${category.image[0]}?w=400&h=400&q=75')`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }}
-  >
-    {category.name}
-  </Link>
-);
+const CategoryLink = dynamic(() => import("./category-link"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex aspect-square w-full animate-pulse items-end justify-center bg-gray-200 px-2 pb-4 sm:px-3 sm:pb-6 md:px-4 md:pb-8 lg:px-5 lg:pb-10">
+      <div className="h-8 w-32 rounded bg-gray-300" />
+    </div>
+  ),
+});
 
 export default memo(function HomeCategory() {
   const { selectedCategory, setSelectedCategory } = useCategoryStore();
   const [categorizedListState, setCategorizedListState] = useState([]);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const { data: categories, isLoading } = useSWRImmutable(
     selectedCategory
@@ -35,7 +27,7 @@ export default memo(function HomeCategory() {
     () => selectedCategory && getPinnedCategoriesByParent(selectedCategory),
     {
       revalidateOnFocus: false,
-      refreshInterval: 1000 * 60 * 5, // 5 minutes
+      refreshInterval: 1000 * 60 * 5,
     },
   );
 
@@ -52,6 +44,25 @@ export default memo(function HomeCategory() {
     [setSelectedCategory],
   );
 
+  const handleScroll = (direction) => {
+    const container = document.getElementById("category-container");
+    const scrollAmount = 300;
+
+    if (direction === "left") {
+      container.scrollTo({
+        left: Math.max(0, scrollPosition - scrollAmount),
+        behavior: "smooth",
+      });
+    } else {
+      container.scrollTo({
+        left: scrollPosition + scrollAmount,
+        behavior: "smooth",
+      });
+    }
+
+    setScrollPosition(container.scrollLeft);
+  };
+
   if (
     !isLoading &&
     (!Array.isArray(categorizedListState) || categorizedListState?.length === 0)
@@ -60,13 +71,15 @@ export default memo(function HomeCategory() {
   }
 
   return (
-    <div className={`mb-8 mt-4 py-5 ${oswald.className} px-4 sm:px-6 md:px-8`}>
+    <div
+      className={`mb-8 mt-4 py-5 ${oswald.className} min-h-[300px] px-4 sm:px-6 md:px-8`}
+    >
       <div className="ml-2 flex flex-col gap-1 sm:ml-4 md:ml-8">
         <h2 className="mb-2 text-2xl text-primary sm:text-3xl">
           SELECTED CATEGORY
         </h2>
-        <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
-          <p className="whitespace-nowrap text-nowrap text-[12px] font-normal sm:text-[13px]">
+        <div className="mb-4 flex gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
+          <p className="whitespace-nowrap text-nowrap text-[13px] font-bold tracking-wide text-grayText">
             Filter by:
           </p>
           <ul className="flex gap-4">
@@ -75,7 +88,7 @@ export default memo(function HomeCategory() {
                 key={category}
                 className={`${
                   selectedCategory === category ? "active__category" : ""
-                } cursor-pointer text-sm uppercase sm:text-base`}
+                } cursor-pointer text-sm font-bold uppercase tracking-wide sm:text-base`}
                 onClick={() => handleCategoryChange(category)}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -86,46 +99,36 @@ export default memo(function HomeCategory() {
       </div>
 
       <div className="relative">
-        <Swiper
-          modules={[Scrollbar, Mousewheel]}
-          spaceBetween={15}
-          slidesPerView={2}
-          scrollbar={{
-            hide: false,
-            draggable: true,
-            dragSize: 100,
-          }}
-          mousewheel={{
-            forceToAxis: true,
-            sensitivity: 1,
-            releaseOnEdges: true,
-            eventsTarget: "container",
-            thresholdDelta: 50,
-            thresholdTime: 100,
-          }}
-          breakpoints={{
-            640: { slidesPerView: 3 },
-            768: { slidesPerView: 4 },
-            1024: { slidesPerView: 5 },
-          }}
-          className="px-3"
+        <button
+          onClick={() => handleScroll("left")}
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md hover:bg-white"
+          aria-label="Scroll left"
+        >
+          ←
+        </button>
+
+        <div
+          id="category-container"
+          className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth px-3 pb-4"
         >
           {categorizedListState.map((category, index) => (
-            <SwiperSlide key={index}>
+            <div
+              key={index}
+              className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+            >
               <CategoryLink category={category} />
-            </SwiperSlide>
+            </div>
           ))}
-        </Swiper>
+        </div>
+
+        <button
+          onClick={() => handleScroll("right")}
+          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md hover:bg-white"
+          aria-label="Scroll right"
+        >
+          →
+        </button>
       </div>
-      <style jsx global>{`
-        .swiper-scrollbar {
-          background: rgba(0, 0, 0, 0.1) !important;
-          height: 3px !important;
-        }
-        .swiper-scrollbar-drag {
-          background: rgba(0, 0, 0, 0.5) !important;
-        }
-      `}</style>
     </div>
   );
 });

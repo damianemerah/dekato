@@ -52,7 +52,7 @@ a:link {
   content: "";
   display: block;
   position: absolute;
-  background-color: black;
+  background-color: white;
 }
 
 .heading_bd::after {

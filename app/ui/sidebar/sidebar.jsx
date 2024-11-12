@@ -8,19 +8,21 @@ import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
 import { signOut } from "next-auth/react";
 
 export default memo(function Sidebar({ categories, collections }) {
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
-  const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
-  const closeSidebar = useSidebarStore((state) => state.closeSidebar);
-  const openSidebar = useSidebarStore((state) => state.openSidebar);
-  const [isMobile, setIsMobile] = useState(false);
-  const lgScreenSidebar = useSidebarStore((state) => state.lgScreenSidebar);
-  const setLgScreenSidebar = useSidebarStore(
-    (state) => state.setLgScreenSidebar,
-  );
-  const setMenuIsClicked = useSidebarStore((state) => state.setMenuIsClicked);
+  const {
+    isSidebarOpen,
+    toggleSidebar,
+    closeSidebar,
+    openSidebar,
+    lgScreenSidebar,
+    setLgScreenSidebar,
+    setMenuIsClicked,
+  } = useSidebarStore();
+
   const setUser = useUserStore((state) => state.setUser);
+  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const isBelowThreshold = useIsBelowThreshold();
+  const [expandedItem, setExpandedItem] = useState(null);
 
   const handleResize = useCallback(() => {
     setIsMobile(isBelowThreshold);
@@ -48,63 +50,56 @@ export default memo(function Sidebar({ categories, collections }) {
   }, [handleResize]);
 
   useEffect(() => {
-    if (
-      pathname.startsWith("/cart") ||
-      pathname.startsWith("/checkout") ||
-      pathname.startsWith("/signin") ||
-      pathname.startsWith("/signup") ||
-      pathname.startsWith("/forgot-password")
-    ) {
+    const restrictedPaths = [
+      "/cart",
+      "/checkout",
+      "/signin",
+      "/signup",
+      "/forgot-password",
+    ];
+    if (restrictedPaths.some((path) => pathname.startsWith(path))) {
       closeSidebar();
       setLgScreenSidebar(false);
     }
   }, [pathname, closeSidebar, setLgScreenSidebar]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await signOut({ callbackUrl: "/" });
     setUser(null);
-  };
+  }, [setUser]);
 
-  const [expandedItems, setExpandedItems] = useState([]);
+  const toggleExpand = useCallback((label) => {
+    setExpandedItem((prev) => (prev === label ? null : label));
+  }, []);
 
-  const toggleExpand = (label) => {
-    setExpandedItems((prevItems) => {
-      if (prevItems.includes(label)) {
-        return prevItems.filter((item) => item !== label);
-      } else {
-        return [...prevItems, label];
-      }
-    });
-  };
-
-  const toggleIcon = (expandedItems, toggleItem) => (
+  const toggleIcon = (expandedItem, toggleItem) => (
     <span className="relative flex h-6 w-6 items-center justify-center">
       <span className="h-0.5 w-3 bg-primary transition-transform duration-300" />
       <span
-        className={`absolute h-0.5 w-3 bg-primary transition-transform duration-300 ${expandedItems.includes(toggleItem) ? "rotate-0" : "rotate-90"}`}
+        className={`absolute h-0.5 w-3 bg-primary transition-transform duration-300 ${
+          expandedItem === toggleItem ? "rotate-0" : "rotate-90"
+        }`}
       />
     </span>
   );
 
-  const mapCategories = (categories) => {
-    const topLevelCategories =
-      categories?.filter((cat) => cat.parent === null) || [];
+  const mapCategories = useMemo(() => {
+    const topLevelCategories = categories?.filter((cat) => !cat.parent) || [];
 
     const removeParentPrefix = (name, parentName) => {
       const lowerName = name.toLowerCase();
       const lowerParentName = parentName.toLowerCase();
-      if (
-        lowerName.startsWith(`${lowerParentName}'s`) &&
-        name.slice(parentName.length + 2).trim().length > 0
-      ) {
-        return name.slice(parentName.length + 2).trim();
+
+      if (lowerName.startsWith(`${lowerParentName}'s`)) {
+        const remainder = name.slice(parentName.length + 2).trim();
+        return remainder.length > 0 ? remainder : name;
       }
-      if (
-        lowerName.startsWith(lowerParentName) &&
-        name.slice(parentName.length).trim().length > 0
-      ) {
-        return name.slice(parentName.length).trim();
+
+      if (lowerName.startsWith(lowerParentName)) {
+        const remainder = name.slice(parentName.length).trim();
+        return remainder.length > 0 ? remainder : name;
       }
+
       return name;
     };
 
@@ -134,20 +129,21 @@ export default memo(function Sidebar({ categories, collections }) {
           };
         }),
     }));
-  };
+  }, [categories]);
 
-  const sidebarItems = mapCategories(categories);
-
-  // Add collections to sidebar items
-  const collectionsItem = {
-    label: "COLLECTIONS",
-    children: collections?.map((collection) => ({
-      label: collection.name,
-      href: `/${collection.slug}`,
-    })),
-  };
-
-  sidebarItems.push(collectionsItem);
+  const sidebarItems = useMemo(
+    () => [
+      ...mapCategories,
+      {
+        label: "COLLECTIONS",
+        children: collections?.map((collection) => ({
+          label: collection.name,
+          href: `/${collection.slug}`,
+        })),
+      },
+    ],
+    [mapCategories, collections],
+  );
 
   if (pathname.startsWith("/admin") || pathname.startsWith("/account")) {
     return null;
@@ -157,7 +153,7 @@ export default memo(function Sidebar({ categories, collections }) {
     <>
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm"
           onClick={toggleSidebar}
         ></div>
       )}
@@ -166,7 +162,7 @@ export default memo(function Sidebar({ categories, collections }) {
           isSidebarOpen
             ? "visible min-w-[250px] translate-x-0"
             : "invisible w-0 -translate-x-full"
-        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-30 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
+        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-50 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
       >
         <nav className="h-full overflow-y-auto">
           <ul className={`${oswald.className} divide-y divide-gray-200`}>
@@ -179,11 +175,11 @@ export default memo(function Sidebar({ categories, collections }) {
                       className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
                     >
                       {item.label}
-                      {toggleIcon(expandedItems, item.label)}
+                      {toggleIcon(expandedItem, item.label)}
                     </div>
                     <ul
                       className={`mt-2 space-y-2 transition-all duration-300 ease-in-out ${
-                        expandedItems.includes(item.label) ? "block" : "hidden"
+                        expandedItem === item.label ? "block" : "hidden"
                       }`}
                     >
                       {item.children.map((child, childIndex) => (
@@ -195,11 +191,11 @@ export default memo(function Sidebar({ categories, collections }) {
                                 className="flex cursor-pointer items-center justify-between py-2 text-sm text-gray-600 hover:text-primary"
                               >
                                 {child.label}
-                                {toggleIcon(expandedItems, child.label)}
+                                {toggleIcon(expandedItem, child.label)}
                               </div>
                               <ul
                                 className={`ml-4 space-y-2 transition-all duration-300 ease-in-out ${
-                                  expandedItems.includes(child.label)
+                                  expandedItem === child.label
                                     ? "block"
                                     : "hidden"
                                 }`}
@@ -249,11 +245,11 @@ export default memo(function Sidebar({ categories, collections }) {
                 className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
               >
                 MY ACCOUNT
-                {toggleIcon(expandedItems, "MY ACCOUNT")}
+                {toggleIcon(expandedItem, "MY ACCOUNT")}
               </div>
               <ul
                 className={`mt-2 space-y-2 transition-all duration-300 ease-in-out ${
-                  expandedItems.includes("MY ACCOUNT") ? "block" : "hidden"
+                  expandedItem === "MY ACCOUNT" ? "block" : "hidden"
                 }`}
               >
                 <li className="pl-4">
@@ -262,13 +258,11 @@ export default memo(function Sidebar({ categories, collections }) {
                     className="flex cursor-pointer items-center justify-between py-2 text-sm text-gray-600 hover:text-primary"
                   >
                     Manage profile
-                    {toggleIcon(expandedItems, "MANAGE PROFILE")}
+                    {toggleIcon(expandedItem, "MANAGE PROFILE")}
                   </div>
                   <ul
                     className={`ml-4 space-y-2 transition-all duration-300 ease-in-out ${
-                      expandedItems.includes("MANAGE PROFILE")
-                        ? "block"
-                        : "hidden"
+                      expandedItem === "MANAGE PROFILE" ? "block" : "hidden"
                     }`}
                   >
                     <li>

@@ -26,12 +26,23 @@ import {
   MoreOutlined,
   CarOutlined,
 } from "@ant-design/icons";
+import Link from "next/link";
+import useSWR from "swr";
+import { getOrderById } from "@/app/action/orderAction";
+import { SmallSpinner } from "@/app/ui/spinner";
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
 
-function Fulfillment() {
-  const [popoverVisible, setPopoverVisible] = useState(false);
+function Fulfillment({ id }) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const { data: order, isLoading } = useSWR(
+    `/admin/orders/${id}`,
+    () => getOrderById(id),
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   const menu = (
     <Menu>
@@ -42,38 +53,28 @@ function Fulfillment() {
     </Menu>
   );
 
-  const orderItems = [
-    {
-      id: "145",
-      name: "VANS | CLASSIC SLIP-ON (PERFORATED SUEDE)",
-      sku: "9504957",
-      qty: 1,
-      price: "200",
-      size: 9,
-      color: "black",
-      image:
-        "https://burst.shopifycdn.com/photos/black-orange-stripes_373x@2x.jpg",
-    },
-    {
-      id: "146",
-      name: "Tucan scarf",
-      sku: "0404957",
-      qty: 1,
-      price: "500",
-      size: 9,
-      color: "white",
-      image: "https://burst.shopifycdn.com/photos/tucan-scarf_373x@2x.jpg",
-    },
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex min-h-20 w-full items-center justify-center">
+        <SmallSpinner className="!text-primary" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return null;
+  }
 
   return (
     <Layout>
       <Header style={{ background: "#fff", padding: "0 16px" }}>
         <Row justify="space-between" align="middle">
           <Col>
-            <Button icon={<LeftOutlined />} type="link">
-              Products
-            </Button>
+            <Link href="/admin/orders">
+              <Button icon={<LeftOutlined />} type="link">
+                Orders
+              </Button>
+            </Link>
             <Title
               level={4}
               style={{ display: "inline-block", margin: "0 16px" }}
@@ -102,8 +103,8 @@ function Fulfillment() {
                 <Popover
                   content={menu}
                   trigger="click"
-                  visible={popoverVisible}
-                  onVisibleChange={setPopoverVisible}
+                  open={popoverOpen}
+                  onOpenChange={setPopoverOpen}
                 >
                   <Button icon={<MoreOutlined />} />
                 </Popover>
@@ -111,7 +112,7 @@ function Fulfillment() {
             >
               <List
                 itemLayout="horizontal"
-                dataSource={orderItems}
+                dataSource={order.product}
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
@@ -121,17 +122,19 @@ function Fulfillment() {
                       title={item.name}
                       description={
                         <Space direction="vertical">
-                          <Tag color="blue">
-                            {item.size} / {item.color}
-                          </Tag>
-                          <Text type="secondary">SKU: {item.sku}</Text>
+                          {item.option && (
+                            <Tag color="blue">
+                              {item.option.color} / {item.option.length}
+                            </Tag>
+                          )}
+                          <Text type="secondary">SKU: {item.productId}</Text>
                         </Space>
                       }
                     />
                     <div>
                       <Input
                         addonBefore="Qty"
-                        defaultValue={item.qty}
+                        defaultValue={item.quantity}
                         style={{ width: "100px" }}
                       />
                     </div>

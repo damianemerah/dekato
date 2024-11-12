@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, memo, useEffect } from "react";
+import { useState, memo, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Button,
   Flex,
@@ -53,6 +54,7 @@ const Action = memo(function Action({ slug, handleDelete }) {
       key: "3",
     },
   ];
+
   return (
     <Dropdown
       menu={{
@@ -69,20 +71,31 @@ const Action = memo(function Action({ slug, handleDelete }) {
   );
 });
 
-const Collections = () => {
+const CollectionList = ({ searchParams }) => {
+  const page = useMemo(() => searchParams.page || 1, [searchParams]);
+
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit, setLimit] = useState(2);
+
+  const router = useRouter();
 
   const {
     data: collections,
     isLoading,
     mutate,
-  } = useSWRImmutable("/api/allCollections", getAllCollections, {
-    revalidateOnFocus: false,
-    onSuccess: (data) => {
-      console.log(data, 11111);
+  } = useSWRImmutable(
+    `/api/allCollections?page=${page}`,
+    () => getAllCollections({ page, limit }),
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        setTotalCount(data.totalCount);
+        setLimit(data.limit);
+      },
     },
-  });
+  );
 
   const dataSource = collections?.data?.map((item) => ({
     key: item.id,
@@ -187,7 +200,9 @@ const Collections = () => {
 
   const handleDelete = async (id) => {
     try {
-      const collection = collections.find((collection) => collection.id === id);
+      const collection = collections?.data?.find(
+        (collection) => collection.id === id,
+      );
       if (collection.productCount > 0) {
         message.warning(
           "Products in this collection. Move products to other collection",
@@ -212,7 +227,7 @@ const Collections = () => {
         try {
           setLoading(true);
           for (const id of selectedRowKeys) {
-            const collection = collections.find(
+            const collection = collections?.data?.find(
               (collection) => collection.id === id,
             );
             if (collection.productCount > 0) {
@@ -228,12 +243,17 @@ const Collections = () => {
           setSelectedRowKeys([]);
           message.success("Selected collections deleted");
         } catch (error) {
+          console.log(error);
           message.error("Error deleting collections");
         } finally {
           setLoading(false);
         }
       },
     });
+  };
+
+  const handlePageChange = (page) => {
+    router.push(`/admin/collections?page=${page}`);
   };
 
   return (
@@ -261,6 +281,13 @@ const Collections = () => {
           rowSelection={rowSelection}
           columns={columns}
           dataSource={dataSource || []}
+          pagination={{
+            current: parseInt(page),
+            pageSize: limit,
+            showSizeChanger: false,
+            total: totalCount,
+            onChange: handlePageChange,
+          }}
           loading={
             isLoading
               ? {
@@ -275,4 +302,4 @@ const Collections = () => {
   );
 };
 
-export default Collections;
+export default CollectionList;

@@ -1,14 +1,16 @@
 import "react-quill/dist/quill.snow.css";
 import { unstable_cache } from "next/cache";
 import { getProductById } from "@/app/action/productAction";
-import { SmallSpinner } from "@/app/ui/spinner";
+import { LoadingSpinner } from "@/app/ui/spinner";
+import { oswald } from "@/style/font";
 import dynamic from "next/dynamic";
+import ProductDetail from "@/app/ui/product/product-details";
 
-const ProductDetail = dynamic(
-  () => import("@/app/ui/product/product-details"),
+const RecommendedProducts = dynamic(
+  () => import("@/app/ui/recommended-products"),
   {
+    loading: () => <LoadingSpinner />,
     ssr: false,
-    loading: SmallSpinner,
   },
 );
 
@@ -30,6 +32,10 @@ export default async function ProductInfo({ name }) {
   return (
     <div>
       <ProductDetail product={product} />
+      <h3 className={`${oswald.className} px-10 py-6 text-3xl font-bold`}>
+        You May Also Like
+      </h3>
+      <RecommendedProducts category="men" />
     </div>
   );
 }

@@ -1,12 +1,10 @@
 import Image from "next/image";
-import image5 from "@/public/assets/image5.png";
+import image5 from "@/public/assets/image5.webp";
 import Link from "next/link";
 
 export default function Galley() {
-  const images = Array(8).fill(image5);
-
   return (
-    <div className="mb-10 px-5">
+    <div className="mb-10">
       <div className="mb-10 text-center">
         <h2>FOLLOW OUR INSTAGRAM</h2>
         <p>
@@ -16,26 +14,71 @@ export default function Galley() {
           <span>#dekatooutfits</span>
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
-        {images.map((image, index) => (
-          <div
-            key={index}
-            className={`${
-              index === 4
-                ? "col-span-2 row-span-2 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2"
-                : index === images.length - 1 && images.length % 4 !== 0
-                  ? "col-span-2"
-                  : ""
-            }`}
-          >
-            <Image
-              src={image}
-              alt={`Product Image ${index + 1}`}
-              loading="lazy"
-              className="block aspect-square h-full w-full object-cover"
-            />
-          </div>
-        ))}
+      <div className="grid grid-cols-5 gap-5 max-md:grid-cols-2">
+        <div className="flex flex-col gap-6">
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+        </div>
+        <div className="flex flex-col gap-6">
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+        </div>
+        <div className="col-span-2 max-md:col-span-2">
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+        </div>
+        <div className="flex flex-col gap-6 max-md:flex-row">
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+          <Image
+            src={image5}
+            width="100%"
+            height="100%"
+            alt="Product Image"
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+          />
+        </div>
       </div>
     </div>
   );

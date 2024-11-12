@@ -3,30 +3,49 @@
 import { useState, useCallback } from "react";
 import { ButtonPrimary } from "@/app/ui/button";
 import { SmallSpinner } from "@/app/ui/spinner";
-import { message } from "antd";
 import { InputType } from "@/app/ui/inputType";
 import { forgotPassword } from "@/app/action/userAction";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function ResetPassword({ params: { token } }) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
+  const { update: updateSession } = useSession();
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError("");
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleResetPassword = useCallback(
     async (formData) => {
       setIsUpdating(true);
+      setError("");
       try {
-        // TODO: Implement password reset logic
         formData.set("token", token);
-
         const res = await forgotPassword(formData);
 
-        message.success("Password reset successfully");
+        if (res.success) {
+          await updateSession({ passwordChanged: true });
+          setSuccess(true);
+          setTimeout(() => {
+            router.push("/signin");
+          }, 4000);
+        }
       } catch (error) {
-        message.error("Failed to reset password");
+        setError(error.message || "Something went wrong. Please try again.");
       } finally {
         setIsUpdating(false);
       }
     },
-    [token],
+    [token, router, updateSession],
   );
 
   return (
@@ -35,6 +54,22 @@ export default function ResetPassword({ params: { token } }) {
         <h2 className="mb-6 text-center text-2xl font-semibold text-primary">
           Reset Password
         </h2>
+        {error && (
+          <p
+            className="mb-4 rounded-md bg-red-50 p-4 text-center text-red-700"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+        {success && (
+          <p
+            className="mb-4 rounded-md bg-green-50 p-4 text-center text-green-700"
+            role="alert"
+          >
+            Password reset successful! Redirecting to login...
+          </p>
+        )}
         <form action={handleResetPassword} className="space-y-4">
           <InputType
             name="password"
@@ -46,7 +81,7 @@ export default function ResetPassword({ params: { token } }) {
             name="passwordConfirm"
             label="Confirm Password"
             type="password"
-            required={true}
+            // required={true}
           />
           <ButtonPrimary
             type="submit"

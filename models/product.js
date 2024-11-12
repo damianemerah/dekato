@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema(
       minlength: [3, "Product name must be at least 3 characters long"],
       validate: {
         validator: function (v) {
-          return validator.escape(v) === v;
+          return /^[\w\s'&-]+$/.test(v);
         },
         message: "Product name contains invalid characters",
       },
@@ -56,7 +56,6 @@ const productSchema = new mongoose.Schema(
         },
         message: "Discount duration must be in the future",
       },
-      index: true,
       required: [
         function () {
           return this.discount > 0;
@@ -112,7 +111,7 @@ const productSchema = new mongoose.Schema(
       },
     ],
     cat: [String],
-    slug: { type: String, index: true },
+    slug: String,
     tag: [{ type: String, lowercase: true, trim: true }],
     variant: [
       {
@@ -205,9 +204,49 @@ function arrayLimit(val) {
   return val.length <= (this.constructor.name === "image" ? 10 : 5);
 }
 
-productSchema.index({ name: "text", description: "text" });
+// Text indexes for search functionality
+productSchema.index(
+  { name: "text", description: "text", tag: "text" },
+  {
+    weights: {
+      name: 10, // Name matches are most important
+      tag: 5, // Tags are second most important
+      description: 1, // Description matches are least important
+    },
+    name: "search_index",
+  },
+);
+// Compound indexes for common query patterns
+productSchema.index({ status: 1, discount: -1, discountDuration: 1 }); // For finding active discounted products
+productSchema.index({ category: 1, status: 1 }); // For category browsing - used in getAllProducts
+productSchema.index({ campaign: 1, status: 1 }); // For campaign products - used in getAllProducts
+productSchema.index({ slug: 1 }, { unique: true }); // For URL-friendly lookups - used in multiple queries
+productSchema.index({ status: 1, quantity: 1 }); // // For stock management - used in getAllProducts
+productSchema.index({ createdAt: -1 }); // For recent products - used in getAdminProduct
+
+// productSchema.index({ status: 1, createdAt: -1 }); // For listing active products by date
+// productSchema.index({ status: 1, price: 1 }); // For filtering by status and price ranges
+// Compound indexes for inventory management
+
+// productSchema.index({ status: 1, sold: -1 }); // For bestsellers lists
+
+// Specific indexes for variant querying
+// productSchema.index({ "variant.quantity": 1, status: 1 }); // For variant stock management
+// productSchema.index({ "variant.price": 1, status: 1 }); // For variant price filtering
+
+// Indexes for date-based queries
+if (process.env.NODE_ENV === "development") {
+  productSchema.on("index", function (err) {
+    if (err) {
+      console.error("Index error:", err);
+    } else {
+      console.log("Indexing completed");
+    }
+  });
+}
 
 productSchema.virtual("isDiscounted").get(function () {
+  console.log(this.discount, this.discountDuration, "discount🚀🚀🚀");
   return this.discount > 0 && this.discountDuration > Date.now();
 });
 

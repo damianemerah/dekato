@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { oswald } from "@/style/font";
-import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Thumbs } from "swiper/modules";
+
 import XIcon from "@/public/assets/icons/twitter.svg";
 import FbIcon from "@/public/assets/icons/facebook-share.svg";
 import HeartIcon from "@/public/assets/icons/heart.svg";
@@ -18,216 +16,59 @@ import { createCartItem } from "@/app/action/cartAction";
 import { useUserStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { message } from "antd";
-import CheckmarkIcon from "@/public/assets/icons/check.svg?url";
 import { SmallSpinner } from "../spinner";
 import useSWR from "swr";
 import { getVarOptionById } from "@/app/action/variantAction";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 
-const CollapsibleSection = memo(function CollapsibleSection({
-  title,
-  isOpen,
-  onToggle,
-  children,
-}) {
-  const contentRef = useRef(null);
-
-  return (
-    <li className="border-b border-gray-200 px-2 sm:px-5">
-      <button
-        className={`${oswald.className} flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-800 hover:text-primary focus:outline-none`}
-        onClick={onToggle}
-      >
-        {title}
-        <span className="relative flex h-6 w-6 items-center justify-center">
-          <span className="h-0.5 w-3 bg-gray-600 transition-transform duration-300" />
-          <span
-            className={`absolute h-0.5 w-3 bg-gray-600 transition-transform duration-300 ${
-              isOpen ? "rotate-0" : "rotate-90"
-            }`}
-          />
-        </span>
-      </button>
-      <div
-        ref={contentRef}
-        className="overflow-hidden transition-all duration-300"
-        style={{
-          height: isOpen ? contentRef.current?.scrollHeight : 0,
-        }}
-      >
-        <div className="pb-4 text-sm font-light text-gray-700">{children}</div>
+const CollapsibleSection = dynamic(() => import("./collasible"), {
+  loading: () => (
+    <div className="border-b border-gray-200 px-2 sm:px-5">
+      <div className="flex items-center justify-between py-4">
+        <div className="h-4 w-32 animate-pulse bg-gray-200" />
+        <div className="h-6 w-6 animate-pulse bg-gray-200" />
       </div>
-    </li>
-  );
-});
-
-const VariantOptionMap = memo(function VariantOptionMap({
-  option,
-  selectedVariantOption,
-  handleVariantSelection,
-  isOptionAvailable,
-  product,
-  variantGroup,
-  variationList,
-}) {
-  const matchingVariation = variationList?.find((v) => v.name === option.name);
-  const optionValues = matchingVariation
-    ? [...new Set([...matchingVariation.values, ...option.values])]
-    : option.values;
-
-  return (
-    <div key={option.id} className="mb-4">
-      <p className={`mb-2 text-sm font-medium text-gray-700`}>
-        <span className="capitalize">{option.name}</span>:{" "}
-        <span className="font-bold uppercase">
-          {selectedVariantOption[option.name] || "Select"}
-        </span>
-      </p>
-      <div className="flex flex-wrap gap-3">
-        {optionValues.map((value, index) => {
-          const isAvailable = isOptionAvailable(option.name, value);
-          return option.name === "color" ? (
-            <div
-              key={value}
-              className={`border-1 relative h-16 w-16 rounded-full border-secondary ${
-                selectedVariantOption[option.name] === value
-                  ? "border-2 border-primary"
-                  : "border-gray-300"
-              } cursor-pointer transition-all duration-200 hover:shadow-md`}
-              onClick={() => handleVariantSelection(option.name, value)}
-            >
-              <Image
-                src={
-                  product.variant.find((v) => v.options.color === value)
-                    ?.image || ""
-                }
-                alt={`Variant ${value}`}
-                width={64}
-                height={64}
-                className="h-full w-full rounded-full object-cover"
-              />
-              {selectedVariantOption[option.name] === value && (
-                <CheckmarkIcon className="absolute inset-0 m-auto h-6 w-6 fill-white" />
-              )}
-            </div>
-          ) : (
-            <button
-              key={index}
-              className={`relative h-10 min-w-[2.5rem] max-w-[4rem] border p-1 text-sm ${
-                selectedVariantOption[option.name] === value
-                  ? isAvailable
-                    ? "border-b-[3px] border-primary text-primary"
-                    : "border-b-[3px] border-primary border-b-gray-500 text-primary"
-                  : "border-gray-300 text-gray-700"
-              } uppercase ${
-                !isAvailable
-                  ? "border-primary opacity-50 before:absolute before:inset-0 before:left-1/2 before:top-1/2 before:h-[1px] before:w-[130%] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-45 before:bg-gray-500 before:opacity-70 before:content-['']"
-                  : ""
-              } truncate transition-all duration-200`}
-              onClick={() => handleVariantSelection(option.name, value)}
-              title={value}
-            >
-              {value}
-            </button>
-          );
-        })}
-      </div>
+      <div className="h-20 w-full animate-pulse bg-gray-100" />
     </div>
-  );
+  ),
+  ssr: false,
 });
 
-const ProductSwiper = memo(function ProductSwiper({
-  product,
-  activeIndex,
-  setActiveIndex,
-  thumbsSwiper,
-  setThumbsSwiper,
-  handleMouseMove,
-  handleImageClick,
-  isZoomed,
-  zoomPosition,
-  setZoomPosition,
-}) {
-  return (
-    <>
-      {product?.image && product.image.length > 1 && (
-        <div className="absolute bottom-8 left-8 z-10 md:mb-0">
-          <Swiper
-            onSwiper={setThumbsSwiper}
-            spaceBetween={10}
-            slidesPerView={3}
-            freeMode={true}
-            watchSlidesProgress={true}
-            modules={[FreeMode, Thumbs]}
-            direction="vertical"
-            className="h-64 md:h-auto"
-          >
-            {product.image.map((image, index) => (
-              <SwiperSlide
-                key={index}
-                className={`!h-20 !w-16 shadow-shadowSm ${
-                  index === activeIndex ? "border-2 border-primary" : ""
-                }`}
-              >
-                <Image
-                  className="block h-full w-full object-cover"
-                  src={image}
-                  alt={`Thumbnail ${index + 1}`}
-                  fill
-                  quality={100}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-      )}
-      <Swiper
-        spaceBetween={10}
-        thumbs={{
-          swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
-        }}
-        modules={[FreeMode, Thumbs]}
-        className="mainSwiper h-full w-full"
-        onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
-      >
-        {product?.image &&
-          product.image.map((image, index) => (
-            <SwiperSlide key={index} className="h-full w-full">
-              <div
-                className="relative h-full w-full overflow-hidden"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => setZoomPosition({ x: 0, y: 0 })}
-                onClick={handleImageClick}
-                style={{
-                  cursor: `url("data:image/svg+xml,${encodeURIComponent(
-                    isZoomed
-                      ? '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>'
-                      : '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M7.5 4v7M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>',
-                  )}") 24 24, auto`,
-                }}
-              >
-                <Image
-                  className="object-cover transition-transform duration-200 ease-out"
-                  src={image}
-                  alt={`Main image ${index + 1}`}
-                  fill
-                  priority={index === 0}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  quality={100}
-                  style={{
-                    transformOrigin: `${zoomPosition.x * 100}% ${
-                      zoomPosition.y * 100
-                    }%`,
-                    transform: `scale(${isZoomed ? 2 : 1})`,
-                  }}
-                />
-              </div>
-            </SwiperSlide>
+const VariantOptionMap = memo(
+  dynamic(() => import("./variant-option"), {
+    loading: () => (
+      <div className="mb-4">
+        <div className="mb-2 h-6 w-32 animate-pulse bg-gray-200" />
+        <div className="flex flex-wrap gap-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-16 w-16 animate-pulse rounded-full bg-gray-200"
+            />
           ))}
-      </Swiper>
-    </>
-  );
-});
+        </div>
+      </div>
+    ),
+    ssr: false,
+  }),
+);
+
+const ProductSwiper = memo(
+  dynamic(() => import("@/app/ui/product/product-swiper"), {
+    loading: () => (
+      <div className="relative h-full w-full">
+        <div className="absolute left-8 top-8 z-10 flex flex-col gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 w-16 animate-pulse bg-gray-200" />
+          ))}
+        </div>
+        <div className="h-full w-full animate-pulse bg-gray-100" />
+      </div>
+    ),
+    ssr: false,
+  }),
+);
 
 const variantFetcher = async (ids) => {
   if (ids.length === 0) return null;
@@ -235,8 +76,8 @@ const variantFetcher = async (ids) => {
   return data;
 };
 
-export default function ProductDetail({ product }) {
-  console.log(product);
+const ProductDetail = memo(function ProductDetail({ product }) {
+  console.log(product.isDiscounted, "product🚀🚀🚀");
   const [variantOptions, setVariantOptions] = useState([]);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
@@ -247,14 +88,11 @@ export default function ProductDetail({ product }) {
   const user = useUserStore((state) => state.user);
   const userId = user?.id;
 
-  const { data: variationList, error } = useSWR(
+  const { data: variationList } = useSWR(
     hasVariationTypes.length > 0 ? JSON.stringify(hasVariationTypes) : null,
     () => variantFetcher(hasVariationTypes),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => {
-        console.log(data);
-      },
     },
   );
 
@@ -291,112 +129,132 @@ export default function ProductDetail({ product }) {
     }
   }, [product]);
 
-  const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeSections, setActiveSections] = useState({});
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
-  const handleToggleSection = (section) => {
-    setActiveSections((prevSections) => ({
-      ...prevSections,
-      [section]: !prevSections[section],
-    }));
-  };
+  const handleToggleSection = useMemo(
+    () => (section) => {
+      setActiveSections((prevSections) => ({
+        ...prevSections,
+        [section]: !prevSections[section],
+      }));
+    },
+    [],
+  );
 
-  const handleMouseMove = (e) => {
-    if (!isZoomed) return;
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - left) / width;
-    const y = (e.clientY - top) / height;
-    setZoomPosition({ x, y });
-  };
+  const handleMouseMove = useMemo(
+    () => (e) => {
+      if (!isZoomed) return;
+      const { left, top, width, height } =
+        e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX - left) / width;
+      const y = (e.clientY - top) / height;
+      setZoomPosition({ x, y });
+    },
+    [isZoomed],
+  );
 
-  const handleImageClick = () => {
-    setIsZoomed(!isZoomed);
-  };
+  const handleImageClick = useMemo(
+    () => () => {
+      setIsZoomed(!isZoomed);
+    },
+    [isZoomed],
+  );
 
-  const addItemToCart = async () => {
-    try {
-      if (!userId) {
-        message.error("Please login to add to cart");
-        return;
+  const addItemToCart = useMemo(
+    () => async () => {
+      try {
+        if (!userId) {
+          message.error("Please login to add to cart");
+          return;
+        }
+        if (!isProductAvailable) {
+          message.error("This product option is currently unavailable");
+          return;
+        }
+        setIsAddingToCart(true);
+        const selectedVariant = product.variant.find(
+          (variant) => variant.id === selectedVariantId,
+        );
+        const newItem = {
+          product: product.id,
+          quantity: 1,
+          option: selectedVariant?.options || null,
+          variantId: selectedVariant?.id || null,
+        };
+
+        const cartItem = await createCartItem(userId, newItem);
+        await mutate(`/api/user/${userId}`);
+        await mutate(`/cart/${userId}`);
+        await mutate(`/checkout-data`);
+        message.success("Item added to cart");
+      } catch (error) {
+        console.log(error, "error");
+        message.info("Unable to add item to cart", 4);
+      } finally {
+        setIsAddingToCart(false);
       }
-      if (!isProductAvailable) {
-        message.error("This product option is currently unavailable");
-        return;
+    },
+    [userId, isProductAvailable, product, selectedVariantId],
+  );
+
+  const addWishlist = useMemo(
+    () => async () => {
+      try {
+        if (!userId) {
+          return;
+        }
+
+        if (user?.wishlist?.includes(product.id)) {
+          await removeFromWishlist(userId, product.id);
+        } else {
+          await addToWishlist(userId, product.id);
+        }
+        await mutate(`/api/user/${userId}`);
+      } catch (error) {
+        console.log(error, "error");
+        message.info("Unable to add to wishlist", 4);
       }
-      setIsAddingToCart(true);
-      const selectedVariant = product.variant.find(
-        (variant) => variant.id === selectedVariantId,
-      );
-      const newItem = {
-        product: product.id,
-        quantity: 1,
-        option: selectedVariant?.options || null,
-        variantId: selectedVariant?.id || null,
-      };
+    },
+    [userId, user?.wishlist, product.id],
+  );
 
-      const cartItem = await createCartItem(userId, newItem);
-      await mutate(`/api/user/${userId}`);
-      await mutate(`/cart/${userId}`);
-      await mutate(`/checkout-data`);
-      message.success("Item added to cart");
-    } catch (error) {
-      console.log(error, "error");
-      message.info("Unable to add item to cart", 4);
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
+  const handleVariantSelection = useMemo(
+    () => (optionName, value) => {
+      setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
 
-  const addWishlist = async () => {
-    try {
-      if (!userId) {
-        return;
-      }
+      const updatedOptions = { ...selectedVariantOption, [optionName]: value };
 
-      if (user?.wishlist.includes(product.id)) {
-        await removeFromWishlist(userId, product.id);
-      } else {
-        await addToWishlist(userId, product.id);
-      }
-      await mutate(`/api/user/${userId}`);
-    } catch (error) {
-      console.log(error, "error");
-      message.info("Unable to add to wishlist", 4);
-    }
-  };
-
-  const handleVariantSelection = (optionName, value) => {
-    setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
-
-    const updatedOptions = { ...selectedVariantOption, [optionName]: value };
-
-    const newSelectedVariant = product.variant.find((variant) =>
-      Object.entries(updatedOptions).every(
-        ([key, val]) => variant.options[key] === val,
-      ),
-    );
-
-    if (newSelectedVariant) {
-      setSelectedVariantId(newSelectedVariant.id);
-      setIsProductAvailable(true);
-    } else {
-      setIsProductAvailable(false);
-    }
-  };
-
-  const isOptionAvailable = (optionName, value) => {
-    return product.variant.some(
-      (variant) =>
-        variant.options[optionName] === value &&
-        Object.entries(selectedVariantOption).every(
-          ([key, val]) => key === optionName || variant.options[key] === val,
+      const newSelectedVariant = product.variant.find((variant) =>
+        Object.entries(updatedOptions).every(
+          ([key, val]) => variant.options[key] === val,
         ),
-    );
-  };
+      );
+
+      if (newSelectedVariant) {
+        setSelectedVariantId(newSelectedVariant.id);
+        setIsProductAvailable(true);
+      } else {
+        setIsProductAvailable(false);
+      }
+    },
+    [selectedVariantOption, product.variant],
+  );
+
+  const isOptionAvailable = useMemo(
+    () => (optionName, value) => {
+      return product.variant.some(
+        (variant) =>
+          variant.options[optionName] === value &&
+          Object.entries(selectedVariantOption).every(
+            ([key, val]) => key === optionName || variant.options[key] === val,
+          ),
+      );
+    },
+    [product.variant, selectedVariantOption],
+  );
 
   const memoizedVariantOptions = useMemo(() => {
     if (!variantOptions) return [];
@@ -420,14 +278,12 @@ export default function ProductDetail({ product }) {
   return (
     <div className="relative mx-auto mb-8 w-full">
       <div className="flex flex-col lg:flex-row">
-        <div className="mb-8 w-screen lg:sticky lg:top-0 lg:mb-0 lg:h-screen lg:w-2/3">
-          <div className="relative h-[calc(100vh-11.5rem)] w-full lg:h-screen">
+        <div className="mb-8 w-screen lg:sticky lg:top-0 lg:mb-0 lg:w-2/3">
+          <div className="relative h-[calc(100vh-11.5rem)] w-full lg:h-[calc(100vh-6rem)]">
             <ProductSwiper
               product={product}
               activeIndex={activeIndex}
               setActiveIndex={setActiveIndex}
-              thumbsSwiper={thumbsSwiper}
-              setThumbsSwiper={setThumbsSwiper}
               handleMouseMove={handleMouseMove}
               handleImageClick={handleImageClick}
               isZoomed={isZoomed}
@@ -522,7 +378,7 @@ export default function ProductDetail({ product }) {
                 ))}
               </div>
             )}
-            <div className="mb-8 space-y-4">
+            <div className="mb-8 mt-auto space-y-4">
               <p
                 className={`text-sm ${isProductAvailable ? "text-green-600" : "text-red-600"}`}
               >
@@ -558,7 +414,7 @@ export default function ProductDetail({ product }) {
                   className="flex flex-none items-center justify-center border-2 border-secondary p-2 transition-colors duration-200 hover:bg-gray-100"
                   onClick={addWishlist}
                 >
-                  {user?.wishlist.includes(product.id) ? (
+                  {user?.wishlist?.includes(product.id) ? (
                     <HeartFilledIcon className="h-6 w-6 text-red-500" />
                   ) : (
                     <HeartIcon className="h-6 w-6" />
@@ -602,4 +458,6 @@ export default function ProductDetail({ product }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductDetail;

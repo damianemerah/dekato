@@ -33,142 +33,151 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center px-8 py-20">
+      <div className="lg:px flex items-center justify-center px-8 py-20">
         <div
-          className={`${oswald.className} flex w-full flex-col justify-center space-y-10 uppercase sm:flex-col sm:space-y-10 md:flex-col md:space-y-10 lg:flex-row lg:space-x-20 lg:space-y-0`}
+          className={`${oswald.className} grid w-full gap-8 uppercase lg:grid-cols-2`}
         >
-          {/* Features */}
-          <div className="flex flex-col space-y-7">
-            <h3 className="text-sm font-semibold md:text-base">Features</h3>
-            <div className="footer_items">
-              <a href="#" className="text-sm hover:text-white">
-                Men
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Women
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Boys
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Girls
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                New Arrivals
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Shoes
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Clothes
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Accessories
-              </a>
-            </div>
-          </div>
-          {/* Menu */}
-          <div className="flex flex-col space-y-7">
-            <h3 className="text-sm font-semibold md:text-base">Menu</h3>
-            <div className="footer_items">
-              <a href="#" className="text-sm hover:text-white">
-                About Us
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Contact us
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                My Account
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Order history
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                My wishlist
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Blog
-              </a>
-              <a href="#" className="text-sm hover:text-white">
-                Login
-              </a>
-            </div>
-          </div>
-          {/* Contact Information */}
-          <div className="flex flex-col space-y-7">
-            <h3 className="text-sm font-semibold md:text-base">Contact us</h3>
-            <div className="footer_items">
-              <div className="flex flex-col">
-                <p className={`${oswald.className} text-sm text-white`}>
-                  Address
-                </p>
-                <p className="text-sm hover:text-white">
-                  30A Oseni Street, Anthony Village <br />
-                  Opposite GTB, Lagos
-                </p>
-              </div>
-              <div className="flex flex-col">
-                <p className={`${oswald.className} text-sm text-white`}>
-                  Phone
-                </p>
-                <p className="text-sm hover:text-white">(234) 802 3024 687</p>
-                <p className="text-sm hover:text-white">(234) 806 4737 122</p>
-              </div>
-              <div className="flex flex-col">
-                <p className={`${oswald.className} text-sm text-white`}>
-                  Email
-                </p>
-                <p className="text-sm hover:text-white">
-                  Mail@Dekato-outfit.com
-                </p>
-              </div>
-              <div className="flex flex-col">
-                <p className={`${oswald.className} text-sm text-white`}>
-                  Working Days/Hours
-                </p>
-                <p className="text-sm hover:text-white">
-                  Mon - Sat / 8am - 8pm
-                </p>
-              </div>
-            </div>
-          </div>
-          {/* Socials */}
-          <div className="flex flex-col space-y-7">
-            <div className="flex flex-col space-y-7">
-              <h3 className="text-sm font-semibold md:text-base">Follow Us</h3>
+          {/* First Column - Features and Menu */}
+          <div className="grid grid-cols-2 gap-8">
+            {/* Features */}
+            <div className="flex flex-col gap-7">
+              <h3 className="text-sm font-semibold md:text-base">Features</h3>
               <div className="footer_items">
-                <div className="flex items-center space-x-4 text-sm hover:text-white">
-                  <FacebookIcon width={21} height={21} />
-                  <p>Facebook</p>
+                <a href="#" className="text-sm hover:text-white">
+                  Men
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Women
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Boys
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Girls
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  New Arrivals
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Shoes
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Clothes
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Accessories
+                </a>
+              </div>
+            </div>
+            {/* Menu */}
+            <div className="flex flex-col gap-7">
+              <h3 className="text-sm font-semibold md:text-base">Menu</h3>
+              <div className="footer_items">
+                <a href="#" className="text-sm hover:text-white">
+                  About Us
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Contact us
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  My Account
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Order history
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  My wishlist
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Blog
+                </a>
+                <a href="#" className="text-sm hover:text-white">
+                  Login
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Second Column - Contact and Social */}
+          <div className="grid gap-8 sm:grid-cols-2">
+            {/* Contact Information */}
+            <div className="flex flex-col gap-7">
+              <h3 className="text-sm font-semibold md:text-base">Contact us</h3>
+              <div className="footer_items">
+                <div className="flex flex-col">
+                  <p className={`${oswald.className} text-sm text-white`}>
+                    Address
+                  </p>
+                  <p className="text-sm hover:text-white">
+                    30A Oseni Street, Anthony Village <br />
+                    Opposite GTB, Lagos
+                  </p>
                 </div>
-                <div className="flex items-center space-x-4 text-sm hover:text-white">
-                  <InstagramIcon width={21} height={21} />
-                  <p>Instagram</p>
+                <div className="flex flex-col">
+                  <p className={`${oswald.className} text-sm text-white`}>
+                    Phone
+                  </p>
+                  <p className="text-sm hover:text-white">(234) 802 3024 687</p>
+                  <p className="text-sm hover:text-white">(234) 806 4737 122</p>
                 </div>
-                <div className="flex items-center space-x-4 text-sm hover:text-white">
-                  <WhatsappIcon width={21} height={21} />
-                  <p>Whatsapp</p>
+                <div className="flex flex-col">
+                  <p className={`${oswald.className} text-sm text-white`}>
+                    Email
+                  </p>
+                  <p className="text-sm hover:text-white">
+                    Mail@Dekato-outfit.com
+                  </p>
+                </div>
+                <div className="flex flex-col">
+                  <p className={`${oswald.className} text-sm text-white`}>
+                    Working Days/Hours
+                  </p>
+                  <p className="text-sm hover:text-white">
+                    Mon - Sat / 8am - 8pm
+                  </p>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-start md:max-w-xs">
-              <label
-                htmlFor="newsletter"
-                className="w-full text-center text-sm hover:text-white sm:text-left md:text-base lg:text-lg"
-              >
-                Subscribe to our newsletter
-              </label>
-              <input
-                type="email"
-                name="newsletter"
-                id="newsletter"
-                className="mt-2 block w-full border-2 border-white bg-transparent px-4 py-1.5 text-white placeholder:text-sm placeholder:text-white/90 focus:border-2 focus:border-white focus:outline-none"
-                placeholder="Email Address"
-              />
+            {/* Socials */}
+            <div className="flex flex-col gap-7">
+              <div className="flex flex-col gap-7">
+                <h3 className="text-sm font-semibold md:text-base">
+                  Follow Us
+                </h3>
+                <div className="footer_items">
+                  <div className="flex items-center gap-4 text-sm hover:text-white">
+                    <FacebookIcon width={21} height={21} />
+                    <p>Facebook</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm hover:text-white">
+                    <InstagramIcon width={21} height={21} />
+                    <p>Instagram</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm hover:text-white">
+                    <WhatsappIcon width={21} height={21} />
+                    <p>Whatsapp</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col items-start md:max-w-xs">
+                <label
+                  htmlFor="newsletter"
+                  className="w-full text-center text-sm hover:text-white sm:text-left md:text-base lg:text-lg"
+                >
+                  Subscribe to our newsletter
+                </label>
+                <input
+                  type="email"
+                  name="newsletter"
+                  id="newsletter"
+                  className="mt-2 block w-full border-2 border-white bg-transparent px-4 py-1.5 text-white placeholder:text-sm placeholder:text-white/90 focus:border-2 focus:border-white focus:outline-none"
+                  placeholder="Email Address"
+                />
 
-              <Button className="mt-[7px] w-full bg-white text-center text-primary">
-                Subscribe!
-              </Button>
+                <Button className="mt-[7px] w-full bg-white text-center text-primary">
+                  Subscribe!
+                </Button>
+              </div>
             </div>
           </div>
         </div>

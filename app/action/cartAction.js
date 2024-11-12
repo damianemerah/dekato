@@ -4,7 +4,6 @@ import { Cart, CartItem } from "@/models/cart";
 import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import { getQuantity } from "@/utils/getFunc";
-import _ from "lodash";
 import { restrictTo } from "@/utils/checkPermission";
 import mongoose from "mongoose";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -26,18 +25,28 @@ function formatCartData(cart) {
         (v) => v.id.toString() === variantId?.toString(),
       );
 
+      // Create product object without _id field
+      const productWithoutId = { ...product };
+      delete productWithoutId._id;
+
+      // Create variant object without _id field if variant exists
+      let variantData = null;
+      if (variant) {
+        const variantWithoutId = { ...variant };
+        delete variantWithoutId._id;
+        variantData = {
+          id: variant._id.toString(),
+          ...variantWithoutId,
+        };
+      }
+
       return {
         id: _id.toString(),
         slug: product.slug,
         product: {
           id: product._id.toString(),
-          ..._.omit(product, ["_id"]),
-          variant: variant
-            ? {
-                id: variant._id.toString(),
-                ..._.omit(variant, ["_id"]),
-              }
-            : null,
+          ...productWithoutId,
+          variant: variantData,
         },
         variantId: variantId?.toString(),
         cartId: cartId.toString(),

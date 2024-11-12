@@ -29,7 +29,9 @@ export async function getAllCollections(params) {
     const query = Campaign.find(
       {},
       "name description image slug createdAt category banner isSale",
-    ).lean({ virtuals: true });
+    )
+      .populate("category", "name slug")
+      .lean({ virtuals: true });
 
     const searchParams = {
       page: params?.page || 1,
@@ -39,8 +41,6 @@ export async function getAllCollections(params) {
     console.log(searchParams, "searchPaeams🎈");
 
     const feature = new APIFeatures(query, searchParams).paginate().sort();
-
-    console.log(feature, "feature🔥🔥");
 
     const collectionData = await feature.query;
 
@@ -211,7 +211,7 @@ export async function getCollections() {
     await dbConnect();
 
     const collections = await Campaign.find({})
-      .populate("category", "name slug")
+      .populate("category", "name slug isSale")
       .lean({ virtuals: true })
       .exec(); // Add exec() to ensure proper promise handling
 

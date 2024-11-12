@@ -1,14 +1,22 @@
+// External dependencies
+import { NextResponse } from "next/server";
+import { startSession } from "mongoose";
+import { customAlphabet } from "nanoid";
+
+// Database models
 import Order from "@/models/order";
 import Address from "@/models/address";
 import Payment from "@/models/payment";
 import { Cart, CartItem } from "@/models/cart";
 import dbConnect from "@/lib/mongoConnection";
+
+// Utils
 import AppError from "@/utils/errorClass";
 import handleAppError from "@/utils/appError";
-import { NextResponse } from "next/server";
-import { startSession } from "mongoose";
 import { restrictTo } from "@/utils/checkPermission";
 
+// Initialize nanoid and payment gateway
+const nanoid = customAlphabet("0123456789", 10);
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
@@ -111,6 +119,7 @@ export async function POST(req, { params }) {
       amount: Math.round(amount * 100),
       callback_url: `${process.env.NEXTAUTH_URL}/checkout/success`,
       currency: "NGN",
+      reference: `${createdOrder["_id"].toString()}_${Date.now()}`,
       metadata: {
         orderId: createdOrder["_id"].toString(),
         userId,

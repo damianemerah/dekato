@@ -27,4 +27,14 @@ const SmallSpinner = ({ className }) => (
   />
 );
 
-export { BigSpinner, SmallSpinner };
+function LoadingSpinner({ className }) {
+  return (
+    <div
+      className={`flex h-40 w-full items-center justify-center ${className}`}
+    >
+      <SmallSpinner className="!text-primary" />
+    </div>
+  );
+}
+
+export { BigSpinner, SmallSpinner, LoadingSpinner };

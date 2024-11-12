@@ -57,6 +57,7 @@ export default async function CategoryProducts({ cat, searchParams }) {
             <SubPageCampaign
               className="border-white text-white"
               heading_bg="after:bg-white before:bg-white text-white"
+              BtnClassName="bg-white text-primary"
             />
           </div>
 

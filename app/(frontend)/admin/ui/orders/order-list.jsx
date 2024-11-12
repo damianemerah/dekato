@@ -39,9 +39,6 @@ const Orders = React.memo(function Orders({ searchParams }) {
     () => getAllOrders({ page }),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => {
-        console.log(data, "data💎💎");
-      },
     },
   );
 

@@ -1,10 +1,16 @@
+"use client";
+
 import React from "react";
 import { CheckOutlined } from "@ant-design/icons";
 import { formatToNaira } from "@/utils/getFunc";
+import { usePathname } from "next/navigation";
 
 const PromoBar = () => {
+  const pathname = usePathname();
+  if (pathname.includes("/admin") || pathname.includes("/account")) return null;
+
   return (
-    <div className="sticky top-0 z-10 flex h-10 items-center justify-center space-x-2 bg-white text-sm font-medium uppercase leading-10 tracking-wide">
+    <div className="flex h-10 items-center justify-center space-x-2 bg-white text-[13px] font-medium uppercase leading-10 tracking-wide">
       {/* <svg
         xmlns="http://www.w3.org/2000/svg"
         height="24px"
@@ -16,7 +22,8 @@ const PromoBar = () => {
       </svg> */}
       <CheckOutlined className="font-bold" />
       <p className="text-primary text-opacity-80">
-        Free shipping on all orders over {formatToNaira(150000)}
+        <span className="font-bold">Free shipping</span> on all orders over{" "}
+        {formatToNaira(150000)}
       </p>
     </div>
   );

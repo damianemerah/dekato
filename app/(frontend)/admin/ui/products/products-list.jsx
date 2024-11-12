@@ -1,26 +1,12 @@
 "use client";
 
 import { useState, memo, useEffect, useMemo, useCallback } from "react";
-import {
-  Button,
-  Flex,
-  Table,
-  Dropdown,
-  Space,
-  message,
-  Modal,
-  Form,
-  InputNumber,
-  DatePicker,
-  Select,
-  Tag,
-} from "antd";
+import { Button, Flex, Table, Dropdown, Space, message, Form, Tag } from "antd";
 import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import {
   getAdminProduct,
   deleteProduct,
-  updateProductDiscount,
   setProductStatus,
 } from "@/app/action/productAction";
 import { getAllCategories } from "@/app/action/categoryAction";
@@ -31,51 +17,21 @@ import noImage from "@/public/assets/no-image.webp";
 import Link from "next/link";
 import useConfirmModal from "@/app/ui/confirm-modal";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { LoadingSpinner } from "@/app/ui/spinner";
 
-const Action = memo(function Action({ id, handleDelete, handleArchive }) {
-  const items = [
-    {
-      label: (
-        <Link
-          rel="noopener noreferrer"
-          href={`/admin/products/${id}`}
-          className="!text-blue-500"
-        >
-          Edit
-        </Link>
-      ),
-      key: "0",
-    },
-    {
-      type: "divider",
-    },
-    {
-      label: "Delete",
-      key: "1",
-      danger: true,
-      onClick: () => handleDelete(id),
-    },
-    {
-      label: "Archive",
-      key: "2",
-      onClick: () => handleArchive(id),
-    },
-  ];
-  return (
-    <Dropdown
-      menu={{
-        items,
-      }}
-    >
-      <a onClick={(e) => e.preventDefault()}>
-        <Space>
-          Action
-          <DownOutlined />
-        </Space>
-      </a>
-    </Dropdown>
-  );
-});
+const DiscountModal = memo(
+  dynamic(() => import("@/app/(frontend)/admin/ui/products/discount-model"), {
+    ssr: false,
+    loading: () => <LoadingSpinner />,
+  }),
+);
+
+const Action = memo(
+  dynamic(() => import("@/app/(frontend)/admin/ui/table-action"), {
+    ssr: false,
+  }),
+);
 
 const ProductsList = memo(function ProductsList({ searchParams }) {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -123,25 +79,6 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
       setLimit(productData.limit);
     }
   }, [productData]);
-
-  const dataSource = useMemo(
-    () =>
-      Array.isArray(products)
-        ? products.map((item) => ({
-            key: item.id,
-            image: item.image[0],
-            name: item.name,
-            status: item.status,
-            productCount: item.quantity,
-            category: item.category?.map((cat) => cat.name).join(", ") || "",
-            collection:
-              item.campaign?.map((camp) => camp.name).join(", ") || "",
-            discount: item.discount || 0,
-            action: <Action />,
-          }))
-        : [],
-    [products],
-  );
 
   const handleDelete = useCallback(
     async (id) => {
@@ -206,34 +143,34 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
     });
   }, [selectedRowKeys, mutate, showConfirmModal]);
 
+  const dataSource = useMemo(
+    () =>
+      Array.isArray(products)
+        ? products.map((item) => ({
+            key: item.id,
+            image: item.image[0],
+            name: item.name,
+            status: item.status,
+            productCount: item.quantity,
+            category: item.category?.map((cat) => cat.name).join(", ") || "",
+            collection:
+              item.campaign?.map((camp) => camp.name).join(", ") || "",
+            discount: item.discount || 0,
+            action: (
+              <Action
+                id={item.id}
+                handleDelete={handleDelete}
+                handleArchive={handleArchive}
+              />
+            ),
+          }))
+        : [],
+    [products, handleDelete, handleArchive],
+  );
+
   const handleAddToSales = useCallback(() => {
     setIsModalOpen(true);
   }, []);
-
-  const handleModalOk = useCallback(async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
-      for (const productId of selectedRowKeys) {
-        await updateProductDiscount(
-          productId,
-          {
-            discount: values.discount,
-            discountDuration: values.discountDuration.toISOString(),
-          },
-          values.campaign,
-        );
-      }
-      message.success("Products added to sales successfully");
-      setIsModalOpen(false);
-      form.resetFields();
-      await mutate();
-    } catch (error) {
-      message.error("Failed to add products to sales");
-    } finally {
-      setLoading(false);
-    }
-  }, [form, selectedRowKeys, mutate]);
 
   const handleModalCancel = useCallback(() => {
     setIsModalOpen(false);
@@ -332,18 +269,9 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
       {
         title: "Action",
         dataIndex: "action",
-        render: (_, record) => {
-          return (
-            <Action
-              id={record.key}
-              handleDelete={handleDelete}
-              handleArchive={handleArchive}
-            />
-          );
-        },
       },
     ],
-    [dataSource, categoryData, handleDelete, handleArchive],
+    [dataSource, categoryData],
   );
 
   const onSelectChange = useCallback((newSelectedRowKeys) => {
@@ -414,58 +342,15 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
           onChange: handlePageChange,
         }}
       />
-      <Modal
-        title="Add to Sales"
-        open={isModalOpen}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        confirmLoading={loading}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="discount"
-            label="Discount Percentage"
-            rules={[
-              {
-                required: true,
-                message: "Please input the discount percentage!",
-              },
-            ]}
-          >
-            <InputNumber min={0} max={100} />
-          </Form.Item>
-          <Form.Item
-            name="discountDuration"
-            label="Discount Duration"
-            rules={[
-              {
-                required: true,
-                message: "Please select the discount duration!",
-              },
-            ]}
-          >
-            <DatePicker />
-          </Form.Item>
-          <Form.Item
-            name="campaign"
-            label="Sale Collection"
-            rules={[
-              {
-                required: false,
-                message: "Please select a sale collection!",
-              },
-            ]}
-          >
-            <Select placeholder="Select a sale collection" allowClear>
-              {saleCollections?.map((collection) => (
-                <Select.Option key={collection.id} value={collection.id}>
-                  {collection.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+      <DiscountModal
+        isOpen={isModalOpen}
+        onClose={handleModalCancel}
+        selectedProducts={selectedRowKeys}
+        saleCollections={saleCollections}
+        onSuccess={mutate}
+        loading={loading}
+        setLoading={setLoading}
+      />
     </Flex>
   );
 });

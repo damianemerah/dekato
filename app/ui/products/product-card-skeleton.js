@@ -6,8 +6,8 @@ export default function ProductCardSkeleton() {
           <div className="absolute left-0 top-0 h-full w-full animate-pulse bg-gray-200"></div>
         </div>
         <div className="flex flex-1 flex-col items-center pb-8 pt-1 text-[13px]">
-          <div className="mb-0.5 h-4 w-3/4 animate-pulse bg-gray-200"></div>
-          <div className="mb-1 h-4 w-1/2 animate-pulse bg-gray-200"></div>
+          <div className="mb-0.5 h-4 w-full animate-pulse bg-gray-200"></div>
+          <div className="mb-1 h-4 w-full animate-pulse bg-gray-200"></div>
         </div>
       </div>
     </div>

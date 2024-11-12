@@ -29,7 +29,7 @@ const fetcher = async (str) => {
   return { products, categories };
 };
 
-const SearchBox = () => {
+const SearchBox = ({ className }) => {
   const activeDropdown = useSearchStore((state) => state.activeDropdown);
   const setActiveDropdown = useSearchStore((state) => state.setActiveDropdown);
   const setSearchString = useSearchStore((state) => state.setSearchString);
@@ -43,8 +43,13 @@ const SearchBox = () => {
 
   // Fetch data using SWR
   const { data: pSearchList, error } = useSWR(
-    debouncedSearch && debouncedSearch.length > 1 ? debouncedSearch : null,
+    debouncedSearch?.length > 2 ? debouncedSearch : null,
     fetcher,
+    {
+      onSuccess: (data) => {
+        console.log(data, "data🔥🔥🔥");
+      },
+    },
   );
 
   useEffect(() => {
@@ -86,14 +91,14 @@ const SearchBox = () => {
 
   return (
     <>
-      <div className="relative z-[55] hidden lg:block">
+      <div className={`relative z-[32] mx-auto hidden lg:block ${className} `}>
         <form onSubmit={(e) => handleSearchProduct(e)}>
           <input
             ref={searchRef}
             onFocus={() => setActiveDropdown(true)}
             type="text"
             placeholder="Search..."
-            className="h-8 w-72 bg-white px-4 py-2 text-primary outline-none placeholder:text-sm"
+            className="h-8 w-44 bg-white px-4 py-2 text-primary outline-none placeholder:text-sm"
             onChange={(e) => setSearchString(e.target.value)}
           />
           <button
@@ -101,13 +106,13 @@ const SearchBox = () => {
             className="absolute right-2 top-1/2 -translate-y-1/2 transform"
             onClick={(e) => handleSearchProduct(e)}
           >
-            <SearchOutlined className="h-6 w-6 !text-primary" />
+            <SearchOutlined className="!text-primary" />
           </button>
         </form>
         {pSearchList?.products && activeDropdown && (
           <ul
             ref={dropdownRef}
-            className="absolute left-0 right-0 z-20 mt-2 max-h-60 overflow-y-auto bg-white text-primary shadow-sm"
+            className="absolute left-0 right-0 z-40 mt-2 max-h-60 overflow-y-auto bg-white text-primary shadow-sm"
           >
             {pSearchList?.products.map((product) => (
               <li
@@ -126,15 +131,12 @@ const SearchBox = () => {
         )}
       </div>
       <div className="lg:hidden">
-        <button
-          onClick={handleMobileSearchClick}
-          className="flex h-8 w-8 items-center justify-center bg-gray-800"
-        >
-          <SearchOutlined className="h-6 w-6 !text-primary" />
+        <button onClick={handleMobileSearchClick}>
+          <SearchOutlined className="!text-white" />
         </button>
       </div>
       {showMobileSearch && (
-        <div className="absolute left-0 right-0 top-16 z-[60] !m-0 w-full bg-white py-2 lg:hidden">
+        <div className="absolute left-0 right-0 top-16 z-[32] !m-0 w-full bg-white py-2 lg:hidden">
           <form
             onSubmit={(e) => handleSearchProduct(e)}
             className="relative w-full"
@@ -153,7 +155,7 @@ const SearchBox = () => {
               className="absolute right-4 top-1/2 z-10 -translate-y-1/2 transform"
               onClick={handleCloseMobileSearch}
             >
-              <CloseOutlined className="h-5 w-5 !text-gray-800" />
+              <CloseOutlined className="text-lg !text-primary" />
             </button>
           </form>
           {pSearchList?.products && activeDropdown && (

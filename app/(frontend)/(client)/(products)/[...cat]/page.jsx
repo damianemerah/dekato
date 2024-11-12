@@ -1,25 +1,17 @@
 import Category from "@/models/category";
 import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
-import { SmallSpinner } from "@/app/ui/spinner";
+import { LoadingSpinner } from "@/app/ui/spinner";
 import { unstable_cache } from "next/cache";
 import dynamic from "next/dynamic";
 
 const CategoryProducts = dynamic(
   () => import("@/app/ui/products/categoried-products"),
   {
-    loading: () => <LoadingSpinner />,
+    loading: () => <LoadingSpinner className="min-h-screen" />,
     ssr: true,
   },
 );
-
-function LoadingSpinner() {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
-}
 
 async function getAllCategoryPaths() {
   await dbConnect();
@@ -48,9 +40,5 @@ export async function generateStaticParams() {
 }
 
 export default function Product({ params: { cat }, searchParams }) {
-  return (
-    <main>
-      <CategoryProducts cat={cat} searchParams={searchParams} />
-    </main>
-  );
+  return <CategoryProducts cat={cat} searchParams={searchParams} />;
 }

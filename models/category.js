@@ -10,10 +10,11 @@ const categorySchema = new mongoose.Schema(
       type: String,
       required: [true, "Category name is required"],
       trim: true,
+      lowercase: true,
       maxlength: [50, "Category name cannot exceed 50 characters"],
       validate: {
         validator: function (v) {
-          return validator.escape(v) === v;
+          return /^[\w\s'&-]+$/.test(v);
         },
         message: "Name contains invalid characters",
       },
@@ -21,12 +22,12 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
-      maxlength: [2000, "Description cannot exceed 500 characters"],
+      maxlength: [2000, "Description cannot exceed 2000 characters"],
       validate: {
         validator: function (v) {
-          return validator.escape(v) === v;
+          return typeof v === "string";
         },
-        message: "Description contains invalid characters",
+        message: "Description must be a string",
       },
     },
     image: {

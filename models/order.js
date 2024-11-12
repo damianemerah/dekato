@@ -1,7 +1,4 @@
 import mongoose from "mongoose";
-import { customAlphabet } from "nanoid";
-
-const nanoid = customAlphabet("0123456789", 10);
 
 const orderSchema = new mongoose.Schema(
   {
@@ -29,12 +26,6 @@ const orderSchema = new mongoose.Schema(
     ],
     cartItems: [String],
     total: { type: Number, required: true, min: 0 },
-    receiptNumber: {
-      type: String,
-      unique: true,
-      trim: true,
-      default: () => nanoid(6),
-    },
     status: String,
     shippingMethod: {
       type: String,
@@ -54,6 +45,7 @@ const orderSchema = new mongoose.Schema(
       default: "pending",
       enum: ["pending", "shipped", "delivered", "cancelled"],
     },
+    deliveryDate: { type: Date },
     note: { type: String },
     paymentRef: { type: String, trim: true },
     paymentId: { type: String, trim: true },

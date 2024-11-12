@@ -36,7 +36,6 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
-        unique: true,
       },
     ],
     password: {
@@ -79,7 +78,14 @@ userSchema.pre(/^find/, function (next) {
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
+  // Check if password and passwordConfirm match
+  if (this.password !== this.passwordConfirm) {
+    throw new Error("Passwords do not match");
+  }
+
+  // Hash the password before saving
   this.password = await bcrypt.hash(this.password, 12);
+  // Remove passwordConfirm field since we don't need to store it
   this.passwordConfirm = undefined;
   next();
 });
@@ -87,6 +93,7 @@ userSchema.pre("save", async function (next) {
 userSchema.pre("save", function (next) {
   if (!this.isModified("password") || this.isNew) return next();
 
+  // Ensure JWT issued after password change
   this.passwordChangedAt = Date.now() - 1000;
   console.log("passwordChangedAt🚀DB🚀", this.passwordChangedAt);
   next();
@@ -96,6 +103,7 @@ userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
 ) {
+  // Compare provided password with stored hashed password
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
@@ -105,6 +113,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
       this.passwordChangedAt.getTime() / 1000,
       10,
     );
+    // Check if password was changed after token was issued
     return JWTTimestamp < changedTimestamp;
   }
   return false;

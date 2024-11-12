@@ -1,4 +1,5 @@
 import React from "react";
+import { createSearchParams } from "next/navigation";
 
 export default function FilterContent({
   dropdownRef,
@@ -7,23 +8,22 @@ export default function FilterContent({
   setSelectedFilters,
   sort,
   filters,
-  filterStatus,
-  setFilterStatus,
-  handleFilter,
   handleChange,
   handleSortChange,
   toggleDropdown,
   sortOptions,
+  cat,
+  router,
+  variantOptions,
 }) {
   return (
-    <div className="sticky top-16 z-10">
+    <div>
       <div
         ref={dropdownRef}
         className="flex h-14 w-full items-center justify-between bg-gray-100 px-8 capitalize shadow-md"
       >
-        <div className="flex items-center">
-          <p className="text-nowrap text-[13px]">Filter by:</p>
-          <div className="ml-4 flex items-center justify-start space-x-2">
+        <div className="flex basis-1/2 flex-wrap items-center justify-start md:basis-auto">
+          <div className="flex items-center justify-start space-x-2">
             {filters.map((filter) => (
               <div
                 key={filter.name}
@@ -46,7 +46,7 @@ export default function FilterContent({
                 </button>
 
                 {activeDropdown === filter.name && (
-                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col bg-white text-[#303030]">
+                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col overflow-y-scroll bg-white text-primary">
                     {filter.options.map((option, index) => (
                       <label
                         key={index}
@@ -59,7 +59,9 @@ export default function FilterContent({
                             }
                             name={filter?.name}
                             value={option.toLowerCase()}
-                            onChange={(e) => handleChange(e, filter.name)}
+                            onChange={(e) => {
+                              handleChange(e, filter.name);
+                            }}
                             checked={selectedFilters[filter.name]?.includes(
                               option.toLowerCase(),
                             )}
@@ -92,8 +94,8 @@ export default function FilterContent({
           </div>
         </div>
 
-        <div className="flex items-center">
-          <p className="text-[13px]">Sort:</p>
+        <div className="flex basis-1/2 flex-wrap items-center justify-end md:basis-auto">
+          <p className="text-nowrap text-[13px] text-gray-500">Sort:</p>
           <div className="relative ml-4">
             <button
               onClick={() => toggleDropdown("sort")}
@@ -132,13 +134,13 @@ export default function FilterContent({
       </div>
 
       {selectedFilters && (
-        <div className="mt-2 flex items-center px-6">
-          <div className="flex items-center justify-start gap-3">
+        <div className="mt-2 flex items-center justify-between px-6">
+          <div className="flex flex-1 items-center justify-start gap-3">
             {Object.entries(selectedFilters)?.map(([key, value]) =>
               value.length > 0 ? (
                 <div
                   key={key}
-                  className="flex items-center gap-2 rounded-3xl hover:bg-gray-100"
+                  className="flex items-center gap-2 rounded-3xl bg-white hover:bg-gray-100"
                 >
                   <span className="flex items-center rounded-3xl border p-2 text-[13px] font-medium">
                     {value.map((item, index) => (
@@ -149,12 +151,42 @@ export default function FilterContent({
 
                     <button
                       onClick={() => {
-                        setFilterStatus("active");
-                        setSelectedFilters((prev) => ({
-                          ...prev,
-                          [key]: [],
-                        }));
-                        setFilterStatus("active");
+                        setSelectedFilters((prev) => {
+                          const newFilters = {
+                            ...prev,
+                            [key]: [],
+                          };
+
+                          // Apply filters immediately when removing
+                          const queryObj = Object.fromEntries(
+                            Object.entries(newFilters).filter(
+                              ([key, value]) =>
+                                value.length > 0 &&
+                                value.every((v) => v.length > 0) &&
+                                key in newFilters,
+                            ),
+                          );
+
+                          if (Object.keys(queryObj).length === 0) {
+                            router.push(`/${cat}`);
+                            return newFilters;
+                          }
+
+                          // Handle variant filters
+                          for (const [key, value] of Object.entries(queryObj)) {
+                            if (
+                              variantOptions.some((opt) => opt.name === key)
+                            ) {
+                              queryObj[key + "-vr"] = value;
+                              delete queryObj[key];
+                            }
+                          }
+
+                          const searchParams = createSearchParams(queryObj);
+                          router.push(`/${cat}?${searchParams}`);
+
+                          return newFilters;
+                        });
                       }}
                       className="ml-2 text-[13px] font-medium text-gray-500 hover:text-gray-700"
                     >
@@ -172,16 +204,45 @@ export default function FilterContent({
                 </div>
               ) : null,
             )}
-          </div>
+            {Object.values(selectedFilters).some((arr) => arr.length > 0) && (
+              <button
+                onClick={() => {
+                  setSelectedFilters((prev) => {
+                    // Reset all filters to empty arrays
+                    const newFilters = Object.keys(prev).reduce(
+                      (acc, key) => ({
+                        ...acc,
+                        [key]: [],
+                      }),
+                      {},
+                    );
 
-          {filterStatus === "active" && (
-            <button
-              onClick={handleFilter}
-              className="hdfxmen-cloth9.over:bg-primary-dark ml-3 bg-primary px-4 py-1.5 text-white"
-            >
-              Apply Filters
-            </button>
-          )}
+                    // Clear URL and redirect to base category path
+                    router.push(`/${cat}`);
+
+                    return newFilters;
+                  });
+                }}
+                className="ml-4 flex items-center gap-1 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              >
+                Clear All
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

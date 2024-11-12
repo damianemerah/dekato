@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getVariantsByCategory } from "@/app/action/productAction";
@@ -22,7 +22,7 @@ const priceRanges = [
   { min: 100000, max: Number.MAX_SAFE_INTEGER },
 ];
 
-export default function Filter({ cat, searchParams, products }) {
+export default function Filter({ cat, searchParams, products, banner }) {
   const catName = cat.slice(-1)[0].toLowerCase();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -32,7 +32,6 @@ export default function Filter({ cat, searchParams, products }) {
   const [searchStr, setSearchStr] = useState("");
   const [variantOptions, setVariantOptions] = useState([]);
   const [sort, setSort] = useState("relevance");
-  const [filterStatus, setFilterStatus] = useState("idle");
 
   const router = useRouter();
   const dropdownRef = useRef(null);
@@ -48,9 +47,6 @@ export default function Filter({ cat, searchParams, products }) {
     () => catName && getVariantsByCategory(catName, searchStr),
     {
       revalidateOnFocus: false,
-      // onError: (error) => {
-      //   alert(error.message);
-      // },
     },
   );
 
@@ -110,7 +106,7 @@ export default function Filter({ cat, searchParams, products }) {
 
   useEffect(() => {
     if (searchParams) {
-      setFilterStatus("idle");
+      // setFilterStatus("idle");
       const params = { ...searchParams };
 
       for (const [key, value] of Object.entries(params)) {
@@ -163,61 +159,64 @@ export default function Filter({ cat, searchParams, products }) {
     setActiveDropdown((prev) => (prev === name ? null : name));
   };
 
-  const handleChange = (e, name) => {
-    setFilterStatus("active");
-    const { value, checked } = e.target;
+  const handleChange = useCallback(
+    (e, name) => {
+      const { value, checked } = e.target;
 
-    setSelectedFilters((prev) => {
-      let updatedFilter;
+      setSelectedFilters((prev) => {
+        let updatedFilter;
 
-      if (name === "price") {
-        updatedFilter = checked ? [value] : [];
-      } else {
-        const currentFilter = prev[name] || [];
-        updatedFilter = checked
-          ? [...currentFilter, value]
-          : currentFilter.filter((item) => item !== value);
-      }
+        if (name === "price") {
+          updatedFilter = checked ? [value] : [];
+        } else {
+          const currentFilter = prev[name] || [];
+          updatedFilter = checked
+            ? [...currentFilter, value]
+            : currentFilter.filter((item) => item !== value);
+        }
 
-      return { ...prev, [name]: updatedFilter };
-    });
-  };
+        const newFilters = { ...prev, [name]: updatedFilter };
 
-  const handleFilter = () => {
-    filterStatus === "idle" && setFilterStatus("active");
-    const queryObj = Object.fromEntries(
-      Object.entries(selectedFilters).filter(
-        ([key, value]) =>
-          value.length > 0 &&
-          value.every((v) => v.length > 0) &&
-          key in selectedFilters,
-      ),
-    );
+        const queryObj = Object.fromEntries(
+          Object.entries(newFilters).filter(
+            ([key, value]) =>
+              value.length > 0 &&
+              value.every((v) => v.length > 0) &&
+              key in newFilters,
+          ),
+        );
 
-    if (Object.keys(queryObj).length === 0) {
-      setFilterStatus("idle");
-      return router.push(`/${cat}`);
-    }
+        if (Object.keys(queryObj).length === 0) {
+          return router.push(`/${cat}`);
+        }
 
-    for (const [key, value] of Object.entries(queryObj)) {
-      if (variantOptions.some((opt) => opt.name === key)) {
-        queryObj[key + "-vr"] = value;
-        delete queryObj[key];
-      }
-    }
+        for (const [key, value] of Object.entries(queryObj)) {
+          if (variantOptions.some((opt) => opt.name === key)) {
+            queryObj[key + "-vr"] = value;
+            delete queryObj[key];
+          }
+        }
 
-    const searchParams = createSearchParams(queryObj);
-    router.push(`/${cat}?${searchParams}`);
-  };
+        const searchParams = createSearchParams(queryObj);
+        router.push(`/${cat}?${searchParams}`);
 
-  const handleSortChange = (value) => {
-    setSort(value);
-    const params = new URLSearchParams(window.location.search);
-    params.set("sort", value);
+        return newFilters;
+      });
+    },
+    [cat, router, variantOptions],
+  );
 
-    router.push(`/${cat}?${params.toString()}`);
-    toggleDropdown("sort");
-  };
+  const handleSortChange = useCallback(
+    (value) => {
+      setSort(value);
+      const params = new URLSearchParams(window.location.search);
+      params.set("sort", value);
+
+      router.push(`/${cat}?${params.toString()}`);
+      toggleDropdown("sort");
+    },
+    [cat, router],
+  );
 
   if (products?.length === 0) {
     return (
@@ -240,13 +239,13 @@ export default function Filter({ cat, searchParams, products }) {
       setSelectedFilters={setSelectedFilters}
       sort={sort}
       sortOptions={sortOptions}
-      filterStatus={filterStatus}
-      setFilterStatus={setFilterStatus}
-      handleFilter={handleFilter}
       handleChange={handleChange}
       handleSortChange={handleSortChange}
       filters={filters}
       toggleDropdown={toggleDropdown}
+      cat={cat}
+      router={router}
+      variantOptions={variantOptions}
     />
   );
 }

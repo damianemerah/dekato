@@ -1,21 +1,29 @@
-"use client";
-
 import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import { unstable_cache } from "next/cache";
+import { getAllCollections } from "@/app/action/collectionAction";
 
-const CollectionContent = dynamic(
+const CollectionForm = dynamic(
   () => import("@/app/(frontend)/admin/ui/collection/collection-content"),
-  { ssr: false, loading: () => <LoadingSpinner /> },
+  {
+    ssr: false,
+    loading: () => <p>Loading...</p>,
+  },
 );
 
-function LoadingSpinner() {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
-}
+const getCollection = unstable_cache(
+  async () => {
+    const collection = await getAllCollections();
+    return collection;
+  },
+  [`collection`],
+  {
+    tags: ["collection"],
+    revalidate: 600,
+  },
+);
 
-export default function Page({ searchParams, params: { slug } }) {
-  return <CollectionContent slug={slug} searchParams={searchParams} />;
+export default async function NewCollection({ params: { slug } }) {
+  const collection = await getCollection();
+
+  return <CollectionForm slug={slug} collection={collection} />;
 }
