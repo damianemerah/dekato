@@ -9,10 +9,7 @@ import APIFeatures from "@/utils/apiFeatures";
 import { revalidatePath } from "next/cache";
 
 export async function getAllOrders(query) {
-  console.log(query, "query💎💎");
   await dbConnect();
-  await restrictTo("admin");
-
   query.limit = 20;
 
   try {
@@ -104,4 +101,10 @@ export async function checkOrderPayment(userId, paymentRef) {
     const error = handleAppError(err);
     throw new Error(error.message);
   }
+}
+
+export async function getUserOrders(userId) {
+  await dbConnect();
+  const orders = await Order.find({ userId }).lean();
+  return orders;
 }

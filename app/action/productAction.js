@@ -34,17 +34,23 @@ const formatProduct = (product, isAdmin = false) => {
 
 const setupIndexes = async () => {
   try {
+    console.log("Setting up indexes...");
     await dbConnect();
-    await Promise.all([
-      Product.collection.createIndex({
-        name: "text",
-        description: "text",
-        tag: "text",
-      }),
-      Product.collection.createIndex({ cat: 1 }),
-      Product.collection.createIndex({ price: 1 }),
-      Product.collection.createIndex({ slug: 1 }),
-    ]);
+    // await Promise.all([
+    //   Product.collection.createIndex({
+    //     name: "text",
+    //     description: "text",
+    //     tag: "text",
+    //   }),
+    //   Product.collection.createIndex({ cat: 1 }),
+    //   Product.collection.createIndex({ price: 1 }),
+    //   Product.collection.createIndex({ slug: 1 }),
+    // ]);
+    Product.collection.createIndex({
+      name: "text",
+      description: "text",
+      tag: "text",
+    });
   } catch (error) {
     console.error("Error setting up indexes:", error);
   }
@@ -147,7 +153,9 @@ export async function productSearch(searchQuery) {
   try {
     await dbConnect();
     const productData = await handleProductQuery(
-      Product.find().select("name slug image status").lean(),
+      Product.find({ status: "active", quantity: { $gt: 0 } })
+        .select("name slug image status")
+        .lean(),
       { ...searchQuery, limit: 9 },
     );
 
@@ -160,8 +168,6 @@ export async function productSearch(searchQuery) {
       Category.find().select("name slug").lean(),
       { ...searchQuery, limit: 3 },
     );
-
-    console.log(categories, "categories🔥🔥🔥");
 
     return { products, categories };
   } catch (err) {
@@ -219,17 +225,17 @@ export async function getVariantsByCategory(catName, searchStr = "") {
     return []; // Return empty array on error
   }
 }
-
 export async function getAllProducts(slugArray, searchParams = {}) {
   try {
     await dbConnect();
 
     let categories = [];
     let campaigns = [];
-    let baseQuery = Product.find({ quantity: { $gt: 0 } });
+    let baseQuery = Product.find({ quantity: { $gt: 0 }, status: "active" });
     let isFallback = false;
+    searchParams.limit = 20;
 
-    if (slugArray[slugArray.length - 1] !== "search") {
+    if (slugArray[slugArray.length - 1].toLowerCase() !== "search") {
       if (slugArray.length === 1) {
         // Case 1: Single slug (e.g., [men] or [jeans])
         const topLevelCategory = await Category.findOne({
@@ -284,19 +290,13 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       const campaignIds = campaigns.map((camp) => camp._id);
 
       baseQuery = Product.find({
-        $and: [
-          { quantity: { $gt: 0 } },
-          { status: "active" },
-          {
-            $or: [
-              { category: { $in: categoryIds } },
-              { campaign: { $in: campaignIds } },
-            ],
-          },
+        $or: [
+          { category: { $in: categoryIds } },
+          { campaign: { $in: campaignIds } },
         ],
       })
         .select(
-          "name slug _id image price discount status quantity isDiscounted discountPrice",
+          "name slug _id image price discount status quantity discountPrice discountDuration",
         )
         .populate("category", "name slug path")
         .populate("campaign", "name slug path");
@@ -334,7 +334,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     if (isCampaign && campaigns.length > 0) {
       const campaignWithBanner = await Campaign.findById(campaigns[0]._id)
         .select("banner")
-        .lean();
+        .lean({ virtuals: true });
       if (campaignWithBanner && campaignWithBanner.banner) {
         result.banner = campaignWithBanner.banner;
       }
@@ -348,6 +348,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     throw new Error(error.message);
   }
 }
+
 export async function getProductById(id) {
   try {
     await dbConnect();

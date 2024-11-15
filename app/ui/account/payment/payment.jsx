@@ -36,8 +36,8 @@ export default function Payment() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-lg">
-      <h2 className={`${oswald.className} border-b pb-2 text-2xl text-primary`}>
+    <div className="mx-auto max-w-4xl">
+      <h2 className={`${oswald.className} pb-2 text-2xl text-primary`}>
         Payment Methods
       </h2>
       {paymentMethods && paymentMethods.length > 0 ? (
@@ -45,7 +45,7 @@ export default function Payment() {
           {paymentMethods.map((card) => (
             <div
               key={card.id}
-              className="relative rounded-lg border border-gray-200 p-4 transition-all duration-300 hover:border-primary hover:shadow-md"
+              className="relative border border-gray-200 p-4 transition-all duration-300 hover:border-primary hover:shadow-sm"
             >
               <CloseOutlined
                 className={`absolute right-2 top-2 cursor-pointer text-gray-500 hover:text-primary`}

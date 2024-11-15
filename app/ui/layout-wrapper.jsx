@@ -17,18 +17,18 @@ const LayoutWrapper = ({ children }) => {
 
   return (
     <SWRConfig value={{}}>
-      <div
+      <main
         className={`${
           isSidebarOpen &&
           !pathname.startsWith("/admin") &&
           !pathname.startsWith("/account")
             ? "w-[calc(100vw-250px)]"
             : "w-full"
-        } ${!lgScreenSidebar && !isBelowThreshold && "w-full"} relative`}
+        } ${!lgScreenSidebar && !isBelowThreshold ? "w-full" : ""} relative min-h-screen`}
       >
         {children}
         {!pathname.startsWith("/admin") && <Footer />}
-      </div>
+      </main>
     </SWRConfig>
   );
 };

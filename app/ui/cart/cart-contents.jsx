@@ -53,11 +53,6 @@ export default function Cart() {
   }
   return (
     <div className="min-h-screen bg-grayBg">
-      {/* {cartIsValidating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <SmallSpinner className="!text-primary" />
-        </div>
-      )} */}
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <CartHeader />
         <div className="mt-8 flex flex-col gap-8 md:flex-row md:justify-between">

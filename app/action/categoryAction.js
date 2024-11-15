@@ -37,7 +37,7 @@ export async function getAllCategories(params) {
 
     const searchParams = {
       page: params?.page || 1,
-      limit: params?.limit || 2,
+      limit: params?.limit || 20,
     };
 
     const feature = new APIFeatures(query, searchParams).paginate().sort();
@@ -49,8 +49,6 @@ export async function getAllCategories(params) {
         const productCount = await Product.countDocuments({
           category: _id,
         });
-
-        console.log(productCount, "productCount🌐🌐");
 
         return {
           id: _id.toString(),
@@ -250,7 +248,7 @@ export async function getPinnedCategoriesByParent(parentSlug) {
 
   let parentCategory;
   if (parentSlug) {
-    parentCategory = await Category.findOne({ slug: parentSlug });
+    parentCategory = await Category.findOne({ slug: parentSlug }).lean();
     if (!parentCategory) {
       return [];
     }
@@ -265,9 +263,5 @@ export async function getPinnedCategoriesByParent(parentSlug) {
     .limit(5)
     .lean();
 
-  const newPinnedCategories = pinnedCategories.map(({ _id, ...rest }) => ({
-    id: _id.toString(),
-    ...rest,
-  }));
-  return newPinnedCategories;
+  return pinnedCategories;
 }

@@ -69,15 +69,17 @@ export default function AccountLayout({ children }) {
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-3">
-      <Breadcrumbs breadcrumbs={breadcrumbs} />
-      <h1 className={`${oswald.className} mt-7 text-4xl antialiased`}>
-        {breadcrumbs[breadcrumbs.length - 1].label}
-      </h1>
-      <div className="mb-16 mt-5 w-[85%] border border-gray-300">
-        <div className="grid grid-cols-14 gap-7 space-x-10 py-16">
+    <div className="bg-grayBg pb-16">
+      <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center justify-center">
+        <div className="flex w-full items-start py-8">
+          <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
+        {/* <h1 className={`${oswald.className} mt-7 text-4xl antialiased`}>
+          {breadcrumbs[breadcrumbs.length - 1].label}
+        </h1> */}
+        <div className="flex w-full gap-7">
           <ul
-            className={`${oswald.className} col-span-3 col-start-2 flex shrink-0 flex-col space-y-1`}
+            className={`${oswald.className} sticky top-16 flex flex-shrink-0 basis-1/4 flex-col space-y-1 self-start bg-white p-4`}
           >
             {links.map(({ href, label, icon }) => (
               <Link
@@ -92,7 +94,7 @@ export default function AccountLayout({ children }) {
               </Link>
             ))}
           </ul>
-          <div className="col-span-9 col-start-5">{children}</div>
+          <div className="basis-3/4 bg-white px-10 py-14">{children}</div>
         </div>
       </div>
     </div>

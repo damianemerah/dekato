@@ -1,24 +1,11 @@
-"use client";
-
 import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import { LoadingSpinner } from "@/app/ui/spinner";
 
-const OrderContent = dynamic(
+const OrderDetails = dynamic(
   () => import("@/app/(frontend)/admin/ui/orders/order-content"),
-  {
-    loading: () => <LoadingSpinner />,
-    ssr: false,
-  },
+  { ssr: false, loading: () => <LoadingSpinner className="min-h-screen" /> },
 );
 
-function LoadingSpinner() {
-  return (
-    <div className="flex min-h-40 w-full items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
-}
-
-export default function CustomerPage({ params: { id } }) {
-  return <OrderContent id={id} />;
+export default function OrderDetailsPage({ params }) {
+  return <OrderDetails params={params} />;
 }

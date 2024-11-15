@@ -1,24 +1,14 @@
-"use client";
-
+import { LoadingSpinner } from "@/app/ui/spinner";
 import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
 
-const CategoryContent = dynamic(
-  () => import("@/app/(frontend)/admin/ui/category/category-content"),
+const CategoryForm = dynamic(
+  () => import("@/app/(frontend)/admin/ui/category/category-form"),
   {
-    loading: () => <LoadingSpinner />,
     ssr: false,
+    loading: () => <LoadingSpinner className="min-h-screen" />,
   },
 );
 
-function LoadingSpinner() {
-  return (
-    <div className="flex min-h-40 w-full items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
-}
-
-export default function CategoryPage({ params: { slug } }) {
-  return <CategoryContent slug={slug} />;
+export default function CategoryPage({ params }) {
+  return <CategoryForm slug={params.slug} />;
 }

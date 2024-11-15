@@ -17,16 +17,25 @@ class APIFeatures {
   search() {
     if (this.queryString.q) {
       const searchQuery = this.queryString.q.trim();
-      const searchWords = searchQuery.split(" ").map((word) => word.trim());
+      // Split and clean search words
+      const searchWords = searchQuery
+        .split(/\s+/)
+        .map((word) => word.trim())
+        .filter((word) => word.length > 0);
 
-      // Construct a regex pattern that checks if each word in the query appears at the start of words
-      const regexPattern = searchWords.map((word) => `\\b${word}`).join(".*");
+      if (searchWords.length === 0) return this;
+
+      // Create a simple regex pattern that allows partial matches
+      const regexPatterns = searchWords.map(
+        (word) => `\\b${word.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}`,
+      );
+      const pattern = regexPatterns.join(".*");
 
       this.query = this.query.find({
         $or: [
-          { name: { $regex: regexPattern, $options: "i" } },
-          { description: { $regex: regexPattern, $options: "i" } },
-          { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
+          { name: { $regex: pattern, $options: "i" } },
+          { description: { $regex: pattern, $options: "i" } },
+          { tag: { $elemMatch: { $regex: pattern, $options: "i" } } },
         ],
       });
     }

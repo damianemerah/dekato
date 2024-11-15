@@ -5,6 +5,7 @@ import image6 from "@/public/assets/image6.png";
 import SubPageCampaign from "@/app/ui/page-campaign";
 import dynamic from "next/dynamic";
 import { observeElement } from "@/utils/observer";
+import { seedProducts } from "@/app/action/seed";
 
 const Galley = dynamic(() => import("@/app/ui/home/Galley"), {
   loading: () => <GallerySkeleton />,
@@ -36,8 +37,15 @@ export default function BelowFold() {
     }
   }, []);
 
+  const handleSeed = async () => {
+    await seedProducts();
+  };
+
   return (
     <>
+      <button onClick={handleSeed} className="bg-primary p-4 text-white">
+        SEED
+      </button>
       <div
         className={`mb-14 flex flex-col items-center justify-center gap-5 sm:flex-col md:flex-col lg:flex-row`}
       >

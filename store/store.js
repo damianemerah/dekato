@@ -61,8 +61,11 @@ export const useSidebarStore = createPersistedStore(
   (set) => ({
     isSidebarOpen:
       typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("isSidebarOpen")) || true
-        : true,
+        ? window.innerWidth <= 1024
+          ? JSON.parse(localStorage.getItem("isSidebarOpen")) || true
+          : false
+        : false,
+
     toggleSidebar: () =>
       set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     closeSidebar: () => set({ isSidebarOpen: false }),

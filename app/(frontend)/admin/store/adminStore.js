@@ -89,11 +89,3 @@ export const useAdminStore = create((set) => ({
   setVariantIsSaved: (variantIsSaved) => set({ variantIsSaved }),
   setEditVariantWithId: (editVariantWithId) => set({ editVariantWithId }),
 }));
-
-export const useCategoryStore = create((set) => ({
-  allCategories: [],
-  setAllCategories: (allCategories) => set({ allCategories }),
-
-  isLoading: false,
-  setIsLoading: (isLoading) => set({ isLoading }),
-}));

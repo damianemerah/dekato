@@ -175,7 +175,9 @@ const Page = memo(function Page({ slug }) {
       formData.append("status", status);
       formData.append("description", description);
 
-      const medias = getFiles(fileList);
+      const medias = getFiles(fileList, "image🚀✔️");
+      console.log(fileList);
+      console.log(medias, "medias🚀🚀🚀");
       medias.images.forEach((file) => formData.append("image", file));
       medias.videos.forEach((file) => formData.append("video", file));
 
@@ -194,6 +196,10 @@ const Page = memo(function Page({ slug }) {
       selectedCollectionKeys.forEach((collectionId) =>
         formData.append("campaign", collectionId),
       );
+
+      for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
 
       const action = actionType === "create" ? createProduct : updateProduct;
       if (actionType === "edit") formData.append("id", slug);

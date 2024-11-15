@@ -57,12 +57,23 @@ export const generateVariantOptions = (variants) => {
 };
 
 export function getQueryObj(searchParams) {
+  console.log(searchParams, "searchParams🚀🚀🚀");
+
   const params = Object.fromEntries(
-    Object.entries(searchParams).map(([key, value]) => [
-      key,
-      Array.isArray(value) ? value.slice(-1) : value.split(","),
-    ]),
+    Object.entries(searchParams).map(([key, value]) => {
+      console.log(key, value, "key, value🚀🚀🚀");
+      return [
+        key,
+        Array.isArray(value)
+          ? value.slice(-1)
+          : isFinite(value)
+            ? value
+            : value.split(","),
+      ];
+    }),
   );
+
+  console.log(params, " params🚀🚀🚀");
 
   let variantConditions = [];
 
@@ -93,7 +104,7 @@ export function getQueryObj(searchParams) {
   }
 
   // Add default limit and page if not provided
-  params.limit = params.limit || 2;
+  params.limit = params.limit || 20;
   params.page = params.page || 1;
 
   return params;

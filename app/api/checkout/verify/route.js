@@ -136,13 +136,11 @@ export async function POST(req) {
 
     const {
       reference,
-      metadata: { orderId, userId, receipt_number, saveCard },
+      metadata: { orderId, userId, saveCard },
       id: paymentId,
       channel: paymentMethod,
       currency,
     } = body.data;
-
-    console.log(paymentId, "paymentId💎💎");
 
     const order = await Order.findById(orderId);
 
@@ -192,7 +190,7 @@ export async function POST(req) {
       await Notification.create({
         userId: null, // Admin notification
         title: "New Order Payment",
-        message: `New payment received: ${currency} ${order.total} for order #${order.receiptNumber}`,
+        message: `New payment received: ${currency} ${order.total} for order #${order.paymentRef}`,
         orderId: order._id,
         type: "info",
       });

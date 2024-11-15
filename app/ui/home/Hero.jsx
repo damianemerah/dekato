@@ -1,34 +1,30 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import image2 from "@/public/assets/image2.png";
-import image3 from "@/public/assets/image3.png";
 import { oswald } from "@/style/font";
-import PromoBar from "@/app/ui/promo-bar";
 import { useSearchStore } from "@/store/store";
 
 const slides = [
   {
-    background: "bg-[url('/assets/hero_bg.png')]",
-    title: "SUMMER SALE: Get 30% OFF On all dresses.",
+    background: `bg-[url('/assets/herobg.avif')]`,
+    title: "SUMMER SALE",
+    subTitle: "Get 30% OFF On all dresses",
     link: "#",
     linkText: "SHOP NOW",
-    color: "text-primary",
   },
   {
-    background: "bg-[url('/assets/hero_img1.jpg')]",
-    title: "Discover the Latest Collection of Women's Wear.",
+    background: `bg-[url('/assets/herobg.avif')]`,
+    title: "Discover Latest Collection",
+    subTitle: "Stylish and trendy women's wear.",
     link: "#",
     linkText: "SHOP NOW",
-    color: "text-primary",
   },
   {
-    background: "bg-[url('/assets/hero_img2.jpg')]",
-    title: "New Arrivals: Fresh Styles for Every Occasion.",
+    background: `bg-[url('/assets/herobg.avif')]`,
+    title: "Discover Latest Collection",
+    subTitle: "Stylish and trendy women's wear.",
     link: "#",
     linkText: "SHOP NOW",
-    color: "text-primary",
   },
 ];
 
@@ -55,7 +51,6 @@ export default function Hero() {
       className={`${oswald.className}`}
       onClick={() => (activeDropdown ? setActiveDropdown(false) : null)}
     >
-      <PromoBar />
       <div className="relative">
         <div className="min-h-[500px]">
           {slides.map((slide, index) => (
@@ -63,25 +58,29 @@ export default function Hero() {
               key={index}
               className={`absolute inset-0 transition-opacity duration-500 ${
                 index === currentSlide ? "opacity-100" : "opacity-0"
-              } ${slide.background} bg-cover bg-center bg-no-repeat`}
+              } ${slide.background} h-full w-full bg-cover bg-center bg-no-repeat bg-origin-content`}
             >
               <div
-                className={`flex min-h-[500px] flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+                className={`flex min-h-[500px] items-end justify-start px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
               >
-                <div className="heading_bd relative m-4 mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center before:top-[-2rem] after:top-[-2rem] md:m-8 md:mb-0 md:mr-4 md:basis-1/2">
+                <div className="heading_d relative m-4 mb-8 flex shrink grow-0 basis-1/3 flex-col justify-center before:top-[-2rem] after:top-[-2rem] sm:basis-1/2 md:m-8 md:mb-0 md:mr-4">
                   <h1
-                    className={`mb-6 text-3xl font-bold leading-tight ${slide.color} relative z-10 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl`}
+                    className={`mb-6 flex flex-col gap-2 font-bold leading-none ${slide.color} relative z-10 text-6xl text-white md:mb-10 lg:text-7xl`}
                   >
                     {slide.title}
+                    <span className="block text-4xl sm:hidden md:hidden">
+                      {slide.subTitle}
+                    </span>
+                    <span className="block text-2xl">{slide.subTitle}</span>
                   </h1>
                   <Link
                     href={slide.link}
-                    className={`self-start border-2 border-primary px-4 py-2 text-sm font-medium ${slide.color} relative z-10 hover:no-underline sm:px-6 sm:py-2 md:px-8 md:py-3 md:text-base`}
+                    className={`relative z-10 mt-10 self-start bg-white px-4 py-1 text-sm font-medium text-primary hover:no-underline sm:px-6 sm:py-2 md:px-8 md:text-base`}
                   >
                     {slide.linkText}
                   </Link>
                 </div>
-                <div className="relative flex h-64 w-full flex-1 justify-center sm:h-80 md:h-96">
+                {/* <div className="relative flex h-64 w-full flex-1 justify-center sm:h-80 md:h-96">
                   <div className="block w-1/2">
                     <Image
                       alt="Hero image 1"
@@ -108,7 +107,7 @@ export default function Hero() {
                       height={400}
                     />
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           ))}

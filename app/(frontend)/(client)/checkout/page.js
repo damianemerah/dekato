@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
-import { message } from "antd";
 import { InfoCircleOutlined, CheckOutlined } from "@ant-design/icons";
 
 import CheckoutProgress from "@/app/ui/checkout-progress";
@@ -41,7 +40,6 @@ function PaymentOption({
       await mutatePaymentData();
     } catch (error) {
       console.error("Error updating payment method:", error);
-      message.error("Failed to update payment method");
     } finally {
       setIsUpdatingPayment(false);
     }
@@ -183,7 +181,6 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error(error);
-      message.error("An error occurred while processing your payment");
     } finally {
       setIsProcessingPayment(false);
     }

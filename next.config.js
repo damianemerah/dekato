@@ -23,13 +23,13 @@ const nextConfig = {
         pathname: "/**",
       },
     ],
+    domains: [`${process.env.NEXTAUTH_URL}`],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96],
   },
-  logging: {
-    fetches: {
-      hmrRefreshes: true,
-      fullUrl: true,
-    },
-  },
+  // Production optimizations
+  poweredByHeader: false,
+
   webpack(config, { webpack }) {
     config.module.rules.push({
       test: /\.svg$/,
@@ -48,4 +48,12 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Only use bundle analyzer when analyzing
+if (process.env.ANALYZE === "true") {
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  module.exports = withBundleAnalyzer(nextConfig);
+} else {
+  module.exports = nextConfig;
+}

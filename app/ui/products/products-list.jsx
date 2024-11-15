@@ -1,18 +1,29 @@
 "use client";
-import Filter from "@/app/ui/products/filter";
-import HeaderOne from "@/app/ui/heading1";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import Image from "next/image";
 import { oswald } from "@/style/font";
 import { Pagination as AntdPagination } from "antd";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import HeaderOne from "@/app/ui/heading1";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import Image from "next/image";
+import { Suspense, useMemo } from "react";
+
+const ProductHeader = dynamic(
+  () => import("@/app/ui/products/product-header"),
+  {
+    loading: () => (
+      <div className="sticky top-0 z-10 mb-10 bg-gray-100">
+        <div className="flex h-14 w-full items-center justify-between px-8 shadow-md">
+          <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+        </div>
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 const ProductCard = dynamic(() => import("./product-card"), {
   loading: () => <ProductCardSkeleton />,
@@ -30,21 +41,24 @@ const ProductList = ({
 }) => {
   const router = useRouter();
 
-  const currentCategory =
-    cat.slice(-1)[0].toLowerCase() === "search"
-      ? `${products.length} results for ${searchParams.q}`
-      : cat.slice(-1)[0];
-
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
     const queryString = new URLSearchParams(newSearchParams).toString();
     router.push(`/${cat}?${queryString}`);
   };
 
+  const currentCategory = useMemo(
+    () =>
+      cat.slice(-1)[0].toLowerCase() === "search"
+        ? `${products.length} results for ${searchParams.q}`
+        : cat.slice(-1)[0],
+    [cat, products, searchParams],
+  );
+
   return (
     <>
       {banner && banner.length > 0 ? (
-        <div className="h-[25vw] max-h-[378px] min-h-[255px] w-full">
+        <header className="h-[25vw] max-h-[378px] min-h-[255px] w-full">
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
             spaceBetween={0}
@@ -68,13 +82,21 @@ const ProductList = ({
               </SwiperSlide>
             ))}
           </Swiper>
-        </div>
+        </header>
       ) : (
-        <div className="flex w-full items-center justify-center bg-gray-100 py-14 uppercase">
-          <HeaderOne>{currentCategory}</HeaderOne>
-        </div>
+        <header className="flex w-full items-center justify-center bg-gray-100 px-20 pb-4 pt-8 uppercase">
+          <Suspense
+            fallback={
+              <div className="h-8 w-24 animate-pulse bg-gray-300"></div>
+            }
+          >
+            <HeaderOne>{currentCategory}</HeaderOne>
+          </Suspense>
+        </header>
       )}
-      <Filter cat={cat} searchParams={searchParams} />
+      <div className="sticky top-24 z-[25]">
+        <ProductHeader cat={cat} searchParams={searchParams} />
+      </div>
 
       <div>
         <h4
@@ -85,7 +107,11 @@ const ProductList = ({
         <div className={`flex flex-wrap justify-start bg-white`}>
           {products &&
             products.map((product, index) => (
-              <ProductCard key={index} product={product} />
+              <ProductCard
+                key={index}
+                product={product}
+                searchParams={searchParams}
+              />
             ))}
         </div>
         {/* page footer */}

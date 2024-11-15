@@ -2,10 +2,8 @@ import { getCollections } from "@/app/action/collectionAction";
 import { unstable_cache } from "next/cache";
 import Sidebar from "./sidebar";
 import Category from "@/models/category";
-import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
 import { formatCategories } from "@/app/action/categoryAction";
-import { omit } from "lodash";
 
 const getCategories = unstable_cache(
   async () => {

@@ -6,25 +6,17 @@ import { SmallSpinner } from "@/app/ui/spinner";
 import { oswald } from "@/style/font";
 import useUserData from "@/app/hooks/useUserData";
 import useAddressData from "@/app/hooks/useAddressData";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Modal, message } from "antd";
 import { InputType } from "@/app/ui/inputType";
-import {
-  updateUserInfo,
-  sendPasswordResetToken,
-  updatePassword,
-} from "@/app/action/userAction";
+import { updateUserInfo, updatePassword } from "@/app/action/userAction";
 import { useSWRConfig } from "swr";
 
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
   const userId = session?.user?.id;
-  const {
-    userData: user,
-    isLoading: userIsLoading,
-    isValidating,
-  } = useUserData(userId);
+  const { userData: user, isLoading: userIsLoading } = useUserData(userId);
 
   const { addressData: address } = useAddressData(userId);
   const defaultAddress = address?.find((address) => address.isDefault);
@@ -67,23 +59,6 @@ export default function Overview() {
     [userId, mutate, handleModalClose],
   );
 
-  const handleForgetPassword = useCallback(
-    async (formData) => {
-      setIsUpdating(true);
-      try {
-        await sendPasswordResetToken(formData);
-        handleModalClose();
-        message.success("Password reset link sent to your email");
-      } catch (error) {
-        console.error("Failed to send password reset token:", error);
-        message.error("Failed to send password reset token");
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [handleModalClose],
-  );
-
   const handleUpdatePassword = useCallback(
     async (formData) => {
       setIsUpdating(true);
@@ -96,7 +71,6 @@ export default function Overview() {
 
         // Update session and sign out
         await updateSession({ passwordChanged: true });
-        signOut({ callbackUrl: "/signin" });
       } catch (error) {
         console.error("Failed to update password:", error);
         message.error("Failed to update password");
@@ -122,12 +96,7 @@ export default function Overview() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-lg">
-      {isValidating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <SmallSpinner className="!text-primary" />
-        </div>
-      )}
+    <div className="mx-auto max-w-4xl bg-white">
       <div className="space-y-12">
         <section className="space-y-6">
           <h2
@@ -142,25 +111,31 @@ export default function Overview() {
               >
                 Contact Information
               </h3>
-              <div className="rounded-md bg-gray-50 p-4 shadow-sm">
+              <div className="bg-grayBg p-4">
                 <p className="text-lg font-medium">
                   {user?.firstname} {user?.lastname}
                 </p>
                 <p className="text-gray-600">{user?.email}</p>
               </div>
               <div className="flex flex-wrap gap-4">
-                <ButtonSecondary onClick={handleEditClick}>
-                  Edit Name
-                </ButtonSecondary>
-                <ButtonSecondary onClick={handlePasswordClick}>
-                  Change Password
-                </ButtonSecondary>
-                <ButtonSecondary
-                  onClick={handleDeleteAccountClick}
-                  className="text-red-500"
+                <div
+                  className="cursor-pointer text-blue-500"
+                  onClick={handleEditClick}
                 >
-                  Delete Account
-                </ButtonSecondary>
+                  Edit name
+                </div>
+                <div
+                  className="cursor-pointer text-blue-500"
+                  onClick={handlePasswordClick}
+                >
+                  Change password
+                </div>
+                <div
+                  onClick={handleDeleteAccountClick}
+                  className="cursor-pointer text-red-500"
+                >
+                  Delete account
+                </div>
               </div>
             </div>
             <div className="space-y-4">
@@ -169,12 +144,14 @@ export default function Overview() {
               >
                 Newsletter
               </h3>
-              <div className="rounded-md bg-gray-50 p-4 shadow-sm">
+              <div className="bg-grayBg p-4">
                 <p>You are not subscribed to our newsletter.</p>
               </div>
               <Link href="/account/newsletter" className="block">
-                <ButtonSecondary className="w-full">
-                  Edit Subscription
+                <ButtonSecondary
+                  className={`${oswald.className} border-2 border-primary bg-white text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white`}
+                >
+                  Edit subscription
                 </ButtonSecondary>
               </Link>
             </div>
@@ -194,7 +171,7 @@ export default function Overview() {
                 >
                   Shipping Address
                 </h3>
-                <div className="rounded-md bg-gray-50 p-4 shadow-sm">
+                <div className="bg-grayBg p-4">
                   <p className="mb-2 font-medium">
                     Your default shipping address:
                   </p>

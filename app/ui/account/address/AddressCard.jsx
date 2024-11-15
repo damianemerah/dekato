@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { ButtonPrimary } from "@/app/ui/button";
-import { oswald } from "@/style/font"
+import { oswald } from "@/style/font";
 import { InputType } from "@/app/ui/inputType";
 import { Modal, message } from "antd";
 import { updateUserAddress, createUserAddress } from "@/app/action/userAction";
@@ -216,7 +216,7 @@ export default function Address() {
           {addresses?.map((address) => (
             <div
               key={address.id}
-              className="relative flex items-center justify-between rounded-lg border border-gray-200 p-4 transition-all duration-300 hover:border-primary hover:shadow-md"
+              className="relative flex items-center justify-between border border-gray-200 p-4 transition-all duration-300 hover:border-primary hover:shadow-sm"
             >
               <div className="flex items-center gap-4">
                 <input

@@ -5,7 +5,7 @@ export function Button({ children, className }) {
   return (
     <Link
       href="#"
-      className={`h-[44px] self-start border-2 px-8 py-2 font-medium no-underline ${className}`}
+      className={`self-start border-2 px-8 py-1 text-[13px] font-semibold no-underline ${className}`}
     >
       {children}
     </Link>

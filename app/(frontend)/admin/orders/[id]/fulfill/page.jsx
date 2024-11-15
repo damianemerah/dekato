@@ -1,5 +1,3 @@
-"use client";
-
 import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
 
@@ -19,6 +17,6 @@ function LoadingSpinner() {
   );
 }
 
-export default function CustomerPage() {
-  return <FullfillOrder />;
+export default function CustomerPage({ params: { id } }) {
+  return <FullfillOrder id={id} />;
 }

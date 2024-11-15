@@ -4,7 +4,6 @@ import { OPTIONS } from "@/app/api/auth/[...nextauth]/route";
 import Order from "@/models/order";
 import dbConnect from "@/lib/mongoConnection";
 import { unstable_cache } from "next/cache";
-import { omit } from "lodash";
 import { SmallSpinner } from "@/app/ui/spinner";
 import dynamic from "next/dynamic";
 
@@ -20,15 +19,20 @@ const getOrders = unstable_cache(
       .sort({ createdAt: -1 })
       .lean({ virtuals: true });
 
-    return orders.map((order) => ({
-      id: order._id.toString(),
-      product: order.product.map(({ _id, ...product }) => ({
+    return orders.map((order) => {
+      const { _id, userId: _, ...orderData } = order;
+      return {
         id: _id.toString(),
-        ...omit(product, ["_id"]),
-      })),
-
-      ...omit(order, ["_id", "userId"]),
-    }));
+        product: order.product.map(({ _id, ...product }) => {
+          const { _id: productId, ...productData } = product;
+          return {
+            id: _id.toString(),
+            ...productData,
+          };
+        }),
+        ...orderData,
+      };
+    });
   },
   ["orders"],
   { revalidate: 10 },

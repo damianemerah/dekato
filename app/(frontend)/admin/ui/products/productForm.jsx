@@ -277,8 +277,6 @@ const ProductActions = ({
   selectedCollectionKeys,
   setSelectedCollectionKeys,
 }) => {
-  console.log("switch disabled", isSwitchDisabled);
-
   return (
     <>
       <FormSection>

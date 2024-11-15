@@ -56,15 +56,20 @@ const Action = memo(function Action({ id, handleDelete }) {
 const ProductsList = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
 
   const showConfirmModal = useConfirmModal();
 
-  const { data: users, isLoading } = useSWR("/api/users", getAllUsers, {
-    revalidateOnFocus: false,
-    onSuccess: (data) => {
-      console.log(data, "data🔥🔥🔥");
+  const { data: userData, isLoading } = useSWR(
+    `/api/users?page=${page}`,
+    () => getAllUsers({ page }),
+    {
+      revalidateOnFocus: false,
     },
-  });
+  );
+
+  const { data: users, pagination } = userData || { data: [], pagination: {} };
+  const { totalCount } = pagination || {};
 
   const dataSource = users?.map((item) => ({
     key: item.id,
@@ -101,6 +106,10 @@ const ProductsList = () => {
     } catch (error) {
       message.error("Failed to delete product");
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
   };
 
   const columns = [
@@ -180,6 +189,13 @@ const ProductsList = () => {
         rowSelection={rowSelection}
         columns={columns}
         dataSource={dataSource || []}
+        pagination={{
+          current: page,
+          pageSize: limit,
+          showSizeChanger: false,
+          total: totalCount,
+          onChange: handlePageChange,
+        }}
         loading={
           isLoading
             ? {

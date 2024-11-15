@@ -1,286 +1,436 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { createCategory, updateCategory } from "@/app/action/categoryAction";
-import { ButtonPrimary } from "@/app/ui/button";
-import { Checkbox, message } from "antd";
-import { useCategoryStore } from "@/app/(frontend)/admin/store/adminStore";
-import { getFiles } from "@/app/(frontend)/admin/utils/utils";
-import DropDown from "@/app/(frontend)/admin/ui/DropDown";
+import { useState, memo, useMemo } from "react";
+import {
+  Button,
+  Flex,
+  Table,
+  Dropdown,
+  Space,
+  Checkbox,
+  InputNumber,
+  message,
+  Modal,
+} from "antd";
+import {
+  DownOutlined,
+  LoadingOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import Image from "next/image";
+import Link from "next/link";
+import useSWR from "swr";
+import {
+  getAllCategories,
+  updateCategory,
+  deleteCategory,
+} from "@/app/action/categoryAction";
+import noImage from "@/public/assets/no-image.webp";
 import { useRouter } from "next/navigation";
-import { getAllCategories } from "@/app/action/categoryAction";
-import useSWR, { mutate } from "swr";
-import { SmallSpinner } from "@/app/ui/spinner";
 
-export default function NewCategory({ slug }) {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [fileList, setFileList] = useState([]);
-  const [cParent, setCParent] = useState(null);
-  const [actionType, setActionType] = useState("");
-  const [defaultFileList, setDefaultFileList] = useState([]);
-  const [catList, setCatList] = useState([]);
-  const [isPinned, setIsPinned] = useState(false);
-
-  const titleRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const pinnedRef = useRef(null);
-
-  const { data: allCategories, isLoading } = useSWR(
-    "/api/allCategories",
-    () => getAllCategories({ limit: 100 }),
+const Action = memo(function Action({ slug, handleDelete }) {
+  const items = [
     {
-      revalidateOnFocus: false,
+      label: (
+        <Link
+          rel="noopener noreferrer"
+          href={`/admin/categories/${slug}`}
+          className="!text-blue-500"
+        >
+          Edit
+        </Link>
+      ),
+      key: "0",
     },
+    {
+      label: (
+        <p target="_blank" rel="noopener noreferrer" onClick={handleDelete}>
+          Delete
+        </p>
+      ),
+      key: "1",
+      danger: true,
+    },
+    {
+      label: "Archive",
+      key: "3",
+    },
+  ];
+  return (
+    <Dropdown
+      menu={{
+        items,
+      }}
+    >
+      <a onClick={(e) => e.preventDefault()}>
+        <Space>
+          Action
+          <DownOutlined />
+        </Space>
+      </a>
+    </Dropdown>
   );
-  const setAllCategories = useCategoryStore((state) => state.setAllCategories);
+});
+
+const Categories = ({ searchParams }) => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pinOrders, setPinOrders] = useState({});
+  const [changedRows, setChangedRows] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit, setLimit] = useState(10);
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) return;
-    if (allCategories?.data?.length > 0) {
-      const category = allCategories?.data
-        .map((cat) => ({
-          value: cat.id,
-          label: (
-            <p>
-              {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{" "}
-              {cat.parent?.name
-                ? `(${cat.parent.name.charAt(0).toUpperCase() + cat.parent.name.slice(1)})`
-                : ""}
-            </p>
-          ),
-          parent: cat.parent,
-          disabled: cat.parent !== null,
-        }))
-        .sort((a, b) => a.disabled - b.disabled);
+  const page = useMemo(() => searchParams.page || 1, [searchParams]);
 
-      setCatList(category);
+  const {
+    data: categoryData,
+    isLoading,
+    mutate,
+  } = useSWR(
+    `/api/allCategories?page=${page}`,
+    () => getAllCategories({ page }),
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        if (data && Array.isArray(data.data)) {
+          setCategories(data.data);
+          setTotalCount(data.totalCount);
+          setLimit(data.limit);
+
+          // Set up pin orders
+          const pins = data.data.reduce((acc, c) => {
+            acc[c.id] = {
+              pinOrder: c.pinOrder,
+              isChecked: !!c.pinned,
+            };
+            return acc;
+          }, {});
+          setPinOrders(pins);
+        }
+      },
+    },
+  );
+
+  const handlePinChange = (key, isChecked) => {
+    const category = categories.find((cat) => cat.id === key);
+    if (
+      category.name.toLowerCase() === "men" ||
+      category.name.toLowerCase() === "women"
+    ) {
+      message.error("Cannot pin 'men' or 'women' categories");
+      return;
     }
-    if (slug !== "new" && allCategories?.data.length) {
-      const selectedCategory = allCategories?.data.find(
-        (category) => category.slug === slug,
+
+    const parentCategory = categories.find(
+      (cat) => cat.id === category.parent?.id,
+    );
+    const pinnedCount = categories.filter(
+      (cat) => cat.parent?.id === category.parent?.id && cat.pinned,
+    ).length;
+
+    // Check if the category is already pinned
+    const isAlreadyPinned = category.pinned;
+
+    if (isChecked && pinnedCount >= 5 && !isAlreadyPinned) {
+      message.error(
+        `Cannot pin more than 5 categories under ${parentCategory?.name || "parent category"}`,
       );
-
-      if (selectedCategory) {
-        setActionType("edit");
-        setSelectedCategory(selectedCategory);
-        setIsPinned(selectedCategory.pinned || false);
-      } else {
-        window.location.href = "/admin/categories";
-      }
-    } else if (slug === "new") {
-      setActionType("create");
-      setCParent(null);
-      setIsPinned(false);
+      return;
     }
-  }, [allCategories?.data, isLoading, slug]);
 
-  useEffect(() => {
-    if (selectedCategory) {
-      selectedCategory.parent && setCParent(selectedCategory?.parent.id);
-      const selectedImgs = selectedCategory.image.map((img, index) => {
-        return {
-          uid: index,
-          name: "image.png",
-          status: "done",
-          url: img,
-        };
-      });
-      setDefaultFileList(selectedImgs);
+    setPinOrders((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        isChecked,
+      },
+    }));
+    setChangedRows((prev) => ({
+      ...prev,
+      [key]: true,
+    }));
+  };
 
-      if (titleRef.current) titleRef.current.value = selectedCategory?.name;
-      if (descriptionRef.current)
-        descriptionRef.current.value = selectedCategory?.description || "";
-      if (pinnedRef.current)
-        pinnedRef.current.checked = selectedCategory?.pinned;
-      setIsPinned(selectedCategory?.pinned || false);
-    }
-  }, [selectedCategory]);
+  // Handle pin order number input changes
+  const handlePinOrderChange = (key, value) => {
+    setPinOrders((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        pinOrder: value,
+      },
+    }));
+    setChangedRows((prev) => ({
+      ...prev,
+      [key]: true,
+    }));
+  };
 
   // Handle form submission
-  const handleCreateCategory = async (formData, type) => {
+  const submitForm = async (key) => {
+    const { pinOrder, isChecked } = pinOrders[key];
+    const formData = new FormData();
+    formData.append("id", key);
+    formData.append("pinOrder", pinOrder);
+    formData.append("pinned", isChecked);
+
     try {
-      if (formData.get("pinned") === "true") {
-        formData.set("pinned", true);
-      } else {
-        formData.set("pinned", false);
-      }
-      const medias = getFiles(fileList);
-      medias.images.forEach((file) => {
-        formData.append("image", file);
-      });
-      medias.videos.forEach((file) => {
-        formData.append("video", file);
-      });
+      await updateCategory(formData);
+      setChangedRows((prev) => ({
+        ...prev,
+        [key]: false,
+      }));
+      message.info("Updated");
+    } catch (error) {}
+  };
 
-      if (cParent?.length > 0) {
-        formData.append("parent", cParent);
-      }
+  const cancelChanges = (key) => {
+    setPinOrders((prev) => ({
+      ...prev,
+      [key]: categories.find((item) => item.id === key)
+        ? {
+            pinOrder: categories.find((item) => item.id === key).pinOrder,
+            isChecked: !!categories.find((item) => item.id === key).pinned,
+          }
+        : undefined,
+    }));
+    setChangedRows((prev) => ({
+      ...prev,
+      [key]: false,
+    }));
+  };
 
-      // Ensure top-level categories cannot be pinned
-      if (!cParent) {
-        formData.set("pinned", false);
-      }
+  const dataSource = Array.isArray(categories)
+    ? categories.map((item) => ({
+        key: item.id,
+        image: item.image[0],
+        name: item.name,
+        productCount: item.productCount,
+        parent: item?.parent ? item.parent.name : "",
+        slug: item.slug,
+        action: <Action slug={item.slug} />,
+        pinOrder: pinOrders[item.id]?.pinOrder || undefined,
+        isChecked: pinOrders[item.id]?.isChecked,
+      }))
+    : [];
 
-      // Check the number of pinned categories under the selected parent
-      const parentCategory = allCategories?.data.find(
-        (cat) => cat.id === cParent,
-      );
-      console.log(parentCategory, "parentCategory");
-      const pinnedCount = allCategories?.data.filter(
-        (cat) => cat.parent?.id === cParent && cat.pinned,
-      ).length;
-      const isAlreadyPinned = selectedCategory?.pinned;
-      if (pinnedCount >= 5 && !isAlreadyPinned) {
-        message.error(
-          `Cannot pin more than 5 categories under ${parentCategory.name}`,
+  const columns = [
+    {
+      title: "Image",
+      dataIndex: "image",
+      render: (_, record) => {
+        const imageSrc = record?.image ? record.image : noImage;
+        return (
+          <Image
+            src={imageSrc}
+            alt={record.name}
+            width={50}
+            height={50}
+            loading="lazy"
+            className="h-[50px] w-[50px] rounded-lg object-cover"
+          />
+        );
+      },
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      filters: dataSource?.map((item) => ({
+        text: item.name,
+        value: item.name,
+      })),
+      filterSearch: true,
+      onFilter: (value, record) => record.name.includes(value),
+    },
+    {
+      title: "Products",
+      dataIndex: "productCount",
+      sorter: (a, b) => a.productCount - b.productCount,
+    },
+    {
+      title: "Parent Category",
+      dataIndex: "parent",
+      filters: Array.isArray(categories)
+        ? categories.map((item) => ({
+            text: item.name ? item.name : "",
+            value: item.name ? item.name : "",
+          }))
+        : [],
+      filterSearch: true,
+      onFilter: (value, record) => {
+        return record?.parent.includes(value);
+      },
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => {
+        return (
+          <Action
+            slug={record.slug}
+            handleDelete={() => handleDelete(record.key)}
+          />
+        );
+      },
+    },
+    {
+      title: "Pin",
+      dataIndex: "pin",
+      sorter: (a, b) => a.pinOrder - b.pinOrder,
+      render: (_, record) => (
+        <Flex gap="small" align="center">
+          <Checkbox
+            checked={record.isChecked}
+            onChange={(e) => handlePinChange(record.key, e.target.checked)}
+          />
+          <InputNumber
+            min={1}
+            disabled={!pinOrders[record.key]?.isChecked}
+            value={record?.pinOrder}
+            onChange={(value) => handlePinOrderChange(record.key, value)}
+          />
+          {changedRows[record.key] && (
+            <Flex className="flex-col">
+              <Button
+                className="!text-blue-500"
+                type="text"
+                onClick={() => submitForm(record.key)}
+              >
+                Submit
+              </Button>
+              <Button type="text" onClick={() => cancelChanges(record.key)}>
+                Cancel
+              </Button>
+            </Flex>
+          )}
+        </Flex>
+      ),
+    },
+  ];
+
+  const start = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setSelectedRowKeys([]);
+      setLoading(false);
+    }, 1000);
+  };
+
+  const onSelectChange = (newSelectedRowKeys) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+  const hasSelected = selectedRowKeys.length > 0;
+
+  const handleDelete = async (id) => {
+    try {
+      const category = categories.find((category) => category.id === id);
+      if (category.productCount > 0) {
+        message.warning(
+          "Products in this category. Move products to other category",
+          4,
         );
         return;
       }
-
-      if (type === "edit") {
-        const id = allCategories?.data.find(
-          (category) => category.slug === slug,
-        ).id;
-        formData.append("id", id);
-
-        // Prevent category from using itself as a parent
-        if (cParent === id) {
-          message.warning("A category cannot be its own parent.");
-          return;
-        }
-
-        const updatedCategory = await updateCategory(formData);
-
-        message.success("Category updated");
-        titleRef.current.value = "";
-        descriptionRef.current.value = "";
-        setAllCategories(
-          allCategories?.data.map((category) =>
-            category.slug === slug ? updatedCategory : category,
-          ),
-        );
-        return;
-      }
-
-      const newCategory = await createCategory(formData);
-
-      mutate("/api/allCategories");
-      message.success("Category created");
-      titleRef.current.value = "";
-      descriptionRef.current.value = "";
-      setAllCategories([...allCategories?.data, newCategory]);
-      setFileList([]);
+      await deleteCategory(id);
+      await mutate();
+      message.success("Deleted");
     } catch (error) {
-      message.error(error.message);
+      message.error("Error");
     }
   };
 
-  const LoadingSpinner = () => (
-    <div className="flex h-screen items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
+  const handleDeleteSelected = () => {
+    Modal.confirm({
+      title: "Are you sure you want to delete these categories?",
+      icon: <ExclamationCircleOutlined />,
+      content: "This action cannot be undone.",
+      onOk: async () => {
+        try {
+          setLoading(true);
+          for (const id of selectedRowKeys) {
+            const category = categories.find((category) => category.id === id);
+            if (category.productCount > 0) {
+              message.warning(
+                `Cannot delete category "${category.name}". It contains products.`,
+                4,
+              );
+            } else {
+              await deleteCategory(id);
+            }
+          }
+          await mutate();
+          setSelectedRowKeys([]);
+          message.success("Selected categories deleted");
+        } catch (error) {
+          message.error("Error deleting categories");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
 
-  if (!allCategories?.data) return <LoadingSpinner />;
+  const handlePageChange = (page) => {
+    router.push(`/admin/categories?page=${page}`);
+  };
 
   return (
-    <form
-      action={(formData) => handleCreateCategory(formData, actionType)}
-      className="px-10 py-20"
-    >
-      <ButtonPrimary
-        type="submit"
-        loading={isLoading}
-        className={`mb-4 ml-auto block !rounded-md bg-primary px-2 text-right text-base font-bold tracking-wide text-white`}
-      >
-        {actionType === "edit" ? "Update category" : "Create category"}
-      </ButtonPrimary>
-      <div className="mx-auto grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm lg:col-span-2">
-          <div className="mb-4">
-            <label
-              htmlFor="title"
-              className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
+    <>
+      <Flex gap="middle" vertical className="p-6">
+        <Flex align="center" justify="end" gap="middle">
+          <Link href="/admin/categories/new">
+            <Button
+              className="!bg-primary !text-white"
+              onClick={start}
+              loading={loading}
             >
-              TITLE
-            </label>
-            <input
-              ref={titleRef}
-              type="text"
-              name="name"
-              required
-              id="title"
-              autoComplete="off"
-              placeholder="Short sleeve t-shirt"
-              className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="description"
-              className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
-            >
-              DESCRIPTION
-            </label>
-            <textarea
-              ref={descriptionRef}
-              name="description"
-              id="description"
-              placeholder="A short sleeve t-shirt made from organic cotton."
-              className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-            ></textarea>
-          </div>
+              Add new category
+            </Button>
+          </Link>
+          {hasSelected && (
+            <Button danger onClick={handleDeleteSelected} loading={loading}>
+              Delete Selected
+            </Button>
+          )}
+          {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
+        </Flex>
+        <div className="overflow-x-auto">
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={dataSource || []}
+            loading={
+              isLoading
+                ? {
+                    indicator: (
+                      <LoadingOutlined spin className="!text-primary" />
+                    ),
+                    size: "large",
+                  }
+                : false
+            }
+            pagination={{
+              current: parseInt(page),
+              pageSize: limit,
+              showSizeChanger: false,
+              total: totalCount,
+              onChange: handlePageChange,
+            }}
+            scroll={{ x: "max-content" }}
+          />
         </div>
-        <div>
-          <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
-            <MediaUpload
-              multiple={false}
-              fileList={fileList}
-              setFileList={setFileList}
-              defaultFileList={defaultFileList}
-              setDefaultFileList={setDefaultFileList}
-            />
-          </div>
-
-          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-            <div
-              className={`${!cParent ? "hidden" : ""} mb-4 flex items-center gap-2`}
-            >
-              <h4
-                className="block text-xxs font-bold leading-none tracking-[0.12em] text-primary"
-                title="Pinned categories can be featured on the homepage"
-              >
-                PINNED
-              </h4>
-
-              <Checkbox
-                ref={pinnedRef}
-                name="pinned"
-                value="true"
-                checked={isPinned}
-                onChange={() => setIsPinned(!isPinned)}
-              />
-            </div>
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
-              Parent Category
-            </h4>
-            <DropDown
-              options={catList}
-              selectedKeys={[cParent]}
-              handleChange={(value) => {
-                if (value === selectedCategory?.id) {
-                  message.warning("A category cannot be its own parent.");
-                  return;
-                }
-                setCParent(value);
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </form>
+      </Flex>
+    </>
   );
-}
+};
+
+export default memo(Categories);

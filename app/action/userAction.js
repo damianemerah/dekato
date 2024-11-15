@@ -33,7 +33,6 @@ export async function createProductNotification(productName, adminName) {
 
 export async function getDashboardData() {
   await dbConnect();
-  await restrictTo("admin");
 
   try {
     const [
@@ -82,7 +81,7 @@ export async function getDashboardData() {
         {
           $project: {
             _id: 1,
-            receiptNumber: 1,
+            paymentRef: 1,
             total: 1,
             deliveryStatus: 1,
             createdAt: 1,
@@ -391,20 +390,40 @@ export async function deleteUserAddress(addressId) {
   return null;
 }
 
-export async function getAllUsers() {
+export async function getAllUsers(searchParams) {
   try {
     await dbConnect();
     await restrictTo("admin");
 
-    const usersDoc = await User.find().lean({ virtuals: true });
+    const page = parseInt(searchParams?.page) || 1;
+    const limit = parseInt(searchParams?.limit) || 1;
+    const skip = (page - 1) * limit;
 
-    return usersDoc.map((user) => {
+    const totalCount = await User.countDocuments();
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const usersDoc = await User.find()
+      .skip(skip)
+      .limit(limit)
+      .lean({ virtuals: true });
+
+    const users = usersDoc.map((user) => {
       const { _id, ...rest } = user;
       return {
         id: _id.toString(),
         ...rest,
       };
     });
+
+    return {
+      data: users,
+      pagination: {
+        totalCount,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
@@ -414,10 +433,12 @@ export async function getAllUsers() {
 export async function sendPasswordResetToken(formData) {
   await dbConnect();
 
+  console.log(formData.get("email"), "email🔥🔥");
+
   const user = await User.findOne({ email: formData.get("email") });
 
   if (!user) {
-    throw new AppError("User with that email not found", 404);
+    throw new Error("User with that email not found", 404);
   }
   try {
     const resetToken = await user.createPasswordResetToken();
@@ -457,7 +478,7 @@ export async function updatePassword(formData) {
     user.passwordConfirm = body.passwordConfirm;
     await user.save();
 
-    return { success: true, data: user };
+    return { success: true, data: user.toObject() };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
@@ -476,23 +497,24 @@ export async function forgotPassword(formData) {
     const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() - 10 * 60 * 1000 },
-    }).lean({ virtuals: true });
+    });
 
     if (!user) {
-      throw new AppError("Token is invalid or has expired", 400);
+      throw new Error("Token is invalid or has expired", 400);
     }
+
+    // check if password and passwordConfirm are the same
 
     user.password = body.password;
     user.passwordConfirm = body.passwordConfirm;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
 
-    await User.findByIdAndUpdate(user._id, user, {
-      new: true,
-      runValidators: true,
-    });
+    await user.save();
 
-    const { _id, wishlist, ...rest } = user;
+    console.log(user, "user🔥🔥");
+
+    const { _id, wishlist, ...rest } = user.toObject();
 
     const userObj = {
       id: _id.toString(),
@@ -502,6 +524,7 @@ export async function forgotPassword(formData) {
 
     return { success: true, data: userObj };
   } catch (error) {
-    return handleAppError(error, req);
+    const errorMessage = handleAppError(error);
+    throw new Error(errorMessage.message);
   }
 }

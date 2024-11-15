@@ -1,19 +1,9 @@
-"use client";
-
 import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
-
-function LoadingSpinner() {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  );
-}
+import { LoadingSpinner } from "@/app/ui/spinner";
 
 const ProductsList = dynamic(
   () => import("@/app/(frontend)/admin/ui/products/products-list"),
-  { ssr: false, loading: () => <LoadingSpinner /> },
+  { ssr: false, loading: () => <LoadingSpinner className="min-h-screen" /> },
 );
 
 export default function Page({ searchParams }) {

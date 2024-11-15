@@ -1,22 +1,38 @@
 "use client";
 
-import { useState, useRef, memo, useEffect, useCallback } from "react";
-import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
+import { useState, useRef, memo, useEffect } from "react";
+// import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import {
   createCollection,
   updateCollection,
   getAllCollections,
 } from "@/app/action/collectionAction";
 import { ButtonPrimary } from "@/app/ui/button";
-import { message, Checkbox } from "antd";
+import { message } from "antd";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import useSWR, { mutate } from "swr";
 import { SmallSpinner } from "@/app/ui/spinner";
 import Link from "next/link";
-import DropDown from "@/app/(frontend)/admin/ui/DropDown";
+// import DropDown from "@/app/(frontend)/admin/ui/DropDown";
 import { getAllCategories } from "@/app/action/categoryAction";
+import dynamic from "next/dynamic";
 
-export default memo(function NewCollection({ slug }) {
+const DropDown = dynamic(() => import("@/app/(frontend)/admin/ui/DropDown"), {
+  ssr: false,
+});
+
+const MediaUpload = dynamic(
+  () => import("@/app/(frontend)/admin/ui/MediaUpload"),
+  {
+    ssr: false,
+  },
+);
+
+const Checkbox = dynamic(() => import("antd").then((mod) => mod.Checkbox), {
+  ssr: false,
+});
+
+export default memo(function CollectionContent({ slug, collection }) {
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [bannerFileList, setBannerFileList] = useState([]);
@@ -35,8 +51,11 @@ export default memo(function NewCollection({ slug }) {
     getAllCollections,
     {
       revalidateOnFocus: false,
+      fallbackData: collection,
     },
   );
+
+  console.log(allCollections, "allCollections👇👇");
 
   const { data: allCategories, isLoading: catIsLoading } = useSWR(
     "/api/allCategories",
@@ -73,7 +92,7 @@ export default memo(function NewCollection({ slug }) {
   useEffect(() => {
     if (isLoading) return;
     if (slug !== "new" && allCollections?.data?.length) {
-      const selectedCollection = allCollections.data.find(
+      const selectedCollection = allCollections?.data.find(
         (collection) => collection.slug === slug,
       );
 
@@ -137,7 +156,7 @@ export default memo(function NewCollection({ slug }) {
       formData.append("isSale", isSale);
 
       if (type === "edit") {
-        const id = allCollections.data.find(
+        const id = allCollections?.data.find(
           (collection) => collection.slug === slug,
         ).id;
         formData.append("id", id);
@@ -175,7 +194,7 @@ export default memo(function NewCollection({ slug }) {
     </div>
   );
 
-  if (!allCollections?.data || !allCategories?.data) return <LoadingSpinner />;
+  if (!allCollections || !allCategories?.data) return <LoadingSpinner />;
 
   return (
     <form

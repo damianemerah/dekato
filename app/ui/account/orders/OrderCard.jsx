@@ -5,27 +5,25 @@ import { oswald } from "@/style/font";
 import React, { useState } from "react";
 import Link from "next/link";
 import { deleteOrder } from "@/app/action/orderAction";
-import useConfirmModal from "@/app/ui/confirm-modal";
+import DeleteIcon from "@/public/assets/icons/delete.svg";
+import { ButtonSecondary } from "../../button";
+
+import useSWR from "swr";
 
 function OrderCard({ order }) {
-  const showConfirmModal = useConfirmModal();
-
   const handleDelete = async () => {
-    showConfirmModal({
-      title: "Delete Order",
-      content: "Are you sure you want to delete this order?",
-      onOk: async () => {
-        try {
-          await deleteOrder(order.id);
-        } catch (error) {
-          console.error("Error deleting order:", error);
-        }
-      },
-    });
+    try {
+      await deleteOrder(order.id);
+    } catch (error) {
+      console.error("Error deleting order:", error);
+    }
   };
 
   return (
-    <div className="mb-4 border-2 border-gray-300 bg-white p-11">
+    <div className="relative mb-4 border-2 border-gray-300 bg-white p-11">
+      <div className="absolute right-3 top-3 cursor-pointer rounded-full fill-red-500 p-2 text-lg hover:bg-red-100">
+        <DeleteIcon onClick={handleDelete} aria-label="Delete order" />
+      </div>
       <div className="flex items-center justify-between border-b border-gray-300 pb-4">
         <div className="flex flex-col">
           <span className="font-oswald text-lg font-semibold">Status</span>
@@ -45,16 +43,12 @@ function OrderCard({ order }) {
         </div>
         <div className="flex gap-2">
           <Link href={`/account/orders/${order.id}`}>
-            <button className="border-2 border-[#C4C4C4] px-4 py-2 text-sm">
+            <ButtonSecondary
+              className={`${oswald.className} border-2 border-primary bg-white text-sm uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white`}
+            >
               View details
-            </button>
+            </ButtonSecondary>
           </Link>
-          <button
-            onClick={handleDelete}
-            className="border-2 border-red-500 px-4 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white"
-          >
-            Delete
-          </button>
         </div>
       </div>
 
@@ -63,7 +57,7 @@ function OrderCard({ order }) {
           Estimated Delivery :
         </span>
         <span className="ml-2 text-gray-500">
-          {order?.deliveryDate || "Not yet delivered"}
+          {order?.deliveryStatus !== "delivered" || "Not yet delivered"}
         </span>
       </div>
 
@@ -109,12 +103,12 @@ const OrderList = ({ orders }) => {
 
       {visibleOrders < orders.length && (
         <div className="mt-4 flex justify-center">
-          <button
+          <ButtonSecondary
             onClick={showMoreOrders}
-            className="border-2 border-gray-300 px-6 py-2 text-sm hover:border-gray-400"
+            className={`${oswald.className} border-2 border-primary bg-white text-sm uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white`}
           >
             View More Orders
-          </button>
+          </ButtonSecondary>
         </div>
       )}
     </div>
