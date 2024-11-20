@@ -14,12 +14,12 @@ export default function CustomerInfo({ order }) {
         <Text type="secondary">No notes from customer</Text>
       </Card>
       <Card style={{ marginTop: 24 }} title="Customer">
-        <Text>{`${order.user.firstname} ${order.user.lastname}`}</Text>
+        <Text>{`${order?.user?.firstname} ${order?.user?.lastname}`}</Text>
         <br />
-        <Text>{order.user.orderCount.length} orders</Text>
+        <Text>{order?.user?.orderCount?.length} orders</Text>
         <Divider />
         <Title level={5}>Contact Information</Title>
-        <Text>{order.user.email}</Text>
+        <Text>{order?.user?.email}</Text>
         <br />
         <Text>{order.address?.phone || "No phone provided"}</Text>
         <Divider />
@@ -30,14 +30,14 @@ export default function CustomerInfo({ order }) {
             <Divider />
             <Title level={5}>Shipping address</Title>
             <Text>
-              {order.address.firstname} {order.address.lastname}
+              {order?.address?.firstname} {order?.address?.lastname}
               <br />
-              {order.address.address}
+              {order?.address?.address}
               <br />
-              {order.address.city}, {order.address.state}{" "}
-              {order.address.postalCode}
+              {order?.address?.city}, {order?.address?.state}{" "}
+              {order?.address?.postalCode}
               <br />
-              {order.address.phone}
+              {order?.address?.phone}
             </Text>
           </>
         )}

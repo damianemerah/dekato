@@ -15,6 +15,7 @@ import Order from "@/models/order";
 import Product from "@/models/product";
 import Collection from "@/models/collection";
 import Notification from "@/models/notification";
+import { EmailSubscription } from "@/models/subscription";
 
 export async function createProductNotification(productName, adminName) {
   await dbConnect();
@@ -42,6 +43,7 @@ export async function getDashboardData() {
       productsData,
       collectionsData,
       notificationsData,
+      subscriptionData,
     ] = await Promise.all([
       Order.aggregate([
         {
@@ -131,6 +133,26 @@ export async function getDashboardData() {
           },
         },
       ]),
+      EmailSubscription.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalSubscribers: { $sum: 1 },
+            activeSubscribers: {
+              $sum: { $cond: [{ $eq: ["$status", "subscribed"] }, 1, 0] },
+            },
+            menPreference: {
+              $sum: { $cond: [{ $eq: ["$gender", "men"] }, 1, 0] },
+            },
+            womenPreference: {
+              $sum: { $cond: [{ $eq: ["$gender", "women"] }, 1, 0] },
+            },
+            bothPreference: {
+              $sum: { $cond: [{ $eq: ["$gender", "both"] }, 1, 0] },
+            },
+          },
+        },
+      ]),
     ]);
 
     const totalSales = salesData[0]?.totalSales || 0;
@@ -153,6 +175,16 @@ export async function getDashboardData() {
       onSale: collectionsData[0]?.saleCollections || 0,
     };
 
+    const newsletter = {
+      total: subscriptionData[0]?.totalSubscribers || 0,
+      active: subscriptionData[0]?.activeSubscribers || 0,
+      preferences: {
+        men: subscriptionData[0]?.menPreference || 0,
+        women: subscriptionData[0]?.womenPreference || 0,
+        both: subscriptionData[0]?.bothPreference || 0,
+      },
+    };
+
     return {
       totalSales,
       totalCustomers: customersCount,
@@ -162,6 +194,7 @@ export async function getDashboardData() {
       products,
       collections,
       recentNotifications: notificationsData,
+      newsletter,
     };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

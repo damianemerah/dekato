@@ -1,4 +1,4 @@
-import { roboto } from "@/style/font";
+import { oswald, roboto } from "@/style/font";
 import Provider from "@/app/ui/Provider";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 
@@ -10,18 +10,16 @@ import PromoBar from "@/app/ui/promo-bar";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${oswald.variable} ${roboto.variable}`}>
       <AntdRegistry>
         <Provider>
-          <body
-            className={`${roboto.className} relative min-h-screen antialiased`}
-          >
+          <body className="relative min-h-screen overflow-x-hidden antialiased">
             <Header />
-            <div className="flex w-full">
-              <div className="sticky top-14 z-50 h-[calc(100vh-3.5rem)]">
+            <div className="relative flex w-full">
+              <div className="sticky top-14 z-40 h-[calc(100vh-3.5rem)]">
                 <SidebarServer />
               </div>
-              <div className="flex-1 md:w-full md:shrink-0">
+              <div className="flex flex-1 shrink-0 flex-col md:w-full">
                 <div className="sticky top-14 z-[20]">
                   <PromoBar />
                 </div>

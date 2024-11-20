@@ -8,6 +8,7 @@ export const useAdminStore = create((set) => ({
   actionType: "",
   editVariantWithId: null,
   optionIsSaved: true,
+  productImages: [],
 
   setOptionIsSaved: (optionIsSaved) => set({ optionIsSaved }),
   setVariants: (variants) => set({ variants }),
@@ -88,4 +89,5 @@ export const useAdminStore = create((set) => ({
   setActionType: (actionType) => set({ actionType }),
   setVariantIsSaved: (variantIsSaved) => set({ variantIsSaved }),
   setEditVariantWithId: (editVariantWithId) => set({ editVariantWithId }),
+  setProductImages: (images) => set({ productImages: images }),
 }));

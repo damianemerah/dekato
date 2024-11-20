@@ -6,9 +6,10 @@ import DeleteIcon from "@/public/assets/icons/remove.svg";
 import { ButtonPrimary } from "@/app/ui/button";
 import { v4 as uuidv4 } from "uuid";
 import ModalWrapper from "./ModalWrapper";
-import { message } from "antd";
+import { message, Modal } from "antd";
 import DropDown from "../DropDown";
 import { omit, endsWith, filter, keys } from "lodash";
+import Image from "next/image";
 
 export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -17,18 +18,19 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
   const [fileList, setFileList] = useState([]);
   const [quantity, setQuantity] = useState(0);
   const [price, setPrice] = useState("");
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const variantOptions = useAdminStore((state) => state.variantOptions);
 
   const editVariantWithId = useAdminStore((state) => state.editVariantWithId);
   const variants = useAdminStore((state) => state.variants || []);
-  const setVariants = useAdminStore((state) => state.setVariants);
   const setEditVariantWithId = useAdminStore(
     (state) => state.setEditVariantWithId,
   );
 
   const updateVariant = useAdminStore((state) => state.updateVariant);
   const addVariant = useAdminStore((state) => state.addVariant);
+  const productImages = useAdminStore((state) => state.productImages || []);
 
   useEffect(() => {
     //clear inputs when modal is closed
@@ -86,7 +88,6 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     openSlider,
     variants,
     editVariantWithId,
-    fileList,
   ]);
 
   useEffect(() => {
@@ -144,7 +145,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
 
     const imageURL = fileList[0]?.originFileObj
       ? await getBase64(fileList[0]?.originFileObj)
-      : undefined;
+      : fileList[0]?.url || undefined;
 
     if (editVariantWithId) {
       updateVariant(editVariantWithId, {
@@ -166,6 +167,8 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
         message.info("Variant already exists.");
         return;
       }
+
+      console.log(fileList[0], "fileList12");
       const id = uuidv4();
       addVariant({
         id,
@@ -214,16 +217,36 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     [updateVariant, editVariantWithId],
   );
 
+  const handleSelectExistingImage = (imageUrl) => {
+    setFileList([
+      {
+        uid: uuidv4(),
+        name: "image.png",
+        status: "done",
+        url: imageUrl,
+      },
+    ]);
+    setIsImageModalOpen(false);
+  };
+
+  if (variants.length === 0) {
+    return (
+      <ModalWrapper setOpenSlider={setOpenSlider} openSlider={openSlider}>
+        <div>No variants options found</div>
+      </ModalWrapper>
+    );
+  }
+
   return (
     <ModalWrapper setOpenSlider={setOpenSlider} openSlider={openSlider}>
       <div className="flex min-h-24 items-center justify-between px-6">
-        <h1 className="text-xl font-medium text-primary">Edit Variants</h1>
+        <h2 className="text-xl font-medium text-primary">Edit Variants</h2>
         <div className="cursor-pointer rounded-md p-1 text-xl hover:bg-grayBg">
           <DeleteIcon onClick={() => setOpenSlider(false)} />
         </div>
       </div>
       <div className="h-full bg-grayBg p-6">
-        <h2 className="font- mb-4 text-2xl text-primary">
+        <h2 className="mb-4 text-lg font-medium text-primary">
           Select options for product variants
         </h2>
         <div className="mb-6 flex w-full flex-col gap-4 sm:flex-row md:flex-row">
@@ -231,6 +254,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
             <DropDown
               key={group.name}
               options={group.options}
+              placeholder={group.name}
               selectedKeys={group.selected}
               handleChange={(value) => {
                 const updatedGroupList = groupList.map((item) => {
@@ -247,8 +271,14 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
             />
           ))}
         </div>
-
-        <div className="mb-6 rounded-lg p-6 shadow-shadowSm">
+        <div className="mb-6 flex items-center justify-center gap-4 rounded-lg p-6 shadow-shadowSm">
+          <button
+            className="mt-2 rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            onClick={() => setIsImageModalOpen(true)}
+            aria-label="Choose from existing product images"
+          >
+            Choose from existing images
+          </button>
           <MediaUpload
             multiple={false}
             fileList={fileList}
@@ -300,6 +330,30 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
           Add variant
         </ButtonPrimary>
       </div>
+
+      <Modal
+        title="Select Product Image"
+        open={isImageModalOpen}
+        onCancel={() => setIsImageModalOpen(false)}
+        footer={null}
+      >
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {productImages.map((imageUrl, index) => (
+            <div
+              key={index}
+              className="relative aspect-square cursor-pointer overflow-hidden rounded-lg border hover:border-primary"
+              onClick={() => handleSelectExistingImage(imageUrl)}
+            >
+              <Image
+                src={imageUrl}
+                alt={`Product ${index + 1}`}
+                fill
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </Modal>
     </ModalWrapper>
   );
 });

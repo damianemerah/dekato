@@ -8,7 +8,8 @@ import { SmallSpinner } from "@/app/ui/spinner";
 import Link from "next/link";
 import { InputType } from "@/app/ui/inputType";
 import { ButtonPrimary } from "@/app/ui/button";
-
+import GoogleIcon from "@/public/assets/icons/google.svg";
+import ArrowRightIcon from "@/public/assets/icons/arrow_right.svg";
 const ViewIcon = dynamic(() => import("@/public/assets/icons/view.svg"));
 const ViewOff = dynamic(() => import("@/public/assets/icons/view-off.svg"));
 
@@ -132,12 +133,26 @@ function SignInContent({ searchParams }) {
           )}
         </ButtonPrimary>
       </form>
-      <ButtonPrimary
+
+      <p className="flex__center mt-4 gap-4 text-center text-gray-500">
+        <span className="h-px w-1/2 bg-gray-300"></span>
+        <label className="text-nowrap">Or sign in with</label>
+        <span className="h-px w-1/2 bg-gray-300"></span>
+      </p>
+      <div className="flex__center mt-4 gap-5">
+        <GoogleIcon
+          className="inline-block cursor-pointer text-4xl"
+          onClick={() => signIn("google")}
+        />
+      </div>
+      <Link
+        href="/#selected-category"
         onClick={handleContinueShopping}
-        className="mx-auto mt-4 w-full bg-gray-500"
+        className="mx-auto mt-5 flex w-full items-center justify-end gap-2 text-sm text-gray-500 hover:underline"
       >
         Continue Shopping
-      </ButtonPrimary>
+        <ArrowRightIcon className="w-4" />
+      </Link>
     </div>
   );
 }

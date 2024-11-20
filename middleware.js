@@ -3,13 +3,17 @@ import { getToken } from "next-auth/jwt";
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
-  const protectedRoutes = ["/admin", "/account", "/checkout"];
+  const protectedRoutes = ["/admin", "/account", "/checkout", "/cart"];
 
-  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+  if (
+    protectedRoutes.some((route) => pathname.toLowerCase().startsWith(route))
+  ) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
+
+    console.log(token, "💎🎈🎈🎈");
 
     if (!token) {
       const callbackUrl = encodeURIComponent(request.url);
@@ -30,5 +34,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*", "/checkout"],
+  matcher: ["/admin/:path*", "/account/:path*", "/checkout", "/cart"],
 };

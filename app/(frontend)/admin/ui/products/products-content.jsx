@@ -17,7 +17,6 @@ import { getAllCollections } from "@/app/action/collectionAction";
 import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import { generateVariantOptions } from "@/utils/getFunc";
 import useConfirmModal from "@/app/ui/confirm-modal";
-import "react-quill/dist/quill.snow.css";
 import { useUserStore } from "@/store/store";
 import ProductForm from "@/app/(frontend)/admin/ui/products/productForm";
 
@@ -68,9 +67,6 @@ const Page = memo(function Page({ slug }) {
     () => (slug !== "new" ? getAdminProductById(slug) : null),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => {
-        console.log(data, 222222);
-      },
     },
   );
 
@@ -197,10 +193,6 @@ const Page = memo(function Page({ slug }) {
         formData.append("campaign", collectionId),
       );
 
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
       const action = actionType === "create" ? createProduct : updateProduct;
       if (actionType === "edit") formData.append("id", slug);
 
@@ -212,6 +204,10 @@ const Page = memo(function Page({ slug }) {
       message.success(
         `Product ${actionType === "create" ? "created" : "updated"}`,
       );
+
+      if (actionType === "create") {
+        router.push(`/admin/products/${product.id}`);
+      }
     } catch (err) {
       message.error(err.message);
     } finally {

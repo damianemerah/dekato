@@ -5,6 +5,7 @@ import { productSearch } from "../action/productAction";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SearchOutlined, CloseOutlined } from "@ant-design/icons";
+import Image from "next/image";
 
 // Debounce hook to delay the search input
 function useDebounce(value, delay) {
@@ -59,15 +60,20 @@ const SearchBox = ({ className }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        !dropdownRef?.current?.contains(event.target) &&
-        !searchRef?.current?.contains(event.target) &&
-        !mobileSearchRef?.current?.contains(event.target)
-      ) {
+      // Check if click is on the input itself
+      const isClickOnInput =
+        searchRef?.current?.contains(event.target) ||
+        mobileSearchRef?.current?.contains(event.target);
+
+      console.log(isClickOnInput, "isClickOnInput🔥🔥🔥");
+
+      // Only close if click is outside both dropdown and inputs
+      if (!dropdownRef?.current?.contains(event.target) && !isClickOnInput) {
         setActiveDropdown(false);
         setShowMobileSearch(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setActiveDropdown]);
@@ -109,26 +115,64 @@ const SearchBox = ({ className }) => {
             <SearchOutlined className="!text-primary" />
           </button>
         </form>
-        {pSearchList?.products && activeDropdown && (
-          <ul
-            ref={dropdownRef}
-            className="absolute left-0 right-0 z-40 mt-2 max-h-60 overflow-y-auto bg-white text-primary shadow-sm"
-          >
-            {pSearchList?.products.map((product) => (
-              <li
-                key={product.id}
-                className="cursor-pointer truncate px-4 py-2 text-sm lowercase opacity-90 hover:bg-gray-200"
-              >
-                <Link
-                  href={`/p/${product.slug}-${product.id}`}
-                  className="text-primary hover:text-gray-900"
-                >
-                  {product.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        {(pSearchList?.categories || pSearchList?.products) &&
+          activeDropdown && (
+            <div
+              ref={dropdownRef}
+              className="absolute left-0 right-0 z-40 mt-2 max-h-96 overflow-y-auto bg-white text-primary shadow-sm"
+            >
+              {pSearchList?.categories?.length > 0 && (
+                <div className="border-b border-gray-100 px-4 py-2">
+                  <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">
+                    Categories
+                  </h3>
+                  <ul>
+                    {pSearchList.categories.map((category) => (
+                      <li key={category._id} className="mb-1">
+                        <Link
+                          href={`/category/${category.slug}`}
+                          className="block py-1 text-sm text-primary hover:text-gray-900"
+                        >
+                          {category.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {pSearchList?.products?.length > 0 && (
+                <div className="px-4 py-2">
+                  <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">
+                    Products
+                  </h3>
+                  <ul>
+                    {pSearchList.products.map((product) => (
+                      <li
+                        key={product.id}
+                        className="mb-2 flex items-center gap-3 hover:bg-gray-50"
+                      >
+                        <div className="h-12 w-12 flex-shrink-0">
+                          <Image
+                            src={product.image[0]}
+                            alt={product.name}
+                            width={48}
+                            height={48}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <Link
+                          href={`/p/${product.slug}-${product.id}`}
+                          className="flex-1 py-2 text-sm text-primary hover:text-gray-900"
+                        >
+                          {product.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
       </div>
       <div className="lg:hidden">
         <button onClick={handleMobileSearchClick}>
@@ -158,26 +202,64 @@ const SearchBox = ({ className }) => {
               <CloseOutlined className="text-lg !text-primary" />
             </button>
           </form>
-          {pSearchList?.products && activeDropdown && (
-            <ul
-              ref={dropdownRef}
-              className="mt-2 max-h-60 w-full overflow-y-auto bg-white text-gray-800 shadow-sm"
-            >
-              {pSearchList?.products.map((product) => (
-                <li
-                  key={product.id}
-                  className="cursor-pointer truncate px-4 py-2 text-sm lowercase opacity-90 hover:bg-gray-200"
-                >
-                  <Link
-                    href={`/p/${product.slug}-${product.id}`}
-                    className="text-gray-800 hover:text-gray-900"
-                  >
-                    {product.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          {(pSearchList?.categories || pSearchList?.products) &&
+            activeDropdown && (
+              <div
+                ref={dropdownRef}
+                className="mt-2 max-h-96 w-full overflow-y-auto bg-white text-gray-800 shadow-sm"
+              >
+                {pSearchList?.categories?.length > 0 && (
+                  <div className="border-b border-gray-100 px-4 py-2">
+                    <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">
+                      Categories
+                    </h3>
+                    <ul>
+                      {pSearchList.categories.map((category) => (
+                        <li key={category._id} className="mb-1">
+                          <Link
+                            href={`/category/${category.slug}`}
+                            className="block py-1 text-sm text-gray-800 hover:text-gray-900"
+                          >
+                            {category.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {pSearchList?.products?.length > 0 && (
+                  <div className="px-4 py-2">
+                    <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">
+                      Products
+                    </h3>
+                    <ul>
+                      {pSearchList.products.map((product) => (
+                        <li
+                          key={product.id}
+                          className="mb-2 flex items-center gap-3 hover:bg-gray-50"
+                        >
+                          <div className="h-12 w-12 flex-shrink-0">
+                            <Image
+                              src={product.image[0]}
+                              alt={product.name}
+                              width={48}
+                              height={48}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <Link
+                            href={`/p/${product.slug}-${product.id}`}
+                            className="flex-1 py-2 text-sm text-gray-800 hover:text-gray-900"
+                          >
+                            {product.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       )}
     </>

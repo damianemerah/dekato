@@ -8,7 +8,7 @@ export default function useCartData(userId) {
   const { setCart, cart } = useCartStore();
   const { data, isLoading, isValidating, error } = useSWR(
     userId ? `/cart/${userId}` : null,
-    () => fetchCart(userId),
+    () => (userId ? fetchCart(userId) : null),
     {
       onSuccess: setCart,
       fallbackData: cart,

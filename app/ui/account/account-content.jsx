@@ -96,19 +96,15 @@ export default function Overview() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl bg-white">
+    <main>
       <div className="space-y-12">
         <section className="space-y-6">
-          <h2
-            className={`${oswald.className} border-b pb-2 text-3xl font-semibold text-primary`}
-          >
+          <h2 className="border-b pb-2 font-oswald text-3xl font-semibold text-primary">
             Account Information
           </h2>
           <div className="grid gap-8 md:grid-cols-2">
             <div className="space-y-4">
-              <h3
-                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
-              >
+              <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
                 Contact Information
               </h3>
               <div className="bg-grayBg p-4">
@@ -139,18 +135,14 @@ export default function Overview() {
               </div>
             </div>
             <div className="space-y-4">
-              <h3
-                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
-              >
+              <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
                 Newsletter
               </h3>
               <div className="bg-grayBg p-4">
                 <p>You are not subscribed to our newsletter.</p>
               </div>
               <Link href="/account/newsletter" className="block">
-                <ButtonSecondary
-                  className={`${oswald.className} border-2 border-primary bg-white text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white`}
-                >
+                <ButtonSecondary className="border-2 border-primary bg-white font-oswald text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white">
                   Edit subscription
                 </ButtonSecondary>
               </Link>
@@ -158,17 +150,13 @@ export default function Overview() {
           </div>
         </section>
         <section className="space-y-6">
-          <h2
-            className={`${oswald.className} border-b pb-2 text-3xl font-semibold text-primary`}
-          >
+          <h2 className="border-b pb-2 font-oswald text-3xl font-semibold text-primary">
             Address Book
           </h2>
           <div className="grid gap-8 md:grid-cols-2">
             {defaultAddress ? (
               <div className="space-y-4">
-                <h3
-                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
-                >
+                <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
                   Shipping Address
                 </h3>
                 <div className="bg-grayBg p-4">
@@ -198,9 +186,7 @@ export default function Overview() {
               </div>
             ) : (
               <div className="space-y-4">
-                <h3
-                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
-                >
+                <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
                   Shipping Address
                 </h3>
                 <p>No default shipping address found.</p>
@@ -313,6 +299,6 @@ export default function Overview() {
           </ButtonSecondary>
         </div>
       </Modal>
-    </div>
+    </main>
   );
 }

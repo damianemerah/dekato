@@ -49,6 +49,13 @@ export default async function CategoryProducts({ cat, searchParams }) {
             </div>
           )}
         </div>
+        {data?.description && (
+          <div className="mx-auto bg-grayBg px-4 py-12 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-3xl text-start text-gray-500">
+              <div dangerouslySetInnerHTML={{ __html: data.description }} />
+            </div>
+          </div>
+        )}
 
         <div
           className={`mb-10 flex items-center justify-center gap-5 bg-primary text-white`}

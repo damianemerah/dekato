@@ -5,6 +5,7 @@ import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
 import { useCategoryStore } from "@/store/store";
 import dynamic from "next/dynamic";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const CategoryLink = dynamic(() => import("./category-link"), {
   ssr: false,
@@ -44,24 +45,27 @@ export default memo(function HomeCategory() {
     [setSelectedCategory],
   );
 
-  const handleScroll = (direction) => {
-    const container = document.getElementById("category-container");
-    const scrollAmount = 300;
+  const handleScroll = useCallback(
+    (direction) => {
+      const container = document.getElementById("category-container");
+      const scrollAmount = 300;
 
-    if (direction === "left") {
-      container.scrollTo({
-        left: Math.max(0, scrollPosition - scrollAmount),
-        behavior: "smooth",
-      });
-    } else {
-      container.scrollTo({
-        left: scrollPosition + scrollAmount,
-        behavior: "smooth",
-      });
-    }
+      if (direction === "left") {
+        container.scrollTo({
+          left: Math.max(0, scrollPosition - scrollAmount),
+          behavior: "smooth",
+        });
+      } else {
+        container.scrollTo({
+          left: scrollPosition + scrollAmount,
+          behavior: "smooth",
+        });
+      }
 
-    setScrollPosition(container.scrollLeft);
-  };
+      setScrollPosition(container.scrollLeft);
+    },
+    [scrollPosition],
+  );
 
   if (
     !isLoading &&
@@ -72,14 +76,15 @@ export default memo(function HomeCategory() {
 
   return (
     <div
-      className={`mb-8 mt-4 py-5 ${oswald.className} min-h-[300px] px-4 sm:px-6 md:px-8`}
+      className={`${oswald.className} mb-8 mt-4 min-h-[300px] px-4 py-5 sm:px-6 md:px-8`}
+      id="selected-category"
     >
       <div className="ml-2 flex flex-col gap-1 sm:ml-4 md:ml-8">
-        <h2 className="mb-2 text-2xl text-primary sm:text-3xl">
+        <h2 className="mb-2 text-xl font-bold text-primary sm:text-2xl md:text-3xl">
           SELECTED CATEGORY
         </h2>
-        <div className="mb-4 flex gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
-          <p className="whitespace-nowrap text-nowrap text-[13px] font-bold tracking-wide text-grayText">
+        <div className="mb-4 flex flex-wrap gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
+          <p className="whitespace-nowrap text-xs font-bold tracking-wide text-grayText sm:text-sm">
             Filter by:
           </p>
           <ul className="flex gap-4">
@@ -88,7 +93,7 @@ export default memo(function HomeCategory() {
                 key={category}
                 className={`${
                   selectedCategory === category ? "active__category" : ""
-                } cursor-pointer text-sm font-bold uppercase tracking-wide sm:text-base`}
+                } cursor-pointer text-xs font-bold uppercase tracking-wide sm:text-sm`}
                 onClick={() => handleCategoryChange(category)}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -101,33 +106,45 @@ export default memo(function HomeCategory() {
       <div className="relative">
         <button
           onClick={() => handleScroll("left")}
-          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md hover:bg-white"
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
           aria-label="Scroll left"
         >
-          ←
+          <ChevronLeft className="h-6 w-6" />
         </button>
 
         <div
           id="category-container"
-          className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth px-3 pb-4"
+          className="flex gap-4 overflow-x-auto scroll-smooth px-3 pb-4"
         >
-          {categorizedListState.map((category, index) => (
-            <div
-              key={index}
-              className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
-            >
-              <CategoryLink category={category} />
-            </div>
-          ))}
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+                >
+                  <div className="aspect-square w-full animate-pulse bg-gray-200">
+                    <div className="flex h-full items-end justify-center">
+                      <div className="h-8 w-32 rounded bg-gray-300" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            : categorizedListState.map((category, index) => (
+                <div
+                  key={index}
+                  className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+                >
+                  <CategoryLink category={category} />
+                </div>
+              ))}
+          <button
+            onClick={() => handleScroll("right")}
+            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
         </div>
-
-        <button
-          onClick={() => handleScroll("right")}
-          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md hover:bg-white"
-          aria-label="Scroll right"
-        >
-          →
-        </button>
       </div>
     </div>
   );

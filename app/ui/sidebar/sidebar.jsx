@@ -6,6 +6,16 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
 import { signOut } from "next-auth/react";
+import { mutate } from "swr";
+
+const accountLinks = [
+  { href: "/account", label: "Account Dashboard" },
+  { href: "/account/orders", label: "My Orders" },
+  { href: "/account/wishlist", label: "My Wishlist" },
+  { href: "/account/address", label: "Address Book" },
+  { href: "/account/payment", label: "Payment Method" },
+  { href: "/account/newsletter", label: "Newsletter" },
+];
 
 export default memo(function Sidebar({ categories, collections }) {
   const {
@@ -18,7 +28,15 @@ export default memo(function Sidebar({ categories, collections }) {
     setMenuIsClicked,
   } = useSidebarStore();
 
-  const setUser = useUserStore((state) => state.setUser);
+  const { user, setUser } = useUserStore(
+    useCallback(
+      (state) => ({
+        user: state.user,
+        setUser: state.setUser,
+      }),
+      [],
+    ),
+  );
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const isBelowThreshold = useIsBelowThreshold();
@@ -26,14 +44,13 @@ export default memo(function Sidebar({ categories, collections }) {
 
   const handleResize = useCallback(() => {
     setIsMobile(isBelowThreshold);
-
     if (isBelowThreshold && !useSidebarStore.getState().menuIsClicked) {
       closeSidebar();
     }
     if (!isBelowThreshold && lgScreenSidebar && !pathname.startsWith("/cart")) {
       openSidebar();
     }
-    setMenuIsClicked(false);
+    if (!isBelowThreshold) setMenuIsClicked(false);
   }, [
     closeSidebar,
     openSidebar,
@@ -64,9 +81,10 @@ export default memo(function Sidebar({ categories, collections }) {
   }, [pathname, closeSidebar, setLgScreenSidebar]);
 
   const handleSignOut = useCallback(async () => {
+    await mutate(`/api/user/${user?.id}`, null);
     await signOut({ callbackUrl: "/" });
     setUser(null);
-  }, [setUser]);
+  }, [setUser, user?.id]);
 
   const toggleExpand = useCallback((label) => {
     setExpandedItem((prev) => (prev === label ? null : label));
@@ -145,7 +163,7 @@ export default memo(function Sidebar({ categories, collections }) {
     [mapCategories, collections],
   );
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/account")) {
+  if (pathname.startsWith("/admin")) {
     return null;
   }
 
@@ -153,7 +171,7 @@ export default memo(function Sidebar({ categories, collections }) {
     <>
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black bg-opacity-50"
           onClick={toggleSidebar}
         ></div>
       )}
@@ -162,12 +180,12 @@ export default memo(function Sidebar({ categories, collections }) {
           isSidebarOpen
             ? "visible min-w-[250px] translate-x-0"
             : "invisible w-0 -translate-x-full"
-        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-50 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
+        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-40 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
       >
         <nav className="h-full overflow-y-auto">
           <ul className={`${oswald.className} divide-y divide-gray-200`}>
             {sidebarItems?.map((item, index) => (
-              <li key={index} className="px-6 py-4">
+              <li key={index} className="p-4">
                 {item.children && item.children.length > 0 ? (
                   <>
                     <div
@@ -178,33 +196,35 @@ export default memo(function Sidebar({ categories, collections }) {
                       {toggleIcon(expandedItem, item.label)}
                     </div>
                     <ul
-                      className={`mt-2 space-y-2 transition-all duration-300 ease-in-out ${
-                        expandedItem === item.label ? "block" : "hidden"
+                      className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
+                        expandedItem === item.label
+                          ? "max-h-[1000px] opacity-100"
+                          : "max-h-0 opacity-0"
                       }`}
                     >
                       {item.children.map((child, childIndex) => (
-                        <li key={childIndex} className="pl-4">
+                        <li key={childIndex} className="p-2">
                           {child.children && child.children.length > 0 ? (
                             <>
                               <div
                                 onClick={() => toggleExpand(child.label)}
-                                className="flex cursor-pointer items-center justify-between py-2 text-sm text-gray-600 hover:text-primary"
+                                className="flex cursor-pointer items-center justify-between text-sm text-gray-600 hover:text-primary"
                               >
                                 {child.label}
                                 {toggleIcon(expandedItem, child.label)}
                               </div>
                               <ul
-                                className={`ml-4 space-y-2 transition-all duration-300 ease-in-out ${
+                                className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
                                   expandedItem === child.label
-                                    ? "block"
-                                    : "hidden"
+                                    ? "max-h-[500px] opacity-100"
+                                    : "max-h-0 opacity-0"
                                 }`}
                               >
                                 {child.children.map(
                                   (grandChild, grandChildIndex) => (
                                     <li
                                       key={grandChildIndex}
-                                      className="py-1 text-xs"
+                                      className="p-2 text-xs"
                                     >
                                       <Link
                                         href={grandChild.href || "#"}
@@ -220,7 +240,7 @@ export default memo(function Sidebar({ categories, collections }) {
                           ) : (
                             <Link
                               href={child.href || "#"}
-                              className="block py-2 text-sm text-gray-600 hover:text-primary"
+                              className="block text-sm text-gray-600 hover:text-primary"
                             >
                               {child.label}
                             </Link>
@@ -239,81 +259,42 @@ export default memo(function Sidebar({ categories, collections }) {
                 )}
               </li>
             ))}
-            <li className="px-6 py-4">
-              <div
-                onClick={() => toggleExpand("MY ACCOUNT")}
-                className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
-              >
-                MY ACCOUNT
-                {toggleIcon(expandedItem, "MY ACCOUNT")}
-              </div>
-              <ul
-                className={`mt-2 space-y-2 transition-all duration-300 ease-in-out ${
-                  expandedItem === "MY ACCOUNT" ? "block" : "hidden"
-                }`}
-              >
-                <li className="pl-4">
-                  <div
-                    onClick={() => toggleExpand("MANAGE PROFILE")}
-                    className="flex cursor-pointer items-center justify-between py-2 text-sm text-gray-600 hover:text-primary"
-                  >
-                    Manage profile
-                    {toggleIcon(expandedItem, "MANAGE PROFILE")}
-                  </div>
-                  <ul
-                    className={`ml-4 space-y-2 transition-all duration-300 ease-in-out ${
-                      expandedItem === "MANAGE PROFILE" ? "block" : "hidden"
-                    }`}
-                  >
-                    <li>
+            {user?.id && (
+              <li className="p-4">
+                <div
+                  onClick={() => toggleExpand("MY ACCOUNT")}
+                  className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
+                >
+                  MY ACCOUNT
+                  {toggleIcon(expandedItem, "MY ACCOUNT")}
+                </div>
+                <ul
+                  className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
+                    expandedItem === "MY ACCOUNT"
+                      ? "max-h-[1000px] opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  {accountLinks.map(({ href, label }) => (
+                    <li key={href} className="p-2">
                       <Link
-                        href="/account/settings"
-                        className="block py-2 text-xs text-gray-500 hover:text-primary"
+                        href={href}
+                        className={`block text-sm text-gray-600 hover:text-primary ${
+                          pathname === href ? "font-semibold" : ""
+                        }`}
                       >
-                        Profile settings
+                        {label}
                       </Link>
                     </li>
-                    <li>
-                      <Link
-                        href="/account/change-password"
-                        className="block py-2 text-xs text-gray-500 hover:text-primary"
-                      >
-                        Change password
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/account/addresses"
-                        className="block py-2 text-xs text-gray-500 hover:text-primary"
-                      >
-                        Addresses
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/account/newsletters"
-                        className="block py-2 text-xs text-gray-500 hover:text-primary"
-                      >
-                        Newsletters
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
-                <li className="pl-4">
-                  <Link
-                    href="/account/orders"
-                    className="block py-2 text-sm text-gray-600 hover:text-primary"
-                  >
-                    Orders
-                  </Link>
-                </li>
-                <li className="pl-4" onClick={handleSignOut}>
-                  <div className="block py-2 text-sm text-gray-600 hover:text-primary">
-                    Log out
-                  </div>
-                </li>
-              </ul>
-            </li>
+                  ))}
+                  <li className="p-2" onClick={handleSignOut}>
+                    <div className="block cursor-pointer text-sm text-gray-600 hover:text-primary">
+                      Log out
+                    </div>
+                  </li>
+                </ul>
+              </li>
+            )}
           </ul>
         </nav>
       </aside>

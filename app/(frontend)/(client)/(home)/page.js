@@ -32,8 +32,8 @@ export default function Home() {
       <main>
         <SelectedCategories />
         <Campaign />
-        <h2 className="p-6 pt-9 text-3xl">YOU MAY LIKE</h2>
-        <div className="mb-10 min-h-20">
+        <div className="mb-10 px-4">
+          <h2 className="pb-1 pt-6 font-oswald font-bold">YOU MAY LIKE</h2>
           <RecommendedProducts category="men" />
         </div>
       </main>

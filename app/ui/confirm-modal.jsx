@@ -16,7 +16,7 @@ const useConfirmModal = () => {
         className:
           "!border-gray-300 !text-gray-700 !hover:border-gray-400 !rounded-none",
       },
-      className: `${oswald.className}`,
+      className: `font-oswald`,
       maskClosable: true,
       wrapClassName: "custom-modal-wrap",
       styles: {

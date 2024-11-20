@@ -166,7 +166,7 @@ export async function productSearch(searchQuery) {
 
     const categories = await handleProductQuery(
       Category.find().select("name slug").lean(),
-      { ...searchQuery, limit: 3 },
+      { ...searchQuery, limit: 6 },
     );
 
     return { products, categories };
@@ -234,8 +234,9 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     let baseQuery = Product.find({ quantity: { $gt: 0 }, status: "active" });
     let isFallback = false;
     searchParams.limit = 20;
+    const lastSlug = slugArray[slugArray.length - 1].toLowerCase();
 
-    if (slugArray[slugArray.length - 1].toLowerCase() !== "search") {
+    if (lastSlug !== "search") {
       if (slugArray.length === 1) {
         // Case 1: Single slug (e.g., [men] or [jeans])
         const topLevelCategory = await Category.findOne({
@@ -296,7 +297,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
         ],
       })
         .select(
-          "name slug _id image price discount status quantity discountPrice discountDuration",
+          "name slug _id image price discount status quantity discountPrice discountDuration variant",
         )
         .populate("category", "name slug path")
         .populate("campaign", "name slug path");
@@ -311,9 +312,40 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       .sort()
       .paginate();
 
-    const productData = await feature.query;
+    let productData = await feature.query;
 
     if (!productData?.length) return [];
+
+    if (searchParams["color-vr"]) {
+      const colorVariants = searchParams["color-vr"].split(",");
+
+      // Expand products with matching color variants
+      const expandedProducts = productData.flatMap((product) => {
+        const matchingVariants =
+          product.variant?.filter((v) => {
+            return (
+              v.options?.color?.toLowerCase() &&
+              colorVariants.includes(v.options.color.toLowerCase())
+            );
+          }) || [];
+
+        if (matchingVariants.length === 0) return [];
+
+        // Create a product entry for each matching color variant
+        return matchingVariants.map((variant) => ({
+          ...product,
+          image: variant.image
+            ? [
+                variant.image,
+                ...product.image.filter((img) => img !== variant.image),
+              ]
+            : product.image,
+        }));
+      });
+
+      // Replace productData with expanded variant products
+      productData = expandedProducts;
+    }
 
     const data = productData.map(formatProduct);
 
@@ -331,16 +363,32 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       limit,
     };
 
-    if (isCampaign && campaigns.length > 0) {
-      const campaignWithBanner = await Campaign.findById(campaigns[0]._id)
-        .select("banner")
-        .lean({ virtuals: true });
-      if (campaignWithBanner && campaignWithBanner.banner) {
-        result.banner = campaignWithBanner.banner;
+    // Get description based on exact path match
+    const exactPath = slugArray.join("/");
+    let description;
+
+    if (isCampaign) {
+      const matchedCampaign = await Campaign.findOne({ path: exactPath })
+        .select("banner description")
+        .lean();
+      if (matchedCampaign) {
+        description = matchedCampaign.description;
+        if (matchedCampaign.banner) {
+          result.banner = matchedCampaign.banner;
+        }
+      }
+    } else {
+      const matchedCategory = await Category.findOne({ path: exactPath })
+        .select("description")
+        .lean();
+      if (matchedCategory) {
+        description = matchedCategory.description;
       }
     }
 
-    console.log(result, "result🔥🔥🔥");
+    if (description) {
+      result.description = description;
+    }
 
     return result;
   } catch (err) {

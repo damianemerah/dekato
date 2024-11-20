@@ -36,7 +36,7 @@ export default function Payment() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <h2 className={`${oswald.className} pb-2 text-2xl text-primary`}>
         Payment Methods
       </h2>

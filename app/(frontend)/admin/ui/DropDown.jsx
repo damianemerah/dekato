@@ -1,10 +1,17 @@
 import { Select, Space } from "antd";
 import { memo } from "react";
 
-const DropDown = ({ selectedKeys, handleChange, mode, options }) => (
+const DropDown = ({
+  selectedKeys,
+  handleChange,
+  mode,
+  options,
+  placeholder = "Please select",
+}) => (
   <Space
     style={{
       width: "100%",
+      maxWidth: "400px",
     }}
     direction="vertical"
   >
@@ -14,8 +21,8 @@ const DropDown = ({ selectedKeys, handleChange, mode, options }) => (
       style={{
         width: "100%",
       }}
-      placeholder="Please select"
-      value={selectedKeys}
+      placeholder={placeholder}
+      value={selectedKeys || undefined}
       onChange={handleChange}
       options={options}
     />
