@@ -1,18 +1,19 @@
 import AddSingleVariant from "@/app/(frontend)/admin/ui/products/AddSingleVariant";
 import VariantsSection from "@/app/(frontend)/admin/ui/products/ProductVariantForm";
 import EditVariant from "@/app/(frontend)/admin/ui/products/EditVariant";
+import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 import Link from "next/link";
 import { roboto } from "@/style/font";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import { Switch, Space, DatePicker } from "antd";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown";
-import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const Tiptap = dynamic(() => import("@/app/ui/text-editor"), { srr: false });
 
 const ProductForm = ({
   handleFormSubmit,
@@ -47,12 +48,19 @@ const ProductForm = ({
 }) => {
   const isCreateMode = actionType === "create";
   const [discountDuration, setDiscountDuration] = useState(null);
+  const setProductImages = useAdminStore((state) => state.setProductImages);
 
   useEffect(() => {
     if (selectedProduct?.discountDuration) {
       setDiscountDuration(dayjs(selectedProduct.discountDuration));
     }
   }, [selectedProduct?.discountDuration]);
+
+  useEffect(() => {
+    if (selectedProduct?.image) {
+      setProductImages(selectedProduct.image);
+    }
+  }, [selectedProduct?.image, setProductImages]);
 
   return (
     <div className="relative h-full">
@@ -161,26 +169,9 @@ const ProductDetails = ({
       <FormField
         label="DESCRIPTION"
         name="description"
-        as={ReactQuill}
-        theme="snow"
+        as={Tiptap}
         value={description}
         onChange={setDescription}
-        modules={{
-          toolbar: [
-            [{ header: [1, 2, 3, 4, false] }],
-            ["bold", "italic", "underline", "blockquote"],
-            [
-              { list: "ordered" },
-              { list: "bullet" },
-              { indent: "-1" },
-              { indent: "+1" },
-            ],
-            ["clean"],
-            [{ color: [] }, { background: [] }],
-          ],
-          clipboard: { matchVisual: false },
-          history: { delay: 1000, maxStack: 100 },
-        }}
       />
     </FormSection>
     <FormSection className="mb-6 sm:p-6">

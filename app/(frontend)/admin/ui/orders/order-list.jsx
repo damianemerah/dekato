@@ -88,10 +88,10 @@ const Orders = React.memo(function Orders({ searchParams }) {
                 : "Pending"}
           </Tag>
         ),
-        total: item.total,
-        date: dayjs(item.createdAt).format("MMM D, YYYY HH:mm"),
-        customer: item.user.firstname + " " + item.user.lastname,
-        order: item.paymentRef,
+        total: item?.total,
+        date: dayjs(item?.createdAt).format("MMM D, YYYY HH:mm"),
+        customer: item?.user?.firstname + " " + item?.user?.lastname,
+        order: item?.paymentRef,
       })) || [],
     [orderData],
   );
@@ -161,7 +161,6 @@ const Orders = React.memo(function Orders({ searchParams }) {
   );
 
   const onSelectChange = useCallback((newSelectedRowKeys) => {
-    console.log(newSelectedRowKeys, "newSelectedRowKeys🔥🔥🔥");
     setSelectedRowKeys(newSelectedRowKeys);
   }, []);
 

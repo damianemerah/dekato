@@ -41,7 +41,7 @@ export const useAddressStore = createPersistedStore(
 
 export const useCartStore = createPersistedStore(
   (set) => ({
-    cart: [],
+    cart: null,
     setCart: (cart) => set({ cart }),
     cartIsLoading: false,
     setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),

@@ -6,7 +6,7 @@ import Product from "@/models/product";
 import { handleFormData } from "@/utils/handleForm";
 import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import APIFeatures from "@/utils/apiFeatures";
 import _ from "lodash";
 
@@ -118,6 +118,7 @@ export async function updateCollection(formData) {
 
     revalidatePath(`/admin/collections/${collection.slug}`);
     revalidatePath(`/admin/collections`);
+    revalidateTag("products-all");
 
     return { ...formatCollections([collection])[0], productCount };
   } catch (err) {
@@ -212,8 +213,7 @@ export async function getCollections() {
 
     const collections = await Campaign.find({})
       .populate("category", "name slug isSale")
-      .lean({ virtuals: true })
-      .exec(); // Add exec() to ensure proper promise handling
+      .lean({ virtuals: true });
 
     if (!collections) {
       throw new Error("No collections found");

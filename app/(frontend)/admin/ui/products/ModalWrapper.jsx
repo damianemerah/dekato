@@ -9,7 +9,7 @@ const ModalWrapper = ({ openSlider, setOpenSlider, children }) => (
       className="absolute inset-0 h-full w-full bg-white bg-opacity-70 blur-md"
       onClick={() => setOpenSlider(false)}
     ></div>
-    <div className="absolute right-0 top-0 h-full w-full max-w-5xl overflow-y-scroll bg-white shadow-shadowBig">
+    <div className="absolute right-0 top-0 h-screen w-full max-w-5xl overflow-y-scroll bg-white shadow-shadowBig">
       {children}
     </div>
   </div>

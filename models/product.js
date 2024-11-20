@@ -246,7 +246,6 @@ if (process.env.NODE_ENV === "development") {
 }
 
 productSchema.virtual("isDiscounted").get(function () {
-  console.log(this.discount, this.discountDuration, "discount🚀🚀🚀");
   return this.discount > 0 && this.discountDuration > Date.now();
 });
 

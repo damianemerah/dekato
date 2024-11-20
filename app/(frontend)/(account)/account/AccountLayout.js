@@ -1,3 +1,5 @@
+//USED FILE
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -69,34 +71,11 @@ export default function AccountLayout({ children }) {
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <div className="bg-grayBg pb-16">
-      <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center justify-center">
-        <div className="flex w-full items-start py-8">
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </div>
-        {/* <h1 className={`${oswald.className} mt-7 text-4xl antialiased`}>
-          {breadcrumbs[breadcrumbs.length - 1].label}
-        </h1> */}
-        <div className="flex w-full gap-7">
-          <ul
-            className={`${oswald.className} sticky top-16 flex flex-shrink-0 basis-1/4 flex-col space-y-1 self-start bg-white p-4`}
-          >
-            {links.map(({ href, label, icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`duration-400 before:duration-400 relative flex items-center px-4 py-3 tracking-wide transition-all before:transition-all hover:bg-gray-200 ${
-                  pathname === href ? "bg-gray-200 font-semibold" : ""
-                }`}
-              >
-                <span className="mr-2">{icon}</span>
-                <li>{label}</li>
-              </Link>
-            ))}
-          </ul>
-          <div className="basis-3/4 bg-white px-10 py-14">{children}</div>
-        </div>
+    <div className="md:py-15 mx-auto min-h-screen max-w-4xl bg-white px-4 py-10 sm:px-8 sm:py-16 md:px-10">
+      <div className="flex items-start pb-8">
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
+      {children}
     </div>
   );
 }

@@ -46,7 +46,7 @@ export default function FilterContent({
                 </button>
 
                 {activeDropdown === filter.name && (
-                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col overflow-y-scroll bg-white text-primary">
+                  <div className="absolute left-0 flex max-h-[50vh] w-max min-w-20 flex-col overflow-y-auto bg-white text-primary">
                     {filter.options.map((option, index) => (
                       <label
                         key={index}

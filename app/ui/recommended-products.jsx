@@ -1,9 +1,11 @@
 "use client";
+
+import { useRef, useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
 import { LoadingSpinner } from "./spinner";
-import { useRef, useState, useEffect } from "react";
 
 const ProductCard = dynamic(() => import("@/app/ui/products/product-card"), {
   loading: () => <ProductCardSkeleton />,
@@ -23,87 +25,92 @@ const RecommendedProducts = ({ category }) => {
   const [maxScroll, setMaxScroll] = useState(0);
 
   useEffect(() => {
-    if (containerRef.current) {
-      setMaxScroll(
-        containerRef.current.scrollWidth - containerRef.current.clientWidth,
-      );
-    }
+    const updateMaxScroll = () => {
+      if (containerRef.current) {
+        setMaxScroll(
+          containerRef.current.scrollWidth - containerRef.current.clientWidth,
+        );
+      }
+    };
+
+    updateMaxScroll();
+    window.addEventListener("resize", updateMaxScroll);
+
+    return () => window.removeEventListener("resize", updateMaxScroll);
   }, [data]);
 
-  const scroll = (direction) => {
-    const scrollAmount = 300; // Adjust scroll amount as needed
-    const newPosition =
-      direction === "left"
-        ? Math.max(0, scrollPosition - scrollAmount)
-        : Math.min(maxScroll, scrollPosition + scrollAmount);
+  const scroll = useCallback(
+    (direction) => {
+      const scrollAmount = 300;
+      const newPosition =
+        direction === "left"
+          ? Math.max(0, scrollPosition - scrollAmount)
+          : Math.min(maxScroll, scrollPosition + scrollAmount);
 
-    setScrollPosition(newPosition);
-    containerRef.current.scrollTo({
-      left: newPosition,
-      behavior: "smooth",
-    });
-  };
+      setScrollPosition(newPosition);
+      containerRef.current?.scrollTo({
+        left: newPosition,
+        behavior: "smooth",
+      });
+    },
+    [scrollPosition, maxScroll],
+  );
 
-  if (error) return <div>Failed to load products...</div>;
-  if (isLoading) return <LoadingSpinner />;
+  if (error)
+    return (
+      <div className="text-center text-red-500">
+        Failed to load products. Please try again later.
+      </div>
+    );
+  if (isLoading)
+    return (
+      <div className="flex justify-center">
+        <LoadingSpinner />
+      </div>
+    );
 
   const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
 
-  if (products?.length === 0) return <div>No products found.</div>;
-
+  if (products.length === 0)
+    return (
+      <div className="text-center">No products found for this category.</div>
+    );
   return (
-    <div className="relative max-w-[100vw]">
+    <div className="relative">
       <div
         ref={containerRef}
-        className="scrollbar-hide flex gap-2 overflow-x-auto"
+        className="flex gap-4 overflow-x-auto overflow-y-hidden"
         style={{ scrollBehavior: "smooth" }}
       >
         {products.map((product) => (
           <div
             key={product._id}
-            className="min-w-[calc(50%-8px)] md:w-[calc(33.333%-8px)] md:min-w-56 lg:w-[calc(25%-8px)]"
+            className="w-[calc(50%-8px)] flex-shrink-0 md:w-[calc(33.333%-12px)] lg:w-[calc(25%-12px)]"
           >
             <ProductCard product={product} />
           </div>
         ))}
       </div>
 
-      {/* Navigation buttons */}
       <button
         onClick={() => scroll("left")}
         disabled={scrollPosition <= 0}
-        className={`absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-primary text-white transition-opacity ${
+        className={`absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md transition-opacity hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
           scrollPosition <= 0 ? "opacity-50" : "opacity-100"
         }`}
-        aria-label="Previous products"
+        aria-label="View previous products"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="20px"
-          viewBox="0 0 24 24"
-          width="20px"
-          fill="white"
-        >
-          <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
-        </svg>
+        <ChevronLeft className="h-6 w-6" />
       </button>
       <button
         onClick={() => scroll("right")}
         disabled={scrollPosition >= maxScroll}
-        className={`absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-primary text-white transition-opacity ${
+        className={`absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md transition-opacity hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
           scrollPosition >= maxScroll ? "opacity-50" : "opacity-100"
         }`}
-        aria-label="Next products"
+        aria-label="View more products"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="20px"
-          viewBox="0 0 24 24"
-          width="20px"
-          fill="white"
-        >
-          <path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-        </svg>
+        <ChevronRight className="h-6 w-6" />
       </button>
     </div>
   );

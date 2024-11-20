@@ -60,6 +60,15 @@ const ProductStatistics = dynamic(() => import("./product-stat"), {
   ssr: false,
 });
 
+const NewsletterStatistics = dynamic(() => import("./newsletter-stat"), {
+  loading: () => (
+    <Card>
+      <Skeleton active paragraph={{ rows: 4 }} />
+    </Card>
+  ),
+  ssr: false,
+});
+
 const AdminContent = ({ initialData }) => {
   const { data: dashboardData, isLoading } = useSWR(
     "/api/dashboard",
@@ -129,6 +138,14 @@ const AdminContent = ({ initialData }) => {
           </Suspense>
         </Col>
         <Col span={24} lg={12}>
+          <Suspense fallback={<Skeleton active paragraph={{ rows: 4 }} />}>
+            <NewsletterStatistics newsletter={dashboardData?.newsletter} />
+          </Suspense>
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
+        <Col span={24}>
           <Suspense
             fallback={<Skeleton active avatar paragraph={{ rows: 4 }} />}
           >

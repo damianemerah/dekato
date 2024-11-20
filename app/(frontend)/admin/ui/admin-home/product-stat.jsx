@@ -1,19 +1,9 @@
 import { Row, Col } from "antd";
+import { TagOutlined, InboxOutlined } from "@ant-design/icons";
 import dynamic from "next/dynamic";
 
 const Card = dynamic(() => import("antd/lib/card"), { ssr: false });
 const Statistic = dynamic(() => import("antd/lib/statistic"), { ssr: false });
-
-const TagOutlined = dynamic(() => import("@ant-design/icons/TagOutlined"), {
-  ssr: false,
-});
-const InboxOutlined = dynamic(() => import("@ant-design/icons/InboxOutlined"), {
-  ssr: false,
-});
-const PercentageOutlined = dynamic(
-  () => import("@ant-design/icons/PercentageOutlined"),
-  { ssr: false },
-);
 
 const ProductStatistics = ({ products, collections }) => {
   return (
@@ -39,7 +29,7 @@ const ProductStatistics = ({ products, collections }) => {
           <Statistic
             title="Discounted Products"
             value={products?.discounted}
-            prefix={<PercentageOutlined />}
+            prefix={<InboxOutlined />}
             valueStyle={{ color: "#722ed1" }}
           />
         </Col>

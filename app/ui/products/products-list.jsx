@@ -4,12 +4,9 @@ import { Pagination as AntdPagination } from "antd";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
-
 import HeaderOne from "@/app/ui/heading1";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Image from "next/image";
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState, useCallback } from "react";
 
 const ProductHeader = dynamic(
   () => import("@/app/ui/products/product-header"),
@@ -40,6 +37,7 @@ const ProductList = ({
   limit,
 }) => {
   const router = useRouter();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
@@ -55,22 +53,29 @@ const ProductList = ({
     [cat, products, searchParams],
   );
 
+  const nextSlide = useCallback(() => {
+    if (banner) {
+      setCurrentSlide((prev) => (prev === banner.length - 1 ? 0 : prev + 1));
+    }
+  }, [banner]);
+
+  const prevSlide = useCallback(() => {
+    if (banner) {
+      setCurrentSlide((prev) => (prev === 0 ? banner.length - 1 : prev - 1));
+    }
+  }, [banner]);
+
   return (
     <>
       {banner && banner.length > 0 ? (
-        <header className="h-[25vw] max-h-[378px] min-h-[255px] w-full">
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={0}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
-            className="h-full w-full"
+        <header className="relative h-[25vw] max-h-[378px] min-h-[255px] w-full overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
             {banner.map((image, index) => (
-              <SwiperSlide key={index} className="h-full w-full">
-                <div className="relative h-full w-full object-cover">
+              <div key={index} className="min-w-full">
+                <div className="relative h-[25vw] max-h-[378px] min-h-[255px] w-full">
                   <Image
                     src={image}
                     alt={`Banner ${index + 1}`}
@@ -79,9 +84,62 @@ const ProductList = ({
                     className="h-full w-full"
                   />
                 </div>
-              </SwiperSlide>
+              </div>
             ))}
-          </Swiper>
+          </div>
+
+          <button
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
+            aria-label="Previous slide"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
+            aria-label="Next slide"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+            {banner.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`h-2 w-2 rounded-full ${
+                  currentSlide === index ? "bg-white" : "bg-white/50"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </header>
       ) : (
         <header className="flex w-full items-center justify-center bg-gray-100 px-20 pb-4 pt-8 uppercase">
@@ -98,7 +156,7 @@ const ProductList = ({
         <ProductHeader cat={cat} searchParams={searchParams} />
       </div>
 
-      <div>
+      <div className="px-3">
         <h4
           className={`${oswald.className} text-priamry pl-2 text-[13px] font-bold leading-[58px] tracking-widest`}
         >
@@ -107,11 +165,7 @@ const ProductList = ({
         <div className={`flex flex-wrap justify-start bg-white`}>
           {products &&
             products.map((product, index) => (
-              <ProductCard
-                key={index}
-                product={product}
-                searchParams={searchParams}
-              />
+              <ProductCard key={index} product={product} />
             ))}
         </div>
         {/* page footer */}

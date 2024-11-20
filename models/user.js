@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     emailVerified: { type: Boolean, default: false },
+    subscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EmailSubscription",
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -40,13 +44,10 @@ const userSchema = new mongoose.Schema(
     ],
     password: {
       type: String,
-      required: [true, "Please provide a password"],
-      minlength: [8, "Password must be at least 8 characters long"],
       select: false,
     },
     passwordConfirm: {
       type: String,
-      required: [true, "Please confirm your password"],
       validate: {
         validator: function (el) {
           return el === this.password;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { oswald } from "@/style/font";
 
 import XIcon from "@/public/assets/icons/twitter.svg";
@@ -20,20 +20,21 @@ import { SmallSpinner } from "../spinner";
 import useSWR from "swr";
 import { getVarOptionById } from "@/app/action/variantAction";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 
-const CollapsibleSection = dynamic(() => import("./collasible"), {
-  loading: () => (
-    <div className="border-b border-gray-200 px-2 sm:px-5">
-      <div className="flex items-center justify-between py-4">
-        <div className="h-4 w-32 animate-pulse bg-gray-200" />
-        <div className="h-6 w-6 animate-pulse bg-gray-200" />
+const CollapsibleSection = memo(
+  dynamic(() => import("./collasible"), {
+    loading: () => (
+      <div className="border-b border-gray-200 px-2 sm:px-5">
+        <div className="flex items-center justify-between py-4">
+          <div className="h-4 w-32 animate-pulse bg-gray-200" />
+          <div className="h-6 w-6 animate-pulse bg-gray-200" />
+        </div>
+        <div className="h-20 w-full animate-pulse bg-gray-100" />
       </div>
-      <div className="h-20 w-full animate-pulse bg-gray-100" />
-    </div>
-  ),
-  ssr: false,
-});
+    ),
+    ssr: false,
+  }),
+);
 
 const VariantOptionMap = memo(
   dynamic(() => import("./variant-option"), {
@@ -77,7 +78,6 @@ const variantFetcher = async (ids) => {
 };
 
 const ProductDetail = memo(function ProductDetail({ product }) {
-  console.log(product.isDiscounted, "product🚀🚀🚀");
   const [variantOptions, setVariantOptions] = useState([]);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
@@ -85,7 +85,8 @@ const ProductDetail = memo(function ProductDetail({ product }) {
   const [hasVariationTypes, setHasVariationTypes] = useState([]);
   const [isProductAvailable, setIsProductAvailable] = useState(true);
 
-  const user = useUserStore((state) => state.user);
+  const user = useUserStore(useCallback((state) => state.user, []));
+
   const userId = user?.id;
 
   const { data: variationList } = useSWR(
@@ -95,8 +96,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
       revalidateOnFocus: false,
     },
   );
-
-  if (variationList) console.log(variationList);
 
   useEffect(() => {
     if (!product) return;
@@ -134,18 +133,15 @@ const ProductDetail = memo(function ProductDetail({ product }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
-  const handleToggleSection = useMemo(
-    () => (section) => {
-      setActiveSections((prevSections) => ({
-        ...prevSections,
-        [section]: !prevSections[section],
-      }));
-    },
-    [],
-  );
+  const handleToggleSection = useCallback((section) => {
+    setActiveSections((prevSections) => ({
+      ...prevSections,
+      [section]: !prevSections[section],
+    }));
+  }, []);
 
-  const handleMouseMove = useMemo(
-    () => (e) => {
+  const handleMouseMove = useCallback(
+    (e) => {
       if (!isZoomed) return;
       const { left, top, width, height } =
         e.currentTarget.getBoundingClientRect();
@@ -156,73 +152,59 @@ const ProductDetail = memo(function ProductDetail({ product }) {
     [isZoomed],
   );
 
-  const handleImageClick = useMemo(
-    () => () => {
-      setIsZoomed(!isZoomed);
-    },
-    [isZoomed],
-  );
+  const handleImageClick = useCallback(() => {
+    setIsZoomed(!isZoomed);
+  }, [isZoomed]);
 
-  const addItemToCart = useMemo(
-    () => async () => {
-      try {
-        if (!userId) {
-          message.error("Please login to add to cart");
-          return;
-        }
-        if (!isProductAvailable) {
-          message.error("This product option is currently unavailable");
-          return;
-        }
-        setIsAddingToCart(true);
-        const selectedVariant = product.variant.find(
-          (variant) => variant.id === selectedVariantId,
-        );
-        const newItem = {
-          product: product.id,
-          quantity: 1,
-          option: selectedVariant?.options || null,
-          variantId: selectedVariant?.id || null,
-        };
-
-        const cartItem = await createCartItem(userId, newItem);
-        await mutate(`/api/user/${userId}`);
-        await mutate(`/cart/${userId}`);
-        await mutate(`/checkout-data`);
-        message.success("Item added to cart");
-      } catch (error) {
-        console.log(error, "error");
-        message.info("Unable to add item to cart", 4);
-      } finally {
-        setIsAddingToCart(false);
+  const addItemToCart = useCallback(async () => {
+    try {
+      if (!isProductAvailable) {
+        message.error("This product option is currently unavailable");
+        return;
       }
-    },
-    [userId, isProductAvailable, product, selectedVariantId],
-  );
+      setIsAddingToCart(true);
+      const selectedVariant = product.variant.find(
+        (variant) => variant.id === selectedVariantId,
+      );
+      const newItem = {
+        product: product.id,
+        quantity: 1,
+        option: selectedVariant?.options || null,
+        variantId: selectedVariant?.id || null,
+      };
+      const cartItem = await createCartItem(userId, newItem);
+      await mutate(`/api/user/${userId}`);
+      await mutate(`/cart/${userId}`);
+      await mutate(`/checkout-data`);
+      message.success("Item added to cart");
+    } catch (error) {
+      console.log(error, "error");
+      message.info("Unable to add item to cart", 4);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  }, [userId, isProductAvailable, product, selectedVariantId]);
 
-  const addWishlist = useMemo(
-    () => async () => {
-      try {
-        if (!userId) {
-          return;
-        }
-
-        if (user?.wishlist?.includes(product.id)) {
-          await removeFromWishlist(userId, product.id);
-        } else {
-          await addToWishlist(userId, product.id);
-        }
-        await mutate(`/api/user/${userId}`);
-      } catch (error) {
-        console.log(error, "error");
-        message.info("Unable to add to wishlist", 4);
+  const addWishlist = useCallback(async () => {
+    try {
+      if (!userId) {
+        return;
       }
-    },
-    [userId, user?.wishlist, product.id],
-  );
 
-  const handleVariantSelection = useMemo(
-    () => (optionName, value) => {
+      if (user?.wishlist?.includes(product.id)) {
+        await removeFromWishlist(userId, product.id);
+      } else {
+        await addToWishlist(userId, product.id);
+      }
+      await mutate(`/api/user/${userId}`);
+    } catch (error) {
+      console.log(error, "error");
+      message.info("Unable to add to wishlist", 4);
+    }
+  }, [userId, user?.wishlist, product.id]);
+
+  const handleVariantSelection = useCallback(
+    (optionName, value) => {
       setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
 
       const updatedOptions = { ...selectedVariantOption, [optionName]: value };
@@ -243,8 +225,8 @@ const ProductDetail = memo(function ProductDetail({ product }) {
     [selectedVariantOption, product.variant],
   );
 
-  const isOptionAvailable = useMemo(
-    () => (optionName, value) => {
+  const isOptionAvailable = useCallback(
+    (optionName, value) => {
       return product.variant.some(
         (variant) =>
           variant.options[optionName] === value &&

@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { SmallSpinner } from "@/app/ui/spinner";
 
 const ProductContent = dynamic(
-  () => import("@/app/(frontend)/admin/ui/products/products-cotent"),
+  () => import("@/app/(frontend)/admin/ui/products/products-content"),
   {
     ssr: false,
     loading: () => <LoadingSpinner />,

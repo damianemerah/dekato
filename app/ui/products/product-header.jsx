@@ -106,7 +106,6 @@ export default function Filter({ cat, searchParams, products, banner }) {
 
   useEffect(() => {
     if (searchParams) {
-      // setFilterStatus("idle");
       const params = { ...searchParams };
 
       for (const [key, value] of Object.entries(params)) {
@@ -163,47 +162,46 @@ export default function Filter({ cat, searchParams, products, banner }) {
     (e, name) => {
       const { value, checked } = e.target;
 
-      setSelectedFilters((prev) => {
-        let updatedFilter;
+      let updatedFilter;
+      if (name === "price") {
+        updatedFilter = checked ? [value] : [];
+      } else {
+        const currentFilter = selectedFilters[name] || [];
+        updatedFilter = checked
+          ? [...currentFilter, value]
+          : currentFilter.filter((item) => item !== value);
+      }
 
-        if (name === "price") {
-          updatedFilter = checked ? [value] : [];
-        } else {
-          const currentFilter = prev[name] || [];
-          updatedFilter = checked
-            ? [...currentFilter, value]
-            : currentFilter.filter((item) => item !== value);
+      const newFilters = { ...selectedFilters, [name]: updatedFilter };
+
+      setSelectedFilters(newFilters);
+
+      // Handle navigation after state update
+      const queryObj = Object.fromEntries(
+        Object.entries(newFilters).filter(
+          ([key, value]) =>
+            value.length > 0 &&
+            value.every((v) => v.length > 0) &&
+            key in newFilters,
+        ),
+      );
+
+      if (Object.keys(queryObj).length === 0) {
+        router.push(`/${cat}`);
+        return;
+      }
+
+      for (const [key, value] of Object.entries(queryObj)) {
+        if (variantOptions.some((opt) => opt.name === key)) {
+          queryObj[key + "-vr"] = value;
+          delete queryObj[key];
         }
+      }
 
-        const newFilters = { ...prev, [name]: updatedFilter };
-
-        const queryObj = Object.fromEntries(
-          Object.entries(newFilters).filter(
-            ([key, value]) =>
-              value.length > 0 &&
-              value.every((v) => v.length > 0) &&
-              key in newFilters,
-          ),
-        );
-
-        if (Object.keys(queryObj).length === 0) {
-          return router.push(`/${cat}`);
-        }
-
-        for (const [key, value] of Object.entries(queryObj)) {
-          if (variantOptions.some((opt) => opt.name === key)) {
-            queryObj[key + "-vr"] = value;
-            delete queryObj[key];
-          }
-        }
-
-        const searchParams = createSearchParams(queryObj);
-        router.push(`/${cat}?${searchParams}`);
-
-        return newFilters;
-      });
+      const searchParams = createSearchParams(queryObj);
+      router.push(`/${cat}?${searchParams}`);
     },
-    [cat, router, variantOptions],
+    [cat, router, variantOptions, selectedFilters],
   );
 
   const handleSortChange = useCallback(
@@ -212,8 +210,9 @@ export default function Filter({ cat, searchParams, products, banner }) {
       const params = new URLSearchParams(window.location.search);
       params.set("sort", value);
 
-      router.push(`/${cat}?${params.toString()}`);
+      // Close dropdown before navigation
       toggleDropdown("sort");
+      router.push(`/${cat}?${params.toString()}`);
     },
     [cat, router],
   );

@@ -1,5 +1,5 @@
 "use client";
-import { useSidebarStore } from "@/store/store";
+import { useCartStore, useSidebarStore } from "@/store/store";
 import Link from "next/link";
 import Logo from "./dekato-logo.jsx";
 import SearchBox from "./searchbox.jsx";
@@ -9,6 +9,7 @@ import useUserData from "@/app/hooks/useUserData.js";
 import useCartData from "@/app/hooks/useCartData.js";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { CompassOutlined } from "@ant-design/icons";
 
 import {
   HeartOutlined,
@@ -37,7 +38,7 @@ function Header() {
     const interval = setInterval(() => {
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 1000);
-    }, 10000);
+    }, 11000);
 
     return () => clearInterval(interval);
   }, [cart?.totalItems]);
@@ -59,7 +60,7 @@ function Header() {
   return (
     <>
       <header
-        className={`${oswald.className} sticky top-0 z-30 flex h-14 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
+        className={`${oswald.className} sticky top-0 z-50 flex h-14 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
       >
         <div className="flex h-full flex-1 items-center justify-start space-x-2 sm:space-x-4 lg:space-x-8">
           <div
@@ -101,16 +102,16 @@ function Header() {
           <div className="hidden sm:block lg:mx-auto">
             <SearchBox />
           </div>
-          {/* {user?.role === "admin" && (
-          <Link href="/admin">
-            <span className="flex items-center gap-2 text-sm uppercase transition-all duration-200 ease-in-out hover:border-b-2 hover:border-white sm:text-base">
-              <CompassOutlined className=" stroke-2  text-sm" />
-              <span className="hidden text-xs hover:border-b hover:border-white sm:text-sm md:inline">
-                Admin Dashboard
+          {user?.role === "admin" && (
+            <Link href="/admin">
+              <span className="flex items-center gap-2 text-sm uppercase transition-all duration-200 ease-in-out hover:border-b-2 hover:border-white sm:text-base">
+                <CompassOutlined className="stroke-2 text-sm" />
+                <span className="hidden text-xs hover:border-b hover:border-white sm:text-sm md:inline">
+                  Admin Dashboard
+                </span>
               </span>
-            </span>
-          </Link>
-        )} */}
+            </Link>
+          )}
           {user?.id ? (
             <Link href="/account" className="flex items-center gap-2">
               <UserOutlined className="stroke-2 md:text-xl" />

@@ -10,6 +10,12 @@ import DropDown from "@/app/(frontend)/admin/ui/DropDown";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR, { mutate } from "swr";
 import { SmallSpinner } from "@/app/ui/spinner";
+import "react-quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
+
+const TextEditor = dynamic(() => import("@/app/ui/text-editor"), {
+  ssr: false,
+});
 
 export default function NewCategory({ slug }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -19,9 +25,9 @@ export default function NewCategory({ slug }) {
   const [defaultFileList, setDefaultFileList] = useState([]);
   const [catList, setCatList] = useState([]);
   const [isPinned, setIsPinned] = useState(false);
+  const [description, setDescription] = useState("");
 
   const titleRef = useRef(null);
-  const descriptionRef = useRef(null);
   const pinnedRef = useRef(null);
 
   const { data: allCategories, isLoading } = useSWR(
@@ -74,20 +80,18 @@ export default function NewCategory({ slug }) {
 
   useEffect(() => {
     if (selectedCategory) {
+      console.log(selectedCategory);
       selectedCategory.parent && setCParent(selectedCategory?.parent.id);
-      const selectedImgs = selectedCategory.image.map((img, index) => {
-        return {
-          uid: index,
-          name: "image.png",
-          status: "done",
-          url: img,
-        };
-      });
+      const selectedImgs = selectedCategory.image.map((img, index) => ({
+        uid: index,
+        name: "image.png",
+        status: "done",
+        url: img,
+      }));
       setDefaultFileList(selectedImgs);
 
       if (titleRef.current) titleRef.current.value = selectedCategory?.name;
-      if (descriptionRef.current)
-        descriptionRef.current.value = selectedCategory?.description || "";
+      setDescription(selectedCategory?.description || "");
       if (pinnedRef.current)
         pinnedRef.current.checked = selectedCategory?.pinned;
       setIsPinned(selectedCategory?.pinned || false);
@@ -113,6 +117,7 @@ export default function NewCategory({ slug }) {
       if (cParent?.length > 0) {
         formData.append("parent", cParent);
       }
+      formData.append("description", description);
 
       // Ensure top-level categories cannot be pinned
       if (!cParent) {
@@ -149,19 +154,23 @@ export default function NewCategory({ slug }) {
 
         const updatedCategory = await updateCategory(formData);
 
+        console.log(updatedCategory, "updatedCategory🔥🔥🔥");
+
         message.success("Category updated");
         titleRef.current.value = "";
-        descriptionRef.current.value = "";
+        setDescription("");
 
         return;
       }
 
       const newCategory = await createCategory(formData);
 
+      console.log(newCategory, "newCategory🔥🔥🔥");
+
       mutate("/api/allCategories");
       message.success("Category created");
       titleRef.current.value = "";
-      descriptionRef.current.value = "";
+      setDescription("");
       setFileList([]);
     } catch (error) {
       message.error(error.message);
@@ -180,6 +189,11 @@ export default function NewCategory({ slug }) {
     <form
       action={(formData) => handleCreateCategory(formData, actionType)}
       className="px-10 py-20"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+        }
+      }}
     >
       <ButtonPrimary
         type="submit"
@@ -215,13 +229,11 @@ export default function NewCategory({ slug }) {
             >
               DESCRIPTION
             </label>
-            <textarea
-              ref={descriptionRef}
+            <TextEditor
+              value={description}
+              onChange={setDescription}
               name="description"
-              id="description"
-              placeholder="A short sleeve t-shirt made from organic cotton."
-              className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
-            ></textarea>
+            />
           </div>
         </div>
         <div>

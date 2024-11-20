@@ -20,22 +20,19 @@ export default function Cart() {
   const {
     cartData: cart,
     isLoading: cartIsLoading,
-    isValidating: cartIsValidating,
     error: cartError,
   } = useCartData(userId);
 
-  console.log(cart, "cart🚀💎💎");
-
-  if (!cart || cartIsLoading) {
+  if (cartIsLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <SmallSpinner className="!text-primary" />
-        <p>Cart is loading...</p>
+        <p>Loading...</p>
       </div>
     );
   }
 
-  if (cart && cart?.item?.length === 0) {
+  if (cart?.item?.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center">
         <p>Your cart is empty</p>

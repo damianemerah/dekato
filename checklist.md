@@ -516,15 +516,13 @@ export async function POST(req) {
 export default function Cart() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-      <h1
-        className={`${oswald.className} py-7 text-center text-4xl antialiased`}
-      >
+      <h1 className={`py-7 text-center font-oswald text-4xl antialiased`}>
         Shopping Bag
       </h1>
       <div className="mt-4 flex flex-col gap-10 lg:flex-row">
         <div className="">
           <p
-            className={`${oswald.className} mb-4 text-lg font-medium uppercase text-grayText`}
+            className={`mb-4 font-oswald text-lg font-medium uppercase text-grayText`}
           >
             # Items
           </p>
@@ -537,7 +535,7 @@ export default function Cart() {
           <div className="flex flex-col gap-5">
             <div className="space-y-6 border border-grayOutline bg-grayBg p-5">
               <div className="space-y-2">
-                <h3 className={`${oswald.className} text-2xl leading-5`}>
+                <h3 className={`font-oswald text-2xl leading-5`}>
                   Estimate Shipping
                 </h3>
                 <p className="text-grayText">
@@ -568,7 +566,7 @@ export default function Cart() {
                 </select>
               </label>
               <div className="flex flex-col gap-1">
-                <h3 className={`${oswald.className} text-lg leading-5`}>DHL</h3>
+                <h3 className={`font-oswald text-lg leading-5`}>DHL</h3>
                 <label className="ml-1 inline-flex items-center">
                   <input
                     type="radio"
