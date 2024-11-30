@@ -13,9 +13,9 @@ const slides = [
     subTitle: "BLACK FRIDAY",
     description: "EARLY ACCESS",
     link: "#",
-    linkText: "SHOP MEN'S DEALS",
+    linkText: "MEN'S DEALS",
     secondaryLink: "#",
-    secondaryLinkText: "SHOP WOMEN'S DEALS",
+    secondaryLinkText: "WOMEN'S DEALS",
   },
   {
     background: `/assets/herobg.avif`,

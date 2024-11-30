@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, memo, useCallback } from "react";
+import { useState, useEffect, useMemo, memo, useCallback, useRef } from "react";
 import { oswald } from "@/style/font";
 
 import XIcon from "@/public/assets/icons/twitter.svg";
@@ -77,6 +77,71 @@ const variantFetcher = async (ids) => {
   return data;
 };
 
+const SocialSharePanel = memo(function SocialSharePanel() {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="fixed right-0 top-1/2 z-20 -translate-y-1/2 transform">
+      <div
+        className={`flex items-center transition-transform duration-300 ${
+          isExpanded ? "translate-x-0" : "translate-x-[calc(100%-2.5rem)]"
+        }`}
+      >
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
+          aria-label={
+            isExpanded ? "Collapse share panel" : "Expand share panel"
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-5 w-5 transition-transform duration-300 ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <div className="flex flex-col gap-4 bg-white p-4 shadow-md">
+          <button
+            className="transition-colors hover:text-primary"
+            aria-label="Share on Twitter"
+          >
+            <XIcon className="h-5 w-5" />
+          </button>
+          <button
+            className="transition-colors hover:text-primary"
+            aria-label="Share on Facebook"
+          >
+            <FbIcon className="h-5 w-5" />
+          </button>
+          <button
+            className="transition-colors hover:text-primary"
+            aria-label="Share on Instagram"
+          >
+            <InstaIcon className="h-5 w-5" />
+          </button>
+          <button
+            className="transition-colors hover:text-primary"
+            aria-label="Share on WhatsApp"
+          >
+            <WhatsappIcon className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 const ProductDetail = memo(function ProductDetail({ product }) {
   const [variantOptions, setVariantOptions] = useState([]);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
@@ -132,6 +197,9 @@ const ProductDetail = memo(function ProductDetail({ product }) {
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const swipeRef = useRef(null);
 
   const handleToggleSection = useCallback((section) => {
     setActiveSections((prevSections) => ({
@@ -157,6 +225,10 @@ const ProductDetail = memo(function ProductDetail({ product }) {
   }, [isZoomed]);
 
   const addItemToCart = useCallback(async () => {
+    if (!userId) {
+      message.info("Please login to add to cart", 4);
+      return;
+    }
     try {
       if (!isProductAvailable) {
         message.error("This product option is currently unavailable");
@@ -250,6 +322,33 @@ const ProductDetail = memo(function ProductDetail({ product }) {
     ];
   }, [variantOptions]);
 
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && activeIndex < product.image.length - 1) {
+      setActiveIndex((prev) => prev + 1);
+    }
+
+    if (isRightSwipe && activeIndex > 0) {
+      setActiveIndex((prev) => prev - 1);
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
   if (!product)
     return (
       <div className="flex h-screen items-center justify-center text-lg font-semibold text-gray-600">
@@ -259,9 +358,16 @@ const ProductDetail = memo(function ProductDetail({ product }) {
 
   return (
     <div className="relative mx-auto mb-8 w-full">
+      <SocialSharePanel />
       <div className="flex flex-col lg:flex-row">
         <div className="mb-8 w-screen lg:sticky lg:top-0 lg:mb-0 lg:w-2/3">
-          <div className="relative h-[calc(100vh-11.5rem)] w-full lg:h-[calc(100vh-6rem)]">
+          <div
+            ref={swipeRef}
+            className="relative h-[calc(85vh-11.5rem)] w-full lg:h-[calc(100vh-6rem)]"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <ProductSwiper
               product={product}
               activeIndex={activeIndex}
@@ -272,13 +378,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
               zoomPosition={zoomPosition}
               setZoomPosition={setZoomPosition}
             />
-            <div className="mt-4 hidden items-center justify-center gap-6 lg:flex">
-              <p className="font-semibold text-gray-700">Share:</p>
-              <XIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <FbIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <InstaIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <WhatsappIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-            </div>
           </div>
         </div>
 
@@ -337,13 +436,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
                   )}
                 </div>
               )}
-            </div>
-            <div className="mt-4 flex items-center justify-center gap-6 lg:hidden">
-              <p className="font-semibold text-gray-700">Share:</p>
-              <XIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <FbIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <InstaIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <WhatsappIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
             </div>
             {memoizedVariantOptions.length > 0 && (
               <div className="mb-6">
@@ -404,7 +496,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
                 </button>
               </div>
               <Button className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500">
-                <WhatsappIcon className="mr-2 h-5 w-5" />
+                <WhatsappIcon className="mr-2 h-5 w-5 group-hover:text-white" />
                 <span className="text-lg group-hover:text-white sm:text-base md:text-lg">
                   Order on WhatsApp
                 </span>

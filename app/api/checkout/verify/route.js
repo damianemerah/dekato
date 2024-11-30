@@ -8,6 +8,7 @@ import AppError from "@/utils/errorClass";
 import { revalidatePath } from "next/cache";
 import dbConnect from "@/lib/mongoConnection";
 import Payment from "@/models/payment";
+import { recommendationService } from "@/lib/recommendationService";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
@@ -98,6 +99,7 @@ async function updateProductQuantity(order) {
 
       product.quantity -= quantity;
       product.sold += quantity;
+      // product.purchaseCount = (product.purchaseCount || 0) + 1;
 
       if (product.quantity === 0) {
         console.log("Out of Stock Alert44🔥🔥");
@@ -106,9 +108,14 @@ async function updateProductQuantity(order) {
       }
 
       await product.save({ session, validateModifiedOnly: true });
+
+      await recommendationService.trackProductInteraction(
+        order.userId,
+        item.productId,
+        "purchase",
+      );
     }
 
-    // Move cart operations outside product loop
     if (order) {
       await CartItem.deleteMany({ _id: { $in: order.cartItems } }, { session });
       await Cart.updateOne(
@@ -149,7 +156,6 @@ export async function POST(req) {
     }
     const verification = await Paystack.transaction.verify(reference);
 
-    // Update product quantity (variants considered)
     if (verification.data.status === "success") {
       await updateProductQuantity(order);
     }
@@ -184,7 +190,6 @@ export async function POST(req) {
       const payment = await Payment.create(cardData);
     }
 
-    // Create notification for admin about successful payment
     if (verification?.data?.status === "success") {
       console.log("creating notification💎💎");
       await Notification.create({

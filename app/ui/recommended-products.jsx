@@ -1,117 +1,85 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
-import useSWR from "swr";
-import dynamic from "next/dynamic";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import useSWR, { mutate } from "swr";
 import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
-import { LoadingSpinner } from "./spinner";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import ProductCard from "@/app/ui/products/product-card";
+import { useRecommendMutateStore } from "@/store/store";
 
-const ProductCard = dynamic(() => import("@/app/ui/products/product-card"), {
-  loading: () => <ProductCardSkeleton />,
-  ssr: false,
-});
+const fetcher = (type, category, productId) => {
+  const url = `/api/recommendations?type=${type}${
+    category ? `&category=${category}` : ""
+  }${productId ? `&productId=${productId}` : ""}`;
+  return fetch(url).then((res) => res.json());
+};
 
-const fetcher = (url) => fetch(url).then((res) => res.json());
+const RecommendedProducts = ({ category, productId }) => {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const [type, setType] = useState("");
 
-const RecommendedProducts = ({ category }) => {
-  const { data, error, isLoading } = useSWR(
-    `/api/recommendations?category=${category}&limit=10`,
-    fetcher,
+  const { shouldMutate, setShouldMutate } = useRecommendMutateStore(
+    (state) => ({
+      shouldMutate: state.shouldMutate,
+      setShouldMutate: state.setShouldMutate,
+    }),
   );
 
-  const containerRef = useRef(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [maxScroll, setMaxScroll] = useState(0);
+  const pathname = usePathname();
 
   useEffect(() => {
-    const updateMaxScroll = () => {
-      if (containerRef.current) {
-        setMaxScroll(
-          containerRef.current.scrollWidth - containerRef.current.clientWidth,
-        );
-      }
-    };
+    if (pathname.startsWith("/p/")) {
+      setType("similar");
+    } else if (userId && pathname === "/") {
+      setType("personalized");
+    } else {
+      setType("general");
+    }
+  }, [userId, pathname]);
 
-    updateMaxScroll();
-    window.addEventListener("resize", updateMaxScroll);
-
-    return () => window.removeEventListener("resize", updateMaxScroll);
-  }, [data]);
-
-  const scroll = useCallback(
-    (direction) => {
-      const scrollAmount = 300;
-      const newPosition =
-        direction === "left"
-          ? Math.max(0, scrollPosition - scrollAmount)
-          : Math.min(maxScroll, scrollPosition + scrollAmount);
-
-      setScrollPosition(newPosition);
-      containerRef.current?.scrollTo({
-        left: newPosition,
-        behavior: "smooth",
+  useEffect(() => {
+    if (shouldMutate) {
+      console.log("mutateing", category);
+      mutate(["/api/recommendations", type, category, productId], async () => {
+        const updatedData = await fetcher(type, category, productId); // Re-fetch data
+        return updatedData;
       });
-    },
-    [scrollPosition, maxScroll],
+      setShouldMutate(false);
+    }
+  }, [category, productId, type, shouldMutate, setShouldMutate]);
+
+  const { data, error, isLoading } = useSWR(
+    type ? ["/api/recommendations", type, category, productId] : null,
+    () => fetcher(type, category, productId),
   );
 
-  if (error)
-    return (
-      <div className="text-center text-red-500">
-        Failed to load products. Please try again later.
-      </div>
-    );
-  if (isLoading)
-    return (
-      <div className="flex justify-center">
-        <LoadingSpinner />
-      </div>
-    );
+  if (error) return null;
 
   const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
 
-  if (products.length === 0)
-    return (
-      <div className="text-center">No products found for this category.</div>
-    );
-  return (
-    <div className="relative">
-      <div
-        ref={containerRef}
-        className="flex gap-4 overflow-x-auto overflow-y-hidden"
-        style={{ scrollBehavior: "smooth" }}
-      >
-        {products.map((product) => (
-          <div
-            key={product._id}
-            className="w-[calc(50%-8px)] flex-shrink-0 md:w-[calc(33.333%-12px)] lg:w-[calc(25%-12px)]"
-          >
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
+  // Return null if no products and not loading
+  if (!isLoading && products.length === 0) return null;
 
-      <button
-        onClick={() => scroll("left")}
-        disabled={scrollPosition <= 0}
-        className={`absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md transition-opacity hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-          scrollPosition <= 0 ? "opacity-50" : "opacity-100"
-        }`}
-        aria-label="View previous products"
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
-      <button
-        onClick={() => scroll("right")}
-        disabled={scrollPosition >= maxScroll}
-        className={`absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md transition-opacity hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-          scrollPosition >= maxScroll ? "opacity-50" : "opacity-100"
-        }`}
-        aria-label="View more products"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
+  return (
+    <div className="mb-10 px-4 sm:px-6 lg:px-8">
+      <h2 className="py-6 font-oswald font-bold">YOU MAY ALSO LIKE</h2>
+      <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
+        {isLoading
+          ? // Show skeleton items while loading
+            [...Array(4)].map((_, i) => (
+              <div key={`skeleton-${i}`}>
+                <ProductCardSkeleton />
+              </div>
+            ))
+          : // Show actual products when loaded
+            products.map((product) => (
+              <div key={product.id}>
+                <ProductCard product={product} showDelete={true} />
+              </div>
+            ))}
+      </div>
     </div>
   );
 };

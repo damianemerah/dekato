@@ -10,7 +10,7 @@ import { filterObj, formDataToObject } from "@/utils/filterObj";
 import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import crypto from "crypto";
-import _ from "lodash";
+import { omit } from "lodash";
 import Order from "@/models/order";
 import Product from "@/models/product";
 import Collection from "@/models/collection";
@@ -357,7 +357,7 @@ export async function getUserAddress(userId) {
   }
   return address.map(({ _id, userId, ...rest }) => ({
     id: _id.toString(),
-    ..._.omit(rest, ["_id", "userId"]),
+    ...omit(rest, ["_id", "userId"]),
   }));
 }
 

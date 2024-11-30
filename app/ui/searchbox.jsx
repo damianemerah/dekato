@@ -46,11 +46,6 @@ const SearchBox = ({ className }) => {
   const { data: pSearchList, error } = useSWR(
     debouncedSearch?.length > 2 ? debouncedSearch : null,
     fetcher,
-    {
-      onSuccess: (data) => {
-        console.log(data, "data🔥🔥🔥");
-      },
-    },
   );
 
   useEffect(() => {
@@ -64,8 +59,6 @@ const SearchBox = ({ className }) => {
       const isClickOnInput =
         searchRef?.current?.contains(event.target) ||
         mobileSearchRef?.current?.contains(event.target);
-
-      console.log(isClickOnInput, "isClickOnInput🔥🔥🔥");
 
       // Only close if click is outside both dropdown and inputs
       if (!dropdownRef?.current?.contains(event.target) && !isClickOnInput) {

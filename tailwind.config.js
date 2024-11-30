@@ -36,8 +36,8 @@ module.exports = {
         14: "repeat(14, minmax(0, 1fr))",
       },
       fontFamily: {
-        oswald: ["var(--font-oswald)", "sans-serif"],
-        roboto: ["var(--font-roboto)", "sans-serif"],
+        oswald: ["var(--font-oswald)"],
+        roboto: ["var(--font-roboto)"],
       },
       fontSize: {
         xxs: "10px",

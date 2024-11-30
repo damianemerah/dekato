@@ -110,7 +110,7 @@ const CartCard = ({ cartItem }) => {
           <SmallSpinner className="!text-primary" />
         </div>
       )}
-      <div className="relative flex w-full flex-nowrap items-start border-b border-b-gray-300 bg-white px-4 py-6 text-sm">
+      <div className="relative flex w-full flex-nowrap items-start border-b border-b-gray-300 bg-white px-3 py-4 text-sm sm:px-4 sm:py-6">
         <div className="flex items-start">
           <input
             type="checkbox"
@@ -118,8 +118,8 @@ const CartCard = ({ cartItem }) => {
             onChange={handleCheckboxChange}
             className="mr-2 h-5 w-5 cursor-pointer appearance-none self-center border border-gray-300 checked:border-gray-900 checked:bg-primary checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />
-          <div className="w-[120px]">
-            <div className="relative aspect-[15/17] w-[120px]">
+          <div className="w-[80px] sm:w-[120px]">
+            <div className="relative aspect-square w-full sm:aspect-[15/17]">
               <Image
                 src={cartItem.image}
                 alt={cartItem.product.name}
@@ -130,40 +130,35 @@ const CartCard = ({ cartItem }) => {
             </div>
           </div>
         </div>
-        <div className="ml-4 flex h-full min-h-[120px] flex-grow flex-col justify-between gap-3">
+
+        <div className="ml-3 flex h-full min-h-[80px] flex-grow flex-col justify-between gap-2 sm:ml-4 sm:min-h-[120px] sm:gap-3">
           <div className="mb-1 flex h-full items-start justify-between">
             <Link
               href={`/p/${cartItem?.product?.slug}-${cartItem?.product?.id}`}
-              className={`${oswald.className} mr-2 line-clamp-2 overflow-ellipsis text-base capitalize text-gray-800 hover:opacity-70`}
+              className={`${oswald.className} mr-2 line-clamp-2 overflow-ellipsis text-sm capitalize text-gray-800 hover:opacity-70 sm:text-base`}
             >
               {cartItem?.product?.name}
             </Link>
 
-            <div className="flex items-center gap-2">
-              <button
-                className="rounded-full p-2 transition duration-150 ease-in-out hover:bg-gray-100"
-                onClick={handleMoveToWishlist}
-              >
-                <HeartIcon className="h-5 w-5 text-secondary" />
-              </button>
-              <button
-                type="button"
-                className="rounded-full p-2 transition duration-150 ease-in-out hover:bg-gray-100"
-                onClick={async () => {
-                  setIsLoading(true);
-                  try {
-                    await removeFromCart(userId, cartItem?.id);
-                    await mutate(`/cart/${userId}`);
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-              >
-                <DeleteIcon className="h-5 w-5 text-secondary" />
-              </button>
-            </div>
+            <button
+              type="button"
+              className="rounded-full p-1.5 transition duration-150 ease-in-out hover:bg-gray-100 sm:p-2"
+              onClick={async () => {
+                setIsLoading(true);
+                try {
+                  await removeFromCart(userId, cartItem?.id);
+                  await mutate(`/cart/${userId}`);
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              aria-label="Remove item"
+            >
+              <DeleteIcon className="h-4 w-4 text-secondary sm:h-5 sm:w-5" />
+            </button>
           </div>
-          <div className="flex flex-wrap items-center">
+
+          <div className="flex flex-wrap items-center text-xs sm:text-sm">
             {cartItem?.option &&
               Object.entries(cartItem?.option).map(([key, value]) => (
                 <p
@@ -175,10 +170,13 @@ const CartCard = ({ cartItem }) => {
                 </p>
               ))}
           </div>
-          <div className="flex items-center justify-between">
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center">
-              <p className="mr-3 text-gray-600">Quantity</p>
-              <div className="flex h-9 items-center border border-primary">
+              <p className="mr-2 text-xs text-gray-600 sm:mr-3 sm:text-sm">
+                Quantity:
+              </p>
+              <div className="flex h-8 items-center border border-primary sm:h-9">
                 <button
                   className="px-2 py-1 text-gray-600 transition duration-150 ease-in-out hover:bg-gray-100"
                   onClick={() => {
@@ -193,7 +191,7 @@ const CartCard = ({ cartItem }) => {
                   value={quantity || ""}
                   onChange={(e) => handleQuantityChange(e.target.value)}
                   onBlur={handleQuantityBlur}
-                  className="w-12 text-center font-medium [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="w-10 text-center text-sm font-medium [appearance:textfield] focus:outline-none sm:w-12 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <button
                   className="px-2 py-1 text-gray-600 transition duration-150 ease-in-out hover:bg-gray-100"
@@ -206,16 +204,17 @@ const CartCard = ({ cartItem }) => {
                 </button>
               </div>
             </div>
-            <p className="mr-4 flex flex-col items-center justify-center text-primary">
+
+            <div className="flex items-center justify-between sm:flex-col sm:items-end">
               {cartItem.product.isDiscounted && (
-                <span className="mr-2 text-sm text-gray-500 line-through">
+                <span className="text-xs text-gray-500 line-through sm:text-sm">
                   {formatToNaira(cartItem.product.price)}
                 </span>
               )}
-              <span className="text-base font-medium text-primary">
+              <span className="text-sm font-medium text-primary sm:text-base">
                 {formatToNaira(cartItem.currentPrice)}
               </span>
-            </p>
+            </div>
           </div>
         </div>
       </div>

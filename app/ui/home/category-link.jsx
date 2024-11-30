@@ -2,11 +2,10 @@ import { memo } from "react";
 import Link from "next/link";
 
 const CategoryLink = ({ category }) => {
-  console.log(category);
   return (
     <Link
       href={category.slug}
-      className="relative flex aspect-square w-full items-end justify-center overflow-hidden px-2 pb-4 text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
+      className="relative flex aspect-square w-full items-end justify-center overflow-hidden px-2 pb-4 text-center text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
     >
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"

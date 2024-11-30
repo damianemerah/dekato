@@ -192,6 +192,22 @@ const productSchema = new mongoose.Schema(
         message: "{VALUE} is not a valid status",
       },
     },
+    viewCount: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+    purchaseCount: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+    // similarProducts: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Product",
+    //   },
+    // ],
   },
   {
     timestamps: true,
@@ -331,6 +347,39 @@ function validateAndSetDiscount(doc) {
 }
 
 productSchema.plugin(mongooseLeanVirtuals);
+
+// Define methods before creating the model
+productSchema.methods.findSimilarProducts = async function (
+  userActivity,
+  limit = 4,
+) {
+  const categoryIds = this.category.map((cat) => cat.toString());
+  console.log(categoryIds, " catIds💎💎");
+
+  const query = {
+    _id: { $ne: this._id },
+    category: { $in: categoryIds },
+    status: "active",
+  };
+
+  console.log(userActivity, " userActivity💎💎");
+
+  // Add naughty list filter if userActivity is provided
+  if (userActivity?.naughtyList?.length > 0) {
+    query._id.$nin = userActivity.naughtyList;
+  }
+
+  const products = await this.constructor
+    .find(query)
+    .sort({ purchaseCount: -1, viewCount: -1, createdAt: -1 })
+    .limit(limit)
+    .populate("category", "name slug")
+    .lean({ virtuals: true });
+
+  console.log(products, " products💎💎");
+
+  return products;
+};
 
 const Product =
   mongoose.models.Product || mongoose.model("Product", productSchema);

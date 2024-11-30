@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import dbConnect from "@/lib/mongoConnection";
 import Payment from "@/models/payment";
-import _ from "lodash";
+import { omit } from "lodash";
 
 export async function getPaymentMethod(userId) {
   await dbConnect();
@@ -12,8 +12,8 @@ export async function getPaymentMethod(userId) {
     .lean();
   return res.map((item) => ({
     id: item._id.toString(),
-    authorization: _.omit(item.authorization, ["authorization_code"]),
-    ..._.omit(item, ["_id", "userId", "authorization"]),
+    authorization: omit(item.authorization, ["authorization_code"]),
+    ...omit(item, ["_id", "userId", "authorization"]),
   }));
 }
 
@@ -21,7 +21,7 @@ export async function deletePaymentMethod(paymentId) {
   await dbConnect();
   const res = await Payment.findByIdAndDelete(paymentId).lean();
   console.log(res, "res💎💎");
-  return { id: res._id.toString(), ..._.omit(res, ["_id", "userId"]) };
+  return { id: res._id.toString(), ...omit(res, ["_id", "userId"]) };
 }
 
 export async function updatePaymentMethod(paymentId, data) {
