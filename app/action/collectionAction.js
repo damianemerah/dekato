@@ -8,7 +8,7 @@ import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import APIFeatures from "@/utils/apiFeatures";
-import _ from "lodash";
+import { omit } from "lodash";
 
 function formatCollections(collections) {
   const formattedCollections = collections.map(
@@ -221,7 +221,7 @@ export async function getCollections() {
 
     return collections.map((collection) => ({
       id: collection._id.toString(),
-      ..._.omit(collection, ["category", "_id"]),
+      ...omit(collection, ["category", "_id"]),
       category: collection.category?.name || null,
     }));
   } catch (err) {

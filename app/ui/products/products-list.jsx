@@ -6,7 +6,11 @@ import dynamic from "next/dynamic";
 import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
 import HeaderOne from "@/app/ui/heading1";
 import Image from "next/image";
-import { Suspense, useMemo, useState, useCallback } from "react";
+import { Suspense, useMemo, useState, useCallback, useEffect } from "react";
+import { useUserStore } from "@/store/store";
+import { trackView, activityQueue } from "@/utils/tracking";
+
+const MAX_TRACK_TIME = 5000;
 
 const ProductHeader = dynamic(
   () => import("@/app/ui/products/product-header"),
@@ -38,11 +42,116 @@ const ProductList = ({
 }) => {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [trackedProducts, setTrackedProducts] = useState(new Set());
+  const [viewStartTimes, setViewStartTimes] = useState({});
+  const [viewDurationTotals, setViewDurationTotals] = useState({});
+  const user = useUserStore((state) => state.user);
+  const userId = user?.id;
+  // Track product views in batches
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        const productsToTrack = new Set();
+
+        entries.forEach((entry) => {
+          const productId = entry.target.dataset.productId;
+
+          if (entry.isIntersecting) {
+            // Start tracking view time when product becomes visible
+            if (!viewStartTimes[productId]) {
+              console.log("viewStartTimes", viewStartTimes);
+              setViewStartTimes((prev) => ({
+                ...prev,
+                [productId]: Date.now(),
+              }));
+            }
+          } else {
+            // Product is no longer visible
+            if (viewStartTimes[productId]) {
+              const viewDuration = Date.now() - viewStartTimes[productId];
+
+              // Add current duration to total
+              setViewDurationTotals((prev) => ({
+                ...prev,
+                [productId]: (prev[productId] || 0) + viewDuration,
+              }));
+
+              console.log(
+                `Total duration for ${productId}:`,
+                viewDurationTotals[productId] + viewDuration,
+              );
+
+              // Check if cumulative time meets threshold
+              if (
+                (viewDurationTotals[productId] || 0) + viewDuration >=
+                  MAX_TRACK_TIME &&
+                !trackedProducts.has(productId)
+              ) {
+                productsToTrack.add(productId);
+              }
+
+              // Reset start time but keep cumulative total
+              setViewStartTimes((prev) => {
+                const newTimes = { ...prev };
+                delete newTimes[productId];
+                return newTimes;
+              });
+            }
+          }
+        });
+
+        // Track all products that meet criteria in one batch
+        if (productsToTrack.size > 0) {
+          console.log("Products to track:", Array.from(productsToTrack));
+
+          [...productsToTrack].forEach((productId) => {
+            activityQueue.push((cb) => {
+              try {
+                trackView(userId, productId)
+                  .then(() => {
+                    console.log(`Successfully tracked product: ${productId}`);
+                    setTrackedProducts((prev) => new Set([...prev, productId]));
+                    cb();
+                  })
+                  .catch((err) => {
+                    console.error(`Failed to track product ${productId}:`, err);
+                    cb(err);
+                  });
+              } catch (error) {
+                console.error(`Error queuing product ${productId}:`, error);
+                cb(error);
+              }
+            });
+          });
+        }
+      },
+      {
+        threshold: 0.5, // Product is considered visible when 50% in view
+        rootMargin: "0px 0px 100px 0px", // Add margin to start loading earlier
+      },
+    );
+
+    // Observe all product cards
+    const productCards = document.querySelectorAll("[data-product-id]");
+    productCards.forEach((card) => observer.observe(card));
+
+    return () => {
+      productCards.forEach((card) => observer.unobserve(card));
+    };
+  }, [
+    products?.length,
+    trackedProducts,
+    viewStartTimes,
+    userId,
+    viewDurationTotals,
+  ]);
 
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
     const queryString = new URLSearchParams(newSearchParams).toString();
     router.push(`/${cat}?${queryString}`);
+    // Reset tracked products when page changes
+    setTrackedProducts(new Set());
   };
 
   const currentCategory = useMemo(
@@ -156,16 +265,20 @@ const ProductList = ({
         <ProductHeader cat={cat} searchParams={searchParams} />
       </div>
 
-      <div className="px-3">
+      <div>
         <h4
           className={`${oswald.className} text-priamry pl-2 text-[13px] font-bold leading-[58px] tracking-widest`}
         >
           {totalCount} ITEMS
         </h4>
-        <div className={`flex flex-wrap justify-start bg-white`}>
+        <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
           {products &&
             products.map((product, index) => (
-              <ProductCard key={index} product={product} />
+              <ProductCard
+                key={index}
+                product={product}
+                data-product-id={product.id}
+              />
             ))}
         </div>
         {/* page footer */}

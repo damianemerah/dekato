@@ -2,8 +2,9 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import { oswald } from "@/style/font";
 import useSWRImmutable from "swr/immutable";
+import { mutate } from "swr";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
-import { useCategoryStore } from "@/store/store";
+import { useCategoryStore, useRecommendMutateStore } from "@/store/store";
 import dynamic from "next/dynamic";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -17,7 +18,15 @@ const CategoryLink = dynamic(() => import("./category-link"), {
 });
 
 export default memo(function HomeCategory() {
-  const { selectedCategory, setSelectedCategory } = useCategoryStore();
+  const { selectedCategory, setSelectedCategory } = useCategoryStore(
+    (state) => ({
+      selectedCategory: state.selectedCategory,
+      setSelectedCategory: state.setSelectedCategory,
+    }),
+  );
+  const setShouldMutate = useRecommendMutateStore(
+    (state) => state.setShouldMutate,
+  );
   const [categorizedListState, setCategorizedListState] = useState([]);
   const [scrollPosition, setScrollPosition] = useState(0);
 
@@ -41,8 +50,9 @@ export default memo(function HomeCategory() {
   const handleCategoryChange = useCallback(
     (category) => {
       setSelectedCategory(category);
+      setShouldMutate(true);
     },
-    [setSelectedCategory],
+    [setSelectedCategory, setShouldMutate],
   );
 
   const handleScroll = useCallback(
@@ -76,7 +86,7 @@ export default memo(function HomeCategory() {
 
   return (
     <div
-      className={`${oswald.className} mb-8 mt-4 min-h-[300px] px-4 py-5 sm:px-6 md:px-8`}
+      className="mb-4 mt-4 min-h-[300px] px-4 py-5 font-oswald sm:px-6 lg:px-8"
       id="selected-category"
     >
       <div className="ml-2 flex flex-col gap-1 sm:ml-4 md:ml-8">

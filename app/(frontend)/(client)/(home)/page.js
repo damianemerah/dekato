@@ -3,16 +3,16 @@ import { oswald } from "@/style/font";
 import Hero from "@/app/ui/home/Hero";
 import dynamic from "next/dynamic";
 import { LoadingSpinner } from "@/app/ui/spinner";
-
+import RecommendedProductsSkeleton from "@/app/ui/recommended-products-skeleton";
 const BelowFold = dynamic(() => import("@/app/ui/home/BelowFold"), {
   loading: () => <LoadingSpinner />,
   ssr: false,
 });
 
-const RecommendedProducts = dynamic(
-  () => import("@/app/ui/recommended-products"),
+const RecommendProduct = dynamic(
+  () => import("@/app/ui/home/recommend-product"),
   {
-    loading: () => <LoadingSpinner />,
+    loading: () => <RecommendedProductsSkeleton />,
     ssr: false,
   },
 );
@@ -32,10 +32,7 @@ export default function Home() {
       <main>
         <SelectedCategories />
         <Campaign />
-        <div className="mb-10 px-4">
-          <h2 className="pb-1 pt-6 font-oswald font-bold">YOU MAY LIKE</h2>
-          <RecommendedProducts category="men" />
-        </div>
+        <RecommendProduct />
       </main>
       <BelowFold />
     </div>

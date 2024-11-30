@@ -52,7 +52,7 @@ export default function Cart() {
     <div className="min-h-screen bg-grayBg">
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <CartHeader />
-        <div className="mt-8 flex flex-col gap-8 md:flex-row md:justify-between">
+        <div className="my-8 flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="md:w-2/3">
             <CartCards products={cart?.item} />
           </div>

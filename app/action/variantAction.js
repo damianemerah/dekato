@@ -2,7 +2,7 @@
 
 import dbConnect from "@/lib/mongoConnection";
 import OptionGroup from "@/models/variantsOption"; // Static import
-import _ from "lodash";
+import { omit } from "lodash";
 
 export async function getVarOption() {
   await dbConnect(); // Ensure connection is established
@@ -10,7 +10,7 @@ export async function getVarOption() {
     const options = await OptionGroup.find().lean();
     return options.map((option) => ({
       id: option._id.toString(),
-      ..._.omit(option, "_id"),
+      ...omit(option, "_id"),
     }));
   } catch (error) {
     console.error("Error in getVarOption:", error);
@@ -32,7 +32,7 @@ export async function createVarOption(option) {
     console.log(option, "option🔥🔥🔥");
     const newOption = await OptionGroup.create(option);
     const leanOption = newOption.toObject();
-    return { id: leanOption._id.toString(), ..._.omit(leanOption, "_id") };
+    return { id: leanOption._id.toString(), ...omit(leanOption, "_id") };
   } catch (error) {
     console.error("Error in createVarOption:", error);
     throw error;
@@ -47,7 +47,7 @@ export async function updateVarOption(id, option) {
     });
     return {
       id: updatedOption._id.toString(),
-      ..._.omit(updatedOption, "_id"),
+      ...omit(updatedOption, "_id"),
     };
   } catch (error) {
     console.error("Error in updateVarOption:", error);

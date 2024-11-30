@@ -4,7 +4,7 @@ import { Cart, CartItem } from "@/models/cart";
 import dbConnect from "@/lib/mongoConnection";
 import { restrictTo } from "@/utils/checkPermission";
 import AppError from "@/utils/errorClass";
-import _ from "lodash";
+import { omit } from "lodash";
 
 export async function getCheckoutData(userId) {
   try {
@@ -68,7 +68,7 @@ function formatCartItem(cartItem) {
     discountPrice,
     product: {
       id: product._id.toString(),
-      ..._.omit(product, ["_id"]),
+      ...omit(product, ["_id"]),
     },
     variantId: variantId?.toString(),
     cartId: cartId.toString(),

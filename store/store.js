@@ -78,6 +78,11 @@ export const useSidebarStore = createPersistedStore(
   "sidebar-storage",
 );
 
+export const useRecommendMutateStore = create((set) => ({
+  shouldMutate: false,
+  setShouldMutate: (shouldMutate) => set({ shouldMutate }),
+}));
+
 export const useSearchStore = create((set) => ({
   searchString: "",
   setSearchString: (searchString) => set({ searchString }),
