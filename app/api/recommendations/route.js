@@ -21,7 +21,6 @@ export async function GET(req) {
 
     let products = [];
 
-    console.log("similar💎�", type, productId);
     if (productId && type === "similar") {
       // Get similar products for a specific product
       const product = await Product.findById(productId);
@@ -46,7 +45,6 @@ export async function GET(req) {
         parseInt(limit, 10),
       );
     } else {
-      console.log("generak💎💎");
       // Fallback to category-based or general recommendations
       let filter = { status: "active" };
 
@@ -86,7 +84,6 @@ export async function GET(req) {
       total: formattedProducts.length,
     });
   } catch (error) {
-    console.error("Error fetching recommendations:", error);
     return NextResponse.json(
       { error: "Error fetching recommendations" },
       { status: 500 },
@@ -142,8 +139,6 @@ export async function POST(req) {
       message: `Product ${interactionType} tracked successfully`,
     });
   } catch (error) {
-    console.error("Error tracking product interaction:", error);
-
     if (error.name === "CastError") {
       return NextResponse.json(
         { error: "Invalid product ID format" },
@@ -161,7 +156,6 @@ export async function POST(req) {
 export async function PATCH(req) {
   try {
     // Get session
-    console.log("UPDATE📁");
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -170,7 +164,6 @@ export async function PATCH(req) {
     // Get productId from request body
     const { productId } = await req.json();
 
-    console.log(productId, "productId📁");
     if (!productId) {
       return NextResponse.json(
         { error: "Product ID is required" },
@@ -193,8 +186,6 @@ export async function PATCH(req) {
       message: "Product added to naughty list successfully",
     });
   } catch (error) {
-    console.error("Error adding to naughty list:", error);
-
     if (error.name === "CastError") {
       return NextResponse.json(
         { error: "Invalid product ID format" },

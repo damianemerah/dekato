@@ -147,7 +147,7 @@ export default function CheckoutPage() {
   };
 
   const handlePayment = async () => {
-    if (isProcessingPayment) return;
+    if (isProcessingPayment || !user) return;
 
     setIsProcessingPayment(true);
     const saveCard = selectedPaymentMethod
@@ -165,9 +165,10 @@ export default function CheckoutPage() {
       cardId: selectedPaymentMethod,
     };
 
+
     try {
       if (data.items.length > 0) {
-        const res = await fetch(`/api/checkout/${user?.id}`, {
+        const res = await fetch(`/api/checkout/${user.id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -176,8 +177,10 @@ export default function CheckoutPage() {
         });
 
         const response = await res.json();
-        window.location.href = response.data.payment.data.authorization_url;
-        return response;
+
+        if (response.success) {
+          window.location.href = response.data.payment.data.authorization_url;
+        }
       }
     } catch (error) {
       console.error(error);

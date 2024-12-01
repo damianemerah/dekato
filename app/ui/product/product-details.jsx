@@ -111,7 +111,7 @@ const SocialSharePanel = memo(function SocialSharePanel() {
             />
           </svg>
         </button>
-        <div className="flex flex-col gap-4 bg-white p-4 shadow-md">
+        <div className="flex flex-col gap-4 rounded-lg bg-white p-4 shadow-md">
           <button
             className="transition-colors hover:text-primary"
             aria-label="Share on Twitter"

@@ -69,17 +69,17 @@ export default function WishlistPage() {
 
   if (isLoading || userIsLoading)
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex h-screen items-center justify-center">
         <SmallSpinner className="!text-primary" />
       </div>
     );
 
   if (!products || products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center sm:p-8">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="mb-4 h-16 w-16 text-gray-400"
+          className="mb-4 h-12 w-12 text-gray-400 sm:h-16 sm:w-16"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -91,16 +91,18 @@ export default function WishlistPage() {
             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
           />
         </svg>
-        <h2 className={`${oswald.className} mb-2 text-2xl font-semibold`}>
+        <h2
+          className={`${oswald.className} mb-2 text-xl font-semibold sm:text-2xl`}
+        >
           Your wishlist is empty
         </h2>
-        <p className="mb-4 text-gray-600">
+        <p className="mb-4 text-sm text-gray-600 sm:text-base">
           Start adding items to your wishlist to keep track of products you
           love!
         </p>
         <Link href="/">
           <ButtonSecondary
-            className={`${oswald.className} border-2 border-primary bg-white text-sm uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white`}
+            className={`${oswald.className} border-2 border-primary bg-white px-4 py-2 text-xs uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white sm:text-sm`}
           >
             Explore Products
           </ButtonSecondary>
@@ -110,15 +112,20 @@ export default function WishlistPage() {
   }
 
   return (
-    <>
-      <div className="mr-2 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="container mx-auto px-4 py-8">
+      <h1
+        className={`${oswald.className} mb-6 text-2xl font-semibold sm:text-3xl`}
+      >
+        Your Wishlist
+      </h1>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
         {products?.map((product) => (
           <Wishlist key={product.id} product={product} />
         ))}
       </div>
-      <div className="my-4 mt-10 flex items-center gap-2">
+      <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
         <ButtonSecondary
-          className={`${oswald.className} border-2 border-grayOutline bg-grayBg text-sm uppercase text-grayText`}
+          className={`${oswald.className} w-full border-2 border-grayOutline bg-grayBg px-4 py-2 text-xs uppercase text-grayText transition-colors duration-300 hover:bg-gray-200 sm:w-auto sm:text-sm`}
           onClick={addAllToCart}
           disabled={isAddingAll}
         >
@@ -129,11 +136,11 @@ export default function WishlistPage() {
           )}
         </ButtonSecondary>
         <ButtonSecondary
-          className={`${oswald.className} border-2 border-grayOutline bg-grayBg text-sm uppercase text-grayText`}
+          className={`${oswald.className} w-full border-2 border-grayOutline bg-grayBg px-4 py-2 text-xs uppercase text-grayText transition-colors duration-300 hover:bg-gray-200 sm:w-auto sm:text-sm`}
         >
           Share Wishlist
         </ButtonSecondary>
       </div>
-    </>
+    </div>
   );
 }

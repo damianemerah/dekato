@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { oswald } from "@/style/font";
-import HeartIcon from "@/public/assets/icons/heart.svg";
 import DeleteIcon from "@/public/assets/icons/remove.svg";
 import {
   removeFromCart,
@@ -14,8 +13,6 @@ import { mutate } from "swr";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { message } from "antd";
-import { addToWishlist } from "@/app/action/userAction";
-import useConfirmModal from "@/app/ui/confirm-modal";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { useSession } from "next-auth/react";
@@ -27,7 +24,6 @@ const CartCard = ({ cartItem }) => {
   const [quantity, setQuantity] = useState(cartItem.quantity.toString() || "");
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
-  const showConfirmModal = useConfirmModal();
 
   const handleCheckboxChange = async () => {
     setIsLoading(true);
@@ -75,32 +71,6 @@ const CartCard = ({ cartItem }) => {
         await updateQuantity(quantity);
       }
     }
-  };
-
-  const handleMoveToWishlist = async () => {
-    showConfirmModal({
-      title: "Move to Wishlist",
-      content: "Move this item to wishlist and remove from cart?",
-      onOk: async () => {
-        setIsLoading(true);
-        try {
-          alert(cartItem?.product.id);
-          await addToWishlist(userId, cartItem?.product.id);
-          await removeFromCart(userId, cartItem.id);
-          await mutate(`/cart/${userId}`);
-          await mutate(`/account/wishlist/${userId}`);
-          await mutate(`/api/user/${userId}`, (user) => ({
-            ...user,
-            wishlist: [...(user.wishlist || []), cartItem?.product.id],
-          }));
-          message.success("Item moved to wishlist and removed from cart");
-        } catch (error) {
-          message.error("Failed to move item to wishlist");
-        } finally {
-          setIsLoading(false);
-        }
-      },
-    });
   };
 
   return (
@@ -171,10 +141,10 @@ const CartCard = ({ cartItem }) => {
               ))}
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between gap-2 sm:flex-row">
             <div className="flex items-center">
               <p className="mr-2 text-xs text-gray-600 sm:mr-3 sm:text-sm">
-                Quantity:
+                Qty:
               </p>
               <div className="flex h-8 items-center border border-primary sm:h-9">
                 <button
@@ -205,7 +175,7 @@ const CartCard = ({ cartItem }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between sm:flex-col sm:items-end">
+            <div className="flex flex-col items-center justify-between sm:flex-col sm:items-end">
               {cartItem.product.isDiscounted && (
                 <span className="text-xs text-gray-500 line-through sm:text-sm">
                   {formatToNaira(cartItem.product.price)}

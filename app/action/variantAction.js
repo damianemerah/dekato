@@ -13,7 +13,6 @@ export async function getVarOption() {
       ...omit(option, "_id"),
     }));
   } catch (error) {
-    console.error("Error in getVarOption:", error);
     throw error;
   }
 }
@@ -23,18 +22,15 @@ export async function getVarOptionById(id) {
   const option = await OptionGroup.findById(id)
     .select("-_id name values")
     .lean();
-  console.log(option, "option🎈🎈");
   return option;
 }
 
 export async function createVarOption(option) {
   try {
-    console.log(option, "option🔥🔥🔥");
     const newOption = await OptionGroup.create(option);
     const leanOption = newOption.toObject();
     return { id: leanOption._id.toString(), ...omit(leanOption, "_id") };
   } catch (error) {
-    console.error("Error in createVarOption:", error);
     throw error;
   }
 }
@@ -50,7 +46,6 @@ export async function updateVarOption(id, option) {
       ...omit(updatedOption, "_id"),
     };
   } catch (error) {
-    console.error("Error in updateVarOption:", error);
     throw error;
   }
 }
@@ -59,7 +54,6 @@ export async function deleteVarOption(id) {
   try {
     await OptionGroup.findByIdAndDelete(id).lean();
   } catch (error) {
-    console.error("Error in deleteVarOption:", error);
     throw error;
   }
 }

@@ -52,7 +52,6 @@ const sendErrorProd = (err) => {
     };
   }
 
-  console.error("ERROR 💥", err.message.includes("E11000"), err);
 
   return {
     status: "error",

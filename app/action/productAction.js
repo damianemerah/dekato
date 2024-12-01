@@ -449,7 +449,6 @@ export async function createProduct(formData) {
 }
 
 export async function updateProduct(formData) {
-  console.log("formData🔥🔥🔥");
   try {
     await restrictTo("admin");
     await dbConnect();

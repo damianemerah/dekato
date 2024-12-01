@@ -26,6 +26,8 @@ export default memo(function Sidebar({ categories, collections }) {
     lgScreenSidebar,
     setLgScreenSidebar,
     setMenuIsClicked,
+    setIsMobile,
+    isMobile,
   } = useSidebarStore();
 
   const { user, setUser } = useUserStore(
@@ -37,7 +39,6 @@ export default memo(function Sidebar({ categories, collections }) {
       [],
     ),
   );
-  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const isBelowThreshold = useIsBelowThreshold();
   const [expandedItem, setExpandedItem] = useState(null);
@@ -58,6 +59,7 @@ export default memo(function Sidebar({ categories, collections }) {
     setMenuIsClicked,
     pathname,
     isBelowThreshold,
+    setIsMobile,
   ]);
 
   useEffect(() => {
@@ -169,18 +171,18 @@ export default memo(function Sidebar({ categories, collections }) {
 
   return (
     <>
-      {isMobile && isSidebarOpen && (
+      {/* {isMobile && isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50"
           onClick={toggleSidebar}
         ></div>
-      )}
+      )} */}
       <aside
         className={`${
           isSidebarOpen
             ? "visible min-w-[250px] translate-x-0"
             : "invisible w-0 -translate-x-full"
-        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-40 h-full flex-shrink-0 bg-white text-primary shadow-lg transition-all duration-300 ease-in-out`}
+        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-50 h-full flex-shrink-0 bg-white text-primary transition-all duration-300 ease-in-out`}
       >
         <nav className="h-full overflow-y-auto">
           <ul className={`${oswald.className} divide-y divide-gray-200`}>

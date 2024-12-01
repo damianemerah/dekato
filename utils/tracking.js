@@ -8,14 +8,12 @@ export const activityQueue = new Queue({
 });
 
 export const trackView = async (userId, productId) => {
-  console.log("trackView📁", userId, productId);
   if (!userId) return;
   await trackInteraction(userId, productId, "view");
 };
 
 // Track clicks (immediate)
 export const trackClick = async (userId, productId) => {
-  console.log("clicked📁", userId, productId);
   if (!userId) return;
   await trackInteraction(userId, productId, "click");
 };

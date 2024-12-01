@@ -56,7 +56,7 @@ export async function GET(req, { params }) {
 }
 
 export async function POST(req, { params }) {
-  // await restrictTo("admin", "user");
+  await restrictTo("admin", "user");
   await dbConnect();
   const session = await startSession();
   try {
@@ -85,8 +85,6 @@ export async function POST(req, { params }) {
       }
     }
 
-    console.log(body, "body💎💎");
-
     const orderData = {
       userId: userId,
       product: items.map((item) => ({
@@ -104,6 +102,8 @@ export async function POST(req, { params }) {
       address:
         shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
     };
+
+    console.log(orderData, "orderData🔥🔥🔥");
 
     //session require array of objects
     const order = await Order.create([orderData], { session });
@@ -145,7 +145,7 @@ export async function POST(req, { params }) {
       paymentInitializeOptions,
     );
 
-    console.log(payment, "payment💎💎");
+    console.log(payment, "payment🔥🔥🔥");
 
     if (!payment || payment.status === false) {
       throw new AppError(payment.message, 500);
@@ -158,7 +158,6 @@ export async function POST(req, { params }) {
       { status: 200 },
     );
   } catch (error) {
-    console.log(error);
     await session.abortTransaction();
     return NextResponse.json(
       { success: false, message: error.message },

@@ -9,7 +9,6 @@ export default async function NewsletterPage() {
     { next: { revalidate: 3600, tags: ["emailSubscription"] } }, //every 1 hour
   ).then((res) => res.json());
 
-  console.log(initialData, "initialData🔥🔥");
 
   return (
     <div className="space-y-6">

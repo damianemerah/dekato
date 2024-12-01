@@ -231,7 +231,6 @@ export default memo(function EditVariant({
                   className="flex items-center gap-1 !rounded-full !bg-slate-500 !px-4 !py-1.5"
                   onClick={() => {
                     const result = handleCreateBulkVariant(variantOptions);
-                    console.log(result, "result🔥🔥");
                     setVariants(result);
                     setVariantIsSaved(false);
                   }}

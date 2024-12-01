@@ -114,7 +114,6 @@ function processVariantData(obj, key, value) {
     label: key.replace("_label", ""),
   }));
 
-  console.log(optionType, "optionType🔥🔥🔥");
 
   obj.variant[index] = {
     ...obj.variant[index],
@@ -178,8 +177,6 @@ async function uploadNewFiles(filesToUpload, fileType) {
   const files =
     filesToUpload.length > 0 ? await uploadFiles(filesToUpload, fileType) : [];
 
-  console.log(files, "files🔥🔥🔥");
-
   return files;
 }
 
@@ -188,7 +185,6 @@ function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
 }
 
 async function handleVariantImages(obj, variantsFilesToUpload) {
-  console.log(variantsFilesToUpload, "variantsFilesToUpload🔥🔥🔥");
   const variantImages = await Promise.all(
     variantsFilesToUpload.map(async (file) => {
       if (file.size > 0) {
@@ -197,7 +193,6 @@ async function handleVariantImages(obj, variantsFilesToUpload) {
     }),
   );
 
-  console.log(variantImages, "variantImages🔥🔥🔥");
 
   obj.variant = obj.variant.map((variant, index) => {
     if (variantImages[index]) {

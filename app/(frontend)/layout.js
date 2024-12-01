@@ -15,8 +15,8 @@ export default function RootLayout({ children }) {
         <Provider>
           <body className="relative min-h-screen overflow-x-hidden antialiased">
             <Header />
-            <div className="relative flex w-full">
-              <div className="sticky top-14 z-40 h-[calc(100vh-3.5rem)]">
+            <div className="flex w-full">
+              <div className="sticky top-14 z-50 h-[calc(100vh-3.5rem)]">
                 <SidebarServer />
               </div>
               <div className="flex flex-1 shrink-0 flex-col md:w-full">

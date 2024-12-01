@@ -57,11 +57,9 @@ export const generateVariantOptions = (variants) => {
 };
 
 export function getQueryObj(searchParams) {
-  console.log(searchParams, "searchParams🚀🚀🚀");
 
   const params = Object.fromEntries(
     Object.entries(searchParams).map(([key, value]) => {
-      console.log(key, value, "key, value🚀🚀🚀");
       return [
         key,
         Array.isArray(value)
@@ -73,7 +71,6 @@ export function getQueryObj(searchParams) {
     }),
   );
 
-  console.log(params, " params🚀🚀🚀");
 
   let variantConditions = [];
 
