@@ -41,7 +41,6 @@ export default function Cart() {
   }
 
   if (cartError) {
-    console.log(cartError);
     return (
       <div className="flex h-screen items-center justify-center">
         <p>Error loading cart</p>
@@ -50,7 +49,7 @@ export default function Cart() {
   }
   return (
     <div className="min-h-screen bg-grayBg">
-      <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
+      <div className="mx-auto max-w-5xl py-8 md:px-8">
         <CartHeader />
         <div className="my-8 flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="md:w-2/3">

@@ -20,7 +20,6 @@ export async function getPaymentMethod(userId) {
 export async function deletePaymentMethod(paymentId) {
   await dbConnect();
   const res = await Payment.findByIdAndDelete(paymentId).lean();
-  console.log(res, "res💎💎");
   return { id: res._id.toString(), ...omit(res, ["_id", "userId"]) };
 }
 

@@ -1,23 +1,22 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Modal, message } from "antd";
+import { useSWRConfig } from "swr";
 import { ButtonSecondary } from "@/app/ui/button";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { oswald } from "@/style/font";
 import useUserData from "@/app/hooks/useUserData";
 import useAddressData from "@/app/hooks/useAddressData";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { Modal, message } from "antd";
 import { InputType } from "@/app/ui/inputType";
 import { updateUserInfo, updatePassword } from "@/app/action/userAction";
-import { useSWRConfig } from "swr";
 
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
   const userId = session?.user?.id;
   const { userData: user, isLoading: userIsLoading } = useUserData(userId);
-
   const { addressData: address } = useAddressData(userId);
   const defaultAddress = address?.find((address) => address.isDefault);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -28,12 +27,10 @@ export default function Overview() {
 
   const handleEditClick = useCallback(() => setShowEditModal(true), []);
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
-
   const handleDeleteAccountClick = useCallback(
     () => setShowDeleteAccountModal(true),
     [],
   );
-
   const handleModalClose = useCallback(() => {
     setShowEditModal(false);
     setShowPasswordModal(false);
@@ -68,8 +65,6 @@ export default function Overview() {
         mutate(`/api/user/${userId}`, updatedUser, false);
         handleModalClose();
         message.success("Password updated successfully");
-
-        // Update session and sign out
         await updateSession({ passwordChanged: true });
       } catch (error) {
         console.error("Failed to update password:", error);
@@ -82,7 +77,6 @@ export default function Overview() {
   );
 
   const handleDeleteAccount = useCallback(async () => {
-    // Implement account deletion logic here
     message.info("Account deletion functionality to be implemented");
     handleModalClose();
   }, [handleModalClose]);
@@ -96,52 +90,58 @@ export default function Overview() {
   }
 
   return (
-    <main>
+    <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="space-y-12">
         <section className="space-y-6">
-          <h2 className="border-b pb-2 font-oswald text-3xl font-semibold text-primary">
+          <h2
+            className={`${oswald.className} border-b pb-2 text-2xl font-semibold text-primary sm:text-3xl`}
+          >
             Account Information
           </h2>
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid gap-8 sm:grid-cols-2">
             <div className="space-y-4">
-              <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
+              <h3
+                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+              >
                 Contact Information
               </h3>
-              <div className="bg-grayBg p-4">
+              <div className="rounded-lg bg-grayBg p-4">
                 <p className="text-lg font-medium">
                   {user?.firstname} {user?.lastname}
                 </p>
                 <p className="text-gray-600">{user?.email}</p>
               </div>
               <div className="flex flex-wrap gap-4">
-                <div
-                  className="cursor-pointer text-blue-500"
+                <button
+                  className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={handleEditClick}
                 >
                   Edit name
-                </div>
-                <div
-                  className="cursor-pointer text-blue-500"
+                </button>
+                <button
+                  className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={handlePasswordClick}
                 >
                   Change password
-                </div>
-                <div
+                </button>
+                <button
+                  className="text-red-500 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500"
                   onClick={handleDeleteAccountClick}
-                  className="cursor-pointer text-red-500"
                 >
                   Delete account
-                </div>
+                </button>
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
+              <h3
+                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+              >
                 Newsletter
               </h3>
-              <div className="bg-grayBg p-4">
+              <div className="rounded-lg bg-grayBg p-4">
                 <p>You are not subscribed to our newsletter.</p>
               </div>
-              <Link href="/account/newsletter" className="block">
+              <Link href="/account/newsletter" className="inline-block">
                 <ButtonSecondary className="border-2 border-primary bg-white font-oswald text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white">
                   Edit subscription
                 </ButtonSecondary>
@@ -150,16 +150,20 @@ export default function Overview() {
           </div>
         </section>
         <section className="space-y-6">
-          <h2 className="border-b pb-2 font-oswald text-3xl font-semibold text-primary">
+          <h2
+            className={`${oswald.className} border-b pb-2 text-2xl font-semibold text-primary sm:text-3xl`}
+          >
             Address Book
           </h2>
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid gap-8 sm:grid-cols-2">
             {defaultAddress ? (
               <div className="space-y-4">
-                <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
+                <h3
+                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                >
                   Shipping Address
                 </h3>
-                <div className="bg-grayBg p-4">
+                <div className="rounded-lg bg-grayBg p-4">
                   <p className="mb-2 font-medium">
                     Your default shipping address:
                   </p>
@@ -186,7 +190,9 @@ export default function Overview() {
               </div>
             ) : (
               <div className="space-y-4">
-                <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
+                <h3
+                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                >
                   Shipping Address
                 </h3>
                 <p>No default shipping address found.</p>
@@ -204,9 +210,19 @@ export default function Overview() {
         width={600}
         className="edit-modal"
       >
-        <div className="relative">
-          <h2 className="mb-6 text-xl font-semibold text-primary">Edit Name</h2>
-          <form action={handleUpdateUserInfo} className="mt-6 space-y-4">
+        <div className="p-6">
+          <h2
+            className={`${oswald.className} mb-6 text-xl font-semibold text-primary`}
+          >
+            Edit Name
+          </h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUpdateUserInfo(new FormData(e.target));
+            }}
+            className="space-y-4"
+          >
             <InputType
               name="firstname"
               label="First name"
@@ -241,11 +257,19 @@ export default function Overview() {
         width={600}
         className="password-modal"
       >
-        <div className="relative">
-          <h2 className="mb-6 text-xl font-semibold text-primary">
+        <div className="p-6">
+          <h2
+            className={`${oswald.className} mb-6 text-xl font-semibold text-primary`}
+          >
             Change Password
           </h2>
-          <form action={handleUpdatePassword} className="mt-6 space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUpdatePassword(new FormData(e.target));
+            }}
+            className="space-y-4"
+          >
             <InputType
               name="currentPassword"
               label="Current Password"
@@ -278,8 +302,10 @@ export default function Overview() {
         width={600}
         className="delete-account-modal"
       >
-        <div className="relative">
-          <h2 className="mb-6 text-xl font-semibold text-primary">
+        <div className="p-6">
+          <h2
+            className={`${oswald.className} mb-6 text-xl font-semibold text-primary`}
+          >
             Delete Account
           </h2>
           <p className="mb-4 text-red-600">

@@ -172,8 +172,6 @@ const Page = memo(function Page({ slug }) {
       formData.append("description", description);
 
       const medias = getFiles(fileList, "image🚀✔️");
-      console.log(fileList);
-      console.log(medias, "medias🚀🚀🚀");
       medias.images.forEach((file) => formData.append("image", file));
       medias.videos.forEach((file) => formData.append("video", file));
 

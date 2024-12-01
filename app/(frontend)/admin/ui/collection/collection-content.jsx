@@ -55,8 +55,6 @@ export default memo(function CollectionContent({ slug, collection }) {
     },
   );
 
-  console.log(allCollections, "allCollections👇👇");
-
   const { data: allCategories, isLoading: catIsLoading } = useSWR(
     "/api/allCategories",
     () => getAllCategories({ limit: 100 }),
@@ -167,10 +165,6 @@ export default memo(function CollectionContent({ slug, collection }) {
         titleRef.current.value = "";
         descriptionRef.current.value = "";
         return;
-      }
-
-      for (const [key, val] of formData.entries()) {
-        console.log(key, val);
       }
 
       await createCollection(formData);

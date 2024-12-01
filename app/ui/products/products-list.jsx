@@ -59,7 +59,6 @@ const ProductList = ({
           if (entry.isIntersecting) {
             // Start tracking view time when product becomes visible
             if (!viewStartTimes[productId]) {
-              console.log("viewStartTimes", viewStartTimes);
               setViewStartTimes((prev) => ({
                 ...prev,
                 [productId]: Date.now(),
@@ -76,10 +75,7 @@ const ProductList = ({
                 [productId]: (prev[productId] || 0) + viewDuration,
               }));
 
-              console.log(
-                `Total duration for ${productId}:`,
-                viewDurationTotals[productId] + viewDuration,
-              );
+
 
               // Check if cumulative time meets threshold
               if (
@@ -102,14 +98,12 @@ const ProductList = ({
 
         // Track all products that meet criteria in one batch
         if (productsToTrack.size > 0) {
-          console.log("Products to track:", Array.from(productsToTrack));
 
           [...productsToTrack].forEach((productId) => {
             activityQueue.push((cb) => {
               try {
                 trackView(userId, productId)
                   .then(() => {
-                    console.log(`Successfully tracked product: ${productId}`);
                     setTrackedProducts((prev) => new Set([...prev, productId]));
                     cb();
                   })

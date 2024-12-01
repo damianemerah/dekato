@@ -353,7 +353,7 @@ export async function getUserAddress(userId) {
   const address = await Address.find({ userId }).lean();
 
   if (!address.length) {
-    throw new Error("No address found for that user");
+    return [];
   }
   return address.map(({ _id, userId, ...rest }) => ({
     id: _id.toString(),
@@ -545,7 +545,6 @@ export async function forgotPassword(formData) {
 
     await user.save();
 
-    console.log(user, "user🔥🔥");
 
     const { _id, wishlist, ...rest } = user.toObject();
 

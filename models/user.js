@@ -96,7 +96,6 @@ userSchema.pre("save", function (next) {
 
   // Ensure JWT issued after password change
   this.passwordChangedAt = Date.now() - 1000;
-  console.log("passwordChangedAt🚀DB🚀", this.passwordChangedAt);
   next();
 });
 

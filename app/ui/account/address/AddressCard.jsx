@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ButtonPrimary } from "@/app/ui/button";
 import { oswald } from "@/style/font";
 import { InputType } from "@/app/ui/inputType";
@@ -14,6 +14,7 @@ import { useSession } from "next-auth/react";
 
 export default function Address() {
   const [showForm, setShowForm] = useState(false);
+  const formRef = useRef(null);
   const [editingAddress, setEditingAddress] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const { data: session } = useSession();
@@ -81,6 +82,9 @@ export default function Address() {
         await mutate(`/api/userAddress/${userId}`);
 
         message.success("Address added successfully");
+
+        // Reset form by clearing all input fields
+        formRef.current.reset();
       } catch (error) {
         message.error("Failed to add address. Please try again.");
       } finally {
@@ -110,6 +114,7 @@ export default function Address() {
         </h2>
 
         <form
+          ref={formRef}
           className="space-y-4"
           action={editingAddress ? handleUpdateAddress : handleCreateAddress}
         >

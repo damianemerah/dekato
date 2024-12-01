@@ -28,7 +28,6 @@ export default function PaymentSuccess({ searchParams }) {
       if (session?.user?.id && reference) {
         try {
           const result = await checkOrderPayment(session.user.id, reference);
-          console.log(result, 1222);
           if (result.success === true) {
             setOrderSuccess(true);
           } else {

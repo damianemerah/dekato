@@ -53,7 +53,6 @@ export async function getOrderById(id) {
       .populate("address")
       .lean({ virtuals: true });
 
-    console.log(order, "order🔥🔥🔥");
 
     if (!order) {
       throw new Error("Order not found");

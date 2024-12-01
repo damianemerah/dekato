@@ -250,17 +250,6 @@ productSchema.index({ createdAt: -1 }); // For recent products - used in getAdmi
 // productSchema.index({ "variant.quantity": 1, status: 1 }); // For variant stock management
 // productSchema.index({ "variant.price": 1, status: 1 }); // For variant price filtering
 
-// Indexes for date-based queries
-if (process.env.NODE_ENV === "development") {
-  productSchema.on("index", function (err) {
-    if (err) {
-      console.error("Index error:", err);
-    } else {
-      console.log("Indexing completed");
-    }
-  });
-}
-
 productSchema.virtual("isDiscounted").get(function () {
   return this.discount > 0 && this.discountDuration > Date.now();
 });
@@ -354,15 +343,12 @@ productSchema.methods.findSimilarProducts = async function (
   limit = 4,
 ) {
   const categoryIds = this.category.map((cat) => cat.toString());
-  console.log(categoryIds, " catIds💎💎");
 
   const query = {
     _id: { $ne: this._id },
     category: { $in: categoryIds },
     status: "active",
   };
-
-  console.log(userActivity, " userActivity💎💎");
 
   // Add naughty list filter if userActivity is provided
   if (userActivity?.naughtyList?.length > 0) {
@@ -375,8 +361,6 @@ productSchema.methods.findSimilarProducts = async function (
     .limit(limit)
     .populate("category", "name slug")
     .lean({ virtuals: true });
-
-  console.log(products, " products💎💎");
 
   return products;
 };

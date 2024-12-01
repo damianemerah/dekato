@@ -47,7 +47,7 @@ const orderSchema = new mongoose.Schema(
     },
     deliveryDate: { type: Date },
     note: { type: String },
-    paymentRef: { type: String, trim: true },
+    paymentRef: { type: String, trim: true, unique: true, sparse: true },
     paymentId: { type: String, trim: true },
     paymentMethod: { type: String, trim: true },
     currency: { type: String, trim: true, uppercase: true },

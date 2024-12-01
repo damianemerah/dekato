@@ -40,11 +40,16 @@ async function updateProductQuantity(order) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  if (!order) {
+    throw new AppError("Order not found", 404);
+  }
+
   try {
     const products = order.product;
 
     for (const item of products) {
       const product = await Product.findById(item.productId).session(session);
+      console.log("product🔥🔥🔥", product);
 
       if (!product) {
         console.warn(
@@ -68,7 +73,6 @@ async function updateProductQuantity(order) {
             )
               .map(([key, value]) => `${key}: ${value}`)
               .join(", ")} is out of stock`;
-            console.log("Out of Stock Alert11🔥🔥");
             await handleOutOfStock(item, order, message, session);
             continue;
           }
@@ -80,7 +84,6 @@ async function updateProductQuantity(order) {
             )
               .map(([key, value]) => `${key}: ${value}`)
               .join(", ")} is out of stock`;
-            console.log("Out of Stock Alert33🔥🔥");
             await handleOutOfStock(item, order, message, session);
           }
         } else {
@@ -90,7 +93,6 @@ async function updateProductQuantity(order) {
         }
       } else {
         if (product.quantity < quantity) {
-          console.log("Out of Stock Alert22🔥🔥");
           const message = `${item.name} is out of stock`;
           await handleOutOfStock(item, order, message, session);
           continue;
@@ -101,8 +103,9 @@ async function updateProductQuantity(order) {
       product.sold += quantity;
       // product.purchaseCount = (product.purchaseCount || 0) + 1;
 
+      console.log("product.quantity🔥🔥🔥", product.quantity);
+
       if (product.quantity === 0) {
-        console.log("Out of Stock Alert44🔥🔥");
         const message = `${item.name} is out of stock`;
         await handleOutOfStock(item, order, message, session);
       }
@@ -138,6 +141,7 @@ async function updateProductQuantity(order) {
 
 export async function POST(req) {
   await dbConnect();
+  console.log("verify🔥🔥🔥");
   try {
     const body = await req.json();
 
@@ -191,7 +195,6 @@ export async function POST(req) {
     }
 
     if (verification?.data?.status === "success") {
-      console.log("creating notification💎💎");
       await Notification.create({
         userId: null, // Admin notification
         title: "New Order Payment",
@@ -212,7 +215,6 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (error) {
-    console.log(error, "payment_error💎💎");
     return NextResponse.json(
       {
         success: false,

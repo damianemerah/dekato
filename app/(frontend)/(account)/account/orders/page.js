@@ -16,7 +16,6 @@ import dbConnect from "@/lib/mongoConnection";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { ButtonSecondary } from "@/app/ui/button";
 import { ShoppingOutlined } from "@ant-design/icons";
-import { oswald } from "@/style/font";
 
 const OrderList = dynamic(() => import("@/app/ui/account/orders/OrderCard"), {
   ssr: false,

@@ -80,7 +80,6 @@ export default function NewCategory({ slug }) {
 
   useEffect(() => {
     if (selectedCategory) {
-      console.log(selectedCategory);
       selectedCategory.parent && setCParent(selectedCategory?.parent.id);
       const selectedImgs = selectedCategory.image.map((img, index) => ({
         uid: index,
@@ -128,7 +127,6 @@ export default function NewCategory({ slug }) {
       const parentCategory = allCategories?.data.find(
         (cat) => cat.id === cParent,
       );
-      console.log(parentCategory, "parentCategory");
       const pinnedCount = allCategories?.data.filter(
         (cat) => cat.parent?.id === cParent && cat.pinned,
       ).length;
@@ -154,7 +152,6 @@ export default function NewCategory({ slug }) {
 
         const updatedCategory = await updateCategory(formData);
 
-        console.log(updatedCategory, "updatedCategory🔥🔥🔥");
 
         message.success("Category updated");
         titleRef.current.value = "";

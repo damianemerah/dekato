@@ -74,6 +74,8 @@ export const useSidebarStore = createPersistedStore(
     setLgScreenSidebar: (lgScreenSidebar) => set({ lgScreenSidebar }),
     menuIsClicked: false,
     setMenuIsClicked: (menuIsClicked) => set({ menuIsClicked }),
+    isMobile: false,
+    setIsMobile: (isMobile) => set({ isMobile }),
   }),
   "sidebar-storage",
 );

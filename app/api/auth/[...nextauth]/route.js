@@ -118,8 +118,6 @@ export const OPTIONS = {
         }
       }
 
-      console.log(session, "session📁📁📁");
-
       return session;
     },
   },
