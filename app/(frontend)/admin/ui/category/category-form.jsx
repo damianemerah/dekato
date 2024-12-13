@@ -10,14 +10,16 @@ import DropDown from "@/app/(frontend)/admin/ui/DropDown";
 import { getAllCategories } from "@/app/action/categoryAction";
 import useSWR, { mutate } from "swr";
 import { SmallSpinner } from "@/app/ui/spinner";
-import "react-quill/dist/quill.snow.css";
 import dynamic from "next/dynamic";
 
 const TextEditor = dynamic(() => import("@/app/ui/text-editor"), {
   ssr: false,
+  loading: () => (
+    <div className="min-h-[120px] rounded-md border p-4">Loading editor...</div>
+  ),
 });
 
-export default function NewCategory({ slug }) {
+export default function NewCategory({ categoryId }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [cParent, setCParent] = useState(null);
@@ -59,10 +61,10 @@ export default function NewCategory({ slug }) {
 
       setCatList(category);
     }
-    if (slug !== "new" && allCategories?.data.length) {
-      const selectedCategory = allCategories?.data.find(
-        (category) => category.slug === slug,
-      );
+    if (categoryId !== "new" && allCategories?.data.length) {
+      const selectedCategory = allCategories?.data.find((category) => {
+        return category.id === categoryId;
+      });
 
       if (selectedCategory) {
         setActionType("edit");
@@ -71,12 +73,12 @@ export default function NewCategory({ slug }) {
       } else {
         window.location.href = "/admin/categories";
       }
-    } else if (slug === "new") {
+    } else if (categoryId === "new") {
       setActionType("create");
       setCParent(null);
       setIsPinned(false);
     }
-  }, [allCategories?.data, isLoading, slug]);
+  }, [allCategories?.data, isLoading, categoryId]);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -140,7 +142,7 @@ export default function NewCategory({ slug }) {
 
       if (type === "edit") {
         const id = allCategories?.data.find(
-          (category) => category.slug === slug,
+          (category) => category.id === categoryId,
         ).id;
         formData.append("id", id);
 
@@ -151,7 +153,6 @@ export default function NewCategory({ slug }) {
         }
 
         const updatedCategory = await updateCategory(formData);
-
 
         message.success("Category updated");
         titleRef.current.value = "";

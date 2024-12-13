@@ -4,8 +4,8 @@ import Image from "next/image";
 
 export default function Campaign() {
   return (
-    <div className={`${oswald.className} flex flex-col gap-0.5 md:flex-row`}>
-      <div className="relative aspect-square max-h-[670px] w-full lg:w-1/2">
+    <div className={`${oswald.className} mt-0.5 flex flex-col md:flex-row`}>
+      <div className="relative mb-0.5 aspect-square max-h-[670px] w-full lg:w-[calc(50%-1px)]">
         <Image
           src="/assets/image4.png"
           alt="New Arrivals for Men and Women"
@@ -37,7 +37,7 @@ export default function Campaign() {
         </div>
       </div>
 
-      <div className="relative aspect-square max-h-[670px] w-full lg:w-1/2">
+      <div className="relative mb-0.5 aspect-square max-h-[670px] min-h-0 w-full lg:w-[calc(50%-1px)]">
         <Image
           src="/assets/image5.webp"
           alt="Featured Campaign for Men and Women"

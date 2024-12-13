@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ButtonPrimary } from "@/app/ui/button";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { InputType } from "@/app/ui/inputType";
@@ -49,7 +49,7 @@ export default function ResetPassword({ params: { token } }) {
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center px-8">
       <div className="w-full max-w-md">
         <h2 className="mb-6 text-center text-2xl font-semibold text-primary">
           Reset Password

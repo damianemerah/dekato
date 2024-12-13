@@ -13,6 +13,75 @@ const CategoryProducts = dynamic(
   },
 );
 
+// Helper function to get category/collection data
+async function getCategoryData(cat) {
+  await dbConnect();
+
+  const path = cat.join("/");
+  console.log(path, "path🔥🔥🔥");
+  // Try to find as category first
+  let data = await Category.findOne({
+    path: { $all: path },
+  })
+    .select("name description metaTitle metaDescription")
+    .lean();
+
+  // If not found, try as collection
+  if (!data) {
+    data = await Campaign.findOne({
+      path: { $all: path },
+    })
+      .select("name description metaTitle metaDescription")
+      .lean();
+  }
+
+  return data;
+}
+
+export async function generateMetadata({ params: { cat } }, parent) {
+  // Get base metadata from parent
+  const parentMetadata = await parent;
+  const previousImages = parentMetadata?.openGraph?.images || [];
+
+  // Get category/collection data
+  const data = await unstable_cache(
+    () => getCategoryData(cat),
+    [`category-meta-${cat.join("-")}`],
+    { revalidate: 1800 },
+  )();
+
+  if (!data) {
+    return {
+      title: "Products",
+      description: "Browse our products",
+    };
+  }
+
+  return {
+    title: data.metaTitle || data.name,
+    description:
+      data.metaDescription ||
+      data.description ||
+      `Browse our ${data.name} products`,
+    openGraph: {
+      title: data.metaTitle || data.name,
+      description:
+        data.metaDescription ||
+        data.description ||
+        `Browse our ${data.name} products`,
+      images: [...previousImages],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: data.metaTitle || data.name,
+      description:
+        data.metaDescription ||
+        data.description ||
+        `Browse our ${data.name} products`,
+    },
+  };
+}
+
 async function getAllCategoryPaths() {
   await dbConnect();
 

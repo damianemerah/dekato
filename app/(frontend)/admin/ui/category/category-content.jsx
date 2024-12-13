@@ -28,13 +28,13 @@ import {
 import noImage from "@/public/assets/no-image.webp";
 import { useRouter } from "next/navigation";
 
-const Action = memo(function Action({ slug, handleDelete }) {
+const Action = memo(function Action({ id, handleDelete }) {
   const items = [
     {
       label: (
         <Link
           rel="noopener noreferrer"
-          href={`/admin/categories/${slug}`}
+          href={`/admin/categories/${id}`}
           className="!text-blue-500"
         >
           Edit
@@ -210,8 +210,8 @@ const Categories = ({ searchParams }) => {
         name: item.name,
         productCount: item.productCount,
         parent: item?.parent ? item.parent.name : "",
-        slug: item.slug,
-        action: <Action slug={item.slug} />,
+        id: item.id,
+        action: <Action id={item.id} />,
         pinOrder: pinOrders[item.id]?.pinOrder || undefined,
         isChecked: pinOrders[item.id]?.isChecked,
       }))
@@ -270,7 +270,7 @@ const Categories = ({ searchParams }) => {
       render: (_, record) => {
         return (
           <Action
-            slug={record.slug}
+            id={record.id}
             handleDelete={() => handleDelete(record.key)}
           />
         );

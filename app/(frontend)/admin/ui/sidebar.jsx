@@ -9,6 +9,7 @@ import {
   PlusOutlined,
   TagOutlined,
   ArrowLeftOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -85,6 +86,22 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
           key: "categories-new",
           icon: <PlusOutlined />,
           label: <Link href="/admin/categories/new">New Category</Link>,
+        },
+      ],
+    },
+    {
+      key: "blogs",
+      icon: <FileTextOutlined />,
+      label: "Blogs",
+      children: [
+        {
+          key: "blogs-list",
+          label: <Link href="/admin/blogs">All Blogs</Link>,
+        },
+        {
+          key: "blogs-new",
+          icon: <PlusOutlined />,
+          label: <Link href="/admin/blogs/new">New Blog</Link>,
         },
       ],
     },

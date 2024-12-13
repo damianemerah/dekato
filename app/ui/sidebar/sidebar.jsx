@@ -103,196 +103,106 @@ export default memo(function Sidebar({ categories, collections }) {
     </span>
   );
 
-  const mapCategories = useMemo(() => {
-    const topLevelCategories = categories?.filter((cat) => !cat.parent) || [];
-
-    const removeParentPrefix = (name, parentName) => {
-      const lowerName = name.toLowerCase();
-      const lowerParentName = parentName.toLowerCase();
-
-      if (lowerName.startsWith(`${lowerParentName}'s`)) {
-        const remainder = name.slice(parentName.length + 2).trim();
-        return remainder.length > 0 ? remainder : name;
-      }
-
-      if (lowerName.startsWith(lowerParentName)) {
-        const remainder = name.slice(parentName.length).trim();
-        return remainder.length > 0 ? remainder : name;
-      }
-
-      return name;
-    };
-
-    return topLevelCategories.map((topCat) => ({
-      label: topCat.name.toUpperCase(),
-      href: `/${topCat.path[topCat.path.length - 1]}`,
-      children: categories
-        ?.filter((cat) => cat.parent?.id === topCat.id)
-        .map((subCat) => {
-          const label = removeParentPrefix(subCat.name, topCat.name);
-          return {
-            label: label.charAt(0).toUpperCase() + label.slice(1),
-            href: `/${topCat.slug}/${subCat.slug}`,
-            children: categories
-              ?.filter((cat) => cat.parent?.id === subCat.id)
-              .map((childCat) => {
-                const childLabel = removeParentPrefix(
-                  childCat.name,
-                  subCat.name,
-                );
-                return {
-                  label:
-                    childLabel.charAt(0).toUpperCase() + childLabel.slice(1),
-                  href: `/${topCat.path[topCat.path.length - 1]}/${subCat.slug}/${childCat.slug}`,
-                };
-              }),
-          };
-        }),
-    }));
-  }, [categories]);
-
-  const sidebarItems = useMemo(
-    () => [
-      ...mapCategories,
-      {
-        label: "COLLECTIONS",
-        children: collections?.map((collection) => ({
-          label: collection.name,
-          href: `/${collection.slug}`,
-        })),
-      },
-    ],
-    [mapCategories, collections],
-  );
-
   if (pathname.startsWith("/admin")) {
     return null;
   }
 
   return (
     <>
-      {/* {isMobile && isSidebarOpen && (
+      {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50"
+          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
           onClick={toggleSidebar}
-        ></div>
-      )} */}
+          aria-hidden="true"
+        />
+      )}
       <aside
         className={`${
           isSidebarOpen
-            ? "visible min-w-[250px] translate-x-0"
+            ? "visible min-w-[280px] translate-x-0 shadow-xl"
             : "invisible w-0 -translate-x-full"
-        } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-50 h-full flex-shrink-0 bg-white text-primary transition-all duration-300 ease-in-out`}
+        } ${
+          !lgScreenSidebar && !isBelowThreshold && "hidden"
+        } relative z-50 h-full flex-shrink-0 bg-white text-primary transition-all duration-300 ease-in-out`}
+        aria-label="Sidebar navigation"
       >
         <nav className="h-full overflow-y-auto">
-          <ul className={`${oswald.className} divide-y divide-gray-200`}>
-            {sidebarItems?.map((item, index) => (
-              <li key={index} className="p-4">
-                {item.children && item.children.length > 0 ? (
-                  <>
-                    <div
-                      onClick={() => toggleExpand(item.label)}
-                      className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
-                    >
-                      {item.label}
-                      {toggleIcon(expandedItem, item.label)}
-                    </div>
-                    <ul
-                      className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
-                        expandedItem === item.label
-                          ? "max-h-[1000px] opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      {item.children.map((child, childIndex) => (
-                        <li key={childIndex} className="p-2">
-                          {child.children && child.children.length > 0 ? (
-                            <>
-                              <div
-                                onClick={() => toggleExpand(child.label)}
-                                className="flex cursor-pointer items-center justify-between text-sm text-gray-600 hover:text-primary"
-                              >
-                                {child.label}
-                                {toggleIcon(expandedItem, child.label)}
-                              </div>
-                              <ul
-                                className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
-                                  expandedItem === child.label
-                                    ? "max-h-[500px] opacity-100"
-                                    : "max-h-0 opacity-0"
-                                }`}
-                              >
-                                {child.children.map(
-                                  (grandChild, grandChildIndex) => (
-                                    <li
-                                      key={grandChildIndex}
-                                      className="p-2 text-xs"
-                                    >
-                                      <Link
-                                        href={grandChild.href || "#"}
-                                        className="text-gray-500 hover:text-primary"
-                                      >
-                                        {grandChild.label}
-                                      </Link>
-                                    </li>
-                                  ),
-                                )}
-                              </ul>
-                            </>
-                          ) : (
-                            <Link
-                              href={child.href || "#"}
-                              className="block text-sm text-gray-600 hover:text-primary"
-                            >
-                              {child.label}
-                            </Link>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : (
-                  <Link
-                    href={item.href || "#"}
-                    className="flex items-center justify-between text-gray-800 hover:text-primary"
-                  >
-                    {item.label}
-                  </Link>
-                )}
+          <ul className={`${oswald.className} divide-y divide-gray-100`}>
+            {categories?.map((category) => (
+              <li
+                key={category.id}
+                className="group p-4 transition-colors hover:bg-gray-50"
+              >
+                <div
+                  onClick={() => toggleExpand(category.name)}
+                  className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 transition-colors group-hover:text-primary md:text-base"
+                  role="button"
+                  aria-expanded={expandedItem === category.name}
+                  aria-controls={`submenu-${category.name}`}
+                >
+                  {category.name}
+                  {toggleIcon(expandedItem, category.name)}
+                </div>
+                <ul
+                  id={`submenu-${category.name}`}
+                  className={`mt-3 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
+                    expandedItem === category.name
+                      ? "max-h-[1000px] opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  {category.children?.map((child) => (
+                    <li key={child.id} className="group/child p-2">
+                      <Link
+                        href={`/${category.slug}/${child.slug}`}
+                        className="block text-sm text-gray-600 transition-colors hover:text-primary md:text-base"
+                      >
+                        {child.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
             {user?.id && (
-              <li className="p-4">
+              <li className="group p-4 transition-colors hover:bg-gray-50">
                 <div
                   onClick={() => toggleExpand("MY ACCOUNT")}
-                  className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 hover:text-primary"
+                  className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-gray-800 transition-colors group-hover:text-primary md:text-base"
+                  role="button"
+                  aria-expanded={expandedItem === "MY ACCOUNT"}
+                  aria-controls="account-submenu"
                 >
                   MY ACCOUNT
                   {toggleIcon(expandedItem, "MY ACCOUNT")}
                 </div>
                 <ul
-                  className={`mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
+                  id="account-submenu"
+                  className={`mt-3 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
                     expandedItem === "MY ACCOUNT"
                       ? "max-h-[1000px] opacity-100"
                       : "max-h-0 opacity-0"
                   }`}
                 >
                   {accountLinks.map(({ href, label }) => (
-                    <li key={href} className="p-2">
+                    <li key={href} className="group/account p-2">
                       <Link
                         href={href}
-                        className={`block text-sm text-gray-600 hover:text-primary ${
-                          pathname === href ? "font-semibold" : ""
+                        className={`block text-sm text-gray-600 transition-colors group-hover/account:text-primary md:text-base ${
+                          pathname === href ? "font-semibold text-primary" : ""
                         }`}
                       >
                         {label}
                       </Link>
                     </li>
                   ))}
-                  <li className="p-2" onClick={handleSignOut}>
-                    <div className="block cursor-pointer text-sm text-gray-600 hover:text-primary">
+                  <li className="group/logout p-2">
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left text-sm text-gray-600 transition-colors group-hover/logout:text-primary md:text-base"
+                    >
                       Log out
-                    </div>
+                    </button>
                   </li>
                 </ul>
               </li>

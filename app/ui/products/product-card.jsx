@@ -82,27 +82,27 @@ const ProductCard = memo(
       : product.price;
 
     return (
-      <Link
-        href={`/p/${product.slug}-${product.id}`}
-        // className="mb-0.5 ml-2.5 w-[calc(50%-10px)] md:w-[calc(33.333%-10px)] md:min-w-56 lg:w-[calc(25%-10px)]"
-        onClick={handleProductClick}
-        id={`product-${product.id}`}
-        data-product-id={product.id}
-        key={key}
-        onMouseEnter={() => {
-          setShowVariants(true);
-        }}
-        onMouseLeave={() => {
-          setShowVariants(false);
-          setCurrentImage(product?.image[0]);
-        }}
-      >
-        <div
-          className="flex h-full flex-col bg-white text-center transition-all duration-300 hover:shadow-md"
-          role="article"
-          aria-label={`Product: ${product.name}`}
+      <div className="flex h-full flex-col bg-white text-center transition-all duration-300 hover:shadow-md">
+        <Link
+          href={`/p/${product.slug}-${product.id}`}
+          onClick={handleProductClick}
+          id={`product-${product.id}`}
+          data-product-id={product.id}
+          key={key}
+          onMouseEnter={() => {
+            setShowVariants(true);
+          }}
+          onMouseLeave={() => {
+            setShowVariants(false);
+            setCurrentImage(product?.image[0]);
+          }}
+          className="block"
         >
-          <div className="relative max-w-full overflow-hidden pb-[133.33%]">
+          <div
+            className="relative max-w-full overflow-hidden pb-[133.33%]"
+            role="article"
+            aria-label={`Product: ${product.name}`}
+          >
             <Image
               src={currentImage || "/placeholder-image.jpg"}
               alt={product.name}
@@ -141,28 +141,8 @@ const ProductCard = memo(
                 {isFavorite ? <HeartFilled /> : <HeartOutlined />}
               </div>
             )}
-            {showVariants && product?.variant?.length > 0 && (
-              <div className="no-scrollbar absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 overflow-auto bg-white/80 p-2 transition-all duration-300">
-                {product?.variant?.map((variant, index) => (
-                  <div
-                    key={`${variant._id}-${index}`}
-                    className="h-7 w-7 cursor-pointer transition-transform hover:scale-110"
-                    onMouseEnter={() => setCurrentImage(variant.image)}
-                    onMouseLeave={() => setCurrentImage(product?.image[0])}
-                  >
-                    <Image
-                      src={variant.image}
-                      alt={product.name}
-                      width={28}
-                      height={28}
-                      className="h-full w-full rounded-full object-cover object-center"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-          <div className="flex flex-1 flex-col items-center pb-4 pt-1 text-[13px]">
+          <div className="flex flex-1 flex-col items-center pb-2 pt-1 text-[13px]">
             <p className="mb-0.5 w-full truncate overflow-ellipsis whitespace-nowrap text-nowrap text-sm capitalize">
               {product.name}
             </p>
@@ -183,8 +163,37 @@ const ProductCard = memo(
               )}
             </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+        {product?.variant?.length > 0 && (
+          <div
+            className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto p-2 transition-all duration-300 ${showVariants ? "lg:visible" : "lg:invisible"} visible`}
+          >
+            {product?.variant?.slice(0, 5).map((variant, index) => (
+              <div
+                key={`${variant._id}-${index}`}
+                className="h-7 w-7 flex-shrink-0 cursor-pointer transition-transform hover:scale-110"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImage(variant.image);
+                }}
+              >
+                <Image
+                  src={variant.image}
+                  alt={`${product.name} variant ${index + 1}`}
+                  width={28}
+                  height={28}
+                  className="h-full w-full rounded-full object-cover object-center"
+                />
+              </div>
+            ))}
+            {product?.variant?.length > 5 && (
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600">
+                +{product.variant.length - 5}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     );
   },
 );

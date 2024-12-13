@@ -11,6 +11,7 @@ export const handleFormData = async (formData, Model, id) => {
     category: [],
     campaign: [],
     variant: [],
+    tag: [],
   };
   const imagesToUpload = [];
   const videosToUpload = [];
@@ -90,6 +91,8 @@ function processFormEntries(
       obj.campaign.push(value);
     } else if (key === "image") {
       processMediaFile(obj, imagesToUpload, key, value);
+    } else if (key === "tag") {
+      obj.tag.push(value);
     } else if (key === "video") {
       processMediaFile(obj, videosToUpload, key, value);
     } else if (key === "banner") {
@@ -113,7 +116,6 @@ function processVariantData(obj, key, value) {
     labelId: value,
     label: key.replace("_label", ""),
   }));
-
 
   obj.variant[index] = {
     ...obj.variant[index],
@@ -192,7 +194,6 @@ async function handleVariantImages(obj, variantsFilesToUpload) {
       }
     }),
   );
-
 
   obj.variant = obj.variant.map((variant, index) => {
     if (variantImages[index]) {

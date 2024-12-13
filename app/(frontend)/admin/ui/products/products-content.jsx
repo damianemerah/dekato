@@ -38,6 +38,7 @@ const Page = memo(function Page({ slug }) {
   const [status, setStatus] = useState("inactive");
   const [prodLoading, setProdLoading] = useState(false);
   const [description, setDescription] = useState("");
+  const [tags, setTags] = useState([]);
 
   const nameRef = useRef(null);
   const priceRef = useRef(null);
@@ -98,6 +99,7 @@ const Page = memo(function Page({ slug }) {
       quantityRef.current.value = product.quantity || "";
       discountRef.current.value = product?.discount || "";
       setStatus(product.status || "inactive");
+      setTags(product.tag || []);
     },
     [setDefaultVariantOptions, setVariants],
   );
@@ -171,7 +173,14 @@ const Page = memo(function Page({ slug }) {
       formData.append("status", status);
       formData.append("description", description);
 
-      const medias = getFiles(fileList, "image🚀✔️");
+      if (tags && tags.length > 0) {
+        const formattedTags = tags
+          .filter(Boolean)
+          .map((tag) => (typeof tag === "string" ? tag.trim() : tag));
+        formattedTags.forEach((tag) => formData.append("tag", tag));
+      }
+
+      const medias = getFiles(fileList);
       medias.images.forEach((file) => formData.append("image", file));
       medias.videos.forEach((file) => formData.append("video", file));
 
@@ -181,8 +190,10 @@ const Page = memo(function Page({ slug }) {
         formData.append(`variantData[${index}]`, JSON.stringify(rest));
         if (image?.originFileObj instanceof File) {
           formData.append(`variantImage[${index}]`, image.originFileObj);
-        } else if (image && typeof image === "string") {
-          formData.append(`variantImage[${index}]`, image);
+        } else if (imageURL || image.url || typeof image === "string") {
+          const url =
+            imageURL || image.url || (typeof image === "string" && image);
+          formData.append(`variantImage[${index}]`, url);
         }
       });
 
@@ -251,6 +262,8 @@ const Page = memo(function Page({ slug }) {
 
   return (
     <ProductForm
+      tags={tags}
+      setTags={setTags}
       handleFormSubmit={handleFormSubmit}
       isSwitchDisabled={isSwitchDisabled}
       nameRef={nameRef}

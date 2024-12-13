@@ -12,9 +12,9 @@ const ProductSwiper = memo(function ProductSwiper({
 }) {
   return (
     <>
-      {/* Dots navigation for small to medium screens */}
+      {/* Dots navigation for medium screens */}
       {product?.image && product.image.length > 1 && (
-        <div className="absolute left-0 right-0 top-4 z-10 hidden justify-center gap-2 sm:flex md:hidden">
+        <div className="absolute left-0 right-0 top-4 z-10 flex justify-center gap-2 md:hidden">
           {product.image.map((_, index) => (
             <button
               key={index}
@@ -52,7 +52,7 @@ const ProductSwiper = memo(function ProductSwiper({
       )}
 
       {/* Main image swiper */}
-      <div className="relative h-full w-full overflow-hidden">
+      <div className="relative h-full min-h-[450px] w-full overflow-hidden">
         {/* Mobile slider */}
         <div
           className="flex h-full sm:hidden"

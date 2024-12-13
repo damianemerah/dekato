@@ -55,6 +55,15 @@ const categorySchema = new mongoose.Schema(
       ref: "Category",
       default: null,
       index: true,
+      validate: {
+        validator: async function (parentId) {
+          if (!parentId) return true;
+          const Category = mongoose.model("Category");
+          const parentCategory = await Category.findById(parentId);
+          return parentCategory && !parentCategory.parent;
+        },
+        message: "Categories can only be one level deep",
+      },
     },
     pinned: {
       type: Boolean,
@@ -65,6 +74,8 @@ const categorySchema = new mongoose.Schema(
       default: 0,
     },
     children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+    metaTitle: String,
+    metaDescription: String,
   },
   {
     timestamps: true,
@@ -86,7 +97,13 @@ categorySchema.pre("save", async function (next) {
   }
 
   if (this.parent) {
-    const existingCategory = await this.constructor.findOne({
+    const Category = this.model("Category");
+    const parentCategory = await Category.findById(this.parent);
+    if (parentCategory && parentCategory.parent) {
+      return next(new Error("Categories can only be one level deep"));
+    }
+
+    const existingCategory = await Category.findOne({
       parent: this.parent,
       slug: this.slug,
     });
@@ -109,7 +126,7 @@ categorySchema.pre("save", async function (next) {
     } else {
       const parentCategory = await this.constructor.findById(this.parent);
       if (parentCategory) {
-        this.path = [this.slug, `${parentCategory.slug}/${this.slug}`];
+        this.path = [`${parentCategory.slug}/${this.slug}`];
       } else {
         return next(new Error("Parent category not found"));
       }
@@ -126,11 +143,19 @@ categorySchema.pre("findOneAndUpdate", async function (next) {
   }
 
   if (update.parent) {
-    const doc = await this.model.findOne(this.getQuery());
-    const existingCategory = await this.model.findOne({
+    const Category = mongoose.model("Category");
+    const parentCategory = await Category.findById(update.parent);
+
+    if (parentCategory && parentCategory.parent) {
+      return next(new Error("Categories can only be one level deep"));
+    }
+
+    const doc = await Category.findOne(this.getQuery());
+    const existingCategory = await Category.findOne({
       parent: update.parent,
       slug: update.slug,
     });
+
     if (
       existingCategory &&
       existingCategory._id.toString() !== doc._id.toString()
@@ -145,14 +170,16 @@ categorySchema.pre("findOneAndUpdate", async function (next) {
 
   // Update path
   if (update.parent !== undefined || update.slug) {
-    const doc = await this.model.findOne(this.getQuery());
+    const Category = mongoose.model("Category");
+    const doc = await Category.findOne(this.getQuery());
+
     if (!update.parent) {
       update.path = [update.slug || doc.slug];
     } else {
-      const parentCategory = await this.model.findById(update.parent);
+      const parentCategory = await Category.findById(update.parent);
       if (parentCategory) {
         const newSlug = update.slug || doc.slug;
-        update.path = [newSlug, `${parentCategory.slug}/${newSlug}`];
+        update.path = [`${parentCategory.slug}/${newSlug}`];
       } else {
         return next(new Error("Parent category not found"));
       }

@@ -10,7 +10,7 @@ import { ButtonPrimary } from "../button";
 import { createSearchParams } from "@/utils/filterHelpers";
 
 const sortOptions = [
-  { value: "+createdAt", label: "Relevance" },
+  { value: "+createdAt", label: "Newest" },
   { value: "price", label: "Price: Low to High" },
   { value: "-price", label: "Price: High to Low" },
 ];
@@ -31,7 +31,7 @@ export default function Filter({ cat, searchParams, products, banner }) {
   });
   const [searchStr, setSearchStr] = useState("");
   const [variantOptions, setVariantOptions] = useState([]);
-  const [sort, setSort] = useState("relevance");
+  const [sort, setSort] = useState("newest");
 
   const router = useRouter();
   const dropdownRef = useRef(null);
@@ -212,7 +212,7 @@ export default function Filter({ cat, searchParams, products, banner }) {
 
       // Close dropdown before navigation
       toggleDropdown("sort");
-      router.push(`/${cat}?${params.toString()}`);
+      router.push(`/${cat.slice(-1)[0]}?${params.toString()}`);
     },
     [cat, router],
   );

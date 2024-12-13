@@ -10,5 +10,5 @@ const CategoryForm = dynamic(
 );
 
 export default function CategoryPage({ params }) {
-  return <CategoryForm slug={params.slug} />;
+  return <CategoryForm categoryId={params.slug} />;
 }

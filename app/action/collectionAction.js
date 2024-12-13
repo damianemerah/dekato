@@ -8,7 +8,6 @@ import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import APIFeatures from "@/utils/apiFeatures";
-import { omit } from "lodash";
 
 function formatCollections(collections) {
   const formattedCollections = collections.map(
@@ -204,29 +203,5 @@ export async function getSaleCollections() {
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
-  }
-}
-
-export async function getCollections() {
-  try {
-    await dbConnect();
-
-    const collections = await Campaign.find({})
-      .populate("category", "name slug isSale")
-      .lean({ virtuals: true });
-
-    if (!collections) {
-      throw new Error("No collections found");
-    }
-
-    return collections.map((collection) => ({
-      id: collection._id.toString(),
-      ...omit(collection, ["category", "_id"]),
-      category: collection.category?.name || null,
-    }));
-  } catch (err) {
-    console.error("Error fetching collections:", err);
-    const error = handleAppError(err);
-    throw new Error(error.message || "Failed to fetch collections");
   }
 }

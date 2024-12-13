@@ -26,13 +26,13 @@ import {
 } from "@/app/action/collectionAction";
 import noImage from "@/public/assets/no-image.webp";
 
-const Action = memo(function Action({ slug, handleDelete }) {
+const Action = memo(function Action({ id, handleDelete }) {
   const items = [
     {
       label: (
         <Link
           rel="noopener noreferrer"
-          href={`/admin/collections/${slug}`}
+          href={`/admin/collections/${id}`}
           className="!text-blue-500"
         >
           Edit
@@ -101,11 +101,11 @@ const CollectionList = ({ searchParams }) => {
     key: item.id,
     image: item.image[0],
     name: item.name,
-    slug: item.slug,
+    id: item.id,
     category: item.category?.name || "Uncategorized",
     isSale: item.isSale,
     productCount: item.productCount,
-    action: <Action slug={item.slug} />,
+    action: <Action id={item.id} />,
   }));
 
   const columns = [
@@ -171,7 +171,7 @@ const CollectionList = ({ searchParams }) => {
       render: (_, record) => {
         return (
           <Action
-            slug={record.slug}
+            id={record.id}
             handleDelete={() => handleDelete(record.key)}
           />
         );

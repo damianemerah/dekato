@@ -7,7 +7,6 @@ import { Modal, message } from "antd";
 import { useSWRConfig } from "swr";
 import { ButtonSecondary } from "@/app/ui/button";
 import { SmallSpinner } from "@/app/ui/spinner";
-import { oswald } from "@/style/font";
 import useUserData from "@/app/hooks/useUserData";
 import useAddressData from "@/app/hooks/useAddressData";
 import { InputType } from "@/app/ui/inputType";
@@ -94,14 +93,14 @@ export default function Overview() {
       <div className="space-y-12">
         <section className="space-y-6">
           <h2
-            className={`${oswald.className} border-b pb-2 text-2xl font-semibold text-primary sm:text-3xl`}
+            className={`border-b pb-2 font-oswald text-2xl font-semibold text-primary sm:text-3xl`}
           >
             Account Information
           </h2>
           <div className="grid gap-8 sm:grid-cols-2">
             <div className="space-y-4">
               <h3
-                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                className={`font-oswald text-xl font-medium uppercase text-gray-700`}
               >
                 Contact Information
               </h3>
@@ -134,7 +133,7 @@ export default function Overview() {
             </div>
             <div className="space-y-4">
               <h3
-                className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                className={`font-oswald text-xl font-medium uppercase text-gray-700`}
               >
                 Newsletter
               </h3>
@@ -151,7 +150,7 @@ export default function Overview() {
         </section>
         <section className="space-y-6">
           <h2
-            className={`${oswald.className} border-b pb-2 text-2xl font-semibold text-primary sm:text-3xl`}
+            className={`border-b pb-2 font-oswald text-2xl font-semibold text-primary sm:text-3xl`}
           >
             Address Book
           </h2>
@@ -159,7 +158,7 @@ export default function Overview() {
             {defaultAddress ? (
               <div className="space-y-4">
                 <h3
-                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                  className={`font-oswald text-xl font-medium uppercase text-gray-700`}
                 >
                   Shipping Address
                 </h3>
@@ -191,7 +190,7 @@ export default function Overview() {
             ) : (
               <div className="space-y-4">
                 <h3
-                  className={`${oswald.className} text-xl font-medium uppercase text-gray-700`}
+                  className={`font-oswald text-xl font-medium uppercase text-gray-700`}
                 >
                   Shipping Address
                 </h3>
@@ -211,9 +210,7 @@ export default function Overview() {
         className="edit-modal"
       >
         <div className="p-6">
-          <h2
-            className={`${oswald.className} mb-6 text-xl font-semibold text-primary`}
-          >
+          <h2 className={`mb-6 font-oswald text-xl font-semibold text-primary`}>
             Edit Name
           </h2>
           <form
@@ -258,9 +255,7 @@ export default function Overview() {
         className="password-modal"
       >
         <div className="p-6">
-          <h2
-            className={`${oswald.className} mb-6 text-xl font-semibold text-primary`}
-          >
+          <h2 className={`mb-6 font-oswald text-xl font-semibold text-primary`}>
             Change Password
           </h2>
           <form
@@ -303,9 +298,7 @@ export default function Overview() {
         className="delete-account-modal"
       >
         <div className="p-6">
-          <h2
-            className={`${oswald.className} mb-6 text-xl font-semibold text-primary`}
-          >
+          <h2 className={`mb-6 font-oswald text-xl font-semibold text-primary`}>
             Delete Account
           </h2>
           <p className="mb-4 text-red-600">

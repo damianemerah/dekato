@@ -34,50 +34,26 @@ export const useAdminStore = create((set) => ({
       variants: state.variants.filter((variant) => variant.id !== id),
     })),
 
-  addVariantOptions: (option) =>
-    set((state) => ({ variantOptions: [...state.variantOptions, option] })),
   setVariantOptions: (variantOptions) => set({ variantOptions }),
-
   setDefaultVariantOptions: (defaultVariantOptions) =>
     set({ defaultVariantOptions }),
-  updateVariantOptionName: (id, value) =>
+
+  addVariantOptions: (option) =>
+    set((state) => ({
+      variantOptions: [...state.variantOptions, option],
+    })),
+
+  updateVariantOptionName: (id, name) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
-        option.id === id ? { ...option, name: value } : option,
+        option.id === id ? { ...option, name } : option,
       ),
     })),
-  updateVariantOptionValues: (e, groupId) =>
-    set((state) => {
-      if (e.key === "Enter" || e.key === ",") {
-        const value = e.target.value.split(",")[0].trim();
-        try {
-          if (value.length > 0) {
-            return {
-              variantOptions: state.variantOptions.map((option) =>
-                option.id === groupId
-                  ? { ...option, values: [...option.values, value] }
-                  : option,
-              ),
-            };
-          }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          e.target.value = "";
-        }
-      }
-      return state;
-    }),
 
-  removeVariantOptionValue: (groupId, index) =>
+  updateVariantOptionValues: (id, values) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
-        option.id === groupId
-          ? {
-              ...option,
-              values: option.values.filter((_, i) => i !== index),
-            }
-          : option,
+        option.id === id ? { ...option, values } : option,
       ),
     })),
 

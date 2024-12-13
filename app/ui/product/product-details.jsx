@@ -3,11 +3,8 @@
 import { useState, useEffect, useMemo, memo, useCallback, useRef } from "react";
 import { oswald } from "@/style/font";
 
-import XIcon from "@/public/assets/icons/twitter.svg";
-import FbIcon from "@/public/assets/icons/facebook-share.svg";
 import HeartIcon from "@/public/assets/icons/heart.svg";
 import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
-import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { Button, ButtonPrimary } from "@/app/ui/button";
 import { mutate } from "swr";
@@ -20,6 +17,8 @@ import { SmallSpinner } from "../spinner";
 import useSWR from "swr";
 import { getVarOptionById } from "@/app/action/variantAction";
 import dynamic from "next/dynamic";
+
+const SocialSharePanel = dynamic(() => import("../social-panal"));
 
 const CollapsibleSection = memo(
   dynamic(() => import("./collasible"), {
@@ -76,71 +75,6 @@ const variantFetcher = async (ids) => {
   const data = await Promise.all(ids.map((id) => getVarOptionById(id)));
   return data;
 };
-
-const SocialSharePanel = memo(function SocialSharePanel() {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  return (
-    <div className="fixed right-0 top-1/2 z-20 -translate-y-1/2 transform">
-      <div
-        className={`flex items-center transition-transform duration-300 ${
-          isExpanded ? "translate-x-0" : "translate-x-[calc(100%-2.5rem)]"
-        }`}
-      >
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
-          aria-label={
-            isExpanded ? "Collapse share panel" : "Expand share panel"
-          }
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={`h-5 w-5 transition-transform duration-300 ${
-              isExpanded ? "rotate-180" : ""
-            }`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        <div className="flex flex-col gap-4 rounded-lg bg-white p-4 shadow-md">
-          <button
-            className="transition-colors hover:text-primary"
-            aria-label="Share on Twitter"
-          >
-            <XIcon className="h-5 w-5" />
-          </button>
-          <button
-            className="transition-colors hover:text-primary"
-            aria-label="Share on Facebook"
-          >
-            <FbIcon className="h-5 w-5" />
-          </button>
-          <button
-            className="transition-colors hover:text-primary"
-            aria-label="Share on Instagram"
-          >
-            <InstaIcon className="h-5 w-5" />
-          </button>
-          <button
-            className="transition-colors hover:text-primary"
-            aria-label="Share on WhatsApp"
-          >
-            <WhatsappIcon className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-});
 
 const ProductDetail = memo(function ProductDetail({ product }) {
   const [variantOptions, setVariantOptions] = useState([]);
@@ -512,7 +446,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
               >
                 <div
                   dangerouslySetInnerHTML={{ __html: product.description }}
-                  className="quill-content ql-editor"
                 />
               </CollapsibleSection>
 

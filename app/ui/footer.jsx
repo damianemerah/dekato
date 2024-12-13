@@ -5,7 +5,6 @@ import FacebookIcon from "@/public/assets/icons/Facebook.svg";
 import InstagramIcon from "@/public/assets/icons/Instagram.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import TiktokIcon from "@/public/assets/icons/tiktok.svg";
-import { oswald, roboto } from "@/style/font";
 import Link from "next/link";
 
 export default function Footer() {
@@ -14,7 +13,9 @@ export default function Footer() {
       <div className="px-4 pb-10 pt-12 sm:px-8 sm:pt-20">
         <div className="flex flex-col justify-center gap-8 md:flex-row md:gap-28">
           <div className="flex flex-col gap-7">
-            <h3 className="text-sm font-semibold md:text-base">Menu</h3>
+            <h3 className="font-oswald text-sm font-semibold md:text-base">
+              Menu
+            </h3>
             <nav className="flex flex-col gap-4 font-roboto text-sm font-medium leading-6 text-neutral-400">
               {[
                 {
@@ -38,10 +39,10 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-col gap-7">
-            <h3 className="text-sm font-semibold md:text-base">Contact us</h3>
-            <address
-              className={`${roboto.className} flex flex-col gap-4 text-sm font-medium not-italic leading-6 text-neutral-400`}
-            >
+            <h3 className="font-oswald text-sm font-semibold md:text-base">
+              Contact us
+            </h3>
+            <address className="flex flex-col gap-4 font-roboto text-sm font-medium not-italic leading-6 text-neutral-400">
               <div>
                 <p className="font-oswald text-sm text-white">Address</p>
                 <p className="text-sm hover:text-white">
@@ -96,7 +97,7 @@ export default function Footer() {
       </div>
 
       <div className="flex justify-center border-t border-gray-700 px-4 py-4 text-center text-sm text-neutral-400 sm:px-10">
-        <p className={roboto.className}>© 2024 dekato-outfit.com</p>
+        <p className="font-roboto">© 2024 dekato-outfit.com</p>
       </div>
     </footer>
   );
