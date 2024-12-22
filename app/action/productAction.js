@@ -12,7 +12,7 @@ import handleAppError from "@/utils/appError";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { deleteFiles } from "@/lib/s3Func";
 
-const formatProduct = (product, isAdmin = false) => {
+export const formatProduct = (product, isAdmin = false) => {
   const { _id, category, campaign, variant = [], ...rest } = product;
 
   const formattedProduct = {

@@ -160,8 +160,6 @@ export async function updateCategory(formData) {
       throw new Error("Category not found");
     }
 
-    console.log("🚀🚀🚀categoryDoc", categoryDoc);
-
     const category = categoryDoc.toObject();
 
     // Get products count

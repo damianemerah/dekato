@@ -13,12 +13,37 @@ const CategoryProducts = dynamic(
   },
 );
 
+async function getAllCategoryPaths() {
+  await dbConnect();
+
+  const [categories, collections] = await Promise.all([
+    Category.find().select("slug path").lean(),
+    Campaign.find().select("slug path").lean(),
+  ]);
+
+  const categoryPaths = categories.map((category) => category.path);
+  const collectionPaths = collections.map((collection) => collection.path);
+
+  return [...categoryPaths, ...collectionPaths];
+}
+
+export async function generateStaticParams() {
+  const paths = await unstable_cache(getAllCategoryPaths, ["categoryPaths"], {
+    revalidate: 1800,
+  })();
+
+  const filteredPaths = paths.map((path) => ({
+    cat: path.map((p) => (p.includes("/") ? p.split("/")[1] : p)),
+  }));
+
+  return filteredPaths;
+}
+
 // Helper function to get category/collection data
 async function getCategoryData(cat) {
   await dbConnect();
 
   const path = cat.join("/");
-  console.log(path, "path🔥🔥🔥");
   // Try to find as category first
   let data = await Category.findOne({
     path: { $all: path },
@@ -80,32 +105,6 @@ export async function generateMetadata({ params: { cat } }, parent) {
         `Browse our ${data.name} products`,
     },
   };
-}
-
-async function getAllCategoryPaths() {
-  await dbConnect();
-
-  const [categories, collections] = await Promise.all([
-    Category.find().select("slug path").lean(),
-    Campaign.find().select("slug path").lean(),
-  ]);
-
-  const categoryPaths = categories.map((category) => category.path);
-  const collectionPaths = collections.map((collection) => collection.path);
-
-  return [...categoryPaths, ...collectionPaths];
-}
-
-export async function generateStaticParams() {
-  const paths = await unstable_cache(getAllCategoryPaths, ["categoryPaths"], {
-    revalidate: 1800,
-  })();
-
-  const filteredPaths = paths.map((path) => ({
-    cat: path.map((p) => (p.includes("/") ? p.split("/")[1] : p)),
-  }));
-
-  return filteredPaths;
 }
 
 export default function Product({ params: { cat }, searchParams }) {

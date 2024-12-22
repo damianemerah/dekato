@@ -18,7 +18,7 @@ const slides = [
     secondaryLinkText: "WOMEN'S DEALS",
   },
   {
-    background: `/assets/herobg.avif`,
+    background: `/assets/hero_img1.jpg`,
     title: "NEW COLLECTION",
     subTitle: "WINTER 2023",
     description: "DISCOVER THE LATEST STYLES",
@@ -47,7 +47,7 @@ export default function Hero() {
 
   return (
     <section
-      className={`${oswald.className} relative w-screen overflow-hidden bg-black`}
+      className={`${oswald.className} relative w-full overflow-hidden bg-black`}
     >
       <div className="relative h-[60vh] max-h-[800px] min-h-[400px] sm:h-[80vh] sm:min-h-[600px]">
         {slides.map((slide, index) => (

@@ -104,7 +104,7 @@ const ProductCard = memo(
             aria-label={`Product: ${product.name}`}
           >
             <Image
-              src={currentImage || "/placeholder-image.jpg"}
+              src={currentImage}
               alt={product.name}
               fill={true}
               loading="lazy"

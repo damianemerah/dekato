@@ -24,7 +24,6 @@ const emailSubscriptionSchema = new mongoose.Schema(
       },
       required: [true, "Gender preference is required"],
     },
-
     status: {
       type: String,
       enum: {
