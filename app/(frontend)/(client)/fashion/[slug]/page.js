@@ -19,8 +19,6 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  console.log(blog, "blog💎💎");
-
   return {
     title: blog.metaTitle || blog.title,
     description: blog.metaDescription || blog.excerpt,
