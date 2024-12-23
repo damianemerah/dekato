@@ -85,6 +85,8 @@ const campaignSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    metaTitle: String,
+    metaDescription: String,
   },
   {
     timestamps: true,

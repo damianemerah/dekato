@@ -7,7 +7,7 @@ import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
 import Footer from "@/app/ui/footer";
 import { Button } from "@/app/ui/button";
 import Checkmark from "@/public/assets/icons/check.svg?url";
-
+import { oswald } from "@/style/font";
 const LayoutWrapper = ({ children }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [formError, setFormError] = useState("");
@@ -46,11 +46,14 @@ const LayoutWrapper = ({ children }) => {
   return (
     <main
       className={`${
+        // If sidebar is open AND we're not on admin pages AND (large screen sidebar OR below threshold)
+        // then adjust width to account for sidebar (250px) on screens >= 1250px
+        // otherwise use full width
         isSidebarOpen &&
         !pathname.startsWith("/admin") &&
         (lgScreenSidebar || isBelowThreshold)
-          ? "w-full [@media(min-width:1250px)]:w-[calc(100vw-250px)]"
-          : "w-full"
+          ? "w-screen [@media(min-width:1250px)]:w-[calc(100vw-280px)]"
+          : "w-screen"
       } relative min-h-screen transition-[width] duration-300 ease-in-out`}
     >
       {isMobile && isSidebarOpen && (
@@ -66,7 +69,7 @@ const LayoutWrapper = ({ children }) => {
             <div className="mx-auto max-w-xl px-4">
               <div className="flex flex-col items-center justify-center">
                 <h2
-                  className="text-center font-oswald text-3xl font-bold leading-none tracking-tight md:text-4xl"
+                  className={`text-center ${oswald.className} text-3xl font-bold leading-none tracking-tight md:text-4xl`}
                   style={{
                     wordSpacing: "0.05em",
                   }}

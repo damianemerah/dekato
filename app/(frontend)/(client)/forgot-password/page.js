@@ -27,7 +27,7 @@ export default function ForgotPassword() {
   }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center px-8">
       <div className="w-full max-w-md">
         <h2 className="mb-6 text-center text-2xl font-semibold text-primary">
           Forgot Password

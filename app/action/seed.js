@@ -1,25 +1,20 @@
 "use server";
 
-import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
 import Product from "../../models/product";
 import Category from "../../models/category";
 import slugify from "slugify";
-
-let isConnected = false;
+import dbConnect from "@/lib/mongoConnection";
 
 export const seedProducts = async () => {
   try {
-    if (!isConnected) {
-      await mongoose.connect(process.env.MONGODB_URI);
-      isConnected = true;
-    }
-    console.log("Seeding database🔥🔥");
-    // await dbConnect();
+    await dbConnect();
+    console.log("Clearing database...");
 
-    // Clear existing products and categories
-    await Product.deleteMany({});
-    await Category.deleteMany({});
+    // Clear existing data
+    await Promise.all([Product.deleteMany({}), Category.deleteMany({})]);
+
+    console.log("Seeding database🔥🔥");
 
     // Create main categories with proper validation
     const mainCategories = ["Men", "Women"];
@@ -42,8 +37,9 @@ export const seedProducts = async () => {
       const subCategoryDocs = await Promise.all(
         subcategories.map(async (name) =>
           Category.create({
-            name: `${mainCategory.name}'s ${name}`,
+            name,
             description: `${mainCategory.name}'s ${name} Collection`,
+            pinned: true,
             parent: mainCategory._id,
             path: [
               mainCategory.slug,
@@ -51,7 +47,7 @@ export const seedProducts = async () => {
             ],
             image: [faker.image.url()],
             pinned: false,
-            pinOrder: 0,
+            pinOrder: 1,
           }),
         ),
       );
@@ -148,16 +144,5 @@ export const seedProducts = async () => {
   } catch (error) {
     console.error("Error seeding database:", error);
     throw error; // Re-throw to ensure errors are properly handled
-  } finally {
-    await mongoose.disconnect();
   }
 };
-
-mongoose.connection.on("disconnected", () => {
-  isConnected = false;
-});
-
-mongoose.connection.on("error", (err) => {
-  console.log(err, "🚀🚀");
-  isConnected = false;
-});

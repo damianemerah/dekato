@@ -27,11 +27,10 @@ const SelectedCategories = dynamic(
 
 export default function Home() {
   return (
-    <div className={`${oswald.className} bg-gray-100`}>
+    <div className="bg-gray-100 font-oswald">
       <Hero />
       <main>
         <SelectedCategories />
-        <Campaign />
         <RecommendProduct />
       </main>
       <BelowFold />

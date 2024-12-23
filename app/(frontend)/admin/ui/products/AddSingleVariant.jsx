@@ -229,13 +229,13 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     setIsImageModalOpen(false);
   };
 
-  if (variants.length === 0) {
-    return (
-      <ModalWrapper setOpenSlider={setOpenSlider} openSlider={openSlider}>
-        <div>No variants options found</div>
-      </ModalWrapper>
-    );
-  }
+  // if (variants.length === 0) {
+  //   return (
+  //     <ModalWrapper setOpenSlider={setOpenSlider} openSlider={openSlider}>
+  //       <div>No variants options found</div>
+  //     </ModalWrapper>
+  //   );
+  // }
 
   return (
     <ModalWrapper setOpenSlider={setOpenSlider} openSlider={openSlider}>

@@ -226,6 +226,7 @@ export async function getVariantsByCategory(catName, searchStr = "") {
   }
 }
 export async function getAllProducts(slugArray, searchParams = {}) {
+  console.log(slugArray, "slugArrayyy");
   try {
     await dbConnect();
 
@@ -458,28 +459,13 @@ export async function updateProduct(formData) {
 
     const data = await handleFormData(formData);
 
-    const productToUpdate = Object.fromEntries(
-      Object.entries(data).filter(
-        ([key, value]) =>
-          formData.get(key) &&
-          !key.startsWith("variantData") &&
-          !key.startsWith("variantImage"),
-      ),
-    );
+    console.log(data, "data😎⭐⭐");
 
-    if (data.variant) {
-      productToUpdate.variant = data.variant;
-    }
-
-    const productData = await Product.findOneAndUpdate(
-      { _id: id },
-      productToUpdate,
-      {
-        new: true,
-        runValidators: true,
-        lean: true,
-      },
-    );
+    const productData = await Product.findOneAndUpdate({ _id: id }, data, {
+      new: true,
+      runValidators: true,
+      lean: true,
+    });
 
     revalidateProduct(productData.slug);
 
@@ -512,7 +498,6 @@ export const deleteProduct = async (id) => {
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
-    throw handleAppError(err);
   }
 };
 

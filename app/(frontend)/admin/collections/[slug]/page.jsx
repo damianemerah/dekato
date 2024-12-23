@@ -25,5 +25,5 @@ const getCollection = unstable_cache(
 export default async function NewCollection({ params: { slug } }) {
   const collection = await getCollection();
 
-  return <CollectionForm slug={slug} collection={collection} />;
+  return <CollectionForm collectionId={slug} collection={collection} />;
 }

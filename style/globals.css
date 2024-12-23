@@ -2,21 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* @layer base { */
-html {
-  font-family:
-    var(--font-roboto),
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    sans-serif;
-}
-/* } */
-
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
@@ -29,8 +14,7 @@ html {
 }
 
 h2 {
-  @apply font-oswald text-3xl font-bold;
-  font-family: var(--font-oswald);
+  @apply text-3xl font-bold;
 }
 
 h1,
@@ -127,34 +111,6 @@ input[type="password"]::-webkit-clear-button {
 input[type="password"]::-webkit-clear-button {
   display: none;
 }
-
-/* .swiper-button-next {
-  background-color: #000;
-  width: 40px;
-  height: 40px;
-  color: #fff;
-}
-
-.swiper-button-prev {
-  background-color: #000;
-  width: 40px;
-  height: 40px;
-  color: #fff;
-}
-
-.swiper-button-disabled {
-  visibility: hidden;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.swiper-pagination-bullet {
-  @apply mr-1 h-3 w-3 rounded-none border-2 border-primary bg-transparent opacity-100;
-}
-
-.swiper-pagination-bullet-active {
-  @apply h-4 w-4 bg-primary;
-} */
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {

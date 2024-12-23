@@ -165,7 +165,6 @@ export default function CheckoutPage() {
       cardId: selectedPaymentMethod,
     };
 
-
     try {
       if (data.items.length > 0) {
         const res = await fetch(`/api/checkout/${user.id}`, {
@@ -388,9 +387,7 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              <h2
-                className={`${oswald.className} mb-6 mt-10 text-xl font-bold tracking-wide text-primary`}
-              >
+              <h2 className="mb-6 mt-10 font-oswald text-xl font-bold tracking-wide text-primary">
                 Shipping address
               </h2>
               {renderAddress(address)}

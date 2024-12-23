@@ -7,6 +7,7 @@ export const filterObj = (obj, ...allowedFields) => {
 };
 
 export function formDataToObject(formData) {
+  if (!formData || !(formData instanceof FormData)) return formData;
   const obj = {};
   formData.forEach((value, key) => {
     obj[key] = value;

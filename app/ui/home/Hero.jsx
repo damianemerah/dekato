@@ -18,7 +18,7 @@ const slides = [
     secondaryLinkText: "WOMEN'S DEALS",
   },
   {
-    background: `/assets/herobg.avif`,
+    background: `/assets/hero_img1.jpg`,
     title: "NEW COLLECTION",
     subTitle: "WINTER 2023",
     description: "DISCOVER THE LATEST STYLES",
@@ -47,9 +47,9 @@ export default function Hero() {
 
   return (
     <section
-      className={`${oswald.className} relative w-screen overflow-hidden bg-black`}
+      className={`${oswald.className} relative w-full overflow-hidden bg-black`}
     >
-      <div className="relative h-[80vh] max-h-[800px] min-h-[600px]">
+      <div className="relative h-[60vh] max-h-[800px] min-h-[400px] sm:h-[80vh] sm:min-h-[600px]">
         {slides.map((slide, index) => (
           <div
             key={index}
@@ -70,28 +70,28 @@ export default function Hero() {
             <div className="absolute inset-0 bg-black/40" />
             <div className="container relative mx-auto h-full px-4 sm:px-6 lg:px-8">
               <div className="flex h-full max-w-4xl flex-col justify-center">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <h2 className="text-6xl font-bold tracking-tight text-white sm:text-8xl">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="space-y-1 sm:space-y-2">
+                    <h2 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-8xl">
                       {slide.title}
                     </h2>
-                    <p className="text-4xl font-bold text-white sm:text-6xl">
+                    <p className="text-2xl font-bold text-white sm:text-4xl lg:text-6xl">
                       {slide.subTitle}
                     </p>
-                    <p className="text-2xl text-white sm:text-3xl">
+                    <p className="text-lg text-white sm:text-2xl lg:text-3xl">
                       {slide.description}
                     </p>
                   </div>
-                  <div className="flex gap-4 pt-6">
+                  <div className="flex gap-2 pt-4 sm:gap-4 sm:pt-6">
                     <Link
                       href={slide.link}
-                      className="inline-flex h-10 items-center justify-center bg-white px-8 text-sm font-bold transition-colors hover:bg-white/90"
+                      className="inline-flex h-8 items-center justify-center bg-white px-4 text-xs font-bold transition-colors hover:bg-white/90 sm:h-10 sm:px-8 sm:text-sm"
                     >
                       {slide.linkText}
                     </Link>
                     <Link
                       href={slide.secondaryLink}
-                      className="inline-flex h-10 items-center justify-center bg-white px-8 text-sm font-bold transition-colors hover:bg-white/90"
+                      className="inline-flex h-8 items-center justify-center bg-white px-4 text-xs font-bold transition-colors hover:bg-white/90 sm:h-10 sm:px-8 sm:text-sm"
                     >
                       {slide.secondaryLinkText}
                     </Link>
@@ -103,30 +103,32 @@ export default function Hero() {
         ))}
       </div>
 
-      <div className="absolute bottom-8 right-8 z-10 flex gap-6">
+      <div className="absolute bottom-8 right-4 z-10 flex gap-3 sm:right-8 sm:gap-6">
         <button
           onClick={prevSlide}
-          className="flex h-12 w-12 items-center justify-center bg-white transition-colors hover:bg-white/90"
+          className="flex h-8 w-8 items-center justify-center bg-white transition-colors hover:bg-white/90 sm:h-12 sm:w-12"
           aria-label="Previous slide"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
         </button>
         <button
           onClick={nextSlide}
-          className="flex h-12 w-12 items-center justify-center bg-white transition-colors hover:bg-white/90"
+          className="flex h-8 w-8 items-center justify-center bg-white transition-colors hover:bg-white/90 sm:h-12 sm:w-12"
           aria-label="Next slide"
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
         </button>
       </div>
 
-      <div className="absolute bottom-8 left-8 z-10 flex gap-2">
+      <div className="absolute bottom-8 left-4 z-10 flex gap-2 sm:left-8">
         {slides.map((_, index) => (
           <div
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`h-2 transition-all ${
-              index === currentSlide ? "w-8 bg-white" : "w-2 bg-white/50"
+            className={`h-1.5 transition-all sm:h-2 ${
+              index === currentSlide
+                ? "w-6 bg-white sm:w-8"
+                : "w-1.5 bg-white/50 sm:w-2"
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, memo, useEffect } from "react";
-// import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
 import {
   createCollection,
   updateCollection,
@@ -13,9 +12,9 @@ import { getFiles } from "@/app/(frontend)/admin/utils/utils";
 import useSWR, { mutate } from "swr";
 import { SmallSpinner } from "@/app/ui/spinner";
 import Link from "next/link";
-// import DropDown from "@/app/(frontend)/admin/ui/DropDown";
 import { getAllCategories } from "@/app/action/categoryAction";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 const DropDown = dynamic(() => import("@/app/(frontend)/admin/ui/DropDown"), {
   ssr: false,
@@ -32,7 +31,7 @@ const Checkbox = dynamic(() => import("antd").then((mod) => mod.Checkbox), {
   ssr: false,
 });
 
-export default memo(function CollectionContent({ slug, collection }) {
+export default memo(function CollectionContent({ collectionId, collection }) {
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [bannerFileList, setBannerFileList] = useState([]);
@@ -45,6 +44,8 @@ export default memo(function CollectionContent({ slug, collection }) {
 
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
+
+  const router = useRouter();
 
   const { data: allCollections, isLoading } = useSWR(
     "/api/allCollections",
@@ -89,9 +90,9 @@ export default memo(function CollectionContent({ slug, collection }) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (slug !== "new" && allCollections?.data?.length) {
+    if (collectionId !== "new" && allCollections?.data?.length) {
       const selectedCollection = allCollections?.data.find(
-        (collection) => collection.slug === slug,
+        (collection) => collection.id === collectionId,
       );
 
       if (selectedCollection) {
@@ -104,10 +105,10 @@ export default memo(function CollectionContent({ slug, collection }) {
       } else {
         window.location.href = "/admin/collections";
       }
-    } else if (slug === "new") {
+    } else if (collectionId === "new") {
       setActionType("create");
     }
-  }, [allCollections, isLoading, slug]);
+  }, [allCollections, isLoading, collectionId]);
 
   useEffect(() => {
     if (selectedCollection) {
@@ -155,7 +156,7 @@ export default memo(function CollectionContent({ slug, collection }) {
 
       if (type === "edit") {
         const id = allCollections?.data.find(
-          (collection) => collection.slug === slug,
+          (collection) => collection.id === collectionId,
         ).id;
         formData.append("id", id);
 
@@ -167,7 +168,8 @@ export default memo(function CollectionContent({ slug, collection }) {
         return;
       }
 
-      await createCollection(formData);
+      const newCollection = await createCollection(formData);
+      router.push(`/admin/collections/${newCollection.id}`);
 
       mutate("/api/allCollections");
       message.success("Collection created");

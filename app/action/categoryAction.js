@@ -186,6 +186,7 @@ export async function updateCategory(formData) {
       ...rest,
     };
   } catch (err) {
+    console.log("🚀🚀🚀", err);
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
   }
@@ -254,11 +255,10 @@ export async function getPinnedCategoriesByParent(parentSlug) {
     }
   }
 
-  const query = parentCategory
-    ? { parent: parentCategory._id, pinned: true }
-    : { parent: null, pinned: true };
-
-  const pinnedCategories = await Category.find(query)
+  const pinnedCategories = await Category.find({
+    parent: parentCategory._id,
+    pinned: true,
+  })
     .sort({ pinOrder: 1 })
     .limit(5)
     .lean();

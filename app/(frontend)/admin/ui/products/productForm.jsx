@@ -6,16 +6,23 @@ import Link from "next/link";
 import { roboto } from "@/style/font";
 import BackIcon from "@/public/assets/icons/arrow_back.svg";
 import MediaUpload from "@/app/(frontend)/admin/ui/MediaUpload";
-import { Switch, Space, DatePicker } from "antd";
+import { Switch, Space, DatePicker, Select } from "antd";
 import DropDown from "@/app/(frontend)/admin/ui/DropDown";
 import { SmallSpinner } from "@/app/ui/spinner";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-const Tiptap = dynamic(() => import("@/app/ui/text-editor"), { srr: false });
+const TiptapEditor = dynamic(() => import("@/app/ui/text-editor"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-[120px] rounded-md border p-4">Loading editor...</div>
+  ),
+});
 
 const ProductForm = ({
+  tags,
+  setTags,
   handleFormSubmit,
   isSwitchDisabled,
   nameRef,
@@ -106,6 +113,20 @@ const ProductForm = ({
               setDiscountDuration={setDiscountDuration}
             />
             <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
+            <FormSection>
+              <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+                TAGS
+              </h3>
+              <Select
+                mode="tags"
+                name="tags"
+                style={{ width: "100%" }}
+                placeholder="Add tags"
+                className="w-full"
+                value={tags}
+                onChange={setTags}
+              />
+            </FormSection>
           </div>
           <div>
             <ProductActions
@@ -169,7 +190,7 @@ const ProductDetails = ({
       <FormField
         label="DESCRIPTION"
         name="description"
-        as={Tiptap}
+        as={TiptapEditor}
         value={description}
         onChange={setDescription}
       />
@@ -181,6 +202,7 @@ const ProductDetails = ({
         setFileList={setFileList}
         defaultFileList={defaultFileList}
         setDefaultFileList={setDefaultFileList}
+        draggable={true}
       />
     </FormSection>
     <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -303,7 +325,7 @@ const ProductActions = ({
         </h3>
         <DropDown
           options={catList}
-          mode="tags"
+          mode="multiple"
           selectedKeys={selectedCatKeys}
           handleChange={(value) => setSelectedCatKeys(value)}
         />
@@ -314,7 +336,7 @@ const ProductActions = ({
         </h3>
         <DropDown
           options={collectionList}
-          mode="tags"
+          mode="multiple"
           selectedKeys={selectedCollectionKeys}
           handleChange={(value) => setSelectedCollectionKeys(value)}
         />

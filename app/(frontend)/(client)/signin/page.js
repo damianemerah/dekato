@@ -83,7 +83,7 @@ function SignInContent({ searchParams }) {
   }
 
   return (
-    <div className="flex_center mx-auto my-16 max-w-2xl border border-gray-100 bg-white px-20 py-10 shadow-shadowSm">
+    <div className="flex_center mx-auto my-16 max-w-2xl border border-gray-100 bg-white px-8 py-10 shadow-shadowSm">
       <h2>Sign in</h2>
       {error && (
         <p

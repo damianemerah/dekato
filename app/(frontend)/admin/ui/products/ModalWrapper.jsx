@@ -1,7 +1,7 @@
 import { memo } from "react";
 const ModalWrapper = ({ openSlider, setOpenSlider, children }) => (
   <div
-    className={`fixed inset-0 transition-transform duration-500 ${
+    className={`fixed inset-0 transition-transform duration-300 ${
       openSlider ? "translate-x-0" : "translate-x-full"
     } z-10 overflow-x-hidden`}
   >
