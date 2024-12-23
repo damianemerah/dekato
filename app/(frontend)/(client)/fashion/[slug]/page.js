@@ -1,6 +1,50 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getBlogBySlug } from "@/app/action/blogAction";
+import { getBlogBySlug, getAllBlogs } from "@/app/action/blogAction";
+
+export async function generateStaticParams() {
+  const blogs = await getAllBlogs({ status: "published" });
+  return blogs.data.map((blog) => ({
+    slug: blog.slug,
+  }));
+}
+
+export async function generateMetadata({ params }) {
+  const blog = await getBlogBySlug(params.slug);
+
+  if (!blog) {
+    return {
+      title: "Blog Not Found",
+      description: "The requested blog post could not be found",
+    };
+  }
+
+  return {
+    title: blog.metaTitle || blog.title,
+    description: blog.metaDescription || blog.excerpt,
+    openGraph: {
+      title: blog.metaTitle || blog.title,
+      description: blog.metaDescription || blog.excerpt,
+      type: "article",
+      publishedTime: blog.publishedAt || blog.createdAt,
+      authors: blog.author ? [blog.author] : undefined,
+      images: [
+        {
+          url: blog.featuredImage,
+          width: 1200,
+          height: 630,
+          alt: blog.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: blog.metaTitle || blog.title,
+      description: blog.metaDescription || blog.excerpt,
+      images: [blog.featuredImage],
+    },
+  };
+}
 
 export default async function BlogDetailPage({ params }) {
   const blog = await getBlogBySlug(params.slug);
@@ -70,20 +114,4 @@ export default async function BlogDetailPage({ params }) {
       )}
     </article>
   );
-}
-
-// Generate metadata for SEO
-export async function generateMetadata({ params }) {
-  const blog = await getBlogBySlug(params.slug);
-
-  if (!blog) {
-    return {
-      title: "Blog Not Found",
-    };
-  }
-
-  return {
-    title: blog.metaTitle || blog.title,
-    description: blog.metaDescription || blog.excerpt,
-  };
 }

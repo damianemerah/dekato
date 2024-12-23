@@ -159,7 +159,7 @@ export async function getAllBlogs({
       Blog.find(query)
         .populate("author", "name email")
         .populate("categories", "name slug")
-        .sort({ publishedAt: -1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),

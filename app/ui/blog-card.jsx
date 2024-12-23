@@ -2,7 +2,6 @@ import { oswald, roboto } from "@/style/font";
 import { Button } from "./button";
 import Image from "next/image";
 import Link from "next/link";
-import image6 from "@/public/assets/image6.png";
 
 export default function BlogCard({ className, blog }) {
   const { featuredImage, categories, publishedAt, title, excerpt, slug } =

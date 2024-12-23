@@ -52,7 +52,7 @@ const LayoutWrapper = ({ children }) => {
         isSidebarOpen &&
         !pathname.startsWith("/admin") &&
         (lgScreenSidebar || isBelowThreshold)
-          ? "w-screen [@media(min-width:1250px)]:w-[calc(100vw-250px)]"
+          ? "w-screen [@media(min-width:1250px)]:w-[calc(100vw-280px)]"
           : "w-screen"
       } relative min-h-screen transition-[width] duration-300 ease-in-out`}
     >

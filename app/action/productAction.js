@@ -226,6 +226,7 @@ export async function getVariantsByCategory(catName, searchStr = "") {
   }
 }
 export async function getAllProducts(slugArray, searchParams = {}) {
+  console.log(slugArray, "slugArrayyy");
   try {
     await dbConnect();
 

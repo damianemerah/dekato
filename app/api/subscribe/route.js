@@ -167,6 +167,15 @@ export async function DELETE(req) {
       await subscription.save();
     }
 
+    try {
+      const url = `${process.env.NEXTAUTH_URL}`;
+      const emailObj = new Email({ email }, url);
+      await emailObj.unsubscribeEmail();
+    } catch (error) {
+      console.error("Error sending confirmation email:", error);
+      // Don't fail the subscription if email fails
+    }
+
     revalidateTag("emailSubscription");
 
     return NextResponse.json({
