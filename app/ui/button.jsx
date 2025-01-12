@@ -5,7 +5,7 @@ export function Button({ children, className, type }) {
   return (
     <button
       href="#"
-      className={`self-start border-2 px-8 py-1 text-[13px] font-semibold no-underline ${className}`}
+      className={`self-start border-2 border-primary px-8 py-1 text-[13px] font-semibold no-underline ${className}`}
       type={type}
     >
       {children}
@@ -35,7 +35,7 @@ export function ButtonPrimary({
 export function ButtonSecondary({ children, className, onClick, type }) {
   return (
     <button
-      className={`bg-gray-200 px-3 py-1 hover:scale-105 ${className}`}
+      className={`bg-gray-200 px-3 py-1 hover:bg-opacity-85 ${className}`}
       onClick={onClick}
       type={type}
     >

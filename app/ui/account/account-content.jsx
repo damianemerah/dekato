@@ -11,6 +11,8 @@ import useUserData from "@/app/hooks/useUserData";
 import useAddressData from "@/app/hooks/useAddressData";
 import { InputType } from "@/app/ui/inputType";
 import { updateUserInfo, updatePassword } from "@/app/action/userAction";
+import { Package, Heart, CreditCard, User, Mail } from "lucide-react";
+import useOrders from "@/app/hooks/useOrders";
 
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
@@ -23,6 +25,7 @@ export default function Overview() {
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { mutate } = useSWRConfig();
+  const { orders, isLoading: ordersLoading } = useOrders(userId, 3);
 
   const handleEditClick = useCallback(() => setShowEditModal(true), []);
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
@@ -80,7 +83,7 @@ export default function Overview() {
     handleModalClose();
   }, [handleModalClose]);
 
-  if (userIsLoading) {
+  if (userIsLoading || ordersLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <SmallSpinner className="!text-primary" />
@@ -89,28 +92,18 @@ export default function Overview() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <main className="container mx-auto py-8">
       <div className="space-y-12">
         <section className="space-y-6">
-          <h2
-            className={`border-b pb-2 font-oswald text-2xl font-semibold text-primary sm:text-3xl`}
-          >
-            Account Information
-          </h2>
-          <div className="grid gap-8 sm:grid-cols-2">
-            <div className="space-y-4">
-              <h3
-                className={`font-oswald text-xl font-medium uppercase text-gray-700`}
-              >
-                Contact Information
-              </h3>
-              <div className="rounded-lg bg-grayBg p-4">
+          <div>
+            <div className="bg-white py-8">
+              <div className="px-8">
                 <p className="text-lg font-medium">
                   {user?.firstname} {user?.lastname}
                 </p>
                 <p className="text-gray-600">{user?.email}</p>
               </div>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 border-b px-8 py-4">
                 <button
                   className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={handleEditClick}
@@ -130,75 +123,91 @@ export default function Overview() {
                   Delete account
                 </button>
               </div>
-            </div>
-            <div className="space-y-4">
-              <h3
-                className={`font-oswald text-xl font-medium uppercase text-gray-700`}
-              >
-                Newsletter
-              </h3>
-              <div className="rounded-lg bg-grayBg p-4">
-                <p>You are not subscribed to our newsletter.</p>
+              <div className="flex items-center justify-center gap-8">
+                <Link
+                  href="/account/orders"
+                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
+                >
+                  <Package className="h-10 w-10" />
+                  <span className="font-oswald text-sm uppercase">Orders</span>
+                </Link>
+                <Link
+                  href="/account/wishlist"
+                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
+                >
+                  <Heart className="h-10 w-10" />
+                  <span className="font-oswald text-sm uppercase">
+                    Wishlist
+                  </span>
+                </Link>
+                <Link
+                  href="/account/payment"
+                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
+                >
+                  <CreditCard className="h-10 w-10" />
+                  <span className="font-oswald text-sm uppercase">Payment</span>
+                </Link>
+                <Link
+                  href="/account/address"
+                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
+                >
+                  <User className="h-10 w-10" />
+                  <span className="font-oswald text-sm uppercase">Address</span>
+                </Link>
+                <Link
+                  href="/account/newsletter"
+                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
+                >
+                  <Mail className="h-10 w-10" />
+                  <span className="font-oswald text-sm uppercase">
+                    Newsletter
+                  </span>
+                </Link>
               </div>
-              <Link href="/account/newsletter" className="inline-block">
-                <ButtonSecondary className="border-2 border-primary bg-white font-oswald text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white">
-                  Edit subscription
-                </ButtonSecondary>
-              </Link>
             </div>
           </div>
         </section>
-        <section className="space-y-6">
-          <h2
-            className={`border-b pb-2 font-oswald text-2xl font-semibold text-primary sm:text-3xl`}
-          >
-            Address Book
-          </h2>
-          <div className="grid gap-8 sm:grid-cols-2">
-            {defaultAddress ? (
-              <div className="space-y-4">
-                <h3
-                  className={`font-oswald text-xl font-medium uppercase text-gray-700`}
-                >
-                  Shipping Address
-                </h3>
-                <div className="rounded-lg bg-grayBg p-4">
-                  <p className="mb-2 font-medium">
-                    Your default shipping address:
-                  </p>
-                  <address className="not-italic">
-                    <p>
-                      {defaultAddress?.firstname} {defaultAddress?.lastname}
-                    </p>
-                    <p>{defaultAddress?.address}</p>
-                    <p>
-                      {defaultAddress?.city}
-                      {defaultAddress?.state && defaultAddress?.city
-                        ? ", "
-                        : ""}
-                      {defaultAddress?.state}
-                      {(defaultAddress?.state || defaultAddress?.city) &&
-                      defaultAddress?.postalCode
-                        ? " "
-                        : ""}
-                      {defaultAddress?.postalCode}
-                    </p>
-                    <p>{defaultAddress?.phone}</p>
-                  </address>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <h3
-                  className={`font-oswald text-xl font-medium uppercase text-gray-700`}
-                >
-                  Shipping Address
-                </h3>
-                <p>No default shipping address found.</p>
-                <ButtonSecondary>Add Address</ButtonSecondary>
-              </div>
-            )}
+
+        <section className="space-y-6 bg-white p-8">
+          <div className="flex items-center justify-between border-b pb-4">
+            <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
+              Recent Orders
+            </h3>
+            <Link href="/account/orders">
+              <ButtonSecondary className="border-2 border-primary bg-white font-oswald text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white">
+                View All Orders
+              </ButtonSecondary>
+            </Link>
           </div>
+
+          {orders?.length > 0 ? (
+            <div className="space-y-4">
+              {orders.map((order) => (
+                <div key={order.id} className="border p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Order #{order.paymentRef}</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">${order.total}</p>
+                      <p className="text-sm text-gray-600">{order.status}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/account/orders/${order.id}`}
+                    className="mt-2 inline-block text-sm text-primary hover:underline"
+                  >
+                    View Details
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-600">No orders found</p>
+          )}
         </section>
       </div>
 

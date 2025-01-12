@@ -3,9 +3,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import Breadcrumbs from "@/app/ui/breadcrumbs";
-import { oswald } from "@/style/font";
 import {
   UserOutlined,
   ShoppingOutlined,
@@ -71,11 +69,13 @@ export default function AccountLayout({ children }) {
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <div className="md:py-15 mx-auto min-h-screen max-w-4xl bg-white px-4 py-10 sm:px-8 sm:py-16 md:px-10">
-      <div className="flex items-start pb-8">
-        <Breadcrumbs breadcrumbs={breadcrumbs} />
+    <div className="bg-grayBg">
+      <div className="md:py-15 relative mx-auto min-h-screen max-w-4xl px-7 py-10 sm:px-8 sm:py-16 md:px-10">
+        <div className="flex items-start pb-8">
+          <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
+        {children}
       </div>
-      {children}
     </div>
   );
 }

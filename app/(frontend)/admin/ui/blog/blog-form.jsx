@@ -103,6 +103,12 @@ export default function BlogForm({ initialData }) {
         }
       }
 
+      if (!initialData || initialData.status === "draft") {
+        if (formData.get("status") === "published") {
+          formData.append("publishedAt", new Date());
+        }
+      }
+
       if (initialData) {
         const id = initialData.id;
         await updateBlog(id, formData);
