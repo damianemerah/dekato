@@ -76,10 +76,10 @@ export default function WishlistPage() {
 
   if (!products || products.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center sm:p-8">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 py-8 text-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="mb-4 h-12 w-12 text-gray-400 sm:h-16 sm:w-16"
+          className="mx-auto mb-4 h-12 w-12 text-gray-400 sm:h-16 sm:w-16"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -112,11 +112,9 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1
-        className={`${oswald.className} mb-6 text-2xl font-semibold sm:text-3xl`}
-      >
-        Your Wishlist
+    <div className="container mx-auto py-8">
+      <h1 className="font-oswald text-xl font-medium uppercase text-gray-700">
+        My Wishlist
       </h1>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
         {products?.map((product) => (

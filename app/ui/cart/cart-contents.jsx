@@ -1,6 +1,6 @@
 "use client";
 
-import { ButtonPrimary } from "@/app/ui/button";
+import { ButtonPrimary, ButtonSecondary } from "@/app/ui/button";
 import CartCards from "@/app/ui/cart/cart-card";
 import { oswald } from "@/style/font";
 import Link from "next/link";
@@ -34,8 +34,13 @@ export default function Cart() {
 
   if (cart?.item?.length === 0) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-[calc(100vh-6rem)] flex-col items-center justify-center gap-4">
         <p>Your cart is empty</p>
+        <Link href="/">
+          <ButtonSecondary className="px-6 py-3">
+            Continue Shopping
+          </ButtonSecondary>
+        </Link>
       </div>
     );
   }

@@ -53,7 +53,6 @@ export async function getOrderById(id) {
       .populate("address")
       .lean({ virtuals: true });
 
-
     if (!order) {
       throw new Error("Order not found");
     }
@@ -104,6 +103,6 @@ export async function checkOrderPayment(userId, paymentRef) {
 
 export async function getUserOrders(userId) {
   await dbConnect();
-  const orders = await Order.find({ userId }).lean();
+  const orders = await Order.find({ userId }).limit(3).lean();
   return orders;
 }

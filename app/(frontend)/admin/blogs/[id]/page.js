@@ -20,7 +20,6 @@ function LoadingSpinner() {
 
 export default async function BlogPage({ params }) {
   const { id } = params;
-  console.log(id, "id🔥🔥");
   let blog = null;
 
   if (id !== "new") {

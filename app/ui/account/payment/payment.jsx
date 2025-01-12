@@ -37,9 +37,9 @@ export default function Payment() {
 
   return (
     <div>
-      <h2 className={`${oswald.className} pb-2 text-2xl text-primary`}>
+      <h1 className="font-oswald text-xl font-medium uppercase text-gray-700">
         Payment Methods
-      </h2>
+      </h1>
       {paymentMethods && paymentMethods.length > 0 ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {paymentMethods.map((card) => (

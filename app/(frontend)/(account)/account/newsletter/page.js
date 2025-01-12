@@ -9,10 +9,11 @@ export default async function NewsletterPage() {
     { next: { revalidate: 3600, tags: ["emailSubscription"] } }, //every 1 hour
   ).then((res) => res.json());
 
-
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Newsletter Preferences</h1>
+      <h1 className="font-oswald text-xl font-medium uppercase text-gray-700">
+        Newsletter Preferences
+      </h1>
       <NewsletterContent initialData={initialData} />
     </div>
   );

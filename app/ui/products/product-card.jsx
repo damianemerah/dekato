@@ -24,7 +24,6 @@ const ProductCard = memo(
     );
 
     const [currentImage, setCurrentImage] = useState(product?.image[0]);
-    const [showVariants, setShowVariants] = useState(false);
 
     // Handle product click
     const handleProductClick = useCallback(async () => {
@@ -82,20 +81,18 @@ const ProductCard = memo(
       : product.price;
 
     return (
-      <div className="flex h-full flex-col bg-white text-center transition-all duration-300 hover:shadow-md">
+      <div
+        className="group relative flex h-full flex-col bg-white text-center transition-all duration-300"
+        onMouseLeave={() => {
+          setCurrentImage(product?.image[0]);
+        }}
+      >
         <Link
           href={`/p/${product.slug}-${product.id}`}
           onClick={handleProductClick}
           id={`product-${product.id}`}
           data-product-id={product.id}
           key={key}
-          onMouseEnter={() => {
-            setShowVariants(true);
-          }}
-          onMouseLeave={() => {
-            setShowVariants(false);
-            setCurrentImage(product?.image[0]);
-          }}
           className="block"
         >
           <div
@@ -113,11 +110,7 @@ const ProductCard = memo(
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="absolute left-0 top-0 block h-full w-full object-cover object-center transition-opacity duration-300"
             />
-            {product.isDiscounted && (
-              <div className="absolute bottom-3 left-0 bg-red-500 px-3 py-0.5 text-[13px] text-white">
-                -{product.discount}%
-              </div>
-            )}
+
             {userId && showDelete ? (
               <div
                 className="absolute right-2 top-2 cursor-pointer text-2xl text-red-500 transition-all duration-300 hover:scale-110"
@@ -142,7 +135,14 @@ const ProductCard = memo(
               </div>
             )}
           </div>
-          <div className="flex flex-1 flex-col items-center pb-2 pt-1 text-[13px]">
+          <div
+            className={`relative z-10 flex min-h-8 flex-1 flex-col items-center bg-white pb-2 pt-1 text-[13px] transition-all duration-300 sm:group-hover:-translate-y-9`}
+          >
+            {product.isDiscounted && (
+              <div className="absolute -top-9 left-0 bg-red-500 px-3 py-0.5 text-[13px] text-white">
+                -{product.discount}%
+              </div>
+            )}
             <p className="mb-0.5 w-full truncate overflow-ellipsis whitespace-nowrap text-nowrap text-sm capitalize">
               {product.name}
             </p>
@@ -166,13 +166,14 @@ const ProductCard = memo(
         </Link>
         {product?.variant?.length > 0 && (
           <div
-            className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto p-2 transition-all duration-300 ${showVariants ? "lg:visible" : "lg:invisible"} visible`}
+            className={`no-scrollbar bottom-0 left-1/2 flex items-center justify-center gap-2 overflow-x-auto bg-white pb-2 transition-all duration-300 sm:absolute sm:-translate-x-1/2`}
           >
             {product?.variant?.slice(0, 5).map((variant, index) => (
               <div
                 key={`${variant._id}-${index}`}
-                className="h-7 w-7 flex-shrink-0 cursor-pointer transition-transform hover:scale-110"
-                onClick={(e) => {
+                className="h-7 w-7 flex-shrink-0 cursor-pointer hover:scale-110"
+                onMouseEnter={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   setCurrentImage(variant.image);
                 }}

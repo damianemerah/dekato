@@ -7,6 +7,8 @@ import BlogCard from "@/app/ui/blog-card";
 import useSWR from "swr";
 import { getAllBlogs } from "@/app/action/blogAction";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "../button";
+import Link from "next/link";
 
 const Gallery = dynamic(() => import("@/app/ui/home/Gallery"), {
   loading: () => <GallerySkeleton />,
@@ -17,7 +19,7 @@ function GallerySkeleton() {
   return (
     <div className="mb-10">
       <h2 className="py-6 font-oswald font-bold">FOLLOW OUR INSTAGRAM</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-1 sm:grid-cols-5 sm:gap-3">
         {[...Array(7)].map((_, index) => (
           <div
             key={index}
@@ -34,18 +36,22 @@ function GallerySkeleton() {
     </div>
   );
 }
-
 function BlogSkeleton() {
   return (
-    <div className="my-10 px-4 sm:px-6 lg:px-8">
+    <div className="my-10 bg-white px-4 sm:px-6 lg:px-8">
       <div className="relative">
         <div className="no-scrollbar flex snap-x gap-4 overflow-x-auto overflow-y-hidden scroll-smooth">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="w-[calc(100vw-3rem)] min-w-[280px] max-w-[480px] flex-shrink-0 animate-pulse snap-start bg-gray-100 first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-3rem)]"
+              className="w-[75vw] min-w-[280px] max-w-[480px] flex-shrink-0 snap-start first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-9rem)]"
             >
-              <div className="aspect-[16/9]" />
+              <div className="aspect-[16/9] animate-pulse bg-gray-200" />
+              <div className="mt-4 space-y-3">
+                <div className="h-6 w-3/4 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+                <div className="h-20 animate-pulse rounded bg-gray-200" />
+              </div>
             </div>
           ))}
         </div>
@@ -111,15 +117,16 @@ export default function BelowFold() {
         <BlogSkeleton />
       ) : (
         <div className="my-10 px-4 sm:px-6 lg:px-8">
+          <h2 className="py-6 font-oswald font-bold">LATEST FASION</h2>
           <div className="relative">
             <div
               ref={containerRef}
-              className="no-scrollbar flex snap-x gap-4 overflow-x-auto overflow-y-hidden scroll-smooth"
+              className="no-scrollbar flex snap-x gap-4 overflow-x-auto overflow-y-hidden scroll-smooth md:gap-8"
             >
               {blogs?.data?.map((blog) => (
                 <div
                   key={blog.id}
-                  className="w-[calc(100vw-3rem)] min-w-[280px] max-w-[480px] flex-shrink-0 snap-start bg-white first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-3rem)]"
+                  className="w-[75vw] min-w-[280px] max-w-[480px] flex-shrink-0 snap-start bg-white first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-3rem)]"
                 >
                   <BlogCard
                     blog={blog}
@@ -149,10 +156,21 @@ export default function BelowFold() {
                   }`}
                   aria-label="View next items"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="wp-6 h-6" />
                 </button>
               </>
             )}
+          </div>
+          <div className="mt-4 flex items-center justify-center">
+            <Link href="/fashion">
+              <Button
+                className="mt-auto inline-flex items-center justify-center px-4 py-1 text-sm font-semibold uppercase transition-colors hover:bg-primary hover:text-white sm:px-6"
+                aria-label="View all fashion blog posts"
+                aria-describedby="fashion-blog-description"
+              >
+                View more
+              </Button>
+            </Link>
           </div>
         </div>
       )}

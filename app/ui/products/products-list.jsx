@@ -75,8 +75,6 @@ const ProductList = ({
                 [productId]: (prev[productId] || 0) + viewDuration,
               }));
 
-
-
               // Check if cumulative time meets threshold
               if (
                 (viewDurationTotals[productId] || 0) + viewDuration >=
@@ -98,7 +96,6 @@ const ProductList = ({
 
         // Track all products that meet criteria in one batch
         if (productsToTrack.size > 0) {
-
           [...productsToTrack].forEach((productId) => {
             activityQueue.push((cb) => {
               try {
@@ -255,7 +252,7 @@ const ProductList = ({
           </Suspense>
         </header>
       )}
-      <div className="sticky top-24 z-[25]">
+      <div className="sticky top-14 z-[25]">
         <ProductHeader cat={cat} searchParams={searchParams} />
       </div>
 

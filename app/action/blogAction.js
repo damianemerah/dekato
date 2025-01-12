@@ -44,7 +44,6 @@ export async function createBlog(formData) {
 
     toObject(data);
 
-    console.log("Processed data before creation:", data);
     const blog = await Blog.create(data);
 
     revalidatePath("/blog");

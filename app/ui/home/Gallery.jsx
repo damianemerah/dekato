@@ -39,7 +39,7 @@ export default function Gallery() {
           <span className="text-gray-600">#dekatooutfits</span>
         </p>
       </div> */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-1 sm:grid-cols-5 sm:gap-3">
         {galleryImages.map((image, index) => (
           <div
             key={index}

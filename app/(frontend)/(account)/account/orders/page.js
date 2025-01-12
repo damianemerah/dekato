@@ -57,7 +57,7 @@ export default async function Orders() {
 
   if (!orders || orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 py-8 text-center">
         <ShoppingOutlined className="mb-4 text-6xl !text-gray-400" />
         <h2 className={`mb-2 text-2xl font-semibold`}>No orders yet</h2>
         <p className="mb-4 text-gray-600">

@@ -63,7 +63,7 @@ const RecommendedProducts = ({ category, productId }) => {
   if (!isLoading && products.length === 0) return null;
 
   return (
-    <div className="mb-10 px-4 sm:px-6 lg:px-8">
+    <div className="mb-10 bg-white px-4 sm:px-6 lg:px-8">
       <h2 className="py-6 font-oswald font-bold">YOU MAY ALSO LIKE</h2>
       <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
         {isLoading

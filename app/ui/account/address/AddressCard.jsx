@@ -216,7 +216,9 @@ export default function Address() {
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       <div className="space-y-4 md:col-span-2">
-        <h2 className={`${oswald.className} text-2xl`}>My Addresses</h2>
+        <h2 className="font-oswald text-xl font-medium uppercase text-gray-700">
+          My Addresses
+        </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {addresses?.map((address) => (
             <div
