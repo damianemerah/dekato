@@ -88,7 +88,7 @@ const CustomersList = ({ customers, isLoading, mutate }) => {
   const hasSelected = selectedRowKeys.length > 0;
 
   return (
-    <Flex gap="middle" vertical className="p-6">
+    <Flex gap="middle" vertical className="px-3 py-12 sm:px-4">
       <Flex align="center" justify="space-between" gap="middle">
         <Flex align="center" gap="middle">
           {hasSelected && (

@@ -124,7 +124,7 @@ const OrderDetails = React.memo(function OrderDetails({ params }) {
       <Header style={{ background: "#fff", padding: "0 16px" }}>
         <OrderHeader order={order} menu={menu} />
       </Header>
-      <Content style={{ padding: "24px" }}>
+      <Content className="px-3 py-12 sm:px-4">
         <Row gutter={24}>
           <Col span={16}>
             <OrderProducts order={order} menu={menu} />

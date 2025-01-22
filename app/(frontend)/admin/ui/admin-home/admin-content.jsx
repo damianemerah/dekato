@@ -88,7 +88,7 @@ const AdminContent = ({ initialData }) => {
   }));
 
   return (
-    <Content style={{ padding: "24px" }}>
+    <Content className="px-3 py-12 sm:px-4">
       <Title level={2}>Dashboard</Title>
       <Suspense
         fallback={

@@ -384,52 +384,48 @@ const Categories = ({ searchParams }) => {
   };
 
   return (
-    <>
-      <Flex gap="middle" vertical className="p-6">
-        <Flex align="center" justify="end" gap="middle">
-          <Link href="/admin/categories/new">
-            <Button
-              className="!bg-primary !text-white"
-              onClick={start}
-              loading={loading}
-            >
-              Add new category
-            </Button>
-          </Link>
-          {hasSelected && (
-            <Button danger onClick={handleDeleteSelected} loading={loading}>
-              Delete Selected
-            </Button>
-          )}
-          {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
-        </Flex>
-        <div className="overflow-x-auto">
-          <Table
-            rowSelection={rowSelection}
-            columns={columns}
-            dataSource={dataSource || []}
-            loading={
-              isLoading
-                ? {
-                    indicator: (
-                      <LoadingOutlined spin className="!text-primary" />
-                    ),
-                    size: "large",
-                  }
-                : false
-            }
-            pagination={{
-              current: parseInt(page),
-              pageSize: limit,
-              showSizeChanger: false,
-              total: totalCount,
-              onChange: handlePageChange,
-            }}
-            scroll={{ x: "max-content" }}
-          />
-        </div>
+    <Flex gap="middle" vertical className="px-3 py-12 sm:px-4">
+      <Flex align="center" justify="end" gap="middle">
+        <Link href="/admin/categories/new">
+          <Button
+            className="!bg-primary !text-white"
+            onClick={start}
+            loading={loading}
+          >
+            Add new category
+          </Button>
+        </Link>
+        {hasSelected && (
+          <Button danger onClick={handleDeleteSelected} loading={loading}>
+            Delete Selected
+          </Button>
+        )}
+        {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
       </Flex>
-    </>
+      <div className="overflow-x-auto">
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={dataSource || []}
+          loading={
+            isLoading
+              ? {
+                  indicator: <LoadingOutlined spin className="!text-primary" />,
+                  size: "large",
+                }
+              : false
+          }
+          pagination={{
+            current: parseInt(page),
+            pageSize: limit,
+            showSizeChanger: false,
+            total: totalCount,
+            onChange: handlePageChange,
+          }}
+          scroll={{ x: "max-content" }}
+        />
+      </div>
+    </Flex>
   );
 };
 

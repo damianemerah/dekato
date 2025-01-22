@@ -172,7 +172,7 @@ const ProductsList = () => {
   const hasSelected = selectedRowKeys.length > 0;
 
   return (
-    <Flex gap="middle" vertical className="p-6">
+    <Flex gap="middle" vertical className="px-3 py-12 sm:px-4">
       <Flex align="center" justify="end" gap="middle">
         <Link href="/admin/products/new">
           <Button

@@ -14,7 +14,7 @@
 }
 
 h2 {
-  @apply text-3xl font-bold;
+  @apply font-oswald text-[26px] font-bold md:text-3xl;
 }
 
 h1,
@@ -39,9 +39,7 @@ a:link {
   text-decoration: none;
 }
 
-.active__category {
-  @apply border-b-2 border-primary;
-}
+
 
 .center {
   @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform;

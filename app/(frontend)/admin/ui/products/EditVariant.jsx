@@ -186,7 +186,7 @@ export default memo(function EditVariant({
         renderSaveProductWarning()
       ) : (
         <div className="relative h-screen">
-          <div className="p-6">
+          <div className="px-3 py-12 md:px-8">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-medium text-primary">Group</h2>
               <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export default memo(function EditVariant({
             </div>
             <VariantGroupTable />
           </div>
-          <div className="p-6">
+          <div className="px-3 py-12 md:px-8">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-medium text-primary">Variations</h2>
               <div className="flex items-center gap-2">

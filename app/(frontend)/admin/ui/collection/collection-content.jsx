@@ -195,7 +195,7 @@ export default memo(function CollectionContent({ collectionId, collection }) {
   return (
     <form
       action={(formData) => handleCreateCollection(formData, actionType)}
-      className="px-10 py-20"
+      className="px-3 py-12 md:px-8"
     >
       <div className="mb-4 flex justify-between">
         {actionType !== "create" && (

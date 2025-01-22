@@ -1,5 +1,6 @@
 "use client";
 
+import { oswald } from "@/style/font";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { observeElement } from "@/utils/observer";
@@ -18,7 +19,7 @@ const Gallery = dynamic(() => import("@/app/ui/home/Gallery"), {
 function GallerySkeleton() {
   return (
     <div className="mb-10">
-      <h2 className="py-6 font-oswald font-bold">FOLLOW OUR INSTAGRAM</h2>
+      <h2 className={`${oswald.className} py-6`}>FOLLOW OUR INSTAGRAM</h2>
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-5 sm:gap-3">
         {[...Array(7)].map((_, index) => (
           <div
@@ -111,13 +112,19 @@ export default function BelowFold() {
     });
   };
 
+  if (!isLoading && !blogs) return null;
+
   return (
     <div className="">
       {isLoading ? (
         <BlogSkeleton />
       ) : (
-        <div className="my-10 px-4 sm:px-6 lg:px-8">
-          <h2 className="py-6 font-oswald font-bold">LATEST FASION</h2>
+        <div className="px-4 pb-10 sm:px-6 lg:px-8">
+          <h2
+            className={`${oswald.className} py-6 text-center font-bold md:text-left`}
+          >
+            LATEST FASION
+          </h2>
           <div className="relative">
             <div
               ref={containerRef}
