@@ -31,8 +31,12 @@ function AdminLayout({ children }) {
         setCollapsed={setCollapsed}
       />
       <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
-        <div style={{ padding: 24, minHeight: 360 }}>
-          {isLoading ? <div>Loading...</div> : children}
+        <div style={{ minHeight: 360 }} className="p-0 sm:p-6">
+          {isLoading ? (
+            <div className="min-h-screen">Loading...</div>
+          ) : (
+            children
+          )}
         </div>
       </Layout>
     </Layout>

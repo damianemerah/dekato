@@ -12,9 +12,11 @@ const PromoBar = () => {
   if (pathname.includes("/admin") || pathname.includes("/account")) return null;
 
   return (
-    <div className={`${pathname === "/" ? "sticky top-14 z-[20]" : ""} `}>
+    <div
+      className={`${oswald.className} ${pathname === "/" ? "sticky top-14 z-[20]" : ""} `}
+    >
       <div
-        className={`${oswald.className} flex h-10 items-center justify-center space-x-2 bg-white text-[13px] font-medium leading-10 tracking-wide`}
+        className={`flex h-10 items-center justify-center space-x-2 bg-white text-[13px] font-medium leading-10 tracking-wide`}
       >
         <CheckOutlined className="font-bold" />
         <p className="text-primary">

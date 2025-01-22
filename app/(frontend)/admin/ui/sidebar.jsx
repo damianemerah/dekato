@@ -126,6 +126,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
       style={{
         overflow: "auto",
         height: "100vh",
+        paddingBottom: "0px",
         position: "fixed",
         left: 0,
         top: 0,

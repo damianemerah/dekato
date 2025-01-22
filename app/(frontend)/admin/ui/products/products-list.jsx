@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, memo, useEffect, useMemo, useCallback } from "react";
-import { Button, Flex, Table, Dropdown, Space, message, Form, Tag } from "antd";
-import { DownOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Button, Flex, Table, message, Form, Tag } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import {
   getAdminProduct,
@@ -296,7 +296,7 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
   );
 
   return (
-    <Flex gap="middle" vertical className="p-6">
+    <Flex gap="middle" vertical className="px-3 py-12 sm:px-4">
       <Flex align="center" justify="space-between" gap="middle">
         <Flex align="center" gap="middle">
           <Button

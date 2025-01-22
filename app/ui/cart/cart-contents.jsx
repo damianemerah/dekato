@@ -77,7 +77,6 @@ export default function Cart() {
 function CartHeader() {
   return (
     <header className="flex items-center justify-between">
-      <ContinueShoppingLink />
       <h1
         className={`${oswald.className} mx-auto text-center text-2xl font-medium uppercase text-primary`}
       >

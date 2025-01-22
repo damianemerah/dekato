@@ -21,9 +21,6 @@ const LayoutWrapper = ({ children }) => {
   return (
     <main
       className={`${
-        // If sidebar is open AND we're not on admin pages AND (large screen sidebar OR below threshold)
-        // then adjust width to account for sidebar (250px) on screens >= 1250px
-        // otherwise use full width
         isSidebarOpen &&
         !pathname.startsWith("/admin") &&
         (lgScreenSidebar || isBelowThreshold)

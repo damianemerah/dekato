@@ -30,6 +30,7 @@ const OrderTable = ({ recentOrders, isLoading }) => {
       dataSource={recentOrders}
       pagination={false}
       loading={isLoading}
+      scroll={{ x: "max-content" }}
     />
   );
 };

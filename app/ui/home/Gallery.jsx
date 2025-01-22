@@ -28,7 +28,9 @@ export default function Gallery() {
   return (
     <div className="mb-10">
       {/* <div className="mb-10 text-center"> */}
-      <h2 className="py-6 font-oswald font-bold">FOLLOW OUR INSTAGRAM</h2>
+      <h2 className={`${oswald.className} py-6 text-center md:text-left`}>
+        FOLLOW OUR INSTAGRAM
+      </h2>
       {/* <p className="mt-4 text-lg">
           <Link
             href="https://www.instagram.com/dekato_ng"

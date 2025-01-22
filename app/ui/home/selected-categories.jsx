@@ -87,15 +87,13 @@ export default memo(function HomeCategory() {
   return (
     <>
       <div
-        className="mb-4 mt-4 min-h-[300px] px-4 py-5 font-oswald sm:px-6 lg:px-8"
+        className={`${oswald.className} mb-4 mt-4 min-h-[300px] px-4 py-5 sm:px-6 lg:px-8`}
         id="selected-category"
       >
-        <div className="ml-2 flex flex-col gap-1 sm:ml-4 md:ml-8">
-          <h2 className="mb-2 text-xl font-bold text-primary sm:text-2xl md:text-3xl">
-            SHOP BY CATEGORY
-          </h2>
-          <div className="mb-4 flex flex-wrap gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
-            <p className="whitespace-nowrap text-xs font-bold tracking-wide text-grayText sm:text-sm">
+        <div className="ml-2 flex flex-col sm:ml-4 md:ml-8">
+          <h2 className="font-roboto">SHOP BY CATEGORY</h2>
+          <div className="mb-4 mt-4 flex flex-wrap gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
+            <p className="whitespace-nowrap text-sm font-bold tracking-wide text-grayText">
               Filter by:
             </p>
             <ul className="flex gap-4">
@@ -103,8 +101,10 @@ export default memo(function HomeCategory() {
                 <li
                   key={category}
                   className={`${
-                    selectedCategory === category ? "active__category" : ""
-                  } cursor-pointer text-xs font-bold uppercase tracking-wide sm:text-sm`}
+                    selectedCategory === category
+                      ? "border-b-2 border-primary"
+                      : ""
+                  } cursor-pointer text-base font-bold uppercase tracking-wide`}
                   onClick={() => handleCategoryChange(category)}
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}

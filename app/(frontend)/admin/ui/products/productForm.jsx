@@ -71,9 +71,7 @@ const ProductForm = ({
 
   return (
     <div className="relative h-full">
-      <div
-        className={`${roboto.className} mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10`}
-      >
+      <div className={`${roboto.className} mx-auto px-3 py-12 md:px-8`}>
         <div className="mb-6 flex items-center justify-between sm:mb-8 md:mb-10 lg:mb-12">
           <div className="flex items-center">
             <Link href="/admin/products">

@@ -89,7 +89,7 @@ function Fulfillment({ id }) {
           </Col>
         </Row>
       </Header>
-      <Content style={{ padding: "24px" }}>
+      <Content className="px-3 py-12 sm:px-4">
         <Row gutter={24}>
           <Col span={16}>
             <Card

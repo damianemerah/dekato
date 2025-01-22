@@ -142,7 +142,7 @@ export default function BlogList({ searchParams }) {
   };
 
   return (
-    <div className="p-6">
+    <div className="px-3 py-12 sm:px-4">
       <div className="mb-6 flex items-center justify-between">
         <Title level={2}>Blogs Overview</Title>
         <Link href="/admin/blogs/new">

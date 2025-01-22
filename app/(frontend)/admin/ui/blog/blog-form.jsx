@@ -126,22 +126,26 @@ export default function BlogForm({ initialData }) {
   };
 
   return (
-    <div className="p-6">
+    <div className="px-3 py-12 md:px-8">
       <Card>
-        <div className="mb-6 flex items-center justify-between">
-          <Space>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
             <Link href="/admin/blogs">
-              <Button icon={<ArrowLeftOutlined />} />
+              <Button
+                icon={<ArrowLeftOutlined />}
+                className="flex items-center justify-center"
+              />
             </Link>
-            <Title level={2} className="!mb-0">
+            <Title level={2} className="!mb-0 text-xl sm:text-2xl">
               {initialData ? "Edit Blog" : "Create New Blog"}
             </Title>
-          </Space>
-          <Space>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Button
               onClick={() =>
                 setActiveTab(activeTab === "edit" ? "preview" : "edit")
               }
+              className="w-full sm:w-auto"
             >
               {activeTab === "edit" ? "Preview" : "Edit"}
             </Button>
@@ -149,10 +153,11 @@ export default function BlogForm({ initialData }) {
               type="primary"
               onClick={() => form.submit()}
               loading={isSubmitting}
+              className="w-full sm:w-auto"
             >
               {initialData ? "Update" : "Publish"}
             </Button>
-          </Space>
+          </div>
         </div>
 
         {activeTab === "preview" ? (

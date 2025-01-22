@@ -186,7 +186,7 @@ export default function NewCategory({ categoryId }) {
   return (
     <form
       action={(formData) => handleCreateCategory(formData, actionType)}
-      className="px-10 py-20"
+      className="px-3 py-12 md:px-8"
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();

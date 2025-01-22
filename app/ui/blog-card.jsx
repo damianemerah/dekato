@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function BlogCard({ className, blog }) {
-  console.log(blog);
   const { featuredImage, categories, publishedAt, title, excerpt, slug } =
     blog || {};
   const link = `/fashion/${slug}`;
