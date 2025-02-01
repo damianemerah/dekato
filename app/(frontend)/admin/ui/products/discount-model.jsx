@@ -39,7 +39,6 @@ const DiscountModal = memo(function DiscountModal({
       onClose();
       form.resetFields();
     } catch (error) {
-      console.log(error);
       message.error("Failed to add products to sales");
     } finally {
       setLoading(false);

@@ -9,7 +9,6 @@ import { SmallSpinner } from "@/app/ui/spinner";
 import useConfirmModal from "@/app/ui/confirm-modal";
 
 export function NewsletterContent({ initialData }) {
-  console.log(initialData, "initialData🔥🔥");
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -18,8 +17,6 @@ export function NewsletterContent({ initialData }) {
     isSubscribed: initialData?.subscription?.status === "subscribed",
     gender: initialData?.subscription?.gender || "both",
   });
-
-  if (subscription) console.log(subscription);
 
   const confirmModal = useConfirmModal();
 

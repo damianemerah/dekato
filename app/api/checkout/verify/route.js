@@ -49,7 +49,6 @@ async function updateProductQuantity(order) {
 
     for (const item of products) {
       const product = await Product.findById(item.productId).session(session);
-      console.log("product🔥🔥🔥", product);
 
       if (!product) {
         console.warn(
@@ -103,8 +102,6 @@ async function updateProductQuantity(order) {
       product.sold += quantity;
       // product.purchaseCount = (product.purchaseCount || 0) + 1;
 
-      console.log("product.quantity🔥🔥🔥", product.quantity);
-
       if (product.quantity === 0) {
         const message = `${item.name} is out of stock`;
         await handleOutOfStock(item, order, message, session);
@@ -141,7 +138,6 @@ async function updateProductQuantity(order) {
 
 export async function POST(req) {
   await dbConnect();
-  console.log("verify🔥🔥🔥");
   try {
     const body = await req.json();
 

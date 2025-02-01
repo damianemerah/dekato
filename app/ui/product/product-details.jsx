@@ -184,7 +184,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
       await mutate(`/checkout-data`);
       message.success("Item added to cart");
     } catch (error) {
-      console.log(error, "error");
       message.info("Unable to add item to cart", 4);
     } finally {
       setIsAddingToCart(false);
@@ -297,7 +296,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
         <div className="mb-8 w-screen lg:sticky lg:top-0 lg:mb-0 lg:w-2/3">
           <div
             ref={swipeRef}
-            className="relative h-[calc(85vh-11.5rem)] w-full lg:h-[calc(100vh-6rem)]"
+            className="relative h-[calc(94vh-11.5rem)] w-full lg:h-[calc(100vh-6rem)]"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -392,6 +391,12 @@ const ProductDetail = memo(function ProductDetail({ product }) {
               >
                 {isProductAvailable ? "Product is available" : "Out of stock"}
               </p>
+              <Button className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500">
+                <WhatsappIcon className="mr-2 h-5 w-5 group-hover:text-white" />
+                <span className="text-lg group-hover:text-white sm:text-base md:text-lg">
+                  Order on WhatsApp
+                </span>
+              </Button>
               <div className="flex items-center gap-3">
                 <ButtonPrimary
                   className={`flex-1 text-sm normal-case ${isAddingToCart || !isProductAvailable ? "cursor-not-allowed opacity-75" : ""} flex items-center justify-center bg-secondary`}
@@ -429,12 +434,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
                   )}
                 </button>
               </div>
-              <Button className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500">
-                <WhatsappIcon className="mr-2 h-5 w-5 group-hover:text-white" />
-                <span className="text-lg group-hover:text-white sm:text-base md:text-lg">
-                  Order on WhatsApp
-                </span>
-              </Button>
             </div>
           </div>
           <div>

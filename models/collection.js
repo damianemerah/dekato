@@ -120,7 +120,7 @@ campaignSchema.pre("save", async function (next) {
       .model("Category")
       .findById(this.category);
     if (categoryDoc) {
-      this.path = [this.slug, `${categoryDoc.slug}/${this.slug}`];
+      this.path = [`${categoryDoc.slug}/${this.slug}`];
     } else {
       return next(new Error("Category not found"));
     }

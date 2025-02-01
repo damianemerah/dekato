@@ -87,11 +87,11 @@ export default memo(function HomeCategory() {
   return (
     <>
       <div
-        className={`${oswald.className} mb-4 mt-4 min-h-[300px] px-4 py-5 sm:px-6 lg:px-8`}
+        className={`${oswald.className} min-h-[300px] px-4 py-6 sm:px-6 lg:px-8`}
         id="selected-category"
       >
         <div className="ml-2 flex flex-col sm:ml-4 md:ml-8">
-          <h2 className="font-roboto">SHOP BY CATEGORY</h2>
+          <h2>SHOP BY CATEGORY</h2>
           <div className="mb-4 mt-4 flex flex-wrap gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
             <p className="whitespace-nowrap text-sm font-bold tracking-wide text-grayText">
               Filter by:

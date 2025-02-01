@@ -59,8 +59,6 @@ function formatCartItem(cartItem) {
       : product.discountPrice
     : null;
 
-  console.log(discountPrice, "discountPrice⭐⭐");
-
   return {
     id: _id.toString(),
     option: cartItem.option,

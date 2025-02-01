@@ -90,7 +90,7 @@ export default function Newsletter() {
                       type="email"
                       name="newsletter"
                       id="newsletter"
-                      className="flex-1 border border-gray-300 px-4 py-3 text-primary placeholder:text-gray-400"
+                      className="flex-1 border border-primary px-4 py-3 text-primary placeholder:text-gray-400"
                       placeholder="Enter your e-mail address"
                       required
                     />

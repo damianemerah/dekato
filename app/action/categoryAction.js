@@ -8,21 +8,7 @@ import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
 import APIFeatures from "@/utils/apiFeatures";
 import { revalidatePath } from "next/cache";
-
-export const formatCategories = (categories) => {
-  return categories.map(({ _id, parent, createdAt, ...rest }) => {
-    const { _id: pid, ...p } = parent || {};
-    const formattedCategory = {
-      id: _id.toString(),
-      parent: parent ? { id: pid.toString(), ...p } : null,
-      ...rest,
-    };
-    if (createdAt) {
-      formattedCategory.createdAt = createdAt.toISOString();
-    }
-    return formattedCategory;
-  });
-};
+import { formatCategories } from "@/utils/filterHelpers";
 
 export async function getAllCategories(params) {
   try {
@@ -75,19 +61,29 @@ export async function getAllCategories(params) {
 }
 
 export async function getSubCategories(slug) {
-  await dbConnect();
   try {
-    const category = await Category.findOne({ slug });
-    if (!category) {
+    await dbConnect();
+
+    // Early return for search routes
+    if (!Array.isArray(slug) || slug[0].toLowerCase() === "search") {
       return null;
     }
 
-    const categories = await Category.find({ parent: category._id })
-      .select("name description image slug createdAt")
+    // Find parent category and populate children
+    const parentCategory = await Category.findOne({
+      slug: slug[0].toLowerCase(),
+    })
+      .populate("children", "name description image slug createdAt")
       .sort({ slug: 1 })
       .lean();
 
-    return formatCategories(categories);
+    if (!parentCategory) {
+      return null;
+    }
+
+    // Format and return the children categories
+    const formattedCategories = formatCategories(parentCategory.children || []);
+    return formattedCategories;
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "Something went wrong");
@@ -186,7 +182,6 @@ export async function updateCategory(formData) {
       ...rest,
     };
   } catch (err) {
-    console.log("🚀🚀🚀", err);
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
   }

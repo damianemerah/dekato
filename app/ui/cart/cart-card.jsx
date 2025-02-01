@@ -104,7 +104,7 @@ const CartCard = ({ cartItem }) => {
         <div className="ml-3 flex h-full min-h-[80px] flex-grow flex-col justify-between gap-2 sm:ml-4 sm:min-h-[120px] sm:gap-3">
           <div className="mb-1 flex h-full items-start justify-between">
             <Link
-              href={`/p/${cartItem?.product?.slug}-${cartItem?.product?.id}`}
+              href={`/product/${cartItem?.product?.slug}-${cartItem?.product?.id}`}
               className={`${oswald.className} mr-2 line-clamp-2 overflow-ellipsis text-sm capitalize text-gray-800 hover:opacity-70 sm:text-base`}
             >
               {cartItem?.product?.name}
@@ -197,8 +197,6 @@ export default function CartCards({ products }) {
   const userId = session?.user?.id;
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  console.log(products, "products🚀💎💎");
 
   useEffect(() => {
     setSelectAll(products?.every((product) => product.checked));

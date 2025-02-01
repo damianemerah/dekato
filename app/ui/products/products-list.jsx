@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Suspense, useMemo, useState, useCallback, useEffect } from "react";
 import { useUserStore } from "@/store/store";
 import { trackView, activityQueue } from "@/utils/tracking";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const MAX_TRACK_TIME = 5000;
 
@@ -41,6 +42,7 @@ const ProductList = ({
   limit,
 }) => {
   const router = useRouter();
+  const [showFilter, setShowFilter] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [trackedProducts, setTrackedProducts] = useState(new Set());
   const [viewStartTimes, setViewStartTimes] = useState({});
@@ -140,7 +142,7 @@ const ProductList = ({
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
     const queryString = new URLSearchParams(newSearchParams).toString();
-    router.push(`/${cat}?${queryString}`);
+    router.push(`/${cat.join("/")}?${queryString}`);
     // Reset tracked products when page changes
     setTrackedProducts(new Set());
   };
@@ -188,45 +190,24 @@ const ProductList = ({
             ))}
           </div>
 
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
-            aria-label="Previous slide"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
-            aria-label="Next slide"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+          {banner.length > 0 && (
+            <>
+              <button
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          )}
 
           <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
             {banner.map((_, index) => (
@@ -242,7 +223,7 @@ const ProductList = ({
           </div>
         </header>
       ) : (
-        <header className="flex w-full items-center justify-center bg-gray-100 px-20 pb-4 pt-8 uppercase">
+        <header className="flex w-full items-center justify-center bg-gray-100 px-20 py-8 uppercase">
           <Suspense
             fallback={
               <div className="h-8 w-24 animate-pulse bg-gray-300"></div>
@@ -252,13 +233,18 @@ const ProductList = ({
           </Suspense>
         </header>
       )}
-      <div className="sticky top-14 z-[25]">
-        <ProductHeader cat={cat} searchParams={searchParams} />
+      <div className={`sticky top-14 z-[25] block`}>
+        <ProductHeader
+          cat={cat}
+          searchParams={searchParams}
+          showFilter={showFilter}
+          setShowFilter={setShowFilter}
+        />
       </div>
 
-      <div>
+      <div className="px-2">
         <h4
-          className={`${oswald.className} text-priamry pl-2 text-[13px] font-bold leading-[58px] tracking-widest`}
+          className={`${oswald.className} text-priamry pl-2 text-center text-[13px] font-bold leading-[58px] tracking-widest md:text-left`}
         >
           {totalCount} ITEMS
         </h4>

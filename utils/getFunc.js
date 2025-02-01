@@ -57,20 +57,19 @@ export const generateVariantOptions = (variants) => {
 };
 
 export function getQueryObj(searchParams) {
-
   const params = Object.fromEntries(
+    //not price/quantity, convert -vr to array
     Object.entries(searchParams).map(([key, value]) => {
       return [
         key,
         Array.isArray(value)
           ? value.slice(-1)
-          : isFinite(value)
+          : isFinite(value) && !key.endsWith("-vr")
             ? value
             : value.split(","),
       ];
     }),
   );
-
 
   let variantConditions = [];
 

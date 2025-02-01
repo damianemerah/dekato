@@ -30,12 +30,12 @@ const ProductSwiper = memo(function ProductSwiper({
 
       {/* Thumbnail navigation for medium screens and up */}
       {product?.image && product.image.length > 1 && (
-        <div className="absolute left-8 top-8 z-10 hidden flex-col gap-2 md:flex">
+        <div className="absolute left-8 top-8 z-10 hidden h-[calc(100%-4rem)] flex-col gap-2 overflow-y-auto md:flex">
           {product.image.map((image, index) => (
             <button
               key={index}
               onClick={() => setActiveIndex(index)}
-              className={`relative h-20 w-16 shadow-shadowSm transition-all ${
+              className={`relative h-20 w-16 shrink-0 shadow-shadowSm transition-all ${
                 index === activeIndex ? "border-2 border-primary" : ""
               }`}
             >

@@ -466,8 +466,6 @@ export async function getAllUsers(searchParams) {
 export async function sendPasswordResetToken(formData) {
   await dbConnect();
 
-  console.log(formData.get("email"), "email🔥🔥");
-
   const user = await User.findOne({ email: formData.get("email") });
 
   if (!user) {
@@ -544,7 +542,6 @@ export async function forgotPassword(formData) {
     user.passwordResetExpires = undefined;
 
     await user.save();
-
 
     const { _id, wishlist, ...rest } = user.toObject();
 

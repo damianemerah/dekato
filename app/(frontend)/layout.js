@@ -13,18 +13,14 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${oswald.variable} ${roboto.variable}`}>
       <AntdRegistry>
         <Provider>
-          <body
-            className={`${oswald.variable} ${roboto.variable} relative min-h-screen overflow-x-hidden antialiased`}
-          >
+          <body className={`min-h-screen font-roboto antialiased`}>
             <Header />
-            <div className="flex w-full">
+            <div className="relative flex w-full">
               <div className="sticky top-14 z-50 h-[calc(100vh-3.5rem)]">
                 <SidebarServer />
               </div>
               <div className="flex flex-1 shrink-0 flex-col md:w-full">
-                <div className="sticky top-14 z-[20]">
-                  <PromoBar />
-                </div>
+                <PromoBar />
                 <LayoutWrapper>{children}</LayoutWrapper>
               </div>
             </div>

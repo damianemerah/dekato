@@ -31,7 +31,7 @@ const RecommendedProducts = ({ category, productId }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname.startsWith("/p/")) {
+    if (pathname.startsWith("/product/")) {
       setType("similar");
     } else if (userId && pathname === "/") {
       setType("personalized");
@@ -42,7 +42,6 @@ const RecommendedProducts = ({ category, productId }) => {
 
   useEffect(() => {
     if (shouldMutate) {
-      console.log("mutateing", category);
       mutate(["/api/recommendations", type, category, productId], async () => {
         const updatedData = await fetcher(type, category, productId); // Re-fetch data
         return updatedData;
@@ -64,8 +63,8 @@ const RecommendedProducts = ({ category, productId }) => {
   if (!isLoading && products.length === 0) return null;
 
   return (
-    <div className="bg-white px-4 pb-10 sm:px-6 lg:px-8">
-      <h2 className={`${oswald.className} py-6 text-center md:text-left`}>
+    <div className="bg-white px-4 py-12 sm:px-6 lg:px-8">
+      <h2 className={`${oswald.className} mb-6 text-center md:text-left`}>
         YOU MAY ALSO LIKE
       </h2>
       <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">

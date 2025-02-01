@@ -66,7 +66,7 @@ export default function Wishlist({ product }) {
   return (
     <div className="mb-0.5 ml-2">
       <div className="relative flex h-full flex-col bg-white text-center transition-all duration-300 hover:shadow-md">
-        <Link href={`/p/${product.slug}-${product.id}`}>
+        <Link href={`/product/${product.slug}-${product.id}`}>
           <div className="relative w-full overflow-hidden pb-[133.33%]">
             <Image
               src={product.image[0] || "/placeholder-image.jpg"}

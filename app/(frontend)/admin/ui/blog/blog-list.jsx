@@ -49,7 +49,6 @@ export default function BlogList({ searchParams }) {
     {
       revalidateOnFocus: false,
       onSuccess: (data) => {
-        console.log(data, "data🔥🔥🔥");
         setTotalCount(data.pagination.total);
       },
     },

@@ -162,9 +162,6 @@ export default function NewCategory({ categoryId }) {
       }
 
       const newCategory = await createCategory(formData);
-
-      console.log(newCategory, "newCategory🔥🔥🔥");
-
       mutate("/api/allCategories");
       message.success("Category created");
       titleRef.current.value = "";

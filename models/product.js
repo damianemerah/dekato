@@ -67,8 +67,10 @@ const productSchema = new mongoose.Schema(
       type: [String],
       validate: [
         {
-          validator: arrayLimit,
-          message: "{PATH} exceeds the limit of 10",
+          validator: function (val) {
+            return val.length <= 15; // Direct limit check for images
+          },
+          message: "Images cannot exceed 15",
         },
         {
           validator: function (v) {
@@ -82,8 +84,10 @@ const productSchema = new mongoose.Schema(
       type: [String],
       validate: [
         {
-          validator: arrayLimit,
-          message: "{PATH} exceeds the limit of 5",
+          validator: function (val) {
+            return val.length <= 5; // Direct limit check for videos
+          },
+          message: "Videos cannot exceed 5",
         },
         {
           validator: function (v) {
@@ -99,7 +103,7 @@ const productSchema = new mongoose.Schema(
       required: [true, "Product must belong to at least one category"],
       validate: {
         validator: function (v) {
-          return v.length > 0 && v.length <= 5;
+          return Array.isArray(v) && v.length > 0 && v.length <= 5;
         },
         message: "At least one category is required and maximum 5 are allowed",
       },
@@ -124,6 +128,11 @@ const productSchema = new mongoose.Schema(
               );
             },
             message: "Variant options contain invalid characters",
+          },
+          set: function (v) {
+            return Object.fromEntries(
+              Object.entries(v).map(([key, val]) => [key, val.toLowerCase()]),
+            );
           },
         },
         optionType: [
@@ -216,10 +225,6 @@ const productSchema = new mongoose.Schema(
   },
 );
 
-function arrayLimit(val) {
-  return val.length <= (this.constructor.name === "image" ? 10 : 5);
-}
-
 // Text indexes for search functionality
 productSchema.index(
   { name: "text", description: "text", tag: "text" },
@@ -240,8 +245,8 @@ productSchema.index({ slug: 1 }, { unique: true }); // For URL-friendly lookups 
 productSchema.index({ status: 1, quantity: 1 }); // // For stock management - used in getAllProducts
 productSchema.index({ createdAt: -1 }); // For recent products - used in getAdminProduct
 
-// productSchema.index({ status: 1, createdAt: -1 }); // For listing active products by date
-// productSchema.index({ status: 1, price: 1 }); // For filtering by status and price ranges
+productSchema.index({ status: 1, createdAt: -1 }); // For listing active products by date
+productSchema.index({ status: 1, price: 1 }); // For filtering by status and price ranges
 // Compound indexes for inventory management
 
 // productSchema.index({ status: 1, sold: -1 }); // For bestsellers lists
@@ -284,8 +289,13 @@ productSchema.pre("findOneAndUpdate", async function (next) {
 
 async function updateCategorySlug(doc) {
   try {
+    // Ensure category is always an array
+    const categoryIds = Array.isArray(doc.category)
+      ? doc.category
+      : [doc.category];
+
     const categories = await Category.find({
-      _id: { $in: doc.category },
+      _id: { $in: categoryIds },
     }).select("slug");
 
     if (categories && categories.length > 0) {

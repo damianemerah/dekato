@@ -243,7 +243,6 @@ const CollectionList = ({ searchParams }) => {
           setSelectedRowKeys([]);
           message.success("Selected collections deleted");
         } catch (error) {
-          console.log(error);
           message.error("Error deleting collections");
         } finally {
           setLoading(false);

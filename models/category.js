@@ -84,8 +84,20 @@ const categorySchema = new mongoose.Schema(
   },
 );
 
+// Index for path-based queries (used in getAllProducts, getVariantsByCategory)
+categorySchema.index({ path: 1 });
+
+// Index for parent/slug combo queries (used in createCategory, updateCategory)
 categorySchema.index({ parent: 1, slug: 1 }, { unique: true });
+
+// Index for text search (used in productSearch)
 categorySchema.index({ name: "text", description: "text" });
+
+// Index for pinned categories query (used in getPinnedCategoriesByParent)
+categorySchema.index({ parent: 1, pinned: 1, pinOrder: 1 });
+
+// Index for parent-only queries (used in getSubCategories)
+categorySchema.index({ parent: 1 });
 
 categorySchema.pre("save", async function (next) {
   if (this.isModified("name")) {

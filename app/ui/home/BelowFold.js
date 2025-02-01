@@ -119,9 +119,9 @@ export default function BelowFold() {
       {isLoading ? (
         <BlogSkeleton />
       ) : (
-        <div className="px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="px-4 py-12 sm:px-6 lg:px-8">
           <h2
-            className={`${oswald.className} py-6 text-center font-bold md:text-left`}
+            className={`${oswald.className} mb-6 text-center font-bold md:text-left`}
           >
             LATEST FASION
           </h2>
@@ -168,7 +168,7 @@ export default function BelowFold() {
               </>
             )}
           </div>
-          <div className="mt-4 flex items-center justify-center">
+          <div className="mt-6 flex items-center justify-center">
             <Link href="/fashion">
               <Button
                 className="mt-auto inline-flex items-center justify-center px-4 py-1 text-sm font-semibold uppercase transition-colors hover:bg-primary hover:text-white sm:px-6"

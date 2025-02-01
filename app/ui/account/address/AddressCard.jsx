@@ -19,7 +19,6 @@ export default function Address() {
   const [isUpdating, setIsUpdating] = useState(false);
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  console.log(userId, "userId");
   const { addressData: addresses, isLoading: AddressIsLoading } =
     useAddressData(userId);
 

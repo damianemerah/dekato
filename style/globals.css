@@ -5,7 +5,7 @@
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
-  scrollbar-color: #303030 #fff;
+  scrollbar-color: #303030 transparent;
   max-width: 100vw;
 }
 
@@ -14,7 +14,7 @@
 }
 
 h2 {
-  @apply font-oswald text-[26px] font-bold md:text-3xl;
+  @apply text-[26px] font-bold md:text-3xl;
 }
 
 h1,
@@ -38,8 +38,6 @@ a:visited,
 a:link {
   text-decoration: none;
 }
-
-
 
 .center {
   @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform;

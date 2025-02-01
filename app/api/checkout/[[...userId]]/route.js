@@ -103,8 +103,6 @@ export async function POST(req, { params }) {
         shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
     };
 
-    console.log(orderData, "orderData🔥🔥🔥");
-
     //session require array of objects
     const order = await Order.create([orderData], { session });
 
@@ -144,8 +142,6 @@ export async function POST(req, { params }) {
     const payment = await Paystack.transaction.initialize(
       paymentInitializeOptions,
     );
-
-    console.log(payment, "payment🔥🔥🔥");
 
     if (!payment || payment.status === false) {
       throw new AppError(payment.message, 500);
