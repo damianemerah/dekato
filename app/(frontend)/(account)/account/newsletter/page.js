@@ -1,36 +1,20 @@
-import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
-import { ButtonPrimary } from "@/app/ui/button";
-import { oswald } from "@/style/font";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { NewsletterContent } from "@/app/ui/account/newsletter/newsletter-content";
 
-export default function Newsletter() {
-  const breadcrumbs = [
-    { href: "/", label: "Home" },
-    { href: "/account", label: "My Account" },
-    { href: "/account/newsletter", label: "Newsletter", active: true },
-  ];
+export default async function NewsletterPage() {
+  const session = await getServerSession(authOptions);
+  const initialData = await fetch(
+    `${process.env.NEXTAUTH_URL}/api/subscribe?email=${session?.user?.email}`,
+    { next: { revalidate: 3600, tags: ["emailSubscription"] } }, //every 1 hour
+  ).then((res) => res.json());
+
   return (
-    <AccountLayout title="Address Book" breadcrumbs={breadcrumbs}>
-      <div className="space-y-12">
-        <div className="space-y-6">
-          <h2 className={`${oswald.className} text-2xl`}>
-            Subscription Options
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative flex gap-x-3">
-              <div className="flex h-6 items-center">
-                <input
-                  id="newsletter"
-                  name="newsletter"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary focus:ring-primary"
-                />
-              </div>
-              <label htmlFor="newsletter">General Subscription</label>
-            </div>
-          </div>
-        </div>
-        <ButtonPrimary>Save</ButtonPrimary>
-      </div>
-    </AccountLayout>
+    <div className="space-y-6">
+      <h1 className="font-oswald text-xl font-medium uppercase text-gray-700">
+        Newsletter Preferences
+      </h1>
+      <NewsletterContent initialData={initialData} />
+    </div>
   );
 }

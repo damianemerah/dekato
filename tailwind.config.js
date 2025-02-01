@@ -10,7 +10,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#09090b",
+        // primary: "#303030",
+        primary: "#212529",
+        primaryDark: "#1a1a1a",
+        secondary: "#00385f",
+        // secondary: "#0e7490",
+        // grayBg: "#f6f6f6",
         grayBg: "#F0F2F2",
         grayText: "#828282",
         grayOutline: "#C4C4C4",
@@ -31,8 +36,8 @@ module.exports = {
         14: "repeat(14, minmax(0, 1fr))",
       },
       fontFamily: {
-        oswald: ["var(--font-oswald)"],
-        roboto: ["var(--font-roboto)"],
+        oswald: ["var(--font-oswald, Oswald)", "sans-serif"],
+        roboto: ["var(--font-roboto, Roboto)", "sans-serif"],
       },
       fontSize: {
         xxs: "10px",
@@ -40,7 +45,17 @@ module.exports = {
       transitionProperty: {
         height: "height",
       },
+      keyframes: {
+        shake: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "25%, 75%": { transform: "translateY(-5px)" },
+          "50%": { transform: "translateY(5px)" },
+        },
+      },
+      animation: {
+        shake: "shake 0.5s ease-in-out both",
+      },
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/typography")],
 };

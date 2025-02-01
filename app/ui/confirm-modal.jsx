@@ -1,5 +1,5 @@
 import { Modal } from "antd";
-import { oswald } from "@/font";
+import { oswald } from "@/style/font";
 
 const useConfirmModal = () => {
   const showConfirmModal = ({ title, content, onOk }) => {
@@ -10,28 +10,30 @@ const useConfirmModal = () => {
       okText: "Yes",
       cancelText: "No",
       okButtonProps: {
-        className: "!bg-black !text-white !hover:bg-gray-800 !rounded-none",
+        className: "!bg-primary !text-white !hover:bg-gray-800 !rounded-none",
       },
       cancelButtonProps: {
         className:
           "!border-gray-300 !text-gray-700 !hover:border-gray-400 !rounded-none",
       },
-      className: `${oswald.className}`,
+      className: `font-oswald`,
       maskClosable: true,
       wrapClassName: "custom-modal-wrap",
-      bodyStyle: {
-        fontFamily: oswald.style.fontFamily,
-        fontSize: "16px",
-        color: "#333",
-      },
-      maskStyle: {
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-      },
-      titleStyle: {
-        fontFamily: oswald.style.fontFamily,
-        fontSize: "24px",
-        fontWeight: "bold",
-        color: "#000",
+      styles: {
+        mask: {
+          backgroundColor: "rgba(0, 0, 0, 0.6)",
+        },
+        body: {
+          fontFamily: oswald.style.fontFamily,
+          fontSize: "16px",
+          color: "#333",
+        },
+        title: {
+          fontFamily: oswald.style.fontFamily,
+          fontSize: "24px",
+          fontWeight: "bold",
+          color: "#000",
+        },
       },
       icon: null,
     });

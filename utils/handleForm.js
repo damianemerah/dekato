@@ -1,124 +1,211 @@
 import AppError from "@/utils/errorClass";
 import { uploadFiles, deleteFiles } from "@/lib/s3Func";
 import Category from "@/models/category";
+import { partition, endsWith, fromPairs, keys } from "lodash";
 
-//Model here is designed to be only Product model
 export const handleFormData = async (formData, Model, id) => {
-  const obj = {};
-  obj.image = [];
-  obj.video = [];
-  obj.category = [];
-  obj.variant = [];
-  const filesToUpload = [];
+  const productName = formData.get("name") || "untitled";
+
+  const obj = {
+    image: [],
+    video: [],
+    banner: [],
+    category: [],
+    campaign: [],
+    variant: [],
+    tag: [],
+  };
+  const imagesToUpload = [];
+  const videosToUpload = [];
+  const bannerToUpload = [];
   const variantsFilesToUpload = [];
   const filesToDelete = [];
   let existingProd;
+
+  validateFormData(formData);
+
+  processFormEntries(
+    formData,
+    obj,
+    imagesToUpload,
+    videosToUpload,
+    bannerToUpload,
+    variantsFilesToUpload,
+  );
+
+  if (Model && id) {
+    existingProd = await findExistingProduct(Model, id);
+  }
+
+  if (existingProd) {
+    await handleExistingFiles(existingProd, obj, filesToDelete);
+  }
+
+  const uploadedImageNames = await uploadNewFiles(
+    imagesToUpload,
+    "image",
+    productName,
+  );
+  const uploadedVideoNames = await uploadNewFiles(
+    videosToUpload,
+    "video",
+    productName,
+  );
+  const uploadedBannerNames = await uploadNewFiles(
+    bannerToUpload,
+    "banner",
+    productName,
+  );
+
+  updateObjWithUploadedFiles(obj, uploadedImageNames, "image");
+  updateObjWithUploadedFiles(obj, uploadedVideoNames, "video");
+  updateObjWithUploadedFiles(obj, uploadedBannerNames, "banner");
+
+  await handleVariantImages(obj, variantsFilesToUpload);
+
+  if (Model === Category) {
+    obj.parent = obj.parent || null;
+  }
+
+  return obj;
+};
+
+function validateFormData(formData) {
+  const status = formData.get("status");
   const images = formData.getAll("image");
   const videos = formData.getAll("video");
-  const status = formData.get("status");
+  const banners = formData.getAll("banner");
 
   if (status === "active") {
     if (!formData.get("category")) {
       throw new AppError("Category is required", 400);
     }
+    if (images.length === 0 && videos.length === 0 && banners.length === 0) {
+      throw new AppError("Please upload image, video, or banner", 400);
+    }
   }
+}
 
-  if (images?.length === 0 && videos?.length === 0 && status === "active") {
-    throw new AppError("Please upload image", 400);
-  }
-
-  // add other form data to obj
+function processFormEntries(
+  formData,
+  obj,
+  imagesToUpload,
+  videosToUpload,
+  bannerToUpload,
+  variantsFilesToUpload,
+) {
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("variantData")) {
-      const index = key.match(/\d+/)[0];
-      const data = JSON.parse(value);
-      if (!obj.variant[index]) {
-        obj.variant[index] = { ...data };
-      } else {
-        obj.variant[index] = { ...obj.variant[index], ...data };
-      }
-    }
-    if (key.startsWith("variantImage")) {
-      const index = key.match(/\d+/)[0];
-      if (typeof value === "string") {
-        obj.variant[index] = { ...obj.variant[index], image: value };
-      }
-      variantsFilesToUpload[index] = value;
-    }
-    if (key !== "image" && key !== "video" && key !== "category") {
+      processVariantData(obj, key, value);
+    } else if (key.startsWith("variantImage")) {
+      processVariantImage(obj, variantsFilesToUpload, key, value);
+    } else if (key === "category") {
+      obj.category.push(value);
+    } else if (key === "campaign") {
+      obj.campaign.push(value);
+    } else if (key === "image") {
+      processMediaFile(obj, imagesToUpload, key, value);
+    } else if (key === "tag") {
+      obj.tag.push(value);
+    } else if (key === "video") {
+      processMediaFile(obj, videosToUpload, key, value);
+    } else if (key === "banner") {
+      processMediaFile(obj, bannerToUpload, key, value);
+    } else {
       obj[key] = value;
     }
-    //category is an array
-    if (key === "category") {
-      obj.category.push(value);
-    }
   }
+}
 
-  images.forEach((file) => {
-    if (typeof file === "string") {
-      obj.image.push(file);
-    } else if (file.size > 0) {
-      filesToUpload.push(file);
-    }
-  });
+function processVariantData(obj, key, value) {
+  const index = key.match(/\d+/)[0];
+  const data = JSON.parse(value);
 
-  videos.forEach((file) => {
-    if (typeof file === "string") {
-      obj.video.push(file);
-    } else if (file.size > 0) {
-      filesToUpload.push(file);
-    }
-  });
+  const options = data.options;
+  const labelEntries = Object.entries(data).filter(([key]) =>
+    key.endsWith("_label"),
+  );
 
-  if (Model && id) {
-    if (Array.isArray(id)) {
-      existingProd = await Model.find({ _id: { $in: id } });
-      if (existingProd.length !== id.length) {
-        throw new AppError(`One or more ${Model.modelName}s not found`, 404);
-      }
-    } else {
-      existingProd = await Model.findById(id);
-      if (!existingProd) {
-        throw new AppError(`${Model.modelName} not found`, 404);
-      }
-    }
+  const optionType = labelEntries.map(([key, value]) => ({
+    labelId: value,
+    label: key.replace("_label", ""),
+  }));
+
+  obj.variant[index] = {
+    ...obj.variant[index],
+    options,
+    optionType,
+    ...data,
+  };
+}
+
+function processVariantImage(obj, variantsFilesToUpload, key, value) {
+  const index = key.match(/\d+/)[0];
+  if (typeof value === "string") {
+    obj.variant[index] = { ...obj.variant[index], image: value };
   }
+  variantsFilesToUpload[index] = value;
+}
 
-  //delete existing files
-  if (existingProd) {
-    const imagesToDelete = existingProd.image.filter(
-      (img) => !obj.image.includes(img),
-    );
-    const videosToDelete = existingProd.video
-      ? existingProd.video.filter((vid) => !obj.video.includes(vid))
+function processMediaFile(obj, filesToUpload, key, file) {
+  if (typeof file === "string") {
+    obj[key].push(file);
+  } else if (file.size > 0) {
+    filesToUpload.push(file);
+  }
+}
+
+async function findExistingProduct(Model, id) {
+  if (Array.isArray(id)) {
+    const existingProds = await Model.find({ _id: { $in: id } });
+    if (existingProds.length !== id.length) {
+      throw new AppError(`One or more ${Model.modelName}s not found`, 404);
+    }
+    return existingProds;
+  } else {
+    const existingProd = await Model.findById(id);
+    if (!existingProd) {
+      throw new AppError(`${Model.modelName} not found`, 404);
+    }
+    return existingProd;
+  }
+}
+
+async function handleExistingFiles(existingProd, obj, filesToDelete) {
+  const imagesToDelete = existingProd.image.filter(
+    (img) => !obj.image.includes(img),
+  );
+  const videosToDelete = existingProd.video
+    ? existingProd.video.filter((vid) => !obj.video.includes(vid))
+    : [];
+  const bannersToDelete = existingProd.banner
+    ? existingProd.banner.filter((ban) => !obj.banner.includes(ban))
+    : [];
+
+  filesToDelete.push(...imagesToDelete, ...videosToDelete, ...bannersToDelete);
+
+  if (filesToDelete.length > 0) {
+    await deleteFiles(filesToDelete);
+  }
+}
+
+async function uploadNewFiles(filesToUpload, fileType, productName) {
+  const files =
+    filesToUpload.length > 0
+      ? await uploadFiles(filesToUpload, fileType, productName)
       : [];
+  return files;
+}
 
-    filesToDelete.push(...imagesToDelete, ...videosToDelete);
+function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
+  obj[fileType].push(...uploadedFileNames);
+}
 
-    if (filesToDelete?.length > 0) {
-      await deleteFiles(filesToDelete);
-    }
-  }
-
-  //upload files to s3
-  const fileNames =
-    filesToUpload?.length > 0 ? await uploadFiles(filesToUpload) : [];
-
-  obj.image = [
-    ...obj.image,
-    ...fileNames.filter((file) => file.includes("com/image/")),
-  ];
-
-  obj.video = [
-    ...obj.video,
-    ...fileNames.filter((file) => file.includes("com/video/")),
-  ];
-
-  //upload variant images
+async function handleVariantImages(obj, variantsFilesToUpload) {
   const variantImages = await Promise.all(
     variantsFilesToUpload.map(async (file) => {
       if (file.size > 0) {
-        return await uploadFiles([file]);
+        return await uploadFiles([file], "variant");
       }
     }),
   );
@@ -129,12 +216,4 @@ export const handleFormData = async (formData, Model, id) => {
     }
     return variant;
   });
-
-  if (Model === Category) {
-    if (!obj.parent) {
-      obj.parent = null;
-    }
-  }
-
-  return obj;
-};
+}

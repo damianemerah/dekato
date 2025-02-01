@@ -1,8 +1,48 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useState, useCallback, useEffect } from "react";
 import { PlusOutlined } from "@ant-design/icons";
-import { Image, Upload } from "antd";
+import { DndContext, PointerSensor, useSensor } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Upload, Image } from "antd";
 import { getBase64 } from "../utils/utils";
-import { set } from "lodash";
+
+const DraggableUploadListItem = ({ file, originNode }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: file.uid,
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    cursor: "move",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`ant-upload-list-item ant-upload-list-item-picture-card ${
+        isDragging ? "is-dragging" : ""
+      }`}
+      {...attributes}
+      {...listeners}
+    >
+      {originNode}
+    </div>
+  );
+};
 
 const MediaUpload = ({
   multiple = true,
@@ -10,6 +50,7 @@ const MediaUpload = ({
   setFileList,
   defaultFileList,
   setDefaultFileList,
+  draggable = false,
 }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
@@ -20,48 +61,90 @@ const MediaUpload = ({
     }
   }, [defaultFileList, fileList?.length, setFileList]);
 
-  const handlePreview = async (file) => {
+  const handlePreview = useCallback(async (file) => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
     setPreviewImage(file.url || file.preview);
     setPreviewOpen(true);
-  };
+  }, []);
 
-  const handleChange = ({ fileList: newFileList }) => {
-    if (!multiple) {
-      newFileList = newFileList.slice(-1);
+  const handleRemove = useCallback(
+    (file) => {
+      const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
+      setDefaultFileList(updatedFileList);
+      setFileList(updatedFileList);
+    },
+    [fileList, setDefaultFileList, setFileList],
+  );
+
+  const sensor = useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 10,
+    },
+  });
+
+  const onDragEnd = ({ active, over }) => {
+    if (active.id !== over?.id) {
+      setFileList((prev) => {
+        const activeIndex = prev.findIndex((i) => i.uid === active.id);
+        const overIndex = prev.findIndex((i) => i.uid === over?.id);
+        return arrayMove(prev, activeIndex, overIndex);
+      });
     }
-    setFileList(newFileList);
   };
 
-  const handleRemove = (file) => {
-    const updatedFileList = fileList.filter((item) => item.uid !== file.uid);
-
-    setDefaultFileList(updatedFileList);
-    setFileList(updatedFileList);
-  };
-
-  const uploadButton = (
-    <div>
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </div>
+  const onChange = useCallback(
+    ({ fileList: newFileList }) => {
+      if (!multiple) {
+        newFileList = newFileList.slice(-1);
+      }
+      setFileList(newFileList);
+    },
+    [multiple, setFileList],
   );
 
   return (
     <>
-      <Upload
-        listType="picture-card"
-        fileList={fileList}
-        onPreview={handlePreview}
-        onChange={handleChange}
-        multiple={multiple}
-        onRemove={handleRemove}
-        defaultFileList={defaultFileList}
-      >
-        {fileList?.length >= 8 ? null : uploadButton}
-      </Upload>
+      {draggable ? (
+        <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
+          <SortableContext
+            items={fileList.map((i) => i.uid)}
+            strategy={verticalListSortingStrategy}
+          >
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onPreview={handlePreview}
+              multiple={multiple}
+              onChange={onChange}
+              onRemove={handleRemove}
+              itemRender={(originNode, file) => (
+                <DraggableUploadListItem originNode={originNode} file={file} />
+              )}
+            >
+              <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>Upload</div>
+              </div>
+            </Upload>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <Upload
+          listType="picture-card"
+          fileList={fileList}
+          onPreview={handlePreview}
+          onChange={onChange}
+          multiple={multiple}
+          onRemove={handleRemove}
+        >
+          <div>
+            <PlusOutlined />
+            <div style={{ marginTop: 8 }}>Upload</div>
+          </div>
+        </Upload>
+      )}
       {previewImage && (
         <Image
           wrapperStyle={{
@@ -74,9 +157,11 @@ const MediaUpload = ({
           }}
           src={previewImage}
           alt="Preview"
+          loading="lazy"
         />
       )}
     </>
   );
 };
+
 export default memo(MediaUpload);

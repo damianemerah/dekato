@@ -1,144 +1,88 @@
 "use client";
+
+import { oswald } from "@/style/font";
 import { useEffect, useState } from "react";
-// import { useProductStore } from "@/store/store";
+import useSWR, { mutate } from "swr";
+import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import ProductCard from "@/app/ui/products/product-card";
+import { useRecommendMutateStore } from "@/store/store";
 
-import ProductCard from "@/app/ui/product-card";
+const fetcher = async (type, category, productId) => {
+  const url = `/api/recommendations?type=${type}${
+    category ? `&category=${category}` : ""
+  }${productId ? `&productId=${productId}` : ""}`;
+  return fetch(url).then((res) => res.json());
+};
 
-import { getAllProducts } from "../action/productAction";
-import { message } from "antd";
-import { useSidebarStore } from "@/store/store";
-import { Navigation } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+const RecommendedProducts = ({ category, productId }) => {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const [type, setType] = useState("");
 
-const RecommendedProducts = () => {
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
+  const { shouldMutate, setShouldMutate } = useRecommendMutateStore(
+    (state) => ({
+      shouldMutate: state.shouldMutate,
+      setShouldMutate: state.setShouldMutate,
+    }),
+  );
 
-  const [breakpoints, setBreakpoints] = useState({
-    480: { slidesPerView: 2 },
-    740: { slidesPerView: 3 },
-    1275: { slidesPerView: isSidebarOpen ? 4 : 5 },
-  });
+  const pathname = usePathname();
 
   useEffect(() => {
-    const newBreakpoints = {
-      480: { slidesPerView: 2 },
-      768: { slidesPerView: 3 },
-      1024: { slidesPerView: 4 },
-      1275: { slidesPerView: isSidebarOpen ? 4 : 5 },
-    };
-    setBreakpoints(newBreakpoints);
-  }, [isSidebarOpen]);
+    if (pathname.startsWith("/product/")) {
+      setType("similar");
+    } else if (userId && pathname === "/") {
+      setType("personalized");
+    } else {
+      setType("general");
+    }
+  }, [userId, pathname]);
 
-  //refactor
-  // const setProducts = useProductStore((state) => state.setProducts);
-  // const products = useProductStore((state) => state.products);
+  useEffect(() => {
+    if (shouldMutate) {
+      mutate(["/api/recommendations", type, category, productId], async () => {
+        const updatedData = await fetcher(type, category, productId); // Re-fetch data
+        return updatedData;
+      });
+      setShouldMutate(false);
+    }
+  }, [category, productId, type, shouldMutate, setShouldMutate]);
 
-  const products = [
-    {
-      id: 1,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 2,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "235.00",
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-    {
-      id: 4,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-    {
-      id: 4,
-      image: ["/assets/image2.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "13900.00",
-      discount: 30,
-      cat: ["men"],
-    },
-    {
-      id: 3,
-      image: ["/assets/image3.png"],
-      category: "TOP WOMEN",
-      name: "Angels malu zip jeans slim black used",
-      price: "90.00",
-      cat: ["men"],
-    },
-  ];
+  const { data, error, isLoading } = useSWR(
+    type ? ["/api/recommendations", type, category, productId] : null,
+    () => fetcher(type, category, productId),
+  );
+
+  if (error) return null;
+
+  const products = data?.products?.map((p) => ({ id: p._id, ...p })) || [];
+
+  // Return null if no products and not loading
+  if (!isLoading && products.length === 0) return null;
 
   return (
-    <>
-      <Swiper
-        key={`${isSidebarOpen}-${Math.random()}`}
-        modules={[Navigation]}
-        slidesPerView={1}
-        spaceBetween={15}
-        breakpoints={breakpoints}
-        navigation={{
-          nextEl: ".swiper-button-next-custom",
-          prevEl: ".swiper-button-prev-custom",
-        }}
-        className="relative px-3"
-      >
-        {products.map((product, index) => (
-          <SwiperSlide key={index}>
-            <ProductCard product={product} />
-          </SwiperSlide>
-        ))}
-        {/* Custom Navigation Buttons */}
-        <div className="swiper-button-prev-custom absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="20px"
-            viewBox="0 0 24 24"
-            width="20px"
-            fill="white"
-          >
-            <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
-          </svg>
-        </div>
-        <div className="swiper-button-next-custom absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 transform items-center justify-center bg-black text-white">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="20px"
-            viewBox="0 0 24 24"
-            width="20px"
-            fill="white"
-          >
-            <path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-          </svg>
-        </div>
-      </Swiper>
-    </>
+    <div className="bg-white px-4 py-12 sm:px-6 lg:px-8">
+      <h2 className={`${oswald.className} mb-6 text-center md:text-left`}>
+        YOU MAY ALSO LIKE
+      </h2>
+      <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
+        {isLoading
+          ? // Show skeleton items while loading
+            [...Array(4)].map((_, i) => (
+              <div key={`skeleton-${i}`}>
+                <ProductCardSkeleton />
+              </div>
+            ))
+          : // Show actual products when loaded
+            products.map((product) => (
+              <div key={product.id}>
+                <ProductCard product={product} showDelete={true} />
+              </div>
+            ))}
+      </div>
+    </div>
   );
 };
 

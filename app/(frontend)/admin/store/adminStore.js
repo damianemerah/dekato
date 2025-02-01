@@ -2,6 +2,15 @@ import { create } from "zustand";
 
 export const useAdminStore = create((set) => ({
   variants: [],
+  variantOptions: [],
+  defaultVariantOptions: [],
+  variantIsSaved: true,
+  actionType: "",
+  editVariantWithId: null,
+  optionIsSaved: true,
+  productImages: [],
+
+  setOptionIsSaved: (optionIsSaved) => set({ optionIsSaved }),
   setVariants: (variants) => set({ variants }),
   updateVariant: (variantId, newVariant) =>
     set((state) => {
@@ -25,51 +34,26 @@ export const useAdminStore = create((set) => ({
       variants: state.variants.filter((variant) => variant.id !== id),
     })),
 
-  variantOptions: [],
-  addVariantOptions: (option) =>
-    set((state) => ({ variantOptions: [...state.variantOptions, option] })),
   setVariantOptions: (variantOptions) => set({ variantOptions }),
+  setDefaultVariantOptions: (defaultVariantOptions) =>
+    set({ defaultVariantOptions }),
 
-  curVariantOptions: [],
-  setCurVariantOptions: (curVariantOptions) => set({ curVariantOptions }),
-  updateVariantOptionName: (id, value) =>
+  addVariantOptions: (option) =>
+    set((state) => ({
+      variantOptions: [...state.variantOptions, option],
+    })),
+
+  updateVariantOptionName: (id, name) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
-        option.id === id ? { ...option, name: value } : option,
+        option.id === id ? { ...option, name } : option,
       ),
     })),
-  updateVariantOptionValues: (e, groupId) =>
-    set((state) => {
-      if (e.key === "Enter" || e.key === ",") {
-        const value = e.target.value.split(",")[0].trim();
-        try {
-          if (value.length > 0) {
-            return {
-              variantOptions: state.variantOptions.map((option) =>
-                option.id === groupId
-                  ? { ...option, values: [...option.values, value] }
-                  : option,
-              ),
-            };
-          }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          e.target.value = "";
-        }
-      }
-      return state;
-    }),
 
-  removeVariantOptionValue: (groupId, index) =>
+  updateVariantOptionValues: (id, values) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
-        option.id === groupId
-          ? {
-              ...option,
-              values: option.values.filter((_, i) => i !== index),
-            }
-          : option,
+        option.id === id ? { ...option, values } : option,
       ),
     })),
 
@@ -78,23 +62,8 @@ export const useAdminStore = create((set) => ({
       variantOptions: state.variantOptions.filter((opt) => opt.id !== id),
     })),
 
-  variantIsSaved: false,
-  actionType: "",
   setActionType: (actionType) => set({ actionType }),
   setVariantIsSaved: (variantIsSaved) => set({ variantIsSaved }),
-  editVariantWithId: null,
   setEditVariantWithId: (editVariantWithId) => set({ editVariantWithId }),
-}));
-
-export const useCategoryStore = create((set) => ({
-  allCategories: [],
-  setAllCategories: (allCategories) => set({ allCategories }),
-
-  isLoading: false,
-  setIsLoading: (isLoading) => set({ isLoading }),
-}));
-
-export const useProductStore = create((set) => ({
-  products: [],
-  setProducts: (products) => set({ products }),
+  setProductImages: (images) => set({ productImages: images }),
 }));

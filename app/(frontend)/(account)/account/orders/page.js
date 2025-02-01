@@ -1,68 +1,77 @@
-import OrderCard from "@/app/ui/account/orders/OrderCard";
-import AccountLayout from "@/app/(frontend)/(account)/account/AccountLayout";
+// import OrderList from "@/app/ui/account/orders/OrderCard";
+// React and Next.js imports
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { unstable_cache } from "next/cache";
 
-export default function Orders() {
-  const breadcrumbs = [
-    { href: "/", label: "Home" },
-    { href: "/account", label: "My Account" },
-    { href: "/account/orders", label: "Orders", active: true },
-  ];
+// Auth imports
+import { getServerSession } from "next-auth";
+import { OPTIONS } from "@/app/api/auth/[...nextauth]/route";
 
-  const orders = [
-    {
-      status: "Processing",
-      orderNumber: "#001349",
-      total: "$30000",
-      deliveryDate: "2nd Feb, 2023",
-      items: [
-        {
-          image: "/assets/image3.png",
-          name: "Angels malu zip jeans slim black used",
-          color: "Black",
-          size: "M",
-          quantity: 1,
-          price: "129,00 EUR",
-        },
-        {
-          image: "/assets/image4.png",
-          name: "Angels malu zip jeans slim black used",
-          color: "Red",
-          size: "M",
-          quantity: 1,
-          price: "129,00 EUR",
-        },
-      ],
-    },
-    {
-      status: "Processing",
-      orderNumber: "#001350",
-      total: "$15000",
-      deliveryDate: "5th Feb, 2023",
-      items: [
-        {
-          image: "/assets/image7.png",
-          name: "Angels malu zip jeans slim blue used",
-          color: "Blue",
-          size: "M",
-          quantity: 1,
-          price: "100,00 EUR",
-        },
-      ],
-    },
-  ];
+// Database imports
+import Order from "@/models/order";
+import dbConnect from "@/lib/mongoConnection";
 
-  return (
-    <AccountLayout title="Orders" breadcrumbs={breadcrumbs}>
-      {orders.map((order, index) => (
-        <OrderCard
-          key={index}
-          status={order.status}
-          orderNumber={order.orderNumber}
-          total={order.total}
-          deliveryDate={order.deliveryDate}
-          items={order.items}
-        />
-      ))}
-    </AccountLayout>
-  );
+// UI Components
+import { SmallSpinner } from "@/app/ui/spinner";
+import { ButtonSecondary } from "@/app/ui/button";
+import { ShoppingOutlined } from "@ant-design/icons";
+import { oswald } from "@/style/font";
+
+const OrderList = dynamic(() => import("@/app/ui/account/orders/OrderCard"), {
+  ssr: false,
+  loading: () => <SmallSpinner className="!text-primary" />,
+});
+
+const getOrders = unstable_cache(
+  async (userId) => {
+    await dbConnect();
+    const orders = await Order.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean({ virtuals: true });
+
+    return orders.map((order) => {
+      const { _id, userId: _, ...orderData } = order;
+      return {
+        id: _id.toString(),
+        product: order.product.map(({ _id, ...product }) => {
+          const { _id: productId, ...productData } = product;
+          return {
+            id: _id.toString(),
+            ...productData,
+          };
+        }),
+        ...orderData,
+      };
+    });
+  },
+  ["orders"],
+  { revalidate: 10 },
+);
+
+export default async function Orders() {
+  const session = await getServerSession(OPTIONS);
+  const userId = session?.user?.id;
+
+  const orders = await getOrders(userId);
+
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 py-8 text-center">
+        <ShoppingOutlined className="mb-4 text-6xl !text-gray-400" />
+        <h2 className={`mb-2 text-2xl font-semibold`}>No orders yet</h2>
+        <p className="mb-4 text-gray-600">
+          You haven&apos;t placed any orders yet. Start shopping to see your
+          orders here!
+        </p>
+        <Link href="/">
+          <ButtonSecondary className="border-2 border-primary bg-white font-oswald text-sm uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white">
+            Start Shopping
+          </ButtonSecondary>
+        </Link>
+      </div>
+    );
+  }
+
+  return <OrderList orders={orders} />;
 }

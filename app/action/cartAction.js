@@ -4,35 +4,64 @@ import { Cart, CartItem } from "@/models/cart";
 import Product from "@/models/product";
 import dbConnect from "@/lib/mongoConnection";
 import { getQuantity } from "@/utils/getFunc";
-import _ from "lodash";
 import { restrictTo } from "@/utils/checkPermission";
 import mongoose from "mongoose";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // Helper function to format cart data
 function formatCartData(cart) {
-  const { _id, item } = cart;
-  const formattedItems = item.map((cartItem) => {
-    const { _id, productId, variantId, cartId, ...rest } = cartItem;
+  const { _id, item, totalPrice, totalItems, amountSaved } = cart;
 
-    // Find the specific variant in the product's variant list
-    const variant = productId.variant?.find(
-      (v) => v._id.toString() === variantId?.toString(),
-    );
+  const formattedItems = item
+    .map((cartItem) => {
+      const { _id, product, variantId, cartId, ...rest } = cartItem;
 
-    return {
-      id: _id.toString(),
-      slug: productId.slug,
-      productId: productId._id.toString(),
-      variantId: variantId?.toString(),
-      cartId: cartId.toString(),
-      image: variant ? variant.image : productId.image?.[0],
-      ...rest,
-    };
-  });
+      if (!product) {
+        console.warn(`Cart item ${_id} has no associated product`);
+        return null;
+      }
+
+      const variant = product?.variant?.find(
+        (v) => v.id.toString() === variantId?.toString(),
+      );
+
+      // Create product object without _id field
+      const productWithoutId = { ...product };
+      delete productWithoutId._id;
+
+      // Create variant object without _id field if variant exists
+      let variantData = null;
+      if (variant) {
+        const variantWithoutId = { ...variant };
+        delete variantWithoutId._id;
+        variantData = {
+          id: variant._id.toString(),
+          ...variantWithoutId,
+        };
+      }
+
+      return {
+        id: _id.toString(),
+        slug: product.slug,
+        product: {
+          id: product._id.toString(),
+          ...productWithoutId,
+          variant: variantData,
+        },
+        variantId: variantId?.toString(),
+        cartId: cartId.toString(),
+        image: variant ? variant.image : product.image?.[0],
+        ...rest,
+      };
+    })
+    .filter(Boolean);
 
   return {
     item: formattedItems,
     id: _id.toString(),
+    totalPrice,
+    totalItems,
+    amountSaved,
   };
 }
 
@@ -50,32 +79,30 @@ export async function createCartItem(userId, newItem) {
   try {
     await dbConnect();
 
-    if (
-      !newItem.quantity ||
-      !newItem.productId ||
-      !newItem.name ||
-      !newItem.price
-    ) {
+    if (!newItem.quantity || !newItem.product) {
       throw new Error("Missing required fields for cart item");
     }
 
-    const existingProduct = await Product.findById(newItem.productId).session(
+    const existingProduct = await Product.findById(newItem.product).session(
       session,
     );
+
     if (!existingProduct) {
       throw new Error("Product not found");
     }
 
     const correctQuantity = getQuantity(newItem, existingProduct);
 
-    let cart = await Cart.findOne({ userId }).lean().session(session);
+    let cart = await Cart.findOne({ userId })
+      .lean({ virtuals: true })
+      .session(session);
 
     if (!cart) {
       cart = await createNewCart(userId, session);
     }
 
     const query = {
-      productId: newItem.productId,
+      product: newItem.product,
       cartId: cart._id,
       ...(newItem.variantId
         ? { variantId: newItem.variantId }
@@ -87,8 +114,6 @@ export async function createCartItem(userId, newItem) {
     if (existingItemCart) {
       existingItemCart.quantity += correctQuantity;
       await existingItemCart.save({ session });
-
-      // throw new Error("Item not added to cart or already exists");
     } else {
       const cartItem = await CartItem.create(
         [
@@ -96,6 +121,7 @@ export async function createCartItem(userId, newItem) {
             ...newItem,
             cartId: cart._id,
             quantity: correctQuantity,
+            product: newItem.product,
           },
         ],
         { session },
@@ -105,8 +131,11 @@ export async function createCartItem(userId, newItem) {
         cart._id,
         { $push: { item: cartItem[0]._id } },
         { session, new: true },
-      ).lean();
+      ).lean({ virtuals: true });
     }
+
+    // revalidateTag("checkout-data");
+    // revalidatePath("/checkout");
 
     await session.commitTransaction();
     return formatCartData(cart);
@@ -121,38 +150,58 @@ export async function createCartItem(userId, newItem) {
 export async function getCart(userId) {
   await dbConnect();
 
-  // Find the cart and populate the product details and variants
-  const cart = await Cart.findOne({ userId }).lean();
+  const cart = await Cart.findOne({ userId })
+    .populate({
+      path: "item",
+      populate: {
+        path: "product",
+        select:
+          "name variant image slug price discount discountPrice discountDuration",
+      },
+    })
+    .lean({ virtuals: true });
 
   if (!cart) {
     return createNewCart(userId);
   }
 
-  return formatCartData(cart);
+  const data = formatCartData(cart);
+  return data;
 }
 
 export async function updateCartItemQuantity(updateData) {
   await restrictTo("admin", "user");
   await dbConnect();
 
-  const { userId, cartItemId, productId, quantity } = updateData;
+  const { userId, cartItemId, product } = updateData;
 
-  const cart = await Cart.findOne({ userId });
+  const cart = await Cart.findOne({ userId }).populate({
+    path: "item.product",
+    select: "name price discountPrice slug variant image",
+  });
   if (!cart) {
     throw new Error("Something went wrong, try again");
   }
   const cartItem = cart.item.find((item) => item._id.toString() === cartItemId);
   if (!cartItem) throw new Error("Item not found");
 
-  const product = await Product.findById(productId);
+  const existingProduct = await Product.findById(product);
 
-  const itemQuantity = getQuantity(updateData, product);
+  const itemQuantity = getQuantity(updateData, existingProduct);
 
   cartItem.quantity = itemQuantity;
   await cartItem.save();
 
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
 
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
+  revalidatePath("/cart");
   return formatCartData(updatedCart);
 }
 
@@ -160,7 +209,10 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
   await restrictTo("admin", "user");
   await dbConnect();
 
-  const cart = await Cart.findOne({ userId });
+  const cart = await Cart.findOne({ userId }).populate({
+    path: "item.product",
+    select: "name price discountPrice slug variant image",
+  });
   if (!cart) {
     throw new Error("Cart not found");
   }
@@ -172,7 +224,15 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
     throw new Error("Item not found");
   }
 
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
+
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }
@@ -202,7 +262,14 @@ export async function selectAllCart(userId, selectAll) {
   );
 
   // Fetch the updated cart with items
-  const updatedCart = await Cart.findById(cart._id).lean();
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
 
   return formatCartData(updatedCart);
 }
@@ -216,13 +283,33 @@ export async function removeFromCart(userId, cartItemId) {
     throw new Error("Cart not found");
   }
 
-  const cartItem = cart.item.find((item) => item._id.toString() === cartItemId);
-  if (!cartItem) {
+  // Find the index of the cart item to remove
+  const itemIndex = cart.item.findIndex(
+    (item) => item._id.toString() === cartItemId,
+  );
+  if (itemIndex === -1) {
     throw new Error("Item not found");
   }
 
-  await cartItem.deleteOne();
+  // Remove the item from the cart's item array
+  cart.item.splice(itemIndex, 1);
+
+  // Delete the CartItem document
+  await CartItem.findByIdAndDelete(cartItemId);
+
+  // Save the updated cart
   await cart.save();
 
-  return null;
+  // Fetch the updated cart with items
+  const updatedCart = await Cart.findById(cart._id)
+    .populate({
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
+    })
+    .lean({ virtuals: true });
+
+  // revalidateTag("checkout-data");
+  // revalidatePath("/checkout");
+
+  return formatCartData(updatedCart);
 }

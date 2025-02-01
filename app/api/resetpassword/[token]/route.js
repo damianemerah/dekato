@@ -5,14 +5,13 @@ import handleAppError from "@/utils/appError";
 import AppError from "@/utils/errorClass";
 import crypto from "crypto";
 
-export async function PATCH(req, { params }) {
+export async function GET(req, { params }) {
   try {
     const token = params.token;
     const body = await req.json();
 
-    console.log(token, "🚀🚀");
-
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
 
     await dbConnect();
 

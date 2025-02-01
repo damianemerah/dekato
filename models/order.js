@@ -1,75 +1,65 @@
 import mongoose from "mongoose";
-import { CartItem } from "./cart";
 
-const singleProductSchema = new mongoose.Schema({
-  productId: { type: String, required: true },
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  color: String,
-  size: String,
-  variantId: String,
-  image: String,
-});
-
-const orderSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.ObjectId, ref: "User" },
-  cartItem: [
-    {
+const orderSchema = new mongoose.Schema(
+  {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CartItem",
+      ref: "User",
+      required: true,
+      index: true,
     },
-  ],
-  singleProduct: {
-    type: singleProductSchema,
-    required: function () {
-      return this.type === "single";
-    },
-  },
-  total: Number,
-  status: {
-    type: String,
-    default: "pending_payment",
-    enum: [
-      "pending_payment",
-      "payment_failed",
-      "payment_confirmed",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-      "returned",
+    product: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        name: { type: String },
+        price: { type: Number },
+        image: { type: String },
+        quantity: { type: Number, default: 1, min: 1 },
+        option: { type: Object },
+        variantId: { type: String },
+        cartItemId: { type: String },
+      },
     ],
-  },
-  type: {
-    type: String,
-    enum: ["cart", "single"],
-    required: true,
-  },
-  shippingMethod: {
-    type: String,
-    toLowerCase: true,
-    enum: ["pickup", "delivery"],
-    required: true,
-  },
-  address: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Address",
-    required: function () {
-      // Require address if shippingMethod is "delivery"
-      return this.shippingMethod === "delivery";
+    cartItems: [String],
+    total: { type: Number, required: true, min: 0 },
+    status: String,
+    shippingMethod: {
+      type: String,
+      lowercase: true,
+      enum: ["pickup", "delivery"],
+      required: true,
     },
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      required: function () {
+        return this.shippingMethod === "delivery";
+      },
+    },
+    deliveryStatus: {
+      type: String,
+      default: "pending",
+      enum: ["pending", "shipped", "delivered", "cancelled"],
+    },
+    deliveryDate: { type: Date },
+    note: { type: String },
+    paymentRef: { type: String, trim: true, unique: true, sparse: true },
+    paymentId: { type: String, trim: true },
+    paymentMethod: { type: String, trim: true },
+    currency: { type: String, trim: true, uppercase: true },
+    paidAt: { type: Date },
   },
-  paymentRef: String,
-  paymentId: String,
-  paymentMethod: String,
-  currency: String,
-  paidAt: { type: Date, default: Date.now },
-});
+  {
+    timestamps: true,
+  },
+);
 
-// Static method for address requirement check
-// orderSchema.statics.isAddressRequired = function (orderData) {
-//   return orderData.shippingMethod === "delivery";
-// };
+orderSchema.index({ paymentRef: 1, userId: 1 });
 
-export default mongoose.models.Order || mongoose.model("Order", orderSchema);
+const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
+
+export default Order;

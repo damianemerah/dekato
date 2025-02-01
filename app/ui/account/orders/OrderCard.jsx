@@ -1,55 +1,98 @@
-import Image from "next/image";
-import { oswald } from "@/font";
-import React from "react";
+"use client";
 
-function OrderCard({ status, orderNumber, total, deliveryDate, items }) {
+import Image from "next/image";
+import { oswald } from "@/style/font";
+import React, { useState, useCallback } from "react";
+import Link from "next/link";
+import { deleteOrder } from "@/app/action/orderAction";
+import DeleteIcon from "@/public/assets/icons/delete.svg";
+import { ButtonSecondary } from "../../button";
+
+function OrderCard({ order, onDelete }) {
+  const handleDelete = useCallback(async () => {
+    try {
+      await deleteOrder(order.id);
+      onDelete(order.id);
+    } catch (error) {
+      console.error("Error deleting order:", error);
+    }
+  }, [order.id, onDelete]);
+
   return (
-    <div className="mb-4 border-2 border-gray-300 bg-[#F0F2F2] p-11">
-      <div className="flex items-center justify-between border-b border-gray-300 pb-4">
-        <div className="flex flex-col">
-          <span className="font-oswald text-lg font-semibold">Status</span>
-          <span className="text-[#27AE60]">{status}</span>
+    <div className="relative mb-4 rounded-lg border-2 border-gray-300 bg-white p-4 sm:p-6 lg:p-8">
+      <button
+        onClick={handleDelete}
+        className="absolute right-2 top-2 rounded-full p-2 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:right-3 sm:top-3"
+        aria-label="Delete order"
+      >
+        <DeleteIcon className="h-5 w-5" />
+      </button>
+      <div className="flex flex-col items-start justify-between border-b border-gray-300 pb-4 sm:flex-row sm:items-center">
+        <div className="mb-2 flex w-full flex-col sm:mb-0 sm:w-auto">
+          <span className={`${oswald.className} text-lg font-semibold`}>
+            Status
+          </span>
+          <span className="text-green-600">
+            {order?.status || "Pending/Canceled"}
+          </span>
         </div>
-        <div className="flex flex-col">
-          <span className="font-oswald text-lg font-semibold">
+        <div className="mb-2 flex w-full flex-col sm:mb-0 sm:w-auto">
+          <span className={`${oswald.className} text-lg font-semibold`}>
             Order Number
           </span>
-          <span className="text-gray-500">{orderNumber}</span>
+          <span className="text-gray-500">{order?.paymentRef}</span>
         </div>
-        <div className="flex flex-col">
-          <span className="font-oswald text-lg font-semibold">Total</span>
-          <span className="text-gray-500">{total}</span>
+        <div className="mb-2 flex w-full flex-col sm:mb-0 sm:w-auto">
+          <span className={`${oswald.className} text-lg font-semibold`}>
+            Total
+          </span>
+          <span className="text-gray-500">{order.total}</span>
         </div>
-        <button className="border-2 border-[#C4C4C4] px-4 py-2 text-sm">
-          View details
-        </button>
+        <div className="mt-2 w-full sm:mt-0 sm:w-auto">
+          <Link href={`/account/orders/${order.id}`} passHref>
+            <ButtonSecondary
+              className={`${oswald.className} w-full border-2 border-primary bg-white text-sm uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white sm:w-auto`}
+            >
+              View details
+            </ButtonSecondary>
+          </Link>
+        </div>
       </div>
 
       <div className="py-4">
-        <span className="font-oswald text-lg font-semibold">
-          Estimated Delivery :
+        <span className={`${oswald.className} text-lg font-semibold`}>
+          Estimated Delivery:
         </span>
-        <span className="ml-2 text-gray-500">{deliveryDate}</span>
+        <span className="ml-2 text-gray-500">
+          {order?.deliveryStatus !== "delivered"
+            ? order?.deliveryStatus
+            : "Not yet delivered"}
+        </span>
       </div>
 
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center justify-between py-4">
+      {order?.product?.map((item, index) => (
+        <div
+          key={index}
+          className="flex flex-col items-start justify-between border-t border-gray-200 py-4 sm:flex-row sm:items-center"
+        >
           <div className="flex items-start">
             <Image
               src={item.image}
               alt={item.name}
               width={96}
               height={96}
-              className="mr-4 h-24 w-24 object-cover"
+              className="mr-4 h-24 w-24 rounded-md object-cover"
             />
-            <div className="flex flex-col space-y-2">
-              <span className={`${oswald.className} font-oswald font-semibold`}>{item.name}</span>
+            <div className="flex flex-col space-y-1">
+              <span className={`${oswald.className} font-semibold`}>
+                {item.name}
+              </span>
               <span className="text-gray-500">{item.color}</span>
-              <span className="">{item.price}</span>
+              <span className="font-medium">{item.price}</span>
             </div>
           </div>
-          <div className="text-right">
-            <span>x{item.quantity}</span>
+          <div className="mt-2 text-right sm:mt-0">
+            <span className="text-gray-600">Quantity: {item.quantity}</span>
           </div>
         </div>
       ))}
@@ -57,4 +100,36 @@ function OrderCard({ status, orderNumber, total, deliveryDate, items }) {
   );
 }
 
-export default OrderCard;
+export default function OrderList({ orders: initialOrders }) {
+  const [orders, setOrders] = useState(initialOrders);
+  const [visibleOrders, setVisibleOrders] = useState(3);
+
+  const showMoreOrders = useCallback(() => {
+    setVisibleOrders((prev) => prev + 3);
+  }, []);
+
+  const handleDeleteOrder = useCallback((deletedOrderId) => {
+    setOrders((prevOrders) =>
+      prevOrders.filter((order) => order.id !== deletedOrderId),
+    );
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      {orders.slice(0, visibleOrders).map((order) => (
+        <OrderCard key={order.id} order={order} onDelete={handleDeleteOrder} />
+      ))}
+
+      {visibleOrders < orders.length && (
+        <div className="mt-6 flex justify-center">
+          <ButtonSecondary
+            onClick={showMoreOrders}
+            className={`${oswald.className} border-2 border-primary bg-white text-sm uppercase text-primary transition-colors duration-300 hover:bg-primary hover:text-white`}
+          >
+            View More Orders
+          </ButtonSecondary>
+        </div>
+      )}
+    </div>
+  );
+}

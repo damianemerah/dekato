@@ -16,7 +16,6 @@ export async function PATCH(req) {
       throw new AppError("User not found", 404);
     }
 
-    console.log(user, "🔗🚀🚀🔗");
     console.log(user.schema.methods);
 
     if (!(await user.correctPassword(body.currentPassword, user.password)))

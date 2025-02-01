@@ -1,88 +1,103 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { oswald } from "@/font";
-import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Thumbs } from "swiper/modules";
-import XIcon from "@/public/assets/icons/twitter.svg";
-import FbIcon from "@/public/assets/icons/facebook-share.svg";
+import { useState, useEffect, useMemo, memo, useCallback, useRef } from "react";
+import { oswald } from "@/style/font";
+
 import HeartIcon from "@/public/assets/icons/heart.svg";
 import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
-import InstaIcon from "@/public/assets/icons/instagram-share.svg";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { Button, ButtonPrimary } from "@/app/ui/button";
-import useSWR, { mutate } from "swr";
-import { getProductById } from "@/app/action/productAction";
-import { generateVariantOptions } from "@/utils/getFunc";
+import { mutate } from "swr";
+import { formatToNaira, generateVariantOptions } from "@/utils/getFunc";
 import { createCartItem } from "@/app/action/cartAction";
 import { useUserStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { message, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
-import { useCartStore } from "@/store/store";
-import AddIcon from "@/public/assets/icons/add.svg";
-import MinusIcon from "@/public/assets/icons/minus.svg";
-import Link from "next/link";
-import EditIcon from "@/public/assets/icons/edit.svg";
+import { message } from "antd";
+import { SmallSpinner } from "../spinner";
+import useSWR from "swr";
+import { getVarOptionById } from "@/app/action/variantAction";
+import dynamic from "next/dynamic";
 
-const CollapsibleSection = ({ title, isOpen, onToggle, children }) => {
-  const contentRef = useRef(null);
+const SocialSharePanel = dynamic(() => import("../social-panal"));
 
-  return (
-    <li className="border-b border-gray-200">
-      <button
-        className={`${oswald.className} flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-800 hover:text-black focus:outline-none`}
-        onClick={onToggle}
-      >
-        {title}
-        <span className="relative flex h-6 w-6 items-center justify-center">
-          <span className="h-0.5 w-3 bg-gray-600 transition-transform duration-300" />
-          <span
-            className={`absolute h-0.5 w-3 bg-gray-600 transition-transform duration-300 ${
-              isOpen ? "rotate-0" : "rotate-90"
-            }`}
-          />
-        </span>
-      </button>
-      <div
-        ref={contentRef}
-        className="overflow-hidden transition-all duration-300"
-        style={{
-          height: isOpen ? contentRef.current.scrollHeight : 0,
-        }}
-      >
-        <div className="pb-4 text-sm font-light text-gray-700">{children}</div>
+const CollapsibleSection = memo(
+  dynamic(() => import("./collasible"), {
+    loading: () => (
+      <div className="border-b border-gray-200 px-2 sm:px-5">
+        <div className="flex items-center justify-between py-4">
+          <div className="h-4 w-32 animate-pulse bg-gray-200" />
+          <div className="h-6 w-6 animate-pulse bg-gray-200" />
+        </div>
+        <div className="h-20 w-full animate-pulse bg-gray-100" />
       </div>
-    </li>
-  );
+    ),
+    ssr: false,
+  }),
+);
+
+const VariantOptionMap = memo(
+  dynamic(() => import("./variant-option"), {
+    loading: () => (
+      <div className="mb-4">
+        <div className="mb-2 h-6 w-32 animate-pulse bg-gray-200" />
+        <div className="flex flex-wrap gap-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-16 w-16 animate-pulse rounded-full bg-gray-200"
+            />
+          ))}
+        </div>
+      </div>
+    ),
+    ssr: false,
+  }),
+);
+
+const ProductSwiper = memo(
+  dynamic(() => import("@/app/ui/product/product-swiper"), {
+    loading: () => (
+      <div className="relative h-full w-full">
+        <div className="absolute left-8 top-8 z-10 flex flex-col gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 w-16 animate-pulse bg-gray-200" />
+          ))}
+        </div>
+        <div className="h-full w-full animate-pulse bg-gray-100" />
+      </div>
+    ),
+    ssr: false,
+  }),
+);
+
+const variantFetcher = async (ids) => {
+  if (ids.length === 0) return null;
+  const data = await Promise.all(ids.map((id) => getVarOptionById(id)));
+  return data;
 };
 
-const fetcher = async (id) => {
-  const product = await getProductById(id);
-  return product;
-};
-
-export default function ProductDetail({ name }) {
+const ProductDetail = memo(function ProductDetail({ product }) {
   const [variantOptions, setVariantOptions] = useState([]);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const id = name.split("-").slice(-1)[0];
-  const user = useUserStore((state) => state.user);
-  const userId = user?.id;
-  const setCart = useCartStore((state) => state.setCart);
+  const [hasVariationTypes, setHasVariationTypes] = useState([]);
+  const [isProductAvailable, setIsProductAvailable] = useState(true);
 
-  const { data: product, isLoading } = useSWR(
-    `/product/${id}`,
-    () => fetcher(id),
+  const user = useUserStore(useCallback((state) => state.user, []));
+
+  const userId = user?.id;
+
+  const { data: variationList } = useSWR(
+    hasVariationTypes.length > 0 ? JSON.stringify(hasVariationTypes) : null,
+    () => variantFetcher(hasVariationTypes),
     {
       revalidateOnFocus: false,
     },
   );
 
   useEffect(() => {
-    if (!product || isLoading) return;
+    if (!product) return;
 
     const options = generateVariantOptions(product.variant);
     setVariantOptions(options);
@@ -98,36 +113,59 @@ export default function ProductDetail({ name }) {
       const firstVariant = product.variant[0];
       setSelectedVariantId(firstVariant.id);
       setSelectedVariantOption(firstVariant.options);
+      const uniqueVariationTypeIds = new Set();
+      product.variant.forEach((v) => {
+        if (v.optionType) {
+          v.optionType.forEach((ot) => {
+            if (ot.labelId) {
+              uniqueVariationTypeIds.add(ot.labelId);
+            }
+          });
+        }
+      });
+      setHasVariationTypes(Array.from(uniqueVariationTypeIds).flat());
     }
-  }, [product, isLoading]);
+  }, [product]);
 
-  const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const [activeSection, setActiveSection] = useState(null);
+  const [activeSections, setActiveSections] = useState({});
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const swipeRef = useRef(null);
 
-  const handleToggleSection = (section) => {
-    setActiveSection(activeSection === section ? null : section);
-  };
+  const handleToggleSection = useCallback((section) => {
+    setActiveSections((prevSections) => ({
+      ...prevSections,
+      [section]: !prevSections[section],
+    }));
+  }, []);
 
-  const handleMouseMove = (e) => {
-    if (!isZoomed) return;
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - left) / width;
-    const y = (e.clientY - top) / height;
-    setZoomPosition({ x, y });
-  };
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (!isZoomed) return;
+      const { left, top, width, height } =
+        e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX - left) / width;
+      const y = (e.clientY - top) / height;
+      setZoomPosition({ x, y });
+    },
+    [isZoomed],
+  );
 
-  const handleImageClick = () => {
+  const handleImageClick = useCallback(() => {
     setIsZoomed(!isZoomed);
-  };
+  }, [isZoomed]);
 
-  const addItemToCart = async () => {
+  const addItemToCart = useCallback(async () => {
+    if (!userId) {
+      message.info("Please login to add to cart", 4);
+      return;
+    }
     try {
-      if (!userId) {
-        message.error("Please login to add to cart");
+      if (!isProductAvailable) {
+        message.error("This product option is currently unavailable");
         return;
       }
       setIsAddingToCart(true);
@@ -135,96 +173,114 @@ export default function ProductDetail({ name }) {
         (variant) => variant.id === selectedVariantId,
       );
       const newItem = {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
+        product: product.id,
         quantity: 1,
         option: selectedVariant?.options || null,
         variantId: selectedVariant?.id || null,
-        userId,
       };
-
       const cartItem = await createCartItem(userId, newItem);
-      mutate(`/api/user/${userId}`);
-      setCart(cartItem.item);
+      await mutate(`/api/user/${userId}`);
+      await mutate(`/cart/${userId}`);
+      await mutate(`/checkout-data`);
       message.success("Item added to cart");
-      mutate(`/cart/${userId}`);
     } catch (error) {
-      message.info(error.message, 4);
+      message.info("Unable to add item to cart", 4);
     } finally {
       setIsAddingToCart(false);
     }
-  };
+  }, [userId, isProductAvailable, product, selectedVariantId]);
 
-  const addWishlist = async () => {
+  const addWishlist = useCallback(async () => {
     try {
       if (!userId) {
         return;
       }
 
-      if (user?.wishlist.includes(product.id)) {
+      if (user?.wishlist?.includes(product.id)) {
         await removeFromWishlist(userId, product.id);
       } else {
         await addToWishlist(userId, product.id);
       }
-      mutate(`/api/user/${userId}`);
+      await mutate(`/api/user/${userId}`);
     } catch (error) {
-      message.info(error.message);
+      console.log(error, "error");
+      message.info("Unable to add to wishlist", 4);
     }
-  };
+  }, [userId, user?.wishlist, product.id]);
 
-  const handleVariantSelection = (optionName, value) => {
-    setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
+  const handleVariantSelection = useCallback(
+    (optionName, value) => {
+      setSelectedVariantOption((prev) => ({ ...prev, [optionName]: value }));
 
-    const filteredVariants = product.variant.filter(
-      (variant) => variant.options[optionName] === value,
-    );
+      const updatedOptions = { ...selectedVariantOption, [optionName]: value };
 
-    const updatedOptions = { ...selectedVariantOption, [optionName]: value };
-    Object.keys(updatedOptions).forEach((key) => {
-      if (key !== optionName) {
-        const availableValues = new Set(
-          filteredVariants.map((v) => v.options[key]),
-        );
-        if (!availableValues.has(updatedOptions[key])) {
-          updatedOptions[key] = filteredVariants[0].options[key];
-        }
-      }
-    });
-
-    setSelectedVariantOption(updatedOptions);
-
-    const newSelectedVariant = filteredVariants.find((variant) =>
-      Object.entries(updatedOptions).every(
-        ([key, val]) => variant.options[key] === val,
-      ),
-    );
-    if (newSelectedVariant) {
-      setSelectedVariantId(newSelectedVariant.id);
-    }
-  };
-
-  const isOptionAvailable = (optionName, value) => {
-    if (optionName === "color") return true;
-    return product.variant.some(
-      (variant) =>
-        variant.options[optionName] === value &&
-        Object.entries(selectedVariantOption).every(
-          ([key, val]) => key === optionName || variant.options[key] === val,
+      const newSelectedVariant = product.variant.find((variant) =>
+        Object.entries(updatedOptions).every(
+          ([key, val]) => variant.options[key] === val,
         ),
-    );
+      );
+
+      if (newSelectedVariant) {
+        setSelectedVariantId(newSelectedVariant.id);
+        setIsProductAvailable(true);
+      } else {
+        setIsProductAvailable(false);
+      }
+    },
+    [selectedVariantOption, product.variant],
+  );
+
+  const isOptionAvailable = useCallback(
+    (optionName, value) => {
+      return product.variant.some(
+        (variant) =>
+          variant.options[optionName] === value &&
+          Object.entries(selectedVariantOption).every(
+            ([key, val]) => key === optionName || variant.options[key] === val,
+          ),
+      );
+    },
+    [product.variant, selectedVariantOption],
+  );
+
+  const memoizedVariantOptions = useMemo(() => {
+    if (!variantOptions) return [];
+    return [
+      ...variantOptions.filter(
+        (option) => option.name.toLowerCase() === "color",
+      ),
+      ...variantOptions.filter(
+        (option) => option.name.toLowerCase() !== "color",
+      ),
+    ];
+  }, [variantOptions]);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
   };
 
-  if (isLoading)
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spin
-          indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
-          className="!text-primary"
-          size="large"
-        />
-      </div>
-    );
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && activeIndex < product.image.length - 1) {
+      setActiveIndex((prev) => prev + 1);
+    }
+
+    if (isRightSwipe && activeIndex > 0) {
+      setActiveIndex((prev) => prev - 1);
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   if (!product)
     return (
@@ -234,236 +290,170 @@ export default function ProductDetail({ name }) {
     );
 
   return (
-    <div className="mx-auto mb-8 w-full">
-      {user && user.role === "admin" && (
-        <div className="mb-4 flex justify-end">
-          <Link
-            href={`/admin/products/${product.name}-${product.id}`}
-            className="inline-flex items-center rounded bg-primary px-4 py-2 text-white transition-colors duration-300"
-            title="admin edit button"
+    <div className="relative mx-auto mb-8 w-full">
+      <SocialSharePanel />
+      <div className="flex flex-col lg:flex-row">
+        <div className="mb-8 w-screen lg:sticky lg:top-0 lg:mb-0 lg:w-2/3">
+          <div
+            ref={swipeRef}
+            className="relative h-[calc(94vh-11.5rem)] w-full lg:h-[calc(100vh-6rem)]"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            <EditIcon className="mr-2 h-5 w-5 fill-white" />
-            <span>Edit Product</span>
-          </Link>
+            <ProductSwiper
+              product={product}
+              activeIndex={activeIndex}
+              setActiveIndex={setActiveIndex}
+              handleMouseMove={handleMouseMove}
+              handleImageClick={handleImageClick}
+              isZoomed={isZoomed}
+              zoomPosition={zoomPosition}
+              setZoomPosition={setZoomPosition}
+            />
+          </div>
         </div>
-      )}
-      <div className="flex flex-wrap">
-        <div className="mb-8 w-full lg:mb-0 lg:w-2/3">
-          <div className="relative w-full">
-            <div className="absolute bottom-8 left-8 z-10 md:mb-0">
-              <Swiper
-                onSwiper={setThumbsSwiper}
-                spaceBetween={10}
-                slidesPerView={3}
-                freeMode={true}
-                watchSlidesProgress={true}
-                modules={[FreeMode, Thumbs]}
-                direction="vertical"
-                className="h-64 md:h-auto"
-              >
-                {product?.image &&
-                  product.image.map((image, index) => (
-                    <SwiperSlide
-                      key={index}
-                      className={`!h-20 !w-20 shadow-shadowSm ${
-                        index === activeIndex ? "border-2 border-black" : ""
-                      }`}
-                    >
-                      <Image
-                        className="block h-full w-full object-cover"
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        fill
-                        quality={100}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    </SwiperSlide>
-                  ))}
-              </Swiper>
-            </div>
-            <Swiper
-              spaceBetween={10}
-              thumbs={{ swiper: thumbsSwiper }}
-              modules={[FreeMode, Thumbs]}
-              className="mainSwiper h-96 w-full md:h-[500px]"
-              onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+
+        <div className="no-scrollbar w-full border-b lg:max-h-screen lg:w-1/3 lg:overflow-y-scroll">
+          <div className="px-2 sm:px-4 lg:p-5">
+            <h3
+              className={`${oswald.className} mb-3 text-center text-xl font-[900] uppercase lg:text-left`}
             >
-              {product?.image &&
-                product.image.map((image, index) => (
-                  <SwiperSlide key={index} className="h-full w-full">
-                    <div
-                      className="relative h-full w-full overflow-hidden"
-                      onMouseMove={handleMouseMove}
-                      onMouseLeave={() => setZoomPosition({ x: 0, y: 0 })}
-                      onClick={handleImageClick}
-                      style={{
-                        cursor: `url("data:image/svg+xml,${encodeURIComponent(
-                          isZoomed
-                            ? '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>'
-                            : '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M7.5 4v7M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>',
-                        )}") 24 24, auto`,
-                      }}
-                    >
-                      <Image
-                        className="object-cover transition-transform duration-200 ease-out"
-                        src={image}
-                        alt={`Main image ${index + 1}`}
-                        fill
-                        priority={index === 0}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        quality={100}
-                        style={{
-                          transformOrigin: `${zoomPosition.x * 100}% ${zoomPosition.y * 100}%`,
-                          transform: `scale(${isZoomed ? 2 : 1})`,
-                        }}
-                      />
-                    </div>
-                  </SwiperSlide>
-                ))}
-            </Swiper>
-            <div className="mt-4 flex items-center justify-center gap-6">
-              <p className="font-semibold text-gray-700">Share:</p>
-              <XIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <FbIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <InstaIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-              <WhatsappIcon className="h-5 w-5 cursor-pointer text-gray-600 hover:text-gray-800" />
-            </div>
-          </div>
-        </div>
+              {product.name}
+            </h3>
 
-        <div className="w-full px-4 lg:w-1/3">
-          <h3
-            className={`${oswald.className} mb-1 text-center text-xl font-semibold uppercase sm:text-2xl md:text-3xl lg:text-left`}
-          >
-            {product.name}
-          </h3>
-          <div className="mb-6 text-center lg:text-left">
-            {product.discount > 0 ? (
-              <div className="flex items-center justify-center gap-3 lg:justify-start">
-                <p className="text-sm text-gray-500 line-through sm:text-base md:text-lg">
-                  ₦{product.price.toLocaleString()}
-                </p>
-                <p className="text-base font-bold text-green-600 sm:text-lg md:text-xl">
-                  ₦{product.discountPrice.toLocaleString()}
-                </p>
-              </div>
-            ) : (
-              <p className="text-base font-bold sm:text-lg md:text-xl">
-                ₦{product.price.toLocaleString()}
-              </p>
-            )}
-          </div>
-
-          {variantOptions.length > 0 && (
-            <div className="mb-6">
-              {variantOptions.map((option) => (
-                <div key={option.id} className="mb-4">
-                  <p className={`${oswald.className} mb-2 text-lg font-medium`}>
-                    <span className="capitalize">{option.name}</span>:{" "}
-                    <span className="font-normal">
-                      {selectedVariantOption[option.name] || "Select"}
-                    </span>
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {option.values.map((value, index) => {
-                      const isAvailable = isOptionAvailable(option.name, value);
-                      return option.name === "color" ? (
-                        <div
-                          key={value}
-                          className={`h-12 w-12 rounded-full border-2 ${
-                            selectedVariantOption[option.name] === value
-                              ? "border-black"
-                              : "border-gray-300"
-                          } cursor-pointer transition-all duration-200 hover:shadow-md`}
-                          onClick={() =>
-                            handleVariantSelection(option.name, value)
-                          }
-                        >
-                          <Image
-                            src={
-                              product.variant.find(
-                                (v) => v.options.color === value,
-                              )?.image || ""
-                            }
-                            alt={`Variant ${value}`}
-                            width={48}
-                            height={48}
-                            className="h-full w-full rounded-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <button
-                          key={index}
-                          className={`border px-4 py-2 ${
-                            selectedVariantOption[option.name] === value
-                              ? "border-black bg-black text-white"
-                              : "border-gray-300 text-gray-700"
-                          } rounded text-sm uppercase ${
-                            isAvailable
-                              ? "hover:border-black"
-                              : "cursor-not-allowed opacity-50"
-                          } transition-all duration-200`}
-                          onClick={() =>
-                            isAvailable &&
-                            handleVariantSelection(option.name, value)
-                          }
-                          disabled={!isAvailable}
-                        >
-                          {value}
-                        </button>
-                      );
-                    })}
-                  </div>
+            <div className="mb-6 text-center lg:text-left">
+              {selectedVariantId &&
+              product.variant.find((v) => v.id === selectedVariantId)?.price ? (
+                <div className="flex items-center justify-center gap-3 lg:justify-start">
+                  {product.isDiscounted ? (
+                    <>
+                      <p className="text-gray-500 line-through">
+                        {formatToNaira(
+                          product.variant.find(
+                            (v) => v.id === selectedVariantId,
+                          ).price,
+                        )}
+                      </p>
+                      <p className="font-bold text-green-600">
+                        {formatToNaira(
+                          product.variant.find(
+                            (v) => v.id === selectedVariantId,
+                          ).price *
+                            (1 - product.discount / 100),
+                        )}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="font-bold">
+                      {formatToNaira(
+                        product.variant.find((v) => v.id === selectedVariantId)
+                          .price,
+                      )}
+                    </p>
+                  )}
                 </div>
-              ))}
+              ) : (
+                <div className="flex items-center justify-center gap-3 lg:justify-start">
+                  {product.isDiscounted ? (
+                    <>
+                      <p className="text-gray-500 line-through">
+                        {formatToNaira(product.price)}
+                      </p>
+                      <p className="font-bold text-green-600">
+                        {formatToNaira(product.discountPrice)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="font-bold">{formatToNaira(product.price)}</p>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-
-          <div className={`${oswald.className} mb-8 space-y-4`}>
-            <div className="flex items-center gap-3">
-              <ButtonPrimary
-                className={`flex-1 text-lg ${isAddingToCart ? "cursor-not-allowed opacity-75" : ""}`}
-                onClick={addItemToCart}
-                disabled={isAddingToCart}
+            {memoizedVariantOptions.length > 0 && (
+              <div className="mb-6">
+                {memoizedVariantOptions.map((option) => (
+                  <VariantOptionMap
+                    key={option.id}
+                    option={option}
+                    selectedVariantOption={selectedVariantOption}
+                    handleVariantSelection={handleVariantSelection}
+                    isOptionAvailable={isOptionAvailable}
+                    product={product}
+                    variationList={variationList}
+                  />
+                ))}
+              </div>
+            )}
+            <div className="mb-8 mt-auto space-y-4">
+              <p
+                className={`text-sm ${isProductAvailable ? "text-green-600" : "text-red-600"}`}
               >
-                {isAddingToCart ? <Spin /> : "Add to bag"}
-              </ButtonPrimary>
-              <button
-                className="flex h-12 w-12 flex-none items-center justify-center rounded-full border-2 border-black transition-colors duration-200 hover:bg-gray-100"
-                onClick={addWishlist}
-              >
-                {user?.wishlist.includes(product.id) ? (
-                  <HeartFilledIcon className="h-6 w-6 text-red-500" />
-                ) : (
-                  <HeartIcon className="h-6 w-6" />
-                )}
-              </button>
+                {isProductAvailable ? "Product is available" : "Out of stock"}
+              </p>
+              <Button className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500">
+                <WhatsappIcon className="mr-2 h-5 w-5 group-hover:text-white" />
+                <span className="text-lg group-hover:text-white sm:text-base md:text-lg">
+                  Order on WhatsApp
+                </span>
+              </Button>
+              <div className="flex items-center gap-3">
+                <ButtonPrimary
+                  className={`flex-1 text-sm normal-case ${isAddingToCart || !isProductAvailable ? "cursor-not-allowed opacity-75" : ""} flex items-center justify-center bg-secondary`}
+                  onClick={addItemToCart}
+                  disabled={isAddingToCart || !isProductAvailable}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2.5 h-5 w-5 sm:h-6 sm:w-6"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                  </svg>
+                  {isAddingToCart ? (
+                    <SmallSpinner className="!text-white" />
+                  ) : (
+                    "Add to Bag"
+                  )}
+                </ButtonPrimary>
+                <button
+                  className="flex flex-none items-center justify-center border-2 border-secondary p-2 transition-colors duration-200 hover:bg-gray-100"
+                  onClick={addWishlist}
+                >
+                  {user?.wishlist?.includes(product.id) ? (
+                    <HeartFilledIcon className="h-6 w-6 text-red-500" />
+                  ) : (
+                    <HeartIcon className="h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
-            <Button className="flex h-12 w-full items-center justify-center rounded-md border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500 hover:text-white">
-              <WhatsappIcon className="mr-2 h-5 w-5" />
-              <span className="text-lg">Order on WhatsApp</span>
-            </Button>
           </div>
-
           <div>
             <ul className="divide-y border-t border-gray-200">
               <CollapsibleSection
                 title="Product Details"
-                isOpen={activeSection === "Product Details"}
+                isOpen={activeSections["Product Details"]}
                 onToggle={() => handleToggleSection("Product Details")}
               >
                 <div
                   dangerouslySetInnerHTML={{ __html: product.description }}
-                  className="quill-content ql-editor"
                 />
               </CollapsibleSection>
 
               <CollapsibleSection
                 title="Delivery & Returns"
-                isOpen={activeSection === "Delivery & Returns"}
+                isOpen={activeSections["Delivery & Returns"]}
                 onToggle={() => handleToggleSection("Delivery & Returns")}
               >
-                <p>
+                <p className="text-sm sm:text-base">
                   We deliver your order within 1-2 business days. Easy returns
                   available within 14 days of delivery.
                 </p>
@@ -474,4 +464,6 @@ export default function ProductDetail({ name }) {
       </div>
     </div>
   );
-}
+});
+
+export default ProductDetail;

@@ -6,63 +6,63 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [x] **Database Connection**: Verify that the database connection is established and working.
 
-- [ ] **Dependencies**: Ensure all dependencies are installed and up-to-date (`package.json`).
+- [x] **Dependencies**: Ensure all dependencies are installed and up-to-date (`package.json`).
 
 - [ ] **Markdown Preview**: Use `Ctrl + Shift + V` to preview markdown files in VSCode.
 
 ### 2. **User Management**
 
-- [ ] **User Registration**: Users should be able to register.
+- [x] **User Registration**: Users should be able to register.
 
-- [ ] **User Login**: Users should be able to log in.
+- [x] **User Login**: Users should be able to log in.
 
-- [ ] **User Authentication**: Implement authentication checks for protected routes.
+- [x] **User Authentication**: Implement authentication checks for protected routes.
 
-- [ ] **User Authorization**: Implement role-based access control (e.g., admin, user).
+- [x] **User Authorization**: Implement role-based access control (e.g., admin, user).
 
 ### 3. **Product Management**
 
-- [ ] **Product Listing**: Products should be listed correctly on the frontend.
+- [x] **Product Listing**: Products should be listed correctly on the frontend.
 
-- [ ] **Product Details**: Users should be able to view detailed information about a product.
+- [x] **Product Details**: Users should be able to view detailed information about a product.
 
-- [ ] **Product Search**: Implement search functionality to find products.
+- [x] **Product Search**: Implement search functionality to find products.
 
-- [ ] **Product Categories**: Products should be categorized correctly.
+- [x] **Product Categories**: Products should be categorized correctly.
 
-- [ ] **Product Variants**: Ensure product variants (e.g., size, color) are handled correctly.
+- [x] **Product Variants**: Ensure product variants (e.g., size, color) are handled correctly.
 
 ### 4. **Cart and Checkout**
 
-- [ ] **Add to Cart**: Users should be able to add products to their cart.
+- [x] **Add to Cart**: Users should be able to add products to their cart.
 
-- [ ] **View Cart**: Users should be able to view their cart.
+- [x] **View Cart**: Users should be able to view their cart.
 
-- [ ] **Update Cart**: Users should be able to update quantities or remove items from the cart.
+- [x] **Update Cart**: Users should be able to update quantities or remove items from the cart.
 
-- [ ] **Checkout Process**: Implement a multi-step checkout process.
+- [x] **Checkout Process**: Implement a multi-step checkout process.
 
-- [ ] **Shipping Information**: Collect and validate shipping information.
+- [*] **Shipping Information**: Collect and validate shipping information.
 
-- [ ] **Order Summary**: Display an order summary before finalizing the purchase.
+- [*] **Order Summary**: Display an order summary before finalizing the purchase.
 
 ### 5. **Order Management**
 
-- [ ] **Order Creation**: Orders should be created and saved in the database.
+- [x] **Order Creation**: Orders should be created and saved in the database.
 
-- [ ] **Order Status**: Implement order status updates (e.g., processing, shipped, delivered).
+- [*] **Order Status**: Implement order status updates (e.g., processing, shipped, delivered).
 
 - [ ] **Order History**: Users should be able to view their order history.
 
-- [ ] **Admin Order Management**: Admins should be able to manage orders (e.g., update status, view details).
+- [*] **Admin Order Management**: Admins should be able to manage orders (e.g., update status, view details).
 
 ### 6. **Payment Processing**
 
-- [ ] **Payment Gateway Integration**: Integrate with a payment gateway (e.g., Paystack).
+- [x] **Payment Gateway Integration**: Integrate with a payment gateway (e.g., Paystack).
 
-- [ ] **Payment Verification**: Verify payment status and update order status accordingly.
+- [x] **Payment Verification**: Verify payment status and update order status accordingly.
 
-- [ ] **Error Handling**: Implement error handling for payment failures.
+- [*] **Error Handling**: Implement error handling for payment failures.
 
 ### 7. **UI/UX**
 
@@ -100,7 +100,7 @@ Sure, here is a comprehensive checklist to ensure your e-commerce app is functio
 
 - [ ] **HTTPS**: Ensure the app is served over HTTPS.
 
-- [ ] **Password Encryption**: Encrypt user passwords before storing them in the database.
+- [*] **Password Encryption**: Encrypt user passwords before storing them in the database.
 
 ### 10. **Performance**
 
@@ -516,15 +516,13 @@ export async function POST(req) {
 export default function Cart() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-      <h1
-        className={`${oswald.className} py-7 text-center text-4xl antialiased`}
-      >
+      <h1 className={`py-7 text-center font-oswald text-4xl antialiased`}>
         Shopping Bag
       </h1>
       <div className="mt-4 flex flex-col gap-10 lg:flex-row">
         <div className="">
           <p
-            className={`${oswald.className} mb-4 text-lg font-medium uppercase text-grayText`}
+            className={`mb-4 font-oswald text-lg font-medium uppercase text-grayText`}
           >
             # Items
           </p>
@@ -537,7 +535,7 @@ export default function Cart() {
           <div className="flex flex-col gap-5">
             <div className="space-y-6 border border-grayOutline bg-grayBg p-5">
               <div className="space-y-2">
-                <h3 className={`${oswald.className} text-2xl leading-5`}>
+                <h3 className={`font-oswald text-2xl leading-5`}>
                   Estimate Shipping
                 </h3>
                 <p className="text-grayText">
@@ -568,7 +566,7 @@ export default function Cart() {
                 </select>
               </label>
               <div className="flex flex-col gap-1">
-                <h3 className={`${oswald.className} text-lg leading-5`}>DHL</h3>
+                <h3 className={`font-oswald text-lg leading-5`}>DHL</h3>
                 <label className="ml-1 inline-flex items-center">
                   <input
                     type="radio"

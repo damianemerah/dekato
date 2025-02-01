@@ -1,23 +1,58 @@
+import { unstable_cache } from "next/cache";
+import { getProductById } from "@/app/action/productAction";
+import dynamic from "next/dynamic";
 import ProductDetail from "@/app/ui/product/product-details";
-import ProductsList from "@/app/ui/products-list";
-import { oswald } from "@/style/font";
-import "react-quill/dist/quill.snow.css";
+import RecommendedProductsSkeleton from "@/app/ui/recommended-products-skeleton";
 
-export default function CategoryPage({ params: { name } }) {
+const RecommendedProducts = dynamic(
+  () => import("@/app/ui/recommended-products"),
+  {
+    loading: () => <RecommendedProductsSkeleton />,
+    ssr: false,
+  },
+);
+
+const getProductData = unstable_cache(
+  async (id) => {
+    return await getProductById(id);
+  },
+  ["product-data"],
+  {
+    tags: ["single-product-data"],
+    revalidate: 10,
+  },
+);
+
+export async function generateMetadata({ params }, parent) {
+  const id = params.name.split("-").slice(-1)[0];
+  const product = await getProductData(id);
+
+  return {
+    title: product.name,
+    description: product.description.slice(0, 160),
+    openGraph: {
+      title: product.name,
+      description: product.description.slice(0, 160),
+      images: product.image[0],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description.slice(0, 160),
+      images: product.image[0],
+    },
+  };
+}
+
+export default async function ProductInfoPage({ params: { name } }) {
+  const id = name.split("-").slice(-1)[0];
+  const product = await getProductData(id);
+
   return (
-    <div className="">
-      <div className="flex justify-center">
-        <ProductDetail name={name} />
-      </div>
-
-      <div className="mb-10 mt-20 px-10">
-        <h3 className={`${oswald.className} p-6 pt-9 text-3xl`}>
-          You May Also Like
-        </h3>
-
-        {/* <ProductsList /> */}
-        {/* recommentedproducts here */}
-      </div>
+    <div>
+      <ProductDetail product={product} />
+      <RecommendedProducts productId={id} />
     </div>
   );
 }

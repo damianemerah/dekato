@@ -1,26 +1,17 @@
-import { Oswald, Inter, Roboto } from "next/font/google";
+import { Oswald, Roboto } from "next/font/google";
 
 const oswald = Oswald({
   subsets: ["latin"],
   display: "swap",
-  fallbacks: ["sans-serif"],
   variable: "--font-oswald",
-  weight: ["300", "400", "500", "600"],
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  fallbacks: ["sans-serif"],
-  variable: "--font-inter",
+  weight: ["200", "300", "400", "500", "600", "700"],
 });
 
 const roboto = Roboto({
   subsets: ["latin"],
   display: "swap",
-  fallbacks: ["sans-serif"],
   variable: "--font-roboto",
-  weight: ["300", "400", "500"],
+  weight: ["100", "300", "400", "500", "700", "900"],
 });
 
-export { oswald, inter, roboto };
+export { oswald, roboto };

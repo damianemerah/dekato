@@ -1,189 +1,139 @@
 "use client";
-import React from "react";
-import Image from "next/image";
+
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import image2 from "@/public/assets/image2.png";
-import image3 from "@/public/assets/image3.png";
-import { oswald } from "@/font";
-import PromoBar from "@/app/ui/promo-bar";
+import Image from "next/image";
+import { oswald } from "@/style/font";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import "swiper/css/effect-fade";
-
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, EffectFade, Autoplay } from "swiper/modules";
-import { useSearchStore } from "@/store/store";
+const slides = [
+  {
+    background: `/assets/herobg.avif`,
+    title: "UP TO 40% OFF",
+    subTitle: "BLACK FRIDAY",
+    description: "EARLY ACCESS",
+    link: "#",
+    linkText: "MEN'S DEALS",
+    secondaryLink: "#",
+    secondaryLinkText: "WOMEN'S DEALS",
+  },
+  {
+    background: `/assets/hero_img1.jpg`,
+    title: "NEW COLLECTION",
+    subTitle: "WINTER 2023",
+    description: "DISCOVER THE LATEST STYLES",
+    link: "#",
+    linkText: "SHOP MEN",
+    secondaryLink: "#",
+    secondaryLinkText: "SHOP WOMEN",
+  },
+];
 
 export default function Hero() {
-  const activeDropdown = useSearchStore((state) => state.activeDropdown);
-  const setActiveDropdown = useSearchStore((state) => state.setActiveDropdown);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, []);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(nextSlide, 8000);
+    return () => clearInterval(interval);
+  }, [nextSlide]);
+
   return (
     <section
-      className={`${oswald.className}`}
-      onClick={() => (activeDropdown ? setActiveDropdown(false) : null)}
+      className={`${oswald.className} relative w-full overflow-hidden bg-black`}
     >
-      <PromoBar />
-      <Swiper
-        modules={[EffectFade, Pagination, Navigation, Autoplay]}
-        spaceBetween={30}
-        centeredSlides={true}
-        effect={"fade"}
-        fadeEffect={{ crossFade: true }}
-        autoplay={{ delay: 8000, disableOnInteraction: false }}
-        navigation={{
-          nextEl: ".swiper-button-next-custom",
-          prevEl: ".swiper-button-prev-custom",
-        }}
-        pagination={{
-          el: ".custom-pagination",
-          clickable: true,
-          renderBullet: (index, className) =>
-            `<span className="${className}"></span>`,
-        }}
-        className="relative"
-      >
-        <SwiperSlide className="h-auto bg-[url('/assets/hero_bg.png')] bg-cover bg-center bg-no-repeat">
+      <div className="relative h-[60vh] max-h-[800px] min-h-[400px] sm:h-[80vh] sm:min-h-[600px]">
+        {slides.map((slide, index) => (
           <div
-            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
+            key={index}
+            className={`absolute inset-0 duration-700 ${
+              index === currentSlide
+                ? "opacity-100"
+                : "pointer-events-none opacity-0"
+            }`}
           >
-            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
-                SUMMER SALE: Get 30% OFF On all dresses.
-              </h1>
-              <Link
-                href="#"
-                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
-              <div className="block w-1/2">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
-                  loading="lazy"
-                  src={image2}
-                />
-              </div>
-              <div className="block w-1/2 -translate-x-10 scale-110 transform">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
-                  loading="lazy"
-                  src={image3}
-                />
+            <Image
+              src={slide.background}
+              alt={`Background for ${slide.title}`}
+              layout="fill"
+              objectFit="cover"
+              priority={index === 0}
+              className="object-center opacity-80"
+            />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="container relative mx-auto h-full px-4 sm:px-6 lg:px-8">
+              <div className="flex h-full max-w-4xl flex-col justify-center">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="space-y-1 sm:space-y-2">
+                    <h2 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-8xl">
+                      {slide.title}
+                    </h2>
+                    <p className="text-2xl font-bold text-white sm:text-4xl lg:text-6xl">
+                      {slide.subTitle}
+                    </p>
+                    <p className="text-lg text-white sm:text-2xl lg:text-3xl">
+                      {slide.description}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 pt-4 sm:gap-4 sm:pt-6">
+                    <Link
+                      href={slide.link}
+                      className="inline-flex h-8 items-center justify-center bg-white px-4 text-xs font-bold transition-colors hover:bg-white/90 sm:h-10 sm:px-8 sm:text-sm"
+                    >
+                      {slide.linkText}
+                    </Link>
+                    <Link
+                      href={slide.secondaryLink}
+                      className="inline-flex h-8 items-center justify-center bg-white px-4 text-xs font-bold transition-colors hover:bg-white/90 sm:h-10 sm:px-8 sm:text-sm"
+                    >
+                      {slide.secondaryLinkText}
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </SwiperSlide>
+        ))}
+      </div>
 
-        <SwiperSlide className="h-auto bg-[url('/assets/hero_img1.jpg')] bg-cover bg-center bg-no-repeat">
+      <div className="absolute bottom-8 right-4 z-10 flex gap-3 sm:right-8 sm:gap-6">
+        <button
+          onClick={prevSlide}
+          className="flex h-8 w-8 items-center justify-center bg-white transition-colors hover:bg-white/90 sm:h-12 sm:w-12"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="flex h-8 w-8 items-center justify-center bg-white transition-colors hover:bg-white/90 sm:h-12 sm:w-12"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
+        </button>
+      </div>
+
+      <div className="absolute bottom-8 left-4 z-10 flex gap-2 sm:left-8">
+        {slides.map((_, index) => (
           <div
-            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
-          >
-            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
-                Discover the Latest Collection of Women&apos;s Wear.
-              </h1>
-              <Link
-                href="#"
-                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
-              <div className="block w-1/2">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
-                  loading="lazy"
-                  src={image2}
-                />
-              </div>
-              <div className="block w-1/2 -translate-x-10 scale-110 transform">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
-                  loading="lazy"
-                  src={image3}
-                />
-              </div>
-            </div>
-          </div>
-        </SwiperSlide>
-
-        <SwiperSlide className="h-auto bg-[url('/assets/hero_img2.jpg')] bg-cover bg-center bg-no-repeat">
-          <div
-            className={`flex flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-12 md:flex-row md:px-16 md:py-16`}
-          >
-            <div className="heading_bd relative mb-8 flex flex-shrink-0 flex-grow-0 basis-full flex-col justify-center p-4 md:mb-0 md:mr-4 md:basis-1/2 md:p-8">
-              <h1 className="mb-6 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:mb-10 md:text-5xl lg:text-7xl">
-                New Arrivals: Fresh Styles for Every Occasion.
-              </h1>
-              <Link
-                href="#"
-                className="self-start border-2 border-black px-6 py-2 font-medium text-black hover:no-underline sm:px-8 sm:py-3"
-              >
-                SHOP NOW
-              </Link>
-            </div>
-            <div className="relative flex h-64 w-full flex-1 justify-center border-dashed sm:h-80 md:h-96">
-              <div className="block w-1/2">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.24)" }}
-                  loading="lazy"
-                  src={image2}
-                />
-              </div>
-              <div className="block w-1/2 -translate-x-10 scale-110 transform">
-                <Image
-                  alt="cat"
-                  className="max-h-full object-cover"
-                  style={{ boxShadow: "10px 10px 24px 0 rgba(0, 0, 0, 0.25)" }}
-                  loading="lazy"
-                  src={image3}
-                />
-              </div>
-            </div>
-          </div>
-        </SwiperSlide>
-
-        <div className="absolute bottom-0 right-0 z-10 mb-4 mr-4 flex justify-center gap-1">
-          <div className="swiper-button-prev-custom !visible flex h-8 w-8 items-center justify-center bg-black text-white sm:h-10 sm:w-10">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="16px"
-              viewBox="0 0 24 24"
-              width="16px"
-              fill="white"
-              className="sm:h-5 sm:w-5"
-            >
-              <path d="M15.41 16.58L10.83 12l4.58-4.58L14 6l-6 6 6 6z" />
-            </svg>
-          </div>
-          <div className="swiper-button-next-custom !visible flex h-8 w-8 items-center justify-center bg-black text-white sm:h-10 sm:w-10">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="16px"
-              viewBox="0 0 24 24"
-              width="16px"
-              fill="white"
-              className="sm:h-5 sm:w-5"
-            >
-              <path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-            </svg>
-          </div>
-        </div>
-
-        <div className="custom-pagination absolute bottom-0 left-0 z-10 mb-4 ml-4 flex !w-fit items-center justify-center"></div>
-      </Swiper>
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={`h-1.5 transition-all sm:h-2 ${
+              index === currentSlide
+                ? "w-6 bg-white sm:w-8"
+                : "w-1.5 bg-white/50 sm:w-2"
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </section>
   );
 }

@@ -1,138 +1,164 @@
 "use client";
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { oswald } from "@/font";
+import { useState, useEffect, useCallback, memo } from "react";
+import { oswald } from "@/style/font";
 import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
-import { useCategoryStore } from "@/store/store";
-import { Spin } from "antd";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Scrollbar, Mousewheel } from "swiper/modules";
-import { LoadingOutlined } from "@ant-design/icons";
-import "swiper/css";
-import "swiper/css/scrollbar";
+import { useCategoryStore, useRecommendMutateStore } from "@/store/store";
+import dynamic from "next/dynamic";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Campaign from "./Campaign";
 
-export default function HomeCategory() {
-  const { selectedCategory, setSelectedCategory } = useCategoryStore();
+const CategoryLink = dynamic(() => import("./category-link"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex aspect-square w-full animate-pulse items-end justify-center bg-gray-200 px-2 pb-4 sm:px-3 sm:pb-6 md:px-4 md:pb-8 lg:px-5 lg:pb-10">
+      <div className="h-8 w-32 rounded bg-gray-300" />
+    </div>
+  ),
+});
+
+export default memo(function HomeCategory() {
+  const { selectedCategory, setSelectedCategory } = useCategoryStore(
+    (state) => ({
+      selectedCategory: state.selectedCategory,
+      setSelectedCategory: state.setSelectedCategory,
+    }),
+  );
+  const setShouldMutate = useRecommendMutateStore(
+    (state) => state.setShouldMutate,
+  );
   const [categorizedListState, setCategorizedListState] = useState([]);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const { data: categories, isLoading } = useSWRImmutable(
     selectedCategory
       ? `/api/pinnedCategories?parent=${selectedCategory}`
       : null,
-    () => getPinnedCategoriesByParent(selectedCategory),
+    () => selectedCategory && getPinnedCategoriesByParent(selectedCategory),
+    {
+      revalidateOnFocus: false,
+      refreshInterval: 1000 * 60 * 5,
+    },
   );
 
   useEffect(() => {
-    if (categories && categories.length > 0) {
+    if (categories?.length > 0) {
       setCategorizedListState(categories);
     }
   }, [categories]);
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-  };
+  const handleCategoryChange = useCallback(
+    (category) => {
+      setSelectedCategory(category);
+      setShouldMutate(true);
+    },
+    [setSelectedCategory, setShouldMutate],
+  );
+
+  const handleScroll = useCallback(
+    (direction) => {
+      const container = document.getElementById("category-container");
+      const scrollAmount = 300;
+
+      if (direction === "left") {
+        container.scrollTo({
+          left: Math.max(0, scrollPosition - scrollAmount),
+          behavior: "smooth",
+        });
+      } else {
+        container.scrollTo({
+          left: scrollPosition + scrollAmount,
+          behavior: "smooth",
+        });
+      }
+
+      setScrollPosition(container.scrollLeft);
+    },
+    [scrollPosition],
+  );
 
   if (
     !isLoading &&
-    (!Array.isArray(categorizedListState) || categorizedListState.length === 0)
+    (!Array.isArray(categorizedListState) || categorizedListState?.length === 0)
   ) {
     return null;
   }
 
   return (
-    <div className={`mb-8 mt-4 py-5 ${oswald.className} px-4 sm:px-6 md:px-8`}>
-      <div className="ml-2 flex flex-col gap-1 sm:ml-4 md:ml-8">
-        <h2 className="text-2xl sm:text-3xl">Selected Category</h2>
-        <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
-          <p className="text-[12px] font-normal sm:text-[13px]">Filter by:</p>
-          <ul className="flex gap-4">
-            <li
-              className={`${
-                selectedCategory === "women" ? "active__category" : ""
-              } cursor-pointer text-sm sm:text-base`}
-              onClick={() => handleCategoryChange("women")}
+    <>
+      <div
+        className={`${oswald.className} min-h-[300px] px-4 py-6 sm:px-6 lg:px-8`}
+        id="selected-category"
+      >
+        <div className="ml-2 flex flex-col sm:ml-4 md:ml-8">
+          <h2>SHOP BY CATEGORY</h2>
+          <div className="mb-4 mt-4 flex flex-wrap gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
+            <p className="whitespace-nowrap text-sm font-bold tracking-wide text-grayText">
+              Filter by:
+            </p>
+            <ul className="flex gap-4">
+              {["women", "men"].map((category) => (
+                <li
+                  key={category}
+                  className={`${
+                    selectedCategory === category
+                      ? "border-b-2 border-primary"
+                      : ""
+                  } cursor-pointer text-base font-bold uppercase tracking-wide`}
+                  onClick={() => handleCategoryChange(category)}
+                >
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="relative">
+          <button
+            onClick={() => handleScroll("left")}
+            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          <div
+            id="category-container"
+            className="flex gap-4 overflow-x-auto scroll-smooth px-3 pb-4"
+          >
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+                  >
+                    <div className="aspect-square w-full animate-pulse bg-gray-200">
+                      <div className="flex h-full items-end justify-center">
+                        <div className="h-8 w-32 rounded bg-gray-300" />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              : categorizedListState.map((category, index) => (
+                  <div
+                    key={index}
+                    className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+                  >
+                    <CategoryLink category={category} />
+                  </div>
+                ))}
+            <button
+              onClick={() => handleScroll("right")}
+              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Scroll right"
             >
-              Women
-            </li>
-            <li
-              className={`${
-                selectedCategory === "men" ? "active__category" : ""
-              } cursor-pointer text-sm sm:text-base`}
-              onClick={() => handleCategoryChange("men")}
-            >
-              Men
-            </li>
-          </ul>
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </div>
-
-      {isLoading ? (
-        <div className="flex h-[200px] items-center justify-center sm:h-[250px]">
-          <Spin
-            indicator={<LoadingOutlined spin className="!text-primary" />}
-            size="large"
-          />
-        </div>
-      ) : (
-        <div className="relative">
-          <Swiper
-            modules={[Scrollbar, Mousewheel]}
-            spaceBetween={15}
-            slidesPerView={2}
-            scrollbar={{
-              hide: false,
-              draggable: true,
-              dragSize: 100,
-            }}
-            mousewheel={{
-              forceToAxis: true,
-              sensitivity: 1,
-              releaseOnEdges: true,
-              eventsTarget: "container",
-              thresholdDelta: 50,
-              thresholdTime: 100,
-            }}
-            breakpoints={{
-              640: {
-                slidesPerView: 3,
-              },
-              768: {
-                slidesPerView: 4,
-              },
-              1024: {
-                slidesPerView: 5,
-              },
-            }}
-            className="px-3"
-          >
-            {categorizedListState.map((category, index) => (
-              <SwiperSlide key={index}>
-                <Link
-                  href={`${category.slug}`}
-                  className="flex aspect-square w-full items-end justify-center !bg-cover px-2 pb-4 text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
-                  style={{
-                    background: `linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.5) 50%), url('${category.image[0]}?w=400&h=400&q=75')`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  {category.name}
-                </Link>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-      )}
-      <style jsx global>{`
-        .swiper-scrollbar {
-          background: rgba(0, 0, 0, 0.1) !important;
-          height: 3px !important;
-        }
-        .swiper-scrollbar-drag {
-          background: rgba(0, 0, 0, 0.5) !important;
-        }
-      `}</style>
-    </div>
+      <Campaign />
+    </>
   );
-}
+});

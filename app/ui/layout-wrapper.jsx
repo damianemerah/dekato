@@ -1,47 +1,64 @@
 "use client";
 
-import React, { memo, useState, useEffect } from "react";
-import Sidebar from "@/app/ui/sidebar";
-import Footer from "@/app/ui/footer";
-import { useSidebarStore, useUserStore } from "@/store/store";
-import Header from "@/app/ui/header";
+import { memo } from "react";
 import { usePathname } from "next/navigation";
-
+import { useSidebarStore } from "@/store/store";
+import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
+import Footer from "@/app/ui/footer";
+import NewsLetter from "../(frontend)/(client)/(home)/newsletter";
+import Checkmark from "@/public/assets/icons/check.svg?url";
 const LayoutWrapper = ({ children }) => {
-  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
-  const [isMobile, setIsMobile] = useState(false);
-  const user = useUserStore((state) => state.user);
+  const isBelowThreshold = useIsBelowThreshold();
+  const { isSidebarOpen, lgScreenSidebar, isMobile, toggleSidebar } =
+    useSidebarStore((state) => ({
+      isSidebarOpen: state.isSidebarOpen,
+      lgScreenSidebar: state.lgScreenSidebar,
+      isMobile: state.isMobile,
+      toggleSidebar: state.toggleSidebar,
+    }));
   const pathname = usePathname();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1250);
-    };
-
-    handleResize(); // Set the initial state
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
-    <div>
-      <div className="h-16">
-        <Header />
-      </div>
-      <div className="relative w-full">
-        {!pathname.startsWith("/admin") && <Sidebar />}
-        <div
-          className={`transition-all duration-300 ease-in-out ${
-            isSidebarOpen && !isMobile && !pathname.startsWith("/admin")
-              ? "ml-[250px] w-[calc(100%-250px)]"
-              : "w-[100%]"
-          }`}
-        >
-          {children}
-          <Footer />
-        </div>
-      </div>
-    </div>
+    <>
+      <main
+        className={`${
+          isSidebarOpen &&
+          !pathname.startsWith("/admin") &&
+          (lgScreenSidebar || isBelowThreshold)
+            ? "[@media(min-width:1250px)]:w-[calc(100vw-280px)]"
+            : ""
+        } min-h-screen w-screen transition-[width] duration-300 ease-in-out`}
+      >
+        {isMobile && isSidebarOpen && (
+          <div
+            className="fixed z-40 h-full w-full bg-black/50 transition-opacity duration-300"
+            onClick={toggleSidebar}
+          />
+        )}
+        {children}
+        {pathname === "/" && (
+          <>
+            <NewsLetter />
+            <div className="bg-neutral-300 py-6 text-primary sm:py-10">
+              <div className="mx-auto grid max-w-screen-lg gap-4 px-4 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
+                {[
+                  "Quality Assurance",
+                  "Free Shipping",
+                  "Secure Payment",
+                  "Customer Support",
+                ].map((item) => (
+                  <div key={item} className="flex items-center space-x-2">
+                    <Checkmark width={26} height={26} />
+                    <p className="text-sm md:text-base lg:text-lg">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+      {!pathname.startsWith("/admin") && <Footer />}
+    </>
   );
 };
 

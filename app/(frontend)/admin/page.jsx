@@ -1,33 +1,44 @@
-"use client";
+import dynamic from "next/dynamic";
+import { getDashboardData } from "@/app/action/userAction";
+import { unstable_cache } from "next/cache";
+import { getServerSession } from "next-auth";
+import { OPTIONS } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
-import React from "react";
-import { Layout, Typography, Row, Col } from "antd";
+const AdminContent = dynamic(
+  () => import("@/app/(frontend)/admin/ui/admin-home/admin-content"),
+  {
+    ssr: false,
+  },
+);
 
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+// Cache the dashboard data for 1 minute
+const getCachedDashboardData = unstable_cache(
+  async (session) => {
+    if (!session || session.user.role !== "admin") {
+      return null;
+    }
+    return getDashboardData(session);
+  },
+  ["dashboard-data"],
+  {
+    revalidate: 60, // Cache for 1 minute
+    tags: ["dashboard"], // Tag for manual revalidation
+  },
+);
 
-const AdminDashboard = () => {
-  return (
-    <Layout>
-      <Content style={{ padding: "24px" }}>
-        <Row gutter={24}>
-          <Col span={16}>
-            <Title level={3}>Order details</Title>
-            <Paragraph>
-              Use to follow a normal section with a secondary section to create
-              a 2/3 + 1/3 layout on detail pages (such as individual product or
-              order pages). Can also be used on any page that needs to structure
-              a lot of content. This layout stacks the columns on small screens.
-            </Paragraph>
-          </Col>
-          <Col span={8}>
-            <Title level={4}>Additional Information</Title>
-            <Paragraph>Add tags to your order.</Paragraph>
-          </Col>
-        </Row>
-      </Content>
-    </Layout>
-  );
+const AdminDashboard = async () => {
+  // Check session before accessing cached data
+  const session = await getServerSession(OPTIONS);
+
+  if (!session || session.user.role !== "admin") {
+    redirect("/signin");
+  }
+
+  // Pre-fetch the data on the server
+  const initialData = await getCachedDashboardData(session);
+
+  return <AdminContent initialData={initialData} />;
 };
 
 export default AdminDashboard;

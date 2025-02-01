@@ -1,14 +1,14 @@
-import Link from "next/link";
 import { oswald } from "@/style/font";
 
-export function Button({ children, className }) {
+export function Button({ children, className, type }) {
   return (
-    <Link
+    <button
       href="#"
-      className={`h-[44px] self-start border-2 px-8 py-2 font-medium no-underline hover:bg-zinc-900 ${className}`}
+      className={`${className} ${oswald.className} self-start border-2 border-primary px-8 py-1 text-[13px] font-semibold no-underline`}
+      type={type}
     >
       {children}
-    </Link>
+    </button>
   );
 }
 
@@ -21,7 +21,7 @@ export function ButtonPrimary({
 }) {
   return (
     <button
-      className={`${oswald.className} h-[44px] bg-primary px-8 py-2 text-white active:scale-95 ${className} uppercase`}
+      className={`${oswald.className} ${className} h-[44px] px-8 py-2 uppercase text-white active:scale-95`}
       onClick={onClick}
       type={type}
       disabled={disabled}
@@ -31,11 +31,12 @@ export function ButtonPrimary({
   );
 }
 
-export function ButtonSecondary({ children, className, onClick }) {
+export function ButtonSecondary({ children, className, onClick, type }) {
   return (
     <button
-      className={`bg-gray-200 px-3 py-1 hover:scale-105 active:scale-95 ${className}`}
+      className={` ${className} bg-gray-200 px-3 py-1 hover:bg-opacity-85`}
       onClick={onClick}
+      type={type}
     >
       {children}
     </button>

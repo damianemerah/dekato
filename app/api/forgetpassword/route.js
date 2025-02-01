@@ -6,7 +6,6 @@ import AppError from "@/utils/errorClass";
 import Email from "@/lib/email";
 
 export async function POST(req) {
-  console.log("forgetPassword route called 🏃‍♀️");
   const body = await req.json();
   await dbConnect();
 

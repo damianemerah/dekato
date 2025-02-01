@@ -8,7 +8,6 @@ export function getFiles(fileList) {
   const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i;
   const videoExtensions = /\.(mp4|avi|mov|mkv|webm|flv|wmv)$/i;
 
-
   fileList.forEach((item) => {
     // Check if the item is a File object or a string
     if (item.url && typeof item.url === "string") {

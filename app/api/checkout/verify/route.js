@@ -1,102 +1,206 @@
+import mongoose from "mongoose";
 import Order from "@/models/order";
 import Product from "@/models/product";
+import Notification from "@/models/notification";
 import { Cart, CartItem } from "@/models/cart";
 import { NextResponse } from "next/server";
 import AppError from "@/utils/errorClass";
-import handleAppError from "@/utils/appError";
-import { protect, restrictTo } from "@/utils/checkPermission";
+import { revalidatePath } from "next/cache";
+import dbConnect from "@/lib/mongoConnection";
+import Payment from "@/models/payment";
+import { recommendationService } from "@/lib/recommendationService";
+
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
-async function updateProductQuantity(order) {
-  for (const item of order.cartItem) {
-    const product = await Product.findById(item.product.toString());
-
-    if (item.variantId) {
-      const variantIndex = product.variant.findIndex(
-        (index) => index._id.toString() === item.variantId,
-      );
-      console.log("variantIndex💎🚀", product.variant[variantIndex]);
-      product.variant[variantIndex].quantity -= item.quantity;
-      product.quantity -= item.quantity;
-      product.sold += item.quantity;
-    } else {
-      product.quantity -= item.quantity;
-      product.sold += item.quantity;
-    }
-
-    //delete cartItem
-    await CartItem.deleteOne({ _id: item._id });
-
-    await Cart.updateOne(
-      { user: userId },
-      { $pull: { item: item._id } },
-      { new: true },
+async function handleOutOfStock(item, order, message, session) {
+  await dbConnect();
+  try {
+    await Product.updateOne(
+      { _id: item.productId },
+      { $set: { status: "outofstock" } },
+      { session },
     );
 
-    await product.save();
+    await Notification.create(
+      {
+        userId: order.userId,
+        title: "Out of Stock Alert",
+        message,
+        orderId: order._id,
+        type: "warning",
+      },
+      { session },
+    );
+  } catch (error) {
+    console.log(error, "error💎💎");
   }
 }
 
-async function updateProductQuantitySingle(order) {
-  const product = await Product.findById(order.singleProduct.productId);
+async function updateProductQuantity(order) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (order.singleProduct.variantId) {
-    const variantIndex = product.variant.findIndex(
-      (index) => index._id.toString() === order.singleProduct.variantId,
-    );
-    console.log("variantIndex💎🚀", product.variant[variantIndex]);
-    product.variant[variantIndex].quantity -= order.singleProduct.quantity;
-    product.quantity -= order.singleProduct.quantity;
-    product.sold += order.singleProduct.quantity;
-  } else {
-    product.quantity -= order.singleProduct.quantity;
-    product.sold += order.singleProduct.quantity;
+  if (!order) {
+    throw new AppError("Order not found", 404);
   }
 
-  await product.save();
+  try {
+    const products = order.product;
+
+    for (const item of products) {
+      const product = await Product.findById(item.productId).session(session);
+
+      if (!product) {
+        console.warn(
+          `Product with ID ${item.productId} not found. Skipping update.`,
+        );
+        continue;
+      }
+
+      const variantId = item.variantId;
+      const quantity = item.quantity;
+
+      if (variantId) {
+        const variantIndex = product.variant.findIndex(
+          (index) => index._id.toString() === variantId,
+        );
+
+        if (variantIndex !== -1) {
+          if (product.variant[variantIndex].quantity < quantity) {
+            const message = `${item.name} variant ${Object.entries(
+              product.variant[variantIndex].options,
+            )
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ")} is out of stock`;
+            await handleOutOfStock(item, order, message, session);
+            continue;
+          }
+          product.variant[variantIndex].quantity -= quantity;
+
+          if (product.variant[variantIndex].quantity === 0) {
+            const message = `${item.name} variant ${Object.entries(
+              product.variant[variantIndex].options,
+            )
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ")} is out of stock`;
+            await handleOutOfStock(item, order, message, session);
+          }
+        } else {
+          console.warn(
+            `Variant with ID ${variantId} not found. Skipping update for variant.`,
+          );
+        }
+      } else {
+        if (product.quantity < quantity) {
+          const message = `${item.name} is out of stock`;
+          await handleOutOfStock(item, order, message, session);
+          continue;
+        }
+      }
+
+      product.quantity -= quantity;
+      product.sold += quantity;
+      // product.purchaseCount = (product.purchaseCount || 0) + 1;
+
+      if (product.quantity === 0) {
+        const message = `${item.name} is out of stock`;
+        await handleOutOfStock(item, order, message, session);
+      }
+
+      await product.save({ session, validateModifiedOnly: true });
+
+      await recommendationService.trackProductInteraction(
+        order.userId,
+        item.productId,
+        "purchase",
+      );
+    }
+
+    if (order) {
+      await CartItem.deleteMany({ _id: { $in: order.cartItems } }, { session });
+      await Cart.updateOne(
+        { userId: order.userId },
+        { $pull: { item: { $in: order.cartItems } } },
+        { new: true, session },
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    session.endSession();
+    throw error;
+  }
 }
 
 export async function POST(req) {
-  await protect();
-  await restrictTo("admin", "user");
+  await dbConnect();
   try {
     const body = await req.json();
-    console.log("VERIFY ROUTE 💎💎💎");
 
     const {
       reference,
-      metadata: { orderId, userId },
+      metadata: { orderId, userId, saveCard },
       id: paymentId,
       channel: paymentMethod,
       currency,
     } = body.data;
 
-    const order = await Order.findById(orderId).populate({
-      path: "cartItem",
-    });
+    const order = await Order.findById(orderId);
 
     if (!order) {
-      throw new AppError("Order not found", 404);
+      throw new AppError("Something went wrong", 404);
     }
     const verification = await Paystack.transaction.verify(reference);
 
-    if (verification.data.status !== "success") {
-      order.status = "payment_failed";
-    } else {
-      order.status = "payment_confirmed";
-
-      //update product quantity (variants considered)
-
-      if (order.type === "cart") updateProductQuantity(order);
-      else if (order.type === "single") updateProductQuantitySingle(order);
+    if (verification.data.status === "success") {
+      await updateProductQuantity(order);
     }
+    const OrderStatus = {
+      FAILED: "failed",
+      PENDING: "pending",
+      SUCCESS: "success",
+    };
+
+    order.status =
+      verification?.data?.status === "success"
+        ? OrderStatus.SUCCESS
+        : verification?.data?.status === "failed"
+          ? OrderStatus.FAILED
+          : OrderStatus.PENDING;
 
     order.paymentRef = reference;
     order.paymentId = paymentId;
     order.paymentMethod = paymentMethod;
     order.currency = currency;
+    order.paidAt = verification?.data?.paidAt;
 
     await order.save();
+
+    if (saveCard === true && verification?.data?.authorization) {
+      const cardData = {
+        userId,
+        email: verification?.data?.customer?.email,
+        authorization: verification?.data?.authorization,
+      };
+
+      const payment = await Payment.create(cardData);
+    }
+
+    if (verification?.data?.status === "success") {
+      await Notification.create({
+        userId: null, // Admin notification
+        title: "New Order Payment",
+        message: `New payment received: ${currency} ${order.total} for order #${order.paymentRef}`,
+        orderId: order._id,
+        type: "info",
+      });
+    }
+
+    revalidatePath("/account/orders");
 
     return NextResponse.json(
       {
@@ -107,7 +211,13 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (error) {
-    console.log(error, "ERROR💎💎💎");
-    return handleAppError(error, req);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Payment verification failed",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }

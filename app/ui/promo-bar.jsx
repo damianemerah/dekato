@@ -1,18 +1,94 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  CheckOutlined,
+  GiftOutlined,
+  TagOutlined,
+  ThunderboltOutlined,
+} from "@ant-design/icons";
+import { formatToNaira } from "@/utils/getFunc";
+import { usePathname } from "next/navigation";
+import { oswald } from "@/style/font";
+import Link from "next/link";
 
 const PromoBar = () => {
+  const pathname = usePathname();
+  const [currentPromo, setCurrentPromo] = useState(0);
+
+  const promos = [
+    {
+      icon: <GiftOutlined className="font-bold" />,
+      text: (
+        <p className="text-primary">
+          <span className="font-bold">Free shipping</span> on all orders over{" "}
+          {formatToNaira(150000)}
+        </p>
+      ),
+    },
+
+    {
+      icon: <TagOutlined className="font-bold" />,
+      text: (
+        <p className="text-primary">
+          <span className="font-bold">20% Student Discount</span> with valid ID
+        </p>
+      ),
+    },
+    {
+      icon: <ThunderboltOutlined className="font-bold" />,
+      text: (
+        <p className="text-primary">
+          <span className="font-bold">Flash Sale!</span> Up to 50% off selected
+          items
+        </p>
+      ),
+    },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPromo((prev) => (prev + 1) % promos.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [promos.length]);
+
+  if (pathname.includes("/admin") || pathname.includes("/account")) return null;
+
   return (
-    <div className="flex items-center justify-center space-x-2 bg-white p-3 text-sm font-medium uppercase tracking-wide">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="24px"
-        viewBox="0 -960 960 960"
-        width="24px"
-        fill="#09090b"
-      >
-        <path d="M240-160q-50 0-85-35t-35-85H40v-440q0-33 23.5-56.5T120-800h560v160h120l120 160v200h-80q0 50-35 85t-85 35q-50 0-85-35t-35-85H360q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T280-280q0-17-11.5-28.5T240-320q-17 0-28.5 11.5T200-280q0 17 11.5 28.5T240-240ZM120-360h32q17-18 39-29t49-11q27 0 49 11t39 29h272v-360H120v360Zm600 120q17 0 28.5-11.5T760-280q0-17-11.5-28.5T720-320q-17 0-28.5 11.5T680-280q0 17 11.5 28.5T720-240Zm-40-200h170l-90-120h-80v120ZM360-540Z" />
-      </svg>
-      <p className="text-[#EB5757]">Free shipping on all orders over ₦150000</p>
+    <div
+      className={`${oswald.className} ${pathname.startsWith("/product/") ? "sticky top-0 z-[20]" : ""} `}
+    >
+      <div className="hidden gap-16 md:flex md:h-10 md:items-center md:justify-center md:bg-white md:px-8">
+        {promos.map(({ icon, text }, index) => (
+          <div
+            key={index}
+            className="flex items-center space-x-2 text-[13px] tracking-wide"
+          >
+            {icon}
+            {text}
+          </div>
+        ))}
+      </div>
+      <div className="md:hidden">
+        <div className="flex h-10 items-center justify-center space-x-2 bg-white text-[13px] font-medium leading-10 tracking-wide">
+          {promos[currentPromo].icon}
+          {promos[currentPromo].text}
+        </div>
+      </div>
+      {pathname === "/" && (
+        <nav>
+          <ul className="flex items-center justify-center gap-8 border-t border-t-primary/10 bg-white px-8 py-3.5 font-oswald text-sm font-semibold uppercase sm:hidden">
+            <li>
+              <Link href="/men">Shop men</Link>
+            </li>
+            <li>
+              <Link href="/women">Shop women</Link>
+            </li>
+          </ul>
+        </nav>
+      )}
     </div>
   );
 };

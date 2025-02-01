@@ -1,205 +1,93 @@
 "use server";
 
-import mongoose from "mongoose";
 import dbConnect from "@/lib/mongoConnection";
 import Category from "@/models/category";
+import Product from "@/models/product";
 import { handleFormData } from "@/utils/handleForm";
-import { protect, restrictTo } from "@/utils/checkPermission";
+import { restrictTo } from "@/utils/checkPermission";
 import handleAppError from "@/utils/appError";
+import APIFeatures from "@/utils/apiFeatures";
 import { revalidatePath } from "next/cache";
+import { formatCategories } from "@/utils/filterHelpers";
 
-// Function to generate breadcrumbs using aggregation
-export async function generateBreadcrumbs(categoryId) {
-  await dbConnect();
+export async function getAllCategories(params) {
   try {
-    const result = await Category.aggregate([
-      {
-        $match: { _id: mongoose.Types.ObjectId(categoryId) },
-      },
-      {
-        $graphLookup: {
-          from: "categories", // The collection you're querying
-          startWith: "$parent", // Start with the parent field
-          connectFromField: "parent", // The field from which to start the recursion
-          connectToField: "_id", // The field to match against
-          as: "breadcrumbs", // The output array field
-          maxDepth: 5, // Set a reasonable limit to avoid performance issues
-          depthField: "depth", // Optional: use this field to track the depth of recursion
-        },
-      },
-      {
-        $unwind: "$breadcrumbs", // Unwind the breadcrumbs array
-      },
-      {
-        $sort: { "breadcrumbs.depth": 1 }, // Sort by depth to order correctly
-      },
-      {
-        $project: {
-          name: "$breadcrumbs.name",
-          slug: "$breadcrumbs.slug",
-          _id: 0, // Exclude the original _id
-        },
-      },
-    ]);
+    await dbConnect();
 
-    // Add the current category to the breadcrumbs
-    const category = await Category.findById(categoryId).select("name slug");
-    const breadcrumbs = result.map((r) => ({
-      name: r.name,
-      slug: r.slug,
-    }));
-
-    // Add the current category to the end of the breadcrumb array
-    breadcrumbs.push({
-      name: category.name,
-      slug: category.slug,
-    });
-
-    // Add "Home" as the root of the breadcrumb trail
-    breadcrumbs.unshift({ name: "Home", slug: "" });
-
-    return breadcrumbs;
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
-  }
-}
-
-export async function getAllCategories() {
-  await dbConnect();
-
-  try {
-    const categories = await Category.find(
+    const query = Category.find(
       {},
-      "name description image slug createdAt parent pinned pinOrder",
+      "name description image slug createdAt parent pinned pinOrder ",
     )
-      .populate("productCount")
       .populate("parent", "name _id slug")
-      .lean();
+      .lean({ virtuals: true });
 
-    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
-      const { _id: pid, ...p } = parent || {};
-      return {
-        id: _id.toString(),
-        parent: parent ? { id: pid.toString(), ...p } : null,
-        ...rest,
-      };
-    });
-    return formattedCat;
+    const searchParams = {
+      page: params?.page || 1,
+      limit: params?.limit || 20,
+    };
+
+    const feature = new APIFeatures(query, searchParams).paginate().sort();
+
+    const categoryData = await feature.query;
+
+    const formattedData = await Promise.all(
+      categoryData.map(async ({ _id, parent, ...rest }) => {
+        const productCount = await Product.countDocuments({
+          category: _id,
+        });
+
+        return {
+          id: _id.toString(),
+          parent: parent
+            ? {
+                id: parent._id.toString(),
+                name: parent.name,
+                slug: parent.slug,
+              }
+            : null,
+          productCount,
+          ...rest,
+        };
+      }),
+    );
+
+    const totalCount = await Category.countDocuments(query.getFilter());
+
+    return { data: formattedData, totalCount, limit: searchParams.limit };
   } catch (err) {
     const error = handleAppError(err);
-    throw Error(error.message || "Something went wrong");
+    throw new Error(error.message);
   }
 }
 
 export async function getSubCategories(slug) {
-  await dbConnect();
   try {
-    const category = await Category.findOne({ slug });
-    if (!category) {
-      throw new Error("Category not found");
+    await dbConnect();
+
+    // Early return for search routes
+    if (!Array.isArray(slug) || slug[0].toLowerCase() === "search") {
+      return null;
     }
 
-    const categories = await Category.find({ parent: category._id })
-      .select("name description image slug createdAt")
-      .populate("productCount")
+    // Find parent category and populate children
+    const parentCategory = await Category.findOne({
+      slug: slug[0].toLowerCase(),
+    })
+      .populate("children", "name description image slug createdAt")
       .sort({ slug: 1 })
       .lean();
-    const formattedCat = categories.map(({ _id, parent, ...rest }) => {
-      const { _id: pid, ...p } = parent || {};
-      return {
-        id: _id.toString(),
-        parent: parent ? { id: pid.toString(), ...p } : null,
-        ...rest,
-      };
-    });
 
-    return formattedCat;
+    if (!parentCategory) {
+      return null;
+    }
+
+    // Format and return the children categories
+    const formattedCategories = formatCategories(parentCategory.children || []);
+    return formattedCategories;
   } catch (err) {
     const error = handleAppError(err);
-    throw Error(error.message || "Something went wrong");
+    throw new Error(error.message || "Something went wrong");
   }
-}
-
-export async function fetchAllCategories() {
-  await dbConnect();
-  // Step 1: Fetch all categories from the database
-  const categories = await Category.find().lean().exec();
-
-  // Step 2: Create a map of categories by their ID for easy lookup
-  const categoryMap = {};
-  categories.forEach((category) => {
-    categoryMap[category._id] = {
-      id: category._id.toString(),
-      label: category.name,
-      href: category.slug ? `/${category.slug}/products` : undefined,
-      pinned: category.pinned,
-      pinOrder: category.pinOrder,
-      name: category.name,
-      description: category.description,
-      image: category.image,
-      slug: category.slug,
-      createdAt: category.createdAt,
-      parent: category.parent ? category.parent.toString() : null,
-      children: [], // Initialize children array
-    };
-  });
-
-  // Step 3: Build the hierarchical structure
-  const topLevelCategories = [];
-
-  categories.forEach((category) => {
-    if (category.parent) {
-      // If the category has a parent, add it to its parent's children array
-      if (categoryMap[category.parent]) {
-        categoryMap[category.parent].children.push(categoryMap[category._id]);
-      }
-    } else {
-      // If the category has no parent, it's a top-level category
-      topLevelCategories.push(categoryMap[category._id]);
-    }
-  });
-
-  // Step 4: Limit the depth to 3 levels
-  function limitDepth(categories, depth = 0) {
-    if (depth >= 2) {
-      // 0-based indexing, so 2 = 3rd level
-      return categories.map((category) => ({
-        id: category.id,
-        label: category.label,
-        href: category.href,
-        name: category.name,
-        description: category.description,
-        image: category.image,
-        slug: category.slug,
-        createdAt: category.createdAt,
-        parent: category.parent,
-        pinned: category.pinned,
-        pinOrder: category.pinOrder,
-      }));
-    }
-    return categories.map((category) => ({
-      id: category.id,
-      label: category.label,
-      href: category.href,
-      name: category.name,
-      description: category.description,
-      image: category.image,
-      slug: category.slug,
-      createdAt: category.createdAt,
-      parent: category.parent,
-      pinned: category.pinned,
-      pinOrder: category.pinOrder,
-      children: limitDepth(category.children, depth + 1),
-    }));
-  }
-
-  // Apply the depth limitation
-  const finalStructure = limitDepth(topLevelCategories);
-
-  console.log(finalStructure, "finalStructure");
-
-  return finalStructure;
 }
 
 export async function createCategory(formData) {
@@ -229,8 +117,13 @@ export async function createCategory(formData) {
 
     const { _id, ...rest } = category;
 
-    revalidatePath(`/admin/collections/${category.slug}`);
-    return { id: _id.toString(), ...rest };
+    // Get products count
+    const productCount = await Product.countDocuments({
+      category: _id,
+    });
+
+    revalidatePath(`/admin/categories/${category.slug}`);
+    return { id: _id.toString(), productCount, ...rest };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
@@ -257,7 +150,6 @@ export async function updateCategory(formData) {
       runValidators: true,
     })
       .select("name description image slug createdAt parent pinned pinOrder")
-      .populate("productCount")
       .populate("parent", "name _id slug");
 
     if (!categoryDoc) {
@@ -266,13 +158,29 @@ export async function updateCategory(formData) {
 
     const category = categoryDoc.toObject();
 
+    // Get products count
+    const productCount = await Product.countDocuments({
+      category: category._id,
+    });
+
     // Return category with id instead of _id
     const { _id, parent, ...rest } = category;
 
-    revalidatePath(`/admin/collections/${category.slug}`);
-    revalidatePath(`/admin/collections`);
+    revalidatePath(`/admin/categories/${category.slug}`);
+    revalidatePath(`/admin/categories`);
 
-    return { id: _id.toString(), ...rest };
+    return {
+      id: _id.toString(),
+      parent: parent
+        ? {
+            id: parent._id.toString(),
+            name: parent.name,
+            slug: parent.slug,
+          }
+        : null,
+      productCount,
+      ...rest,
+    };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message || "An error occurred");
@@ -284,11 +192,24 @@ export async function deleteCategory(id) {
   await dbConnect();
 
   try {
-    const deletedCategory = await Category.findByIdAndDelete(id);
+    const categoryToDelete = await Category.findById(id);
 
-    if (!deletedCategory) {
+    if (!categoryToDelete) {
       throw new Error("Category not found");
     }
+
+    // Check if any products are using this category
+    const productsUsingCategory = await Product.countDocuments({
+      category: id,
+    });
+
+    if (productsUsingCategory > 0) {
+      throw new Error(
+        "Cannot delete category. It is still being used by products.",
+      );
+    }
+
+    const deletedCategory = await Category.findByIdAndDelete(id);
 
     const orphanedCategories = await Category.find({
       parent: deletedCategory._id,
@@ -300,13 +221,9 @@ export async function deleteCategory(id) {
         { parent: null },
       );
     }
-
-    // Find categories where children array includes the deleted category's id
     const categoriesWithDeletedChild = await Category.find({
       children: deletedCategory._id,
     });
-
-    // Remove the deleted category's id from the children array of these categories
     for (const category of categoriesWithDeletedChild) {
       category.children = category.children.filter(
         (childId) => !childId.equals(deletedCategory._id),
@@ -314,7 +231,7 @@ export async function deleteCategory(id) {
       await category.save();
     }
 
-    revalidatePath("/admin/collections");
+    revalidatePath("/admin/categories");
     return null;
   } catch (err) {
     const error = handleAppError(err);
@@ -322,31 +239,24 @@ export async function deleteCategory(id) {
   }
 }
 
-export async function getPinnedCategoriesByParent(parentName) {
+export async function getPinnedCategoriesByParent(parentSlug) {
   await dbConnect();
-  try {
-    // Find the parent category by its name
-    const parentCategory = await Category.findOne({ name: parentName });
+
+  let parentCategory;
+  if (parentSlug) {
+    parentCategory = await Category.findOne({ slug: parentSlug }).lean();
     if (!parentCategory) {
-      throw new Error("Parent category not found");
+      return [];
     }
-
-    // Find the pinned categories with the parent category as their parent
-    const pinnedCategories = await Category.find({
-      parent: parentCategory._id,
-      pinned: true,
-    })
-      .select("name description image slug pinned pinOrder createdAt")
-      .lean();
-
-    return pinnedCategories.map(({ _id, ...rest }) => ({
-      id: _id.toString(),
-      ...rest,
-    }));
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(
-      error.message || "Something went wrong while fetching pinned categories",
-    );
   }
+
+  const pinnedCategories = await Category.find({
+    parent: parentCategory._id,
+    pinned: true,
+  })
+    .sort({ pinOrder: 1 })
+    .limit(5)
+    .lean();
+
+  return pinnedCategories;
 }

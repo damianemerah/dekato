@@ -1,8 +1,10 @@
-import AppError from "./errorClass";
-import { v4 as uuidv4 } from "uuid";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet("0123456789", 10);
 
 export function getQuantity(item, product) {
   // Check if product exists or variant exists
+
   if (item.variantId && product?.variant.length > 0) {
     const variant = product.variant.find(
       (doc) => doc._id.toString() === item.variantId,
@@ -34,29 +36,39 @@ export const generateVariantOptions = (variants) => {
 
   const result = {};
   clonedVariants.forEach((variant) => {
-    Object.entries(variant.options).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = new Set();
-      }
+    if (variant.options) {
+      Object.entries(variant.options).forEach(([key, value]) => {
+        if (!result[key]) {
+          result[key] = new Set();
+        }
 
-      result[key].add(value);
-    });
+        result[key].add(value);
+      });
+    }
   });
 
   const formattedResult = Object.keys(result).map((key) => ({
-    id: key.id || uuidv4(),
+    id: key.id || nanoid(),
     name: key,
     values: Array.from(result[key]),
   }));
+
   return formattedResult;
 };
 
 export function getQueryObj(searchParams) {
   const params = Object.fromEntries(
-    Object.entries(searchParams).map(([key, value]) => [
-      key,
-      Array.isArray(value) ? value.slice(-1) : value.split(","),
-    ]),
+    //not price/quantity, convert -vr to array
+    Object.entries(searchParams).map(([key, value]) => {
+      return [
+        key,
+        Array.isArray(value)
+          ? value.slice(-1)
+          : isFinite(value) && !key.endsWith("-vr")
+            ? value
+            : value.split(","),
+      ];
+    }),
   );
 
   let variantConditions = [];
@@ -87,5 +99,18 @@ export function getQueryObj(searchParams) {
     params.variant = { $elemMatch: { $or: variantConditions } };
   }
 
+  // Add default limit and page if not provided
+  params.limit = params.limit || 20;
+  params.page = params.page || 1;
+
   return params;
 }
+
+export const formatToNaira = (amount) => {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
