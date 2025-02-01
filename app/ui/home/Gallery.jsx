@@ -26,9 +26,9 @@ const galleryImages = [
 
 export default function Gallery() {
   return (
-    <div className="mb-10">
+    <div className="py-12">
       {/* <div className="mb-10 text-center"> */}
-      <h2 className={`${oswald.className} py-6 text-center md:text-left`}>
+      <h2 className={`${oswald.className} mb-6 text-center md:text-left`}>
         FOLLOW OUR INSTAGRAM
       </h2>
       {/* <p className="mt-4 text-lg">

@@ -22,7 +22,6 @@ export async function GET(req) {
     let products = [];
 
     if (productId && type === "similar") {
-      console.log("💎💎💎1");
       // Get similar products for a specific product
       const product = await Product.findById(productId);
       if (!product) {
@@ -40,16 +39,12 @@ export async function GET(req) {
         parseInt(limit, 10),
       );
     } else if (userId && type === "personalized") {
-      console.log("💎💎💎12");
-
       // Get personalized recommendations
       products = await recommendationService.getPersonalizedRecommendations(
         userId,
         parseInt(limit, 10),
       );
     } else {
-      console.log("💎💎💎13");
-
       // Fallback to category-based or general recommendations
       let filter = { status: "active" };
 

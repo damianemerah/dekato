@@ -6,11 +6,11 @@ const optionGroupSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     name: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       lowercase: true,
     },

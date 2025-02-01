@@ -35,7 +35,7 @@ export default function BlogList({ searchParams }) {
   const [dateRange, setDateRange] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [limit] = useState(10);
+  const [limit] = useState(searchParams?.limit || 10);
 
   const page = useMemo(() => searchParams.page || 1, [searchParams]);
 
@@ -49,7 +49,6 @@ export default function BlogList({ searchParams }) {
     {
       revalidateOnFocus: false,
       onSuccess: (data) => {
-        console.log(data, "data🔥🔥🔥");
         setTotalCount(data.pagination.total);
       },
     },

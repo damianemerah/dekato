@@ -6,7 +6,7 @@ export default function HeaderOne({ children }) {
 
   return (
     <h1
-      className={`${oswald.className} ${isSideBarOpen ? "lg:text-[2.3547880691vw]" : "lg:text-[2.9296875vw]"} text-center font-medium uppercase max-md:text-3xl md:text-[3.90625vw]`}
+      className={`${oswald.className} ${isSideBarOpen ? "lg:text-[2.3547880691vw]" : "lg:text-[2.9296875vw]"} text-center font-medium uppercase max-md:text-[6.25vw] md:text-[3.90625vw]`}
     >
       {children}
     </h1>

@@ -37,8 +37,6 @@ export async function getAllCollections(params) {
       limit: params?.limit || 20,
     };
 
-    console.log(searchParams, "searchPaeams🎈");
-
     const feature = new APIFeatures(query, searchParams).paginate().sort();
 
     const collectionData = await feature.query;

@@ -1,17 +1,95 @@
 "use client";
 
-import { memo } from "react";
-import DeleteIcon from "@/public/assets/icons/remove.svg";
+import { memo, useState } from "react";
+import { createVarOption, getVarOption } from "@/app/action/variantAction";
 import { useAdminStore } from "@/app/(frontend)/admin/store/adminStore";
 import { Dropdown, message, Modal, Input, Button, Select } from "antd";
+import useSWR from "swr";
 
 export default memo(function VariantGroupTable() {
-  const removeVariantOption = useAdminStore((state) => state.removeVariantOption);
-  const updateVariantOptionName = useAdminStore((state) => state.updateVariantOptionName);
-  const updateVariantOptionValues = useAdminStore((state) => state.updateVariantOptionValues);
+  const removeVariantOption = useAdminStore(
+    (state) => state.removeVariantOption,
+  );
+  const updateVariantOptionName = useAdminStore(
+    (state) => state.updateVariantOptionName,
+  );
+  const updateVariantOptionValues = useAdminStore(
+    (state) => state.updateVariantOptionValues,
+  );
   const setOptionIsSaved = useAdminStore((state) => state.setOptionIsSaved);
   const variantOptions = useAdminStore((state) => state.variantOptions);
   const setVariantOptions = useAdminStore((state) => state.setVariantOptions);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [optionName, setOptionName] = useState("");
+  const [currentGroup, setCurrentGroup] = useState(null);
+  const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const { data: storedOptions, mutate } = useSWR(
+    "/api/admin/variantOption",
+    getVarOption,
+    {
+      revalidateOnFocus: false,
+    },
+  );
+
+  const showModal = (group) => {
+    setCurrentGroup(group);
+    setIsModalOpen(true);
+  };
+  const showLoadModal = (group) => {
+    setCurrentGroup(group);
+    setIsLoadModalOpen(true);
+  };
+  const handleOk = async () => {
+    if (currentGroup) {
+      try {
+        const res = await createVarOption({
+          labelName: optionName,
+          name: currentGroup.name,
+          values: currentGroup.values,
+        });
+        message.success("Option stored successfully");
+        mutate();
+      } catch (error) {
+        console.error("Error storing option:", error);
+        message.error(`Failed to store option : ${error.message}`);
+      }
+    }
+    setIsModalOpen(false);
+    setOptionName("");
+    setCurrentGroup(null);
+  };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setOptionName("");
+    setCurrentGroup(null);
+  };
+
+  const handleLoadOk = () => {
+    if (currentGroup && selectedOption) {
+      const updatedOptions = variantOptions.map((option) => {
+        if (option.id === currentGroup.id) {
+          return {
+            ...option,
+            labelName: selectedOption.labelName,
+            labelId: selectedOption.id,
+            name: selectedOption.name,
+            values: selectedOption.values,
+          };
+        }
+        return option;
+      });
+      setVariantOptions(updatedOptions);
+      setOptionIsSaved(false);
+    }
+    setIsLoadModalOpen(false);
+    setCurrentGroup(null);
+  };
+  const handleLoadCancel = () => {
+    setIsLoadModalOpen(false);
+    setCurrentGroup(null);
+  };
 
   const items = [
     {
@@ -52,10 +130,15 @@ export default memo(function VariantGroupTable() {
         </thead>
         <tbody className="text-sm font-light text-gray-600">
           {variantOptions.map((group) => (
-            <tr key={group.id} className="border-b border-gray-200 hover:bg-gray-50">
+            <tr
+              key={group.id}
+              className="border-b border-gray-200 hover:bg-gray-50"
+            >
               <td className="w-[33.333%] px-6 py-3 text-left font-medium">
                 {group.labelName && (
-                  <span className="text-xxs text-gray-500">({group.labelName})</span>
+                  <span className="text-xxs text-gray-500">
+                    ({group.labelName})
+                  </span>
                 )}
                 <Input
                   placeholder="Group name (e.g. Size, Color, Material)"
@@ -70,14 +153,14 @@ export default memo(function VariantGroupTable() {
               <td className="py-3 text-left">
                 <Select
                   mode="tags"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Enter values and press enter"
                   value={group.values}
                   onChange={(newValues) => {
                     updateVariantOptionValues(group.id, newValues);
                     setOptionIsSaved(false);
                   }}
-                  tokenSeparators={[',']}
+                  tokenSeparators={[","]}
                   className="w-full"
                 />
               </td>
@@ -100,6 +183,57 @@ export default memo(function VariantGroupTable() {
           ))}
         </tbody>
       </table>
+      <Modal
+        title="Store Option"
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="cancel" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleOk}>
+            Submit
+          </Button>,
+        ]}
+      >
+        <Input
+          placeholder="Enter option name"
+          value={optionName}
+          onChange={(e) => setOptionName(e.target.value)}
+        />
+      </Modal>
+      <Modal
+        title="Load Option"
+        open={isLoadModalOpen}
+        onOk={handleLoadOk}
+        onCancel={handleLoadCancel}
+        footer={[
+          <Button key="cancel" onClick={handleLoadCancel}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleLoadOk}>
+            Load
+          </Button>,
+        ]}
+      >
+        <Select
+          style={{ width: "100%" }}
+          placeholder="Select an option to load"
+          onChange={(value) =>
+            setSelectedOption(
+              storedOptions?.find((option) => option.labelName === value),
+            )
+          }
+        >
+          {Array.isArray(storedOptions) &&
+            storedOptions.map((option) => (
+              <Select.Option key={option.id} value={option.labelName}>
+                {option.labelName}
+              </Select.Option>
+            ))}
+        </Select>
+      </Modal>
     </div>
   );
 });

@@ -23,7 +23,9 @@ export default function OrderHeader({ order, menu }) {
       </Col>
       <Col>
         <Space>
-          <Button>Restock</Button>
+          <Button>
+            <Link href={"/admin/products"}>Restock</Link>
+          </Button>
           <Button type="primary">Edit</Button>
           <Dropdown menu={menu} trigger={["click"]}>
             <Button icon={<MoreOutlined />}>More actions</Button>

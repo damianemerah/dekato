@@ -310,12 +310,17 @@ const ProductActions = ({
           </button>
         </div>
         <hr className="my-3 opacity-60" />
-        <Switch
-          loading={switchState}
-          onClick={showConfirm}
-          checked={selectedProduct?.status === "active" || false}
-          disabled={isSwitchDisabled}
-        />
+        <div className="flex items-center gap-2.5">
+          <Switch
+            loading={switchState}
+            onClick={showConfirm}
+            checked={selectedProduct?.status === "active" || false}
+            disabled={isSwitchDisabled}
+          />
+          {selectedProduct?.status && (
+            <p className="uppercase">{selectedProduct.status}</p>
+          )}
+        </div>
       </FormSection>
       <FormSection>
         <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">

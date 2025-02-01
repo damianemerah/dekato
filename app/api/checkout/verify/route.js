@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
 import Order from "@/models/order";
+import User from "@/models/user";
 import Product from "@/models/product";
 import Notification from "@/models/notification";
 import { Cart, CartItem } from "@/models/cart";
@@ -12,34 +12,27 @@ import { recommendationService } from "@/lib/recommendationService";
 
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
-async function handleOutOfStock(item, order, message, session) {
+async function handleOutOfStock(item, order, message) {
   await dbConnect();
   try {
     await Product.updateOne(
       { _id: item.productId },
       { $set: { status: "outofstock" } },
-      { session },
     );
 
-    await Notification.create(
-      {
-        userId: order.userId,
-        title: "Out of Stock Alert",
-        message,
-        orderId: order._id,
-        type: "warning",
-      },
-      { session },
-    );
+    await Notification.create({
+      userId: order.userId,
+      title: "Out of Stock Alert",
+      message,
+      orderId: order._id,
+      type: "warning",
+    });
   } catch (error) {
-    console.log(error, "error💎💎");
+    console.error(error, "error💎💎");
   }
 }
 
 async function updateProductQuantity(order) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   if (!order) {
     throw new AppError("Order not found", 404);
   }
@@ -48,8 +41,7 @@ async function updateProductQuantity(order) {
     const products = order.product;
 
     for (const item of products) {
-      const product = await Product.findById(item.productId).session(session);
-      console.log("product🔥🔥🔥", product);
+      const product = await Product.findById(item.productId);
 
       if (!product) {
         console.warn(
@@ -73,7 +65,7 @@ async function updateProductQuantity(order) {
             )
               .map(([key, value]) => `${key}: ${value}`)
               .join(", ")} is out of stock`;
-            await handleOutOfStock(item, order, message, session);
+            await handleOutOfStock(item, order, message);
             continue;
           }
           product.variant[variantIndex].quantity -= quantity;
@@ -84,7 +76,7 @@ async function updateProductQuantity(order) {
             )
               .map(([key, value]) => `${key}: ${value}`)
               .join(", ")} is out of stock`;
-            await handleOutOfStock(item, order, message, session);
+            await handleOutOfStock(item, order, message);
           }
         } else {
           console.warn(
@@ -94,7 +86,7 @@ async function updateProductQuantity(order) {
       } else {
         if (product.quantity < quantity) {
           const message = `${item.name} is out of stock`;
-          await handleOutOfStock(item, order, message, session);
+          await handleOutOfStock(item, order, message);
           continue;
         }
       }
@@ -103,14 +95,12 @@ async function updateProductQuantity(order) {
       product.sold += quantity;
       // product.purchaseCount = (product.purchaseCount || 0) + 1;
 
-      console.log("product.quantity🔥🔥🔥", product.quantity);
-
       if (product.quantity === 0) {
         const message = `${item.name} is out of stock`;
-        await handleOutOfStock(item, order, message, session);
+        await handleOutOfStock(item, order, message);
       }
 
-      await product.save({ session, validateModifiedOnly: true });
+      await product.save({ validateModifiedOnly: true });
 
       await recommendationService.trackProductInteraction(
         order.userId,
@@ -120,28 +110,20 @@ async function updateProductQuantity(order) {
     }
 
     if (order) {
-      await CartItem.deleteMany({ _id: { $in: order.cartItems } }, { session });
+      await CartItem.deleteMany({ _id: { $in: order.cartItems } });
       await Cart.updateOne(
         { userId: order.userId },
         { $pull: { item: { $in: order.cartItems } } },
-        { new: true, session },
+        { new: true },
       );
     }
-
-    await session.commitTransaction();
-    session.endSession();
   } catch (error) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    session.endSession();
-    throw error;
+    console.error(error, "😅😅");
   }
 }
 
 export async function POST(req) {
   await dbConnect();
-  console.log("verify🔥🔥🔥");
   try {
     const body = await req.json();
 
@@ -176,7 +158,6 @@ export async function POST(req) {
           ? OrderStatus.FAILED
           : OrderStatus.PENDING;
 
-    order.paymentRef = reference;
     order.paymentId = paymentId;
     order.paymentMethod = paymentMethod;
     order.currency = currency;
@@ -184,14 +165,21 @@ export async function POST(req) {
 
     await order.save();
 
-    if (saveCard === true && verification?.data?.authorization) {
-      const cardData = {
+    if (saveCard && !!verification?.data?.authorization) {
+      const existingCard = await Payment.findOne({
         userId,
-        email: verification?.data?.customer?.email,
-        authorization: verification?.data?.authorization,
-      };
+        "authorization.signature": verification?.data?.authorization?.signature,
+      });
 
-      const payment = await Payment.create(cardData);
+      if (!existingCard) {
+        const cardData = {
+          userId,
+          email: verification?.data?.customer?.email,
+          authorization: verification?.data?.authorization,
+        };
+
+        await Payment.create(cardData);
+      }
     }
 
     if (verification?.data?.status === "success") {
@@ -201,6 +189,10 @@ export async function POST(req) {
         message: `New payment received: ${currency} ${order.total} for order #${order.paymentRef}`,
         orderId: order._id,
         type: "info",
+      });
+
+      const savedCount = await User.findByIdAndUpdate(userId, {
+        $inc: { amountSpent: order.total, orderCount: 1 },
       });
     }
 

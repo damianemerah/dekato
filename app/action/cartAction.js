@@ -156,7 +156,7 @@ export async function getCart(userId) {
       populate: {
         path: "product",
         select:
-          "name variant image slug price discount discountPrice discountDuration",
+          "name variant image slug price discount discountPrice discountDuration ",
       },
     })
     .lean({ virtuals: true });

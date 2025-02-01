@@ -3,18 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HeartOutlined, HeartFilled, CloseOutlined } from "@ant-design/icons";
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useEffect } from "react";
 import { useUserStore, useRecommendMutateStore } from "@/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
 import { message } from "antd";
 import { mutate } from "swr";
 import { formatToNaira } from "@/utils/getFunc";
 import { trackClick } from "@/utils/tracking";
+import { ShoppingCart } from "lucide-react";
+import { createCartItem } from "@/app/action/cartAction";
 
 const ProductCard = memo(
   ({ product, key, "data-product-id": productId, showDelete = false }) => {
     const user = useUserStore((state) => state.user);
     const [isLoading, setIsLoading] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
     const userId = user?.id;
     const [isFavorite, setIsFavorite] = useState(
       user?.wishlist?.includes(product.id),
@@ -25,11 +28,49 @@ const ProductCard = memo(
 
     const [currentImage, setCurrentImage] = useState(product?.image[0]);
 
+    useEffect(() => {
+      setCurrentImage(product?.image[0]);
+    }, [product]);
+
     // Handle product click
     const handleProductClick = useCallback(async () => {
       if (!userId) return;
       await trackClick(userId, product.id);
     }, [userId, product.id]);
+
+    const handleAddToCart = useCallback(
+      async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!userId) {
+          message.error("Please login to add to cart");
+          return;
+        }
+
+        try {
+          setIsAddingToCart(true);
+          const newItem = {
+            product: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            image: product.image[0],
+            userId,
+          };
+
+          await createCartItem(userId, newItem);
+          await mutate(`/api/user/${userId}`);
+          await mutate(`/cart/${userId}`);
+          message.success("Item added to cart");
+        } catch (error) {
+          message.info(error.message, 4);
+        } finally {
+          setIsAddingToCart(false);
+        }
+      },
+      [userId, product],
+    );
 
     const handleFavoriteClick = useCallback(
       async (e) => {
@@ -88,7 +129,7 @@ const ProductCard = memo(
         }}
       >
         <Link
-          href={`/p/${product.slug}-${product.id}`}
+          href={`/product/${product.slug}-${product.id}`}
           onClick={handleProductClick}
           id={`product-${product.id}`}
           data-product-id={product.id}
@@ -146,21 +187,33 @@ const ProductCard = memo(
             <p className="mb-0.5 w-full truncate overflow-ellipsis whitespace-nowrap text-nowrap text-sm capitalize">
               {product.name}
             </p>
-            <div className="mb-1">
-              {product.isDiscounted ? (
-                <div className="flex items-center justify-center gap-2 text-[15px]">
-                  <p className="font-medium text-gray-500 line-through">
+            <div className="relative mb-1 flex w-full items-center justify-center gap-2 text-center">
+              <>
+                {product.isDiscounted ? (
+                  <div className="flex items-center justify-center gap-2 text-[15px]">
+                    <p className="font-bold text-gray-500 line-through">
+                      {formatToNaira(product.price)}
+                    </p>
+                    <p className="font-bold text-primary">
+                      {formatToNaira(discountedPrice)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[15px] font-bold">
                     {formatToNaira(product.price)}
                   </p>
-                  <p className="font-medium text-primary">
-                    {formatToNaira(discountedPrice)}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-[15px] font-medium">
-                  {formatToNaira(product.price)}
-                </p>
-              )}
+                )}
+              </>
+              <button
+                onClick={handleAddToCart}
+                disabled={isAddingToCart}
+                className={`absolute right-2 ml-2 rounded-full p-1.5 text-primary transition-all duration-300 hover:bg-primary/10 ${
+                  isAddingToCart ? "animate-pulse" : ""
+                }`}
+                aria-label="Add to cart"
+              >
+                <ShoppingCart className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </Link>
@@ -171,7 +224,7 @@ const ProductCard = memo(
             {product?.variant?.slice(0, 5).map((variant, index) => (
               <div
                 key={`${variant._id}-${index}`}
-                className="h-7 w-7 flex-shrink-0 cursor-pointer hover:scale-110"
+                className="h-6 w-6 flex-shrink-0 cursor-pointer hover:scale-110 md:h-7 md:w-7"
                 onMouseEnter={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -183,12 +236,13 @@ const ProductCard = memo(
                   alt={`${product.name} variant ${index + 1}`}
                   width={28}
                   height={28}
+                  loading="lazy"
                   className="h-full w-full rounded-full object-cover object-center"
                 />
               </div>
             ))}
             {product?.variant?.length > 5 && (
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600">
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600 md:h-7 md:w-7">
                 +{product.variant.length - 5}
               </div>
             )}

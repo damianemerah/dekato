@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Typography,
@@ -19,6 +19,7 @@ import {
   Tag,
   Divider,
   Alert,
+  message,
 } from "antd";
 import {
   LeftOutlined,
@@ -28,21 +29,59 @@ import {
 } from "@ant-design/icons";
 import Link from "next/link";
 import useSWR from "swr";
-import { getOrderById } from "@/app/action/orderAction";
-import { SmallSpinner } from "@/app/ui/spinner";
+import { getOrderById, fulfillOrder } from "@/app/action/orderAction";
+import { ModalSpinner, SmallSpinner } from "@/app/ui/spinner";
+import { formatToNaira } from "@/utils/getFunc";
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
 
 function Fulfillment({ id }) {
+  const [quantities, setQuantities] = useState([]);
+  const [tracking, setTracking] = useState("");
+  const [trackingLink, setTrackingLink] = useState("");
+  const [carrier, setCarrier] = useState("");
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const { data: order, isLoading } = useSWR(
-    `/admin/orders/${id}`,
-    () => getOrderById(id),
-    {
-      revalidateOnFocus: false,
+  const {
+    data: order,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR(`/admin/orders/${id}`, () => getOrderById(id), {
+    revalidateOnFocus: false,
+    onSuccess: (data) => {
+      setTracking(data.tracking);
+      setTrackingLink(data.trackingLink);
+      setCarrier(data.carrier);
+      setQuantities(data.product.map((item) => item.quantity));
     },
-  );
+  });
+
+  const handleQuantityChange = (index, value) => {
+    console.log(quantities, 11111);
+    const newQuantities = [...quantities];
+    newQuantities[index] = value;
+    setQuantities(newQuantities);
+  };
+
+  const handleFulfill = async () => {
+    console.log(quantities, 122);
+    try {
+      await fulfillOrder(
+        id,
+        quantities,
+        tracking,
+        trackingLink,
+        carrier,
+        order?.shippingMethod,
+      );
+      mutate(`/admin/orders/${id}`);
+      message.success("Order fulfilled");
+    } catch (error) {
+      console.error("Error fulfilling order:", error);
+      alert("Failed to fulfill order.");
+    }
+  };
 
   const menu = (
     <Menu>
@@ -67,6 +106,7 @@ function Fulfillment({ id }) {
 
   return (
     <Layout>
+      {isValidating && ModalSpinner}
       <Header style={{ background: "#fff", padding: "0 16px" }}>
         <Row justify="space-between" align="middle">
           <Col>
@@ -91,11 +131,14 @@ function Fulfillment({ id }) {
       </Header>
       <Content className="px-3 py-12 sm:px-4">
         <Row gutter={24}>
-          <Col span={16}>
+          <Col xs={24} lg={16}>
             <Card
               title={
                 <Space>
-                  <Badge status="success" text="Fulfilled" />
+                  <Badge
+                    status={order?.isFulfilled ? "success" : "warning"}
+                    text={order?.isFulfilled ? "Fulfilled" : "Fulfill"}
+                  />
                   <CarOutlined style={{ color: "#52c41a" }} />
                 </Space>
               }
@@ -112,30 +155,66 @@ function Fulfillment({ id }) {
             >
               <List
                 itemLayout="horizontal"
-                dataSource={order.product}
-                renderItem={(item) => (
+                dataSource={order?.product}
+                renderItem={(item, index) => (
                   <List.Item>
                     <List.Item.Meta
                       avatar={
-                        <Avatar src={item.image} shape="square" size={64} />
+                        <Avatar
+                          src={item.image}
+                          shape="square"
+                          size={{
+                            xs: 40,
+                            sm: 40,
+                            md: 64,
+                            lg: 64,
+                            xl: 80,
+                            xxl: 100,
+                          }}
+                        />
                       }
                       title={item.name}
                       description={
-                        <Space direction="vertical">
-                          {item.option && (
-                            <Tag color="blue">
-                              {item.option.color} / {item.option.length}
-                            </Tag>
-                          )}
-                          <Text type="secondary">SKU: {item.productId}</Text>
+                        <Space direction="horizontal">
+                          <Space direction="vertical">
+                            {item.option && (
+                              <Tag className="uppercase" color="blue">
+                                {Object.values(item.option).join(" / ")}
+                              </Tag>
+                            )}
+                            <Text type="secondary">
+                              Fulfilled: {item.fulfilledItems || 0}
+                            </Text>
+                          </Space>
+                          <div className="sm:hidden">
+                            <Text strong>
+                              {formatToNaira(item.price * item.quantity)}
+                            </Text>
+                            <br />
+                            <Input
+                              addonBefore="Qty"
+                              defaultValue={item.quantity}
+                              style={{ width: "100px" }}
+                              onChange={(e) =>
+                                handleQuantityChange(index, e.target.value)
+                              }
+                            />
+                          </div>
                         </Space>
                       }
                     />
-                    <div>
+                    <div className="hidden sm:block">
+                      <Text strong>
+                        {formatToNaira(item.price * item.quantity)}
+                      </Text>
+                      <br />
                       <Input
                         addonBefore="Qty"
                         defaultValue={item.quantity}
                         style={{ width: "100px" }}
+                        onChange={(e) =>
+                          handleQuantityChange(index, e.target.value)
+                        }
                       />
                     </div>
                   </List.Item>
@@ -153,12 +232,31 @@ function Fulfillment({ id }) {
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item label="Tracking number">
-                      <Input />
+                      <Input
+                        value={tracking}
+                        onChange={(e) => setTracking(e.target.value)}
+                        placeholder="Enter tracking number"
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
                     <Form.Item label="Shipping carrier">
-                      <Input />
+                      <Input
+                        value={carrier}
+                        onChange={(e) => setCarrier(e.target.value)}
+                        placeholder="Enter carrier name"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col span={24}>
+                    <Form.Item label="Tracking link">
+                      <Input
+                        value={trackingLink}
+                        onChange={(e) => setTrackingLink(e.target.value)}
+                        placeholder="Enter tracking link"
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -168,33 +266,43 @@ function Fulfillment({ id }) {
                     Send shipment details to your customer now
                   </Checkbox>
                 </Form.Item>
+                <Button type="primary" block onClick={handleFulfill}>
+                  Fulfill items
+                </Button>
               </Form>
             </Card>
           </Col>
-          <Col span={8}>
+          <Col xs={24} lg={8}>
             <Card
               title="Shipping address"
               extra={<Button icon={<EditOutlined />} type="text" />}
             >
-              <Text>
-                Tyler Ware <br />
-                3508 Pharetra. Av.
-                <br />
-                42621 Nantes <br />
-                Paraguay
-                <br />
-                +59546811470
-              </Text>
+              {order?.shippingMethod === "delivery" ? (
+                <Text>
+                  {order?.address?.firstname} {order?.address?.lastname}
+                  <br />
+                  {order?.address?.address}
+                  <br />
+                  {order?.address?.city}, {order?.address?.state}{" "}
+                  {order?.address?.postalCode}
+                  <br />
+                  {order?.address?.phone}
+                </Text>
+              ) : (
+                <p>(Store pickup)</p>
+              )}
             </Card>
             <Card style={{ marginTop: "24px" }} title="Summary">
               <Text type="secondary">
                 Fulfilling from Dekato Shop
-                <br />2 of 2 items
+                <br />
+                {order?.product?.reduce(
+                  (acc, cur) => acc + (cur.fulfilledItems || 0),
+                  0,
+                )}{" "}
+                of {order?.totalItems} items
               </Text>
               <Divider />
-              <Button type="primary" block>
-                Fulfill items
-              </Button>
             </Card>
           </Col>
         </Row>

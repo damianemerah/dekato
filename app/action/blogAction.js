@@ -32,7 +32,6 @@ export async function createBlog(formData) {
 
   try {
     const data = formDataToObject(formData);
-    console.log("Form data:", data);
 
     const { featuredImage } = data;
     if (featuredImage) {

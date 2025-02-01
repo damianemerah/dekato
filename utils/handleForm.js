@@ -4,6 +4,8 @@ import Category from "@/models/category";
 import { partition, endsWith, fromPairs, keys } from "lodash";
 
 export const handleFormData = async (formData, Model, id) => {
+  const productName = formData.get("name") || "untitled";
+
   const obj = {
     image: [],
     video: [],
@@ -39,9 +41,21 @@ export const handleFormData = async (formData, Model, id) => {
     await handleExistingFiles(existingProd, obj, filesToDelete);
   }
 
-  const uploadedImageNames = await uploadNewFiles(imagesToUpload, "image");
-  const uploadedVideoNames = await uploadNewFiles(videosToUpload, "video");
-  const uploadedBannerNames = await uploadNewFiles(bannerToUpload, "banner");
+  const uploadedImageNames = await uploadNewFiles(
+    imagesToUpload,
+    "image",
+    productName,
+  );
+  const uploadedVideoNames = await uploadNewFiles(
+    videosToUpload,
+    "video",
+    productName,
+  );
+  const uploadedBannerNames = await uploadNewFiles(
+    bannerToUpload,
+    "banner",
+    productName,
+  );
 
   updateObjWithUploadedFiles(obj, uploadedImageNames, "image");
   updateObjWithUploadedFiles(obj, uploadedVideoNames, "video");
@@ -175,10 +189,11 @@ async function handleExistingFiles(existingProd, obj, filesToDelete) {
   }
 }
 
-async function uploadNewFiles(filesToUpload, fileType) {
+async function uploadNewFiles(filesToUpload, fileType, productName) {
   const files =
-    filesToUpload.length > 0 ? await uploadFiles(filesToUpload, fileType) : [];
-
+    filesToUpload.length > 0
+      ? await uploadFiles(filesToUpload, fileType, productName)
+      : [];
   return files;
 }
 

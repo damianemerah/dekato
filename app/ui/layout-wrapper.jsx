@@ -19,44 +19,46 @@ const LayoutWrapper = ({ children }) => {
   const pathname = usePathname();
 
   return (
-    <main
-      className={`${
-        isSidebarOpen &&
-        !pathname.startsWith("/admin") &&
-        (lgScreenSidebar || isBelowThreshold)
-          ? "[@media(min-width:1250px)]:w-[calc(100vw-280px)]"
-          : ""
-      } min-h-screen w-screen transition-[width] duration-300 ease-in-out`}
-    >
-      {isMobile && isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
-          onClick={toggleSidebar}
-        />
-      )}
-      {children}
-      {pathname === "/" && (
-        <>
-          <NewsLetter />
-          <div className="bg-neutral-300 py-6 text-primary sm:py-10">
-            <div className="mx-auto grid max-w-screen-lg gap-4 px-4 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
-              {[
-                "Quality Assurance",
-                "Free Shipping",
-                "Secure Payment",
-                "Customer Support",
-              ].map((item) => (
-                <div key={item} className="flex items-center space-x-2">
-                  <Checkmark width={26} height={26} />
-                  <p className="text-sm md:text-base lg:text-lg">{item}</p>
-                </div>
-              ))}
+    <>
+      <main
+        className={`${
+          isSidebarOpen &&
+          !pathname.startsWith("/admin") &&
+          (lgScreenSidebar || isBelowThreshold)
+            ? "[@media(min-width:1250px)]:w-[calc(100vw-280px)]"
+            : ""
+        } min-h-screen w-screen transition-[width] duration-300 ease-in-out`}
+      >
+        {isMobile && isSidebarOpen && (
+          <div
+            className="fixed z-40 h-full w-full bg-black/50 transition-opacity duration-300"
+            onClick={toggleSidebar}
+          />
+        )}
+        {children}
+        {pathname === "/" && (
+          <>
+            <NewsLetter />
+            <div className="bg-neutral-300 py-6 text-primary sm:py-10">
+              <div className="mx-auto grid max-w-screen-lg gap-4 px-4 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
+                {[
+                  "Quality Assurance",
+                  "Free Shipping",
+                  "Secure Payment",
+                  "Customer Support",
+                ].map((item) => (
+                  <div key={item} className="flex items-center space-x-2">
+                    <Checkmark width={26} height={26} />
+                    <p className="text-sm md:text-base lg:text-lg">{item}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </main>
       {!pathname.startsWith("/admin") && <Footer />}
-    </main>
+    </>
   );
 };
 

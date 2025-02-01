@@ -8,6 +8,7 @@ import { generateVariantOptions } from "@/utils/getFunc";
 import FilterContent from "./filter-content";
 import { ButtonPrimary } from "../button";
 import { createSearchParams } from "@/utils/filterHelpers";
+import MobileFilterContent from "./mobile-filter-content";
 
 const sortOptions = [
   { value: "+createdAt", label: "Newest" },
@@ -22,8 +23,14 @@ const priceRanges = [
   { min: 100000, max: Number.MAX_SAFE_INTEGER },
 ];
 
-export default function Filter({ cat, searchParams, products, banner }) {
-  const catName = cat.slice(-1)[0].toLowerCase();
+export default function Filter({
+  cat,
+  searchParams,
+  products,
+  banner,
+  showFilter,
+  setShowFilter,
+}) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
     price: [],
@@ -37,14 +44,14 @@ export default function Filter({ cat, searchParams, products, banner }) {
   const dropdownRef = useRef(null);
 
   const { data: subCategories } = useSWR(
-    catName ? catName : null,
-    () => getSubCategories(catName),
+    cat ? `subCat:${cat.join("|")}` : null,
+    () => getSubCategories(cat),
     { revalidateOnFocus: false },
   );
 
   const { data: productVariants, isLoading: varIsLoading } = useSWR(
-    catName ? `productsVariant:${catName}:${searchStr}` : null,
-    () => catName && getVariantsByCategory(catName, searchStr),
+    cat ? `productsVariant:${cat.join("|")}:${searchStr}` : null,
+    () => cat && getVariantsByCategory(cat, searchStr),
     {
       revalidateOnFocus: false,
     },
@@ -187,7 +194,7 @@ export default function Filter({ cat, searchParams, products, banner }) {
       );
 
       if (Object.keys(queryObj).length === 0) {
-        router.push(`/${cat}`);
+        router.push(`/${cat.join("/")}`);
         return;
       }
 
@@ -199,7 +206,7 @@ export default function Filter({ cat, searchParams, products, banner }) {
       }
 
       const searchParams = createSearchParams(queryObj);
-      router.push(`/${cat}?${searchParams}`);
+      router.push(`/${cat.join("/")}?${searchParams}`);
     },
     [cat, router, variantOptions, selectedFilters],
   );
@@ -212,7 +219,7 @@ export default function Filter({ cat, searchParams, products, banner }) {
 
       // Close dropdown before navigation
       toggleDropdown("sort");
-      router.push(`/${cat.slice(-1)[0]}?${params.toString()}`);
+      router.push(`/${cat.join("/")}?${params.toString()}`);
     },
     [cat, router],
   );
@@ -231,20 +238,43 @@ export default function Filter({ cat, searchParams, products, banner }) {
   }
 
   return (
-    <FilterContent
-      dropdownRef={dropdownRef}
-      activeDropdown={activeDropdown}
-      selectedFilters={selectedFilters}
-      setSelectedFilters={setSelectedFilters}
-      sort={sort}
-      sortOptions={sortOptions}
-      handleChange={handleChange}
-      handleSortChange={handleSortChange}
-      filters={filters}
-      toggleDropdown={toggleDropdown}
-      cat={cat}
-      router={router}
-      variantOptions={variantOptions}
-    />
+    <>
+      <button
+        className="w-full bg-secondary py-2 text-center text-white sm:hidden"
+        onClick={() => {
+          setShowFilter(true);
+        }}
+      >
+        Filter & Sort
+      </button>
+      <FilterContent
+        dropdownRef={dropdownRef}
+        activeDropdown={activeDropdown}
+        selectedFilters={selectedFilters}
+        setSelectedFilters={setSelectedFilters}
+        sort={sort}
+        sortOptions={sortOptions}
+        handleChange={handleChange}
+        handleSortChange={handleSortChange}
+        filters={filters}
+        toggleDropdown={toggleDropdown}
+        cat={cat}
+        router={router}
+        variantOptions={variantOptions}
+      />
+      <MobileFilterContent
+        showFilter={showFilter}
+        setShowFilter={setShowFilter}
+        selectedFilters={selectedFilters}
+        setSelectedFilters={setSelectedFilters}
+        filters={filters}
+        handleChange={handleChange}
+        cat={cat}
+        router={router}
+        sort={sort}
+        sortOptions={sortOptions}
+        handleSortChange={handleSortChange}
+      />
+    </>
   );
 }

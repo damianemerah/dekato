@@ -16,7 +16,7 @@ import handleAppError from "@/utils/appError";
 import { restrictTo } from "@/utils/checkPermission";
 
 // Initialize nanoid and payment gateway
-const nanoid = customAlphabet("0123456789", 10);
+const nanoId = customAlphabet("0123456789", 6);
 const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
@@ -84,26 +84,28 @@ export async function POST(req, { params }) {
         throw new AppError("User address not found", 404);
       }
     }
+    const payId = nanoId();
+    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
     const orderData = {
       userId: userId,
       product: items.map((item) => ({
         productId: item.product.id,
         name: item.product.name,
-        price: item.product.price,
+        price: item.currentPrice,
         image: item.image,
         quantity: item.quantity,
         option: item.option,
         variantId: item.variantId,
       })),
+      paymentRef: payId,
       cartItems: items.map((item) => item.id),
       total: amount,
+      totalItems,
       shippingMethod: shippingMethod?.toLowerCase(),
       address:
         shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
     };
-
-    console.log(orderData, "orderData🔥🔥🔥");
 
     //session require array of objects
     const order = await Order.create([orderData], { session });
@@ -119,7 +121,7 @@ export async function POST(req, { params }) {
       amount: Math.round(amount * 100),
       callback_url: `${process.env.NEXTAUTH_URL}/checkout/success`,
       currency: "NGN",
-      reference: `${createdOrder["_id"].toString()}_${Date.now()}`,
+      reference: payId,
       metadata: {
         orderId: createdOrder["_id"].toString(),
         userId,
@@ -144,8 +146,6 @@ export async function POST(req, { params }) {
     const payment = await Paystack.transaction.initialize(
       paymentInitializeOptions,
     );
-
-    console.log(payment, "payment🔥🔥🔥");
 
     if (!payment || payment.status === false) {
       throw new AppError(payment.message, 500);

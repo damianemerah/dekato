@@ -77,7 +77,7 @@ const CollectionList = ({ searchParams }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [limit, setLimit] = useState(2);
+  const [limit, setLimit] = useState(searchParams?.limit || 20);
 
   const router = useRouter();
 
@@ -243,7 +243,6 @@ const CollectionList = ({ searchParams }) => {
           setSelectedRowKeys([]);
           message.success("Selected collections deleted");
         } catch (error) {
-          console.log(error);
           message.error("Error deleting collections");
         } finally {
           setLoading(false);

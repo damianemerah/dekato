@@ -14,8 +14,6 @@ export const seedProducts = async () => {
     // Clear existing data
     await Promise.all([Product.deleteMany({}), Category.deleteMany({})]);
 
-    console.log("Seeding database🔥🔥");
-
     // Create main categories with proper validation
     const mainCategories = ["Men", "Women"];
     const mainCategoryDocs = await Promise.all(

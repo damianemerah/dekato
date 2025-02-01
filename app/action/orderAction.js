@@ -7,6 +7,7 @@ import handleAppError from "@/utils/appError";
 import { omit, mapKeys } from "lodash";
 import APIFeatures from "@/utils/apiFeatures";
 import { revalidatePath } from "next/cache";
+import Email from "@/lib/email";
 
 export async function getAllOrders(query) {
   await dbConnect();
@@ -105,4 +106,67 @@ export async function getUserOrders(userId) {
   await dbConnect();
   const orders = await Order.find({ userId }).limit(3).lean();
   return orders;
+}
+
+export async function fulfillOrder(
+  id,
+  quantities,
+  tracking,
+  trackingLink,
+  carrier,
+  shippingMethod,
+) {
+  await dbConnect();
+  await restrictTo("admin");
+
+  console.log(quantities, "r📁📁");
+
+  try {
+    const order = await Order.findById(id)
+      .populate("userId", "email firstname lastName")
+      .lean();
+
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    // Update each product's fulfilledItems based on the provided quantities
+    const updatedProducts = order.product.map((item, index) => {
+      return {
+        ...item,
+        fulfilledItems: quantities[index] || 0, // Set fulfilledItems based on input
+      };
+    });
+
+    // Update the order with the new products array, tracking, and carrier
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      {
+        product: updatedProducts,
+        tracking,
+        carrier,
+        isFulfilled: true,
+        deliveryStatus: shippingMethod === "pickup" ? "delivered" : "shipped",
+        trackingLink,
+      },
+      { new: true },
+    );
+
+    // Send order email
+    const email = new Email(
+      order.userId,
+      `${process.env.NEXTAUTH_URL}/account/orders/${id}`,
+    );
+    await email.sendEmail(
+      "orderFulfill",
+      "Your order has been fulfilled",
+      updatedOrder,
+    );
+
+    revalidatePath("/admin/orders");
+    return { success: true, message: "Order fulfilled successfully" };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }

@@ -43,7 +43,7 @@ export async function generateStaticParams() {
 async function getCategoryData(cat) {
   await dbConnect();
 
-  const path = cat.join("/");
+  const path = cat.join("/").toLowerCase();
   // Try to find as category first
   let data = await Category.findOne({
     path: { $all: path },

@@ -185,7 +185,7 @@ export default memo(function EditVariant({
       {actionType === "create" ? (
         renderSaveProductWarning()
       ) : (
-        <div className="relative h-screen">
+        <div>
           <div className="px-3 py-12 md:px-8">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-medium text-primary">Group</h2>
@@ -367,7 +367,7 @@ export default memo(function EditVariant({
         </div>
       )}
       {actionType === "edit" && (
-        <div className="sticky bottom-0 left-0 right-0 z-[25] flex min-h-24 w-full items-center justify-end gap-6 bg-white shadow-shadowSm">
+        <div className="sticky bottom-0 z-[25] flex min-h-24 w-full items-center justify-end gap-6 bg-white shadow-shadowSm">
           <button
             className="text-[15px] font-bold tracking-wider"
             onClick={() => setOpenSlider(false)}

@@ -116,18 +116,17 @@ const MediaUpload = ({
               listType="picture-card"
               fileList={fileList}
               onPreview={handlePreview}
+              multiple={multiple}
               onChange={onChange}
               onRemove={handleRemove}
               itemRender={(originNode, file) => (
                 <DraggableUploadListItem originNode={originNode} file={file} />
               )}
             >
-              {fileList?.length >= 8 ? null : (
-                <div>
-                  <PlusOutlined />
-                  <div style={{ marginTop: 8 }}>Upload</div>
-                </div>
-              )}
+              <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>Upload</div>
+              </div>
             </Upload>
           </SortableContext>
         </DndContext>
@@ -140,12 +139,10 @@ const MediaUpload = ({
           multiple={multiple}
           onRemove={handleRemove}
         >
-          {fileList?.length >= 8 ? null : (
-            <div>
-              <PlusOutlined />
-              <div style={{ marginTop: 8 }}>Upload</div>
-            </div>
-          )}
+          <div>
+            <PlusOutlined />
+            <div style={{ marginTop: 8 }}>Upload</div>
+          </div>
         </Upload>
       )}
       {previewImage && (

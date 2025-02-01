@@ -62,7 +62,7 @@ export default function Hero() {
             <Image
               src={slide.background}
               alt={`Background for ${slide.title}`}
-              layout="fill"
+              fill
               objectFit="cover"
               priority={index === 0}
               className="object-center opacity-80"

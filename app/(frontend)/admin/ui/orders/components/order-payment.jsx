@@ -1,6 +1,7 @@
 "use client";
 import { Card, Space, Row, Col, Typography, Divider } from "antd";
 import { DollarOutlined } from "@ant-design/icons";
+import { formatToNaira } from "@/utils/getFunc";
 
 const { Text } = Typography;
 
@@ -30,13 +31,13 @@ export default function OrderPayment({ order }) {
           <Text strong>Total</Text>
         </Col>
         <Col>
-          <Text strong>${order.total}</Text>
+          <Text strong>{formatToNaira(order.total)}</Text>
         </Col>
       </Row>
       <Divider />
       <Row justify="space-between">
         <Col>Paid by customer</Col>
-        <Col>${order.total}</Col>
+        <Col>{formatToNaira(order.total)}</Col>
       </Row>
     </Card>
   );

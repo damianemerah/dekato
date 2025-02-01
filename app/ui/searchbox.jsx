@@ -154,7 +154,7 @@ const SearchBox = ({ className }) => {
                           />
                         </div>
                         <Link
-                          href={`/p/${product.slug}-${product.id}`}
+                          href={`/product/${product.slug}-${product.id}`}
                           className="flex-1 py-2 text-sm text-primary hover:text-gray-900"
                         >
                           {product.name}
@@ -241,7 +241,7 @@ const SearchBox = ({ className }) => {
                             />
                           </div>
                           <Link
-                            href={`/p/${product.slug}-${product.id}`}
+                            href={`/product/${product.slug}-${product.id}`}
                             className="flex-1 py-2 text-sm text-gray-800 hover:text-gray-900"
                           >
                             {product.name}

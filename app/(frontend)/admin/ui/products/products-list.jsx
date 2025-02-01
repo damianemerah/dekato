@@ -33,11 +33,10 @@ const Action = memo(
   }),
 );
 
-const ProductsList = memo(function ProductsList({ searchParams }) {
+const ProductsList = memo(function ProductsList({ searchParams, data }) {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [totalCount, setTotalCount] = useState(1);
-  const [limit, setLimit] = useState(2);
+  const [totalCount, setTotalCount] = useState(data.totalCount || 1);
+  const [limit, setLimit] = useState(searchParams.limit || 20);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -48,13 +47,23 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
   const page = useMemo(() => searchParams.page || 1, [searchParams]);
 
   const {
-    data: productData,
+    data: productsData,
     mutate,
     isLoading,
-  } = useSWR(`/admin/products?page=${page}`, () => getAdminProduct({ page }), {
-    revalidateOnFocus: false,
-    refreshInterval: 100000,
-  });
+  } = useSWR(
+    `/admin/products?page=${page}`,
+    () => getAdminProduct({ page, limit }),
+    {
+      fallbackData: data,
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+      refreshInterval: 100000,
+      onSuccess: (data) => {
+        setTotalCount(data.totalCount);
+        setLimit(data.limit);
+      },
+    },
+  );
 
   const { data: categoryData } = useSWRImmutable(
     "/api/allCategories",
@@ -71,14 +80,6 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
       revalidateOnFocus: false,
     },
   );
-
-  useEffect(() => {
-    if (productData) {
-      setTotalCount(productData.totalCount);
-      setProducts(productData.data);
-      setLimit(productData.limit);
-    }
-  }, [productData]);
 
   const handleDelete = useCallback(
     async (id) => {
@@ -145,8 +146,8 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
 
   const dataSource = useMemo(
     () =>
-      Array.isArray(products)
-        ? products.map((item) => ({
+      Array.isArray(productsData?.data)
+        ? productsData.data.map((item) => ({
             key: item.id,
             image: item.image[0],
             name: item.name,
@@ -165,7 +166,7 @@ const ProductsList = memo(function ProductsList({ searchParams }) {
             ),
           }))
         : [],
-    [products, handleDelete, handleArchive],
+    [productsData?.data, handleDelete, handleArchive],
   );
 
   const handleAddToSales = useCallback(() => {

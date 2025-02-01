@@ -46,6 +46,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    orderCount: { type: Number, default: 0 },
+    amountSpent: {
+      type: Number,
+      default: 0,
+      set: (value) => {
+        // Ensure the value is a valid number
+        return isNaN(value) ? 0 : Math.round(value);
+      },
+    },
     passwordConfirm: {
       type: String,
       validate: {
@@ -138,18 +147,6 @@ userSchema.methods.addToWishlist = function (productId) {
   }
   return this.save({ validateBeforeSave: false });
 };
-
-userSchema.virtual("orderCount", {
-  ref: "Order",
-  localField: "_id",
-  foreignField: "userId",
-  count: true,
-});
-
-// userSchema.virtual("amountSpent").get(async function () {
-//   const orders = await Order.find({ userId: this._id });
-//   return orders.reduce((acc, order) => acc + order.total, 0);
-// });
 
 userSchema.plugin(mongooseLeanVirtuals);
 

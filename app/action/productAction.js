@@ -176,12 +176,12 @@ export async function productSearch(searchQuery) {
   }
 }
 
-export async function getVariantsByCategory(catName, searchStr = "") {
+export async function getVariantsByCategory(catArr, searchStr = "") {
   try {
     await dbConnect();
     let matchCondition = {};
 
-    if (searchStr && catName.toLowerCase() === "search") {
+    if (searchStr && catArr[0].toLowerCase() === "search") {
       const regexPattern = searchStr
         .split(" ")
         .map((word) => `\\b${word.trim()}`)
@@ -193,18 +193,43 @@ export async function getVariantsByCategory(catName, searchStr = "") {
           { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
         ],
       };
-    } else if (catName && catName !== "search") {
-      const category = await Category.findOne({ slug: catName }).lean();
-      if (!category) {
-        // Check if it's a campaign
-        const campaign = await Campaign.findOne({ slug: catName }).lean();
-        if (!campaign) {
-          return []; // Return empty array if neither category nor campaign found
+    } else if (Array.isArray(catArr) && catArr[0].toLowerCase() !== "search") {
+      let category;
+      let campaign;
+
+      if (catArr.length === 2) {
+        // Find child category with parent/child path
+        const path = `${catArr[0]}/${catArr[1]}`;
+
+        category = await Category.findOne({ path: { $in: [path] } }).lean();
+
+        if (!category) {
+          campaign = await Campaign.findOne({ path: { $in: [path] } }).lean();
         }
+      } else if (catArr.length === 1) {
+        // Find parent category
+        category = await Category.findOne({
+          slug: catArr[0].toLowerCase(),
+          parent: null,
+        }).lean();
+        if (!category) {
+          campaign = await Campaign.findOne({
+            slug: catArr[0].toLowerCase(),
+          }).lean();
+        }
+      }
+
+      if (!category && !campaign) {
+        return []; // Return empty if no match found
+      }
+
+      if (campaign) {
         matchCondition = { campaign: campaign._id };
       } else {
         matchCondition = {
-          category: { $in: [category._id, ...(category.children || [])] },
+          category: {
+            $in: [category._id, ...(category.children || [])],
+          },
         };
       }
     } else {
@@ -225,8 +250,8 @@ export async function getVariantsByCategory(catName, searchStr = "") {
     return []; // Return empty array on error
   }
 }
+
 export async function getAllProducts(slugArray, searchParams = {}) {
-  console.log(slugArray, "slugArrayyy");
   try {
     await dbConnect();
 
@@ -296,6 +321,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
           { category: { $in: categoryIds } },
           { campaign: { $in: campaignIds } },
         ],
+        status: "active",
       })
         .select(
           "name slug _id image price discount status quantity discountPrice discountDuration variant",
@@ -458,8 +484,6 @@ export async function updateProduct(formData) {
     if (!id) throw new Error("Product not found");
 
     const data = await handleFormData(formData);
-
-    console.log(data, "data😎⭐⭐");
 
     const productData = await Product.findOneAndUpdate({ _id: id }, data, {
       new: true,

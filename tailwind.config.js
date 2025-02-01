@@ -10,11 +10,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // primary: "#09090b",
-        primary: "#303030",
+        // primary: "#303030",
+        primary: "#212529",
         primaryDark: "#1a1a1a",
-        // secondary: "#334155",
-        secondary: "#0e7490",
+        secondary: "#00385f",
+        // secondary: "#0e7490",
         // grayBg: "#f6f6f6",
         grayBg: "#F0F2F2",
         grayText: "#828282",
@@ -36,8 +36,8 @@ module.exports = {
         14: "repeat(14, minmax(0, 1fr))",
       },
       fontFamily: {
-        oswald: ["var(--font-oswald)"],
-        roboto: ["var(--font-roboto)"],
+        oswald: ["var(--font-oswald, Oswald)", "sans-serif"],
+        roboto: ["var(--font-roboto, Roboto)", "sans-serif"],
       },
       fontSize: {
         xxs: "10px",

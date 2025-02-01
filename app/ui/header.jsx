@@ -60,9 +60,9 @@ function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-[55] flex h-14 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
+        className={`${oswald.className} sticky top-0 z-[55] flex h-14 w-full items-center justify-between !bg-primary px-2 text-white sm:px-4 lg:px-10`}
       >
-        <div className="flex w-full items-center justify-between font-oswald">
+        <div className="flex w-full items-center justify-between">
           <div className="flex h-full flex-1 items-center justify-start space-x-2 sm:space-x-4 lg:space-x-8">
             <div
               onClick={() => {

@@ -17,3 +17,18 @@ export function createSearchParams(params) {
 
   return searchParams.toString();
 }
+
+export const formatCategories = (categories) => {
+  return categories?.map(({ _id, parent, createdAt, ...rest }) => {
+    const { _id: pid, ...p } = parent || {};
+    const formattedCategory = {
+      id: _id.toString(),
+      parent: parent ? { id: pid.toString(), ...p } : null,
+      ...rest,
+    };
+    if (createdAt) {
+      formattedCategory.createdAt = createdAt.toISOString();
+    }
+    return formattedCategory;
+  });
+};

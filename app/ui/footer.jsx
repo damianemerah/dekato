@@ -1,5 +1,6 @@
 "use client";
 
+import { roboto, oswald } from "@/style/font";
 import Paystack from "@/public/assets/icons/paystack.svg";
 import FacebookIcon from "@/public/assets/icons/Facebook.svg";
 import InstagramIcon from "@/public/assets/icons/Instagram.svg";
@@ -9,7 +10,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-white">
+    <footer className={`${roboto.className} bg-primary text-white`}>
       <div className="px-4 pb-10 pt-12 sm:px-8 sm:pt-20">
         <div className="flex flex-col justify-center gap-8 md:flex-row md:gap-28">
           <div className="flex flex-col gap-7">

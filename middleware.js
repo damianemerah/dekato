@@ -13,7 +13,6 @@ export async function middleware(request) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-
     if (!token) {
       const callbackUrl = encodeURIComponent(request.url);
       return NextResponse.redirect(

@@ -24,10 +24,6 @@ export async function GET() {
       await product.save();
     }
 
-    console.log(
-      `Reset discounts for ${products.length} products`,
-      "success💎💎💎😎",
-    );
     return NextResponse.json(
       { message: "Discounts reset successfully" },
       { status: 200 },

@@ -12,6 +12,7 @@ import {
 } from "antd";
 import { CheckCircleOutlined, MoreOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { formatToNaira } from "@/utils/getFunc";
 
 const { Text } = Typography;
 
@@ -36,13 +37,21 @@ export default function OrderProducts({ order, menu }) {
         renderItem={(item) => (
           <List.Item>
             <List.Item.Meta
-              avatar={<Avatar src={item.image} shape="square" size={64} />}
-              title={item.name}
+              avatar={
+                <Link href={`/admin/products/${item.productId}`}>
+                  <Avatar src={item.image} shape="square" size={64} />
+                </Link>
+              }
+              title={
+                <Link href={`/admin/products/${item.productId}`}>
+                  {item.name}
+                </Link>
+              }
               description={
                 <Space direction="vertical">
                   {item.option && (
-                    <Tag>
-                      {item.option.color} / {item.option.length}
+                    <Tag className="uppercase">
+                      {Object.values(item.option).join(" / ")}
                     </Tag>
                   )}
                   <Text type="secondary">SKU: {item.productId}</Text>
@@ -50,11 +59,9 @@ export default function OrderProducts({ order, menu }) {
               }
             />
             <div>
-              <Text>
-                ${item.price} x {item.quantity}
-              </Text>
               <br />
-              <Text strong>${item.price * item.quantity}</Text>
+              <Text strong>{formatToNaira(item.price * item.quantity)}</Text>
+              {/* <Text>{formatToNaira(item.price * item.quantity)}</Text> */}
             </div>
           </List.Item>
         )}

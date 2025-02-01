@@ -3,7 +3,7 @@ import Sidebar from "./sidebar";
 import Category from "@/models/category";
 import Campaign from "@/models/collection";
 import dbConnect from "@/lib/mongoConnection";
-import { formatCategories } from "@/app/action/categoryAction";
+import { formatCategories } from "@/utils/filterHelpers";
 
 const getCategories = unstable_cache(
   async () => {

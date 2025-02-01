@@ -34,6 +34,8 @@ export async function getCheckoutData(userId) {
       0,
     );
 
+    console.log(cart.totalPrice, "🌐🌐🌐");
+
     return {
       userId,
       items: formattedItems,
@@ -58,8 +60,6 @@ function formatCartItem(cartItem) {
       ? variant.discountPrice
       : product.discountPrice
     : null;
-
-  console.log(discountPrice, "discountPrice⭐⭐");
 
   return {
     id: _id.toString(),

@@ -168,7 +168,6 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
         return;
       }
 
-      console.log(fileList[0], "fileList12");
       const id = uuidv4();
       addVariant({
         id,

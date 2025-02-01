@@ -45,7 +45,7 @@ cartItemSchema.virtual("currentPrice").get(function () {
     return discountPrice || price * (1 - this.product.discount / 100);
   }
 
-  return price;
+  return Math.round(price);
 });
 
 const cartSchema = new mongoose.Schema(
@@ -86,30 +86,34 @@ cartSchema.virtual("totalItems").get(function () {
 });
 
 cartSchema.virtual("totalPrice").get(function () {
-  return this.item.reduce((total, item) => {
-    if (item.checked && item.product) {
-      return total + item.currentPrice * item.quantity;
-    }
-    return total;
-  }, 0);
+  return Math.round(
+    this.item.reduce((total, item) => {
+      if (item.checked && item.product) {
+        return total + item.currentPrice * item.quantity;
+      }
+      return total;
+    }, 0),
+  );
 });
 
 cartSchema.virtual("amountSaved").get(function () {
-  return this.item.reduce((total, item) => {
-    if (item.checked && item.product && item.product.discount > 0) {
-      let regularPrice = item.product.price;
-      if (item.variantId && item.product.variant) {
-        const variant = item.product.variant.find(
-          (v) => v._id.toString() === item.variantId.toString(),
-        );
-        if (variant) {
-          regularPrice = variant.price;
+  return Math.round(
+    this.item.reduce((total, item) => {
+      if (item.checked && item.product && item.product.discount > 0) {
+        let regularPrice = item.product.price;
+        if (item.variantId && item.product.variant) {
+          const variant = item.product.variant.find(
+            (v) => v._id.toString() === item.variantId.toString(),
+          );
+          if (variant) {
+            regularPrice = variant.price;
+          }
         }
+        return total + (regularPrice - item.currentPrice) * item.quantity;
       }
-      return total + (regularPrice - item.currentPrice) * item.quantity;
-    }
-    return total;
-  }, 0);
+      return total;
+    }, 0),
+  );
 });
 
 cartSchema.plugin(mongooseLeanVirtuals);
