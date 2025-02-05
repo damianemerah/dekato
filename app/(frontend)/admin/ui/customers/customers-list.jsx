@@ -62,8 +62,6 @@ const CustomersList = ({ searchParams, data }) => {
     [showConfirmModal],
   );
 
-  console.log(userData.data);
-
   const dataSource = useMemo(() => {
     return userData?.data?.map((item) => ({
       key: item.id,

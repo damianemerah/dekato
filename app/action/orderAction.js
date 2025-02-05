@@ -119,8 +119,6 @@ export async function fulfillOrder(
   await dbConnect();
   await restrictTo("admin");
 
-  console.log(quantities, "r📁📁");
-
   try {
     const order = await Order.findById(id)
       .populate("userId", "email firstname lastName")

@@ -39,7 +39,6 @@ const Orders = React.memo(function Orders({ searchParams }) {
     () => getAllOrders({ page }),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => console.log(data, 111),
     },
   );
 
@@ -49,8 +48,6 @@ const Orders = React.memo(function Orders({ searchParams }) {
       setLimit(orderData.limit || 10);
     }
   }, [orderData]);
-
-  console.log(orderData.orders[0]);
 
   const orders = useMemo(
     () =>

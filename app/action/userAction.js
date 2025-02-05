@@ -428,7 +428,6 @@ export async function deleteUserAddress(addressId) {
 export async function getAllUsers(searchParams) {
   try {
     await dbConnect();
-    await restrictTo("admin");
 
     const page = parseInt(searchParams?.page) || 1;
     const limit = parseInt(searchParams?.limit) || 20;

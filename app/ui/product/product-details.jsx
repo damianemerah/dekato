@@ -203,7 +203,6 @@ const ProductDetail = memo(function ProductDetail({ product }) {
       }
       await mutate(`/api/user/${userId}`);
     } catch (error) {
-      console.log(error, "error");
       message.info("Unable to add to wishlist", 4);
     }
   }, [userId, user?.wishlist, product.id]);

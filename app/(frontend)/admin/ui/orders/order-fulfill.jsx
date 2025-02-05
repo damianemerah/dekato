@@ -58,14 +58,12 @@ function Fulfillment({ id }) {
   });
 
   const handleQuantityChange = (index, value) => {
-    console.log(quantities, 11111);
     const newQuantities = [...quantities];
     newQuantities[index] = value;
     setQuantities(newQuantities);
   };
 
   const handleFulfill = async () => {
-    console.log(quantities, 122);
     try {
       await fulfillOrder(
         id,

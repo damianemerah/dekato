@@ -87,7 +87,6 @@ const OrderDetails = React.memo(function OrderDetails({ params }) {
     () => getOrderById(id),
     {
       revalidateOnFocus: false,
-      onSuccess: (data) => console.log(data),
     },
   );
 

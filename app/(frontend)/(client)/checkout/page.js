@@ -166,8 +166,6 @@ export default function CheckoutPage() {
       cardId: selectedPaymentMethod,
     };
 
-    console.log(data.amount, 12121);
-
     try {
       if (data.items.length > 0) {
         const res = await fetch(`/api/checkout/${user.id}`, {

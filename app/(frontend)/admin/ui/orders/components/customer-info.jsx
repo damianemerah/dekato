@@ -5,7 +5,6 @@ import { EditOutlined } from "@ant-design/icons";
 const { Text, Title } = Typography;
 
 export default function CustomerInfo({ order }) {
-  console.log(order.user, 12312);
   return (
     <>
       <Card
