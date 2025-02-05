@@ -23,6 +23,7 @@ import { oswald } from "@/style/font";
 import StoreIcon from "@/public/assets/icons/store.svg";
 import HomeIcon from "@/public/assets/icons/home.svg";
 import PlusIcon from "@/public/assets/icons/add.svg";
+import { message } from "antd";
 
 function PaymentOption({
   paymentMethods,
@@ -160,10 +161,12 @@ export default function CheckoutPage() {
       address: address?.find((add) => add.isDefault),
       email: user?.email,
       items: checkoutData?.items,
-      amount: checkoutData.totalPrice,
+      amount: checkoutData?.totalPrice,
       saveCard,
       cardId: selectedPaymentMethod,
     };
+
+    console.log(data.amount, 12121);
 
     try {
       if (data.items.length > 0) {
@@ -180,9 +183,12 @@ export default function CheckoutPage() {
         if (response.success) {
           window.location.href = response.data.payment.data.authorization_url;
         }
+        if (!response.success) {
+          throw new Error(response.message || "Something went wrong");
+        }
       }
     } catch (error) {
-      console.error(error);
+      message.info(error.message);
     } finally {
       setIsProcessingPayment(false);
     }
@@ -345,10 +351,10 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!checkoutData?.itemCount) {
+  if (checkoutData && !checkoutData.itemCount) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-6">
-        <p className="text-xl text-gray-600">Your cart is empty</p>
+        <p className="text-xl text-gray-600">No product selected</p>
         <Link href="/">
           <ButtonSecondary className="px-6 py-3">
             Continue Shopping

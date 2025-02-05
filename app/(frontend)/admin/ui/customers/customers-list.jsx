@@ -1,22 +1,44 @@
 "use client";
 
-import { useState, memo, useCallback } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { Button, Flex, Table, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import useConfirmModal from "@/app/ui/confirm-modal";
-import { deleteUser } from "@/app/action/userAction";
-import dynamic from "next/dynamic";
-import { LoadingSpinner } from "@/app/ui/spinner";
-
-const Action = dynamic(() => import("@/app/(frontend)/admin/ui/table-action"), {
-  ssr: false,
-  loading: () => <LoadingSpinner />,
-});
-
-const CustomersList = ({ customers, isLoading, mutate }) => {
+import { deleteUser, getAllUsers } from "@/app/action/userAction";
+import useSWR from "swr";
+import { useRouter } from "next/navigation";
+const CustomersList = ({ searchParams, data }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [limit] = useState(searchParams?.limit || 20);
+  const page = useMemo(() => searchParams.page || 1, [searchParams]);
+  const [totalCount, setTotalCount] = useState(
+    data?.pagination?.totalCount || 0,
+  );
+
+  const router = useRouter();
+
   const showConfirmModal = useConfirmModal();
+
+  const { data: userData, isLoading } = useSWR(
+    `/api/users?page=${page}`,
+    () => getAllUsers({ page, limit }),
+    {
+      revalidateOnFocus: false,
+      fallbackData: data,
+      keepPreviousData: true,
+      onSuccess: (data) => {
+        setTotalCount(data.pagination.totalCount);
+      },
+    },
+  );
+
+  const handlePageChange = useCallback(
+    (page) => {
+      router.push(`/admin/customers?page=${page}`);
+    },
+    [router],
+  );
 
   const handleDelete = useCallback(
     async (id) => {
@@ -27,7 +49,6 @@ const CustomersList = ({ customers, isLoading, mutate }) => {
           async onOk() {
             try {
               await deleteUser(id);
-              await mutate();
               message.success("Customer deleted successfully");
             } catch (error) {
               message.error(error.message || "Failed to delete customer");
@@ -38,17 +59,24 @@ const CustomersList = ({ customers, isLoading, mutate }) => {
         message.error("Failed to delete customer");
       }
     },
-    [showConfirmModal, mutate],
+    [showConfirmModal],
   );
 
-  const dataSource = customers?.map((item) => ({
-    key: item.id,
-    customer: item.firstname + " " + item.lastname,
-    email: item.email,
-    orders: item?.orderCount,
-    amountSpent: item?.totalSpent || "0",
-    action: <Action id={item.id} onDelete={handleDelete} />,
-  }));
+  console.log(userData.data);
+
+  const dataSource = useMemo(() => {
+    return userData?.data?.map((item) => ({
+      key: item.id,
+      customer: item.firstname + " " + item.lastname,
+      email: item.email,
+      orders: item?.orderCount,
+      amountSpent: item?.amountSpent,
+      action:
+        item?.active && item?.role !== "admin" ? (
+          <Button onClick={() => handleDelete(item.id)}>Deactivate</Button>
+        ) : null,
+    }));
+  }, [userData?.data, handleDelete]);
 
   const columns = [
     {
@@ -70,6 +98,7 @@ const CustomersList = ({ customers, isLoading, mutate }) => {
       dataIndex: "amountSpent",
       sorter: (a, b) => a.amountSpent - b.amountSpent,
     },
+
     {
       title: "Action",
       dataIndex: "action",
@@ -103,13 +132,18 @@ const CustomersList = ({ customers, isLoading, mutate }) => {
         rowSelection={rowSelection}
         columns={columns}
         dataSource={dataSource || []}
+        pagination={{
+          current: parseInt(page),
+          pageSize: limit,
+          showSizeChanger: false,
+          total: totalCount,
+          onChange: handlePageChange,
+        }}
         loading={
-          isLoading
-            ? {
-                indicator: <LoadingOutlined spin className="!text-primary" />,
-                size: "large",
-              }
-            : false
+          isLoading && {
+            indicator: <LoadingOutlined spin className="!text-primary" />,
+            size: "large",
+          }
         }
         scroll={{ x: "max-content" }}
         className="overflow-x-auto sm:overflow-x-auto md:overflow-x-visible"

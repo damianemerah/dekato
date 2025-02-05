@@ -22,11 +22,17 @@ const orderSchema = new mongoose.Schema(
         option: { type: Object },
         variantId: { type: String },
         cartItemId: { type: String },
+        fulfilledItems: Number,
       },
     ],
     cartItems: [String],
     total: { type: Number, required: true, min: 0 },
+    totalItems: Number,
+    tracking: String,
+    trackingLink: String,
+    carrier: String,
     status: String,
+    isFulfilled: Boolean,
     shippingMethod: {
       type: String,
       lowercase: true,
@@ -59,6 +65,12 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ paymentRef: 1, userId: 1 });
+orderSchema.index({ userId: 1 }); // Index for user queries
+orderSchema.index({ status: 1 }); // Index for status filtering
+orderSchema.index({ createdAt: -1 }); // Index for sorting by date
+orderSchema.index({ deliveryStatus: 1 }); // Index for delivery status queries
+orderSchema.index({ paymentMethod: 1 }); // Index for payment method filtering
+orderSchema.index({ "products.productId": 1 }); // Index for product lookups
 
 const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 

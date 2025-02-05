@@ -79,7 +79,7 @@ const Categories = ({ searchParams }) => {
   const [changedRows, setChangedRows] = useState({});
   const [categories, setCategories] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(searchParams?.limit || 10);
 
   const router = useRouter();
 

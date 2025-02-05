@@ -39,6 +39,7 @@ const Orders = React.memo(function Orders({ searchParams }) {
     () => getAllOrders({ page }),
     {
       revalidateOnFocus: false,
+      onSuccess: (data) => console.log(data, 111),
     },
   );
 
@@ -49,26 +50,30 @@ const Orders = React.memo(function Orders({ searchParams }) {
     }
   }, [orderData]);
 
+  console.log(orderData.orders[0]);
+
   const orders = useMemo(
     () =>
       orderData?.orders?.map((item) => ({
         key: item.id,
         id: item.id,
-        fulfillmentStatus: (
+        deliveryStatus: (
           <Tag
             color={
-              item.status === "success"
+              item.deliveryStatus === "delivered" || item.status === "shipped"
                 ? "green"
-                : item.status === "failed"
+                : item.deliveryStatus === "cancelled"
                   ? "red"
                   : "orange"
             }
           >
-            {item.status === "success"
-              ? "Fulfilled"
-              : item.status === "failed"
-                ? "Failed"
-                : "Pending"}
+            {item.deliveryStatus === "delivered"
+              ? "Delivered"
+              : item.deliveryStatus === "shipped"
+                ? "Shipped"
+                : item.deliveryStatus === "failed"
+                  ? "Failed"
+                  : "Pending"}
           </Tag>
         ),
         paymentStatus: (
@@ -136,16 +141,17 @@ const Orders = React.memo(function Orders({ searchParams }) {
           record.paymentStatus.props.children === value,
       },
       {
-        title: "Fulfillment Status",
-        dataIndex: "fulfillmentStatus",
-        key: "fulfillmentStatus",
+        title: "Delivery Status",
+        dataIndex: "deliveryStatus",
+        key: "deliveryStatus",
         filters: [
-          { text: "Fulfilled", value: "Fulfilled" },
-          { text: "Failed", value: "Failed" },
+          { text: "Delivered", value: "Delivered" },
+          { text: "Shipped", value: "Shipped" },
+          { text: "Cancelled", value: "Cancelled" },
           { text: "Pending", value: "Pending" },
         ],
         onFilter: (value, record) =>
-          record.fulfillmentStatus.props.children === value,
+          record.deliveryStatus.props.children === value,
       },
       {
         title: "Action",

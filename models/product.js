@@ -29,7 +29,6 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Price is required"],
       min: [0, "Price cannot be negative"],
-      max: [1000000, "Price cannot exceed 1,000,000"],
       set: (v) => Math.round(v),
     },
     discount: {

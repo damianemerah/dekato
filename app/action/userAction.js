@@ -235,10 +235,12 @@ export async function getUser(userId) {
     return null;
   }
 
-  const userData = await User.findById(userId).lean({ virtuals: true });
+  const userData = await User.findById(userId)
+    .where("active", true)
+    .lean({ virtuals: true });
 
   if (!userData) {
-    throw new Error("No user found with that ID");
+    throw new Error("No active user found with that ID");
   }
 
   const { _id, wishlist, ...rest } = userData;
@@ -337,12 +339,12 @@ export async function deleteUser(userId) {
   await dbConnect();
   await restrictTo("admin", "user");
 
-  const user = await User.findByIdAndDelete(userId);
+  const user = await User.findByIdAndUpdate(userId, { active: false });
 
   if (!user) {
     throw new Error("User not found");
   }
-
+  revalidatePath("/admin/customers");
   return null;
 }
 
@@ -429,15 +431,15 @@ export async function getAllUsers(searchParams) {
     await restrictTo("admin");
 
     const page = parseInt(searchParams?.page) || 1;
-    const limit = parseInt(searchParams?.limit) || 1;
+    const limit = parseInt(searchParams?.limit) || 20;
     const skip = (page - 1) * limit;
 
     const totalCount = await User.countDocuments();
-    const totalPages = Math.ceil(totalCount / limit);
 
     const usersDoc = await User.find()
       .skip(skip)
       .limit(limit)
+      .select("+active")
       .lean({ virtuals: true });
 
     const users = usersDoc.map((user) => {
@@ -452,7 +454,6 @@ export async function getAllUsers(searchParams) {
       data: users,
       pagination: {
         totalCount,
-        totalPages,
         currentPage: page,
         limit,
       },

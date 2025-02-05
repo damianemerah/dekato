@@ -89,15 +89,19 @@ const CartCard = ({ cartItem }) => {
             className="mr-2 h-5 w-5 cursor-pointer appearance-none self-center border border-gray-300 checked:border-gray-900 checked:bg-primary checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
           />
           <div className="w-[80px] sm:w-[120px]">
-            <div className="relative aspect-square w-full sm:aspect-[15/17]">
-              <Image
-                src={cartItem.image}
-                alt={cartItem.product.name}
-                fill
-                className="h-full w-full object-cover object-center"
-                loading="lazy"
-              />
-            </div>
+            <Link
+              href={`/product/${cartItem?.product?.slug}-${cartItem?.product?.id}`}
+            >
+              <div className="relative aspect-square w-full sm:aspect-[15/17]">
+                <Image
+                  src={cartItem.image}
+                  alt={cartItem.product.name}
+                  fill
+                  className="h-full w-full object-cover object-center"
+                  loading="lazy"
+                />
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -178,7 +182,10 @@ const CartCard = ({ cartItem }) => {
             <div className="flex flex-col items-center justify-between sm:flex-col sm:items-end">
               {cartItem.product.isDiscounted && (
                 <span className="text-xs text-gray-500 line-through sm:text-sm">
-                  {formatToNaira(cartItem.product.price)}
+                  {formatToNaira(
+                    (cartItem.variantId && cartItem.product.variant.price) ||
+                      cartItem.product.price,
+                  )}
                 </span>
               )}
               <span className="text-sm font-medium text-primary sm:text-base">

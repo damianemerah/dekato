@@ -5,6 +5,7 @@ import { EditOutlined } from "@ant-design/icons";
 const { Text, Title } = Typography;
 
 export default function CustomerInfo({ order }) {
+  console.log(order.user, 12312);
   return (
     <>
       <Card
@@ -16,7 +17,7 @@ export default function CustomerInfo({ order }) {
       <Card style={{ marginTop: 24 }} title="Customer">
         <Text>{`${order?.user?.firstname} ${order?.user?.lastname}`}</Text>
         <br />
-        <Text>{order?.user?.orderCount?.length} orders</Text>
+        <Text>Order count: {order?.user?.orderCount}</Text>
         <Divider />
         <Title level={5}>Contact Information</Title>
         <Text>{order?.user?.email}</Text>
@@ -24,7 +25,7 @@ export default function CustomerInfo({ order }) {
         <Text>{order.address?.phone || "No phone provided"}</Text>
         <Divider />
         <Title level={5}>Shipping Method</Title>
-        <Text>{order.shippingMethod}</Text>
+        <Text className="capitalize">{order.shippingMethod}</Text>
         {order.shippingMethod === "delivery" && (
           <>
             <Divider />
@@ -41,9 +42,6 @@ export default function CustomerInfo({ order }) {
             </Text>
           </>
         )}
-        <Divider />
-        <Title level={5}>Billing address</Title>
-        <Text type="secondary">Same as shipping address</Text>
       </Card>
     </>
   );

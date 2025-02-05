@@ -58,7 +58,7 @@ export const generateVariantOptions = (variants) => {
 
 export function getQueryObj(searchParams) {
   const params = Object.fromEntries(
-    //not price/quantity, convert -vr to array
+    // convert variant -vr to array, excluding umber field like price
     Object.entries(searchParams).map(([key, value]) => {
       return [
         key,

@@ -27,6 +27,18 @@ const SmallSpinner = ({ className }) => (
   />
 );
 
+const ModalSpinner = ({ className }) => (
+  <div
+    className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 ${className}`}
+    aria-busy="true"
+    aria-live="polite"
+  >
+    <div className="rounded-lg bg-white p-8 shadow-lg">
+      <BigSpinner className="!text-primary" />
+    </div>
+  </div>
+);
+
 function LoadingSpinner({ className }) {
   return (
     <div
@@ -37,4 +49,4 @@ function LoadingSpinner({ className }) {
   );
 }
 
-export { BigSpinner, SmallSpinner, LoadingSpinner };
+export { BigSpinner, SmallSpinner, LoadingSpinner, ModalSpinner };

@@ -34,6 +34,8 @@ export async function getCheckoutData(userId) {
       0,
     );
 
+    console.log(cart.totalPrice, "🌐🌐🌐");
+
     return {
       userId,
       items: formattedItems,

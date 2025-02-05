@@ -77,7 +77,7 @@ const CollectionList = ({ searchParams }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [limit, setLimit] = useState(2);
+  const [limit, setLimit] = useState(searchParams?.limit || 20);
 
   const router = useRouter();
 

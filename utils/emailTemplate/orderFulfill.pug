@@ -1,0 +1,28 @@
+extends baseEmail
+
+block content
+  p Hi #{firstName},
+  p Your order has been fulfilled successfully! 🎉
+  p Here are your order details:
+  table
+    thead
+      tr
+        th Product
+        th Quantity
+        th Price
+    tbody
+      each item in order.product
+        tr
+          td #{item.name}
+          td #{item.fulfilledItems}
+          td #{formatToNaira(item.price * item.fulfilledItems)}
+  if order.shippingMethod === 'delivery'
+    br
+    p Tracking Number: #{order.tracking}
+    p Carrier: #{order.carrier}
+    if order.trackingLink
+      p Track your order:
+        a(href=order.trackingLink) #{order.trackingLink}
+  p Shipping Method: #{order.shippingMethod}
+  p If you have any questions, feel free to contact us!
+  p - Dekato Team
