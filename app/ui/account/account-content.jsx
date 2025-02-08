@@ -13,6 +13,7 @@ import { InputType } from "@/app/ui/inputType";
 import { updateUserInfo, updatePassword } from "@/app/action/userAction";
 import { Package, Heart, CreditCard, User, Mail } from "lucide-react";
 import useOrders from "@/app/hooks/useOrders";
+import Image from "next/image";
 
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
@@ -98,10 +99,10 @@ export default function Overview() {
           <div>
             <div className="bg-white py-8">
               <div className="px-8">
-                <p className="text-lg font-medium">
+                <p className="mb-2 text-lg font-medium sm:text-xl">
                   {user?.firstname} {user?.lastname}
                 </p>
-                <p className="text-gray-600">{user?.email}</p>
+                <p className="mb-2 text-gray-600">{user?.email}</p>
               </div>
               <div className="flex flex-wrap gap-4 border-b px-8 py-4">
                 <button
@@ -184,24 +185,35 @@ export default function Overview() {
             <div className="space-y-4">
               {orders.map((order) => (
                 <div key={order.id} className="border p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Order #{order.paymentRef}</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-20 flex-shrink-0">
+                      <Image
+                        src={order.product?.[0]?.image || "/placeholder.jpg"}
+                        alt={order.product?.[0]?.name || "Product image"}
+                        width={80}
+                        height={80}
+                        className="h-full w-full object-cover object-center"
+                      />
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">${order.total}</p>
-                      <p className="text-sm text-gray-600">{order.status}</p>
+                    <div className="flex flex-1 items-center justify-between">
+                      <div>
+                        <p className="font-medium">Order #{order.paymentRef}</p>
+                        <p className="text-sm text-gray-600">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${order.total}</p>
+                        <p className="text-sm text-gray-600">{order.status}</p>
+                        <Link
+                          href={`/account/orders/${order.id}`}
+                          className="mt-2 inline-block text-sm text-secondary !underline"
+                        >
+                          View Details
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                  <Link
-                    href={`/account/orders/${order.id}`}
-                    className="mt-2 inline-block text-sm text-primary hover:underline"
-                  >
-                    View Details
-                  </Link>
                 </div>
               ))}
             </div>

@@ -5,7 +5,7 @@ import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
 import NextAuth from "next-auth";
 
-export const OPTIONS = {
+export const authOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -13,13 +13,12 @@ export const OPTIONS = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID || "your-google-client-id",
-      clientSecret: process.env.GOOGLE_SECRET || "your-google-client-secret",
+      clientId: process.env.GOOGLE_ID,
+      clientSecret: process.env.GOOGLE_SECRET,
     }),
     FacebookProvider({
-      clientId: process.env.FACEBOOK_ID || "your-facebook-client-id",
-      clientSecret:
-        process.env.FACEBOOK_SECRET || "your-facebook-client-secret",
+      clientId: process.env.FACEBOOK_ID,
+      clientSecret: process.env.FACEBOOK_SECRET,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -127,6 +126,6 @@ export const OPTIONS = {
   },
 };
 
-const handler = NextAuth(OPTIONS);
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

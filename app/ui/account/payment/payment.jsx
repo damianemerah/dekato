@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { oswald } from "@/style/font";
 import usePaymentData from "@/app/hooks/usePaymentData";
 import { SmallSpinner } from "@/app/ui/spinner";
 import { CloseOutlined } from "@ant-design/icons";
@@ -37,11 +36,11 @@ export default function Payment() {
 
   return (
     <div>
-      <h1 className="font-oswald text-xl font-medium uppercase text-gray-700">
+      <h1 className="my-6 font-oswald text-xl font-medium uppercase text-gray-700">
         Payment Methods
       </h1>
       {paymentMethods && paymentMethods.length > 0 ? (
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {paymentMethods.map((card) => (
             <div
               key={card.id}

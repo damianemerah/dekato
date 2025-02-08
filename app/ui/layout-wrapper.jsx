@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useSidebarStore } from "@/store/store";
 import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
 import Footer from "@/app/ui/footer";
-import NewsLetter from "../(frontend)/(client)/(home)/newsletter";
+import NewsLetter from "../(client)/(home)/newsletter";
 import Checkmark from "@/public/assets/icons/check.svg?url";
+
 const LayoutWrapper = ({ children }) => {
   const isBelowThreshold = useIsBelowThreshold();
   const { isSidebarOpen, lgScreenSidebar, isMobile, toggleSidebar } =
@@ -27,11 +28,11 @@ const LayoutWrapper = ({ children }) => {
           (lgScreenSidebar || isBelowThreshold)
             ? "[@media(min-width:1250px)]:w-[calc(100vw-280px)]"
             : ""
-        } min-h-screen w-screen transition-[width] duration-300 ease-in-out`}
+        } min-h-screen w-full transition-[width] duration-300 ease-in-out`}
       >
         {isMobile && isSidebarOpen && (
           <div
-            className="fixed z-40 h-full w-full bg-black/50 transition-opacity duration-300"
+            className="fixed inset-0 z-40 h-full w-full bg-black/50 transition-opacity duration-300"
             onClick={toggleSidebar}
           />
         )}

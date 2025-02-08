@@ -1,13 +1,11 @@
 "use client";
 
-import { oswald } from "@/style/font";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { observeElement } from "@/utils/observer";
 import BlogCard from "@/app/ui/blog-card";
 import useSWR from "swr";
 import { getAllBlogs } from "@/app/action/blogAction";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../button";
 import Link from "next/link";
 
@@ -19,7 +17,9 @@ const Gallery = dynamic(() => import("@/app/ui/home/Gallery"), {
 function GallerySkeleton() {
   return (
     <div className="mb-10">
-      <h2 className={`${oswald.className} py-6`}>FOLLOW OUR INSTAGRAM</h2>
+      <h2 className={`py-6 font-oswald`}>
+        <div className="h-8 w-64 animate-pulse bg-gray-200" />
+      </h2>
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-5 sm:gap-3">
         {[...Array(7)].map((_, index) => (
           <div
@@ -28,30 +28,46 @@ function GallerySkeleton() {
               index === 2
                 ? "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2"
                 : ""
-            }`}
+            } relative`}
           >
-            <div className="aspect-square w-full animate-pulse bg-gray-300" />
+            <div className="aspect-square w-full animate-pulse bg-gray-200">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-300/30" />
+            </div>
           </div>
         ))}
       </div>
     </div>
   );
 }
+
 function BlogSkeleton() {
   return (
     <div className="my-10 bg-white px-4 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <div className="mx-auto h-8 w-48 animate-pulse bg-gray-200" />
+      </div>
       <div className="relative">
-        <div className="no-scrollbar flex snap-x gap-4 overflow-x-auto overflow-y-hidden scroll-smooth">
+        <div className="lg:no-scrollbar flex snap-x gap-4 overflow-x-auto overflow-y-hidden scroll-smooth">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="w-[75vw] min-w-[280px] max-w-[480px] flex-shrink-0 snap-start first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-9rem)]"
+              className="w-2/3 min-w-[280px] max-w-[420px] flex-shrink-0 snap-start bg-white first:pl-0 sm:w-[calc(50vw-3rem)]"
             >
-              <div className="aspect-[16/9] animate-pulse bg-gray-200" />
-              <div className="mt-4 space-y-3">
-                <div className="h-6 w-3/4 animate-pulse rounded bg-gray-200" />
-                <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
-                <div className="h-20 animate-pulse rounded bg-gray-200" />
+              <div className="flex flex-col shadow-sm">
+                <div className="relative aspect-[16/9] w-full overflow-hidden">
+                  <div className="h-full w-full animate-pulse bg-gray-200" />
+                </div>
+                <div className="flex flex-col p-4 sm:p-6">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+                  </div>
+                  <div className="mb-3 h-6 w-full animate-pulse rounded bg-gray-200" />
+                  <div className="mb-4 h-16 w-full animate-pulse rounded bg-gray-200" />
+                  <div className="mt-auto flex justify-center">
+                    <div className="h-8 w-28 animate-pulse rounded bg-gray-200" />
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -119,67 +135,39 @@ export default function BelowFold() {
       {isLoading ? (
         <BlogSkeleton />
       ) : (
-        <div className="px-4 py-12 sm:px-6 lg:px-8">
-          <h2
-            className={`${oswald.className} mb-6 text-center font-bold md:text-left`}
-          >
-            LATEST FASION
-          </h2>
-          <div className="relative">
-            <div
-              ref={containerRef}
-              className="no-scrollbar flex snap-x gap-4 overflow-x-auto overflow-y-hidden scroll-smooth md:gap-8"
-            >
-              {blogs?.data?.map((blog) => (
-                <div
-                  key={blog.id}
-                  className="w-[75vw] min-w-[280px] max-w-[480px] flex-shrink-0 snap-start bg-white first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-3rem)]"
-                >
-                  <BlogCard
-                    blog={blog}
-                    className="h-full w-full border-primary !text-primary"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {blogs?.data?.length > 0 && (
-              <>
-                <button
-                  onClick={() => scroll("left")}
-                  disabled={scrollPosition <= 0}
-                  className={`absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md transition-opacity hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    scrollPosition <= 0 ? "opacity-50" : "opacity-100"
-                  }`}
-                  aria-label="View previous items"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={() => scroll("right")}
-                  disabled={scrollPosition >= maxScroll}
-                  className={`absolute right-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md transition-opacity hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    scrollPosition >= maxScroll ? "opacity-50" : "opacity-100"
-                  }`}
-                  aria-label="View next items"
-                >
-                  <ChevronRight className="wp-6 h-6" />
-                </button>
-              </>
-            )}
-          </div>
-          <div className="mt-6 flex items-center justify-center">
-            <Link href="/fashion">
-              <Button
-                className="mt-auto inline-flex items-center justify-center px-4 py-1 text-sm font-semibold uppercase transition-colors hover:bg-primary hover:text-white sm:px-6"
-                aria-label="View all fashion blog posts"
-                aria-describedby="fashion-blog-description"
+        blogs?.data && (
+          <div className="px-6 py-12 lg:px-14 xl:px-28">
+            <h2 className={`mb-6 text-center font-oswald font-bold`}>
+              LATEST FASHION
+            </h2>
+            <div className="relative">
+              <div
+                ref={containerRef}
+                className="grid grid-cols-1 gap-4 overflow-x-auto overflow-y-hidden scroll-smooth sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:overflow-x-visible"
               >
-                View more
-              </Button>
-            </Link>
+                {blogs?.data?.map((blog) => (
+                  <div key={blog.id} className="h-full w-full bg-white">
+                    <BlogCard
+                      blog={blog}
+                      className="h-full w-full !text-primary"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-center">
+              <Link href="/fashion">
+                <Button
+                  className="mt-auto inline-flex items-center justify-center px-4 py-1.5 text-sm font-semibold uppercase transition-colors hover:bg-primaryDark hover:text-white sm:px-6"
+                  aria-label="View all fashion blog posts"
+                  aria-describedby="fashion-blog-description"
+                >
+                  View more
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        )
       )}
       <div ref={galleryRef} className="mx-auto bg-white px-4 sm:px-6 lg:px-8">
         {showGallery ? <Gallery /> : <GallerySkeleton />}

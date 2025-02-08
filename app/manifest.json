@@ -1,0 +1,53 @@
+{
+  "name": "Dekato Store",
+  "short_name": "Dekato",
+  "description": "Premium fashion and lifestyle e-commerce store offering the latest trends in clothing, shoes, and accessories.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#212529",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle", "fashion"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Home page of Dekato Store"
+    },
+    {
+      "src": "/screenshots/product.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Product page showing clothing details"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Shop Men",
+      "url": "/shop/men",
+      "description": "Browse men's collection"
+    },
+    {
+      "name": "Shop Women",
+      "url": "/shop/women",
+      "description": "Browse women's collection"
+    },
+    {
+      "name": "Cart",
+      "url": "/cart",
+      "description": "View shopping cart"
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { EmailSubscription } from "@/models/subscription";
 import dbConnect from "@/lib/mongoConnection";
 import Email from "@/lib/email";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 
 export async function POST(req) {
   try {
@@ -125,6 +125,15 @@ export async function PATCH(req) {
       subscription.status = status;
       subscription.gender = gender;
       await subscription.save();
+    }
+
+    try {
+      const url = `${process.env.NEXTAUTH_URL}`;
+      const emailObj = new Email({ email }, url);
+      await emailObj.emailSubscription();
+    } catch (error) {
+      console.error("Error sending confirmation email:", error);
+      // Don't fail the subscription if email fails
     }
 
     revalidateTag("emailSubscription");

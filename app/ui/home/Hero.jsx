@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { oswald } from "@/style/font";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const slides = [
@@ -46,9 +45,7 @@ export default function Hero() {
   }, [nextSlide]);
 
   return (
-    <section
-      className={`${oswald.className} relative w-full overflow-hidden bg-black`}
-    >
+    <section className="relative w-full overflow-hidden bg-black font-oswald">
       <div className="relative h-[60vh] max-h-[800px] min-h-[400px] sm:h-[80vh] sm:min-h-[600px]">
         {slides.map((slide, index) => (
           <div
@@ -63,9 +60,9 @@ export default function Hero() {
               src={slide.background}
               alt={`Background for ${slide.title}`}
               fill
-              objectFit="cover"
+              sizes="100vw"
               priority={index === 0}
-              className="object-center opacity-80"
+              className="object-cover object-center opacity-80"
             />
             <div className="absolute inset-0 bg-black/40" />
             <div className="container relative mx-auto h-full px-4 sm:px-6 lg:px-8">

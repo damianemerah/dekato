@@ -9,7 +9,6 @@ import {
 } from "@ant-design/icons";
 import { formatToNaira } from "@/utils/getFunc";
 import { usePathname } from "next/navigation";
-import { oswald } from "@/style/font";
 import Link from "next/link";
 
 const PromoBar = () => {
@@ -58,9 +57,9 @@ const PromoBar = () => {
 
   return (
     <div
-      className={`${oswald.className} ${pathname.startsWith("/product/") ? "sticky top-0 z-[20]" : ""} `}
+      className={`font-oswald ${pathname.startsWith("/product/") ? "sticky top-0 z-[20]" : ""} `}
     >
-      <div className="hidden gap-16 md:flex md:h-10 md:items-center md:justify-center md:bg-white md:px-8">
+      <div className="hidden h-10 gap-16 md:flex md:items-center md:justify-center md:bg-white md:px-8">
         {promos.map(({ icon, text }, index) => (
           <div
             key={index}
@@ -81,10 +80,10 @@ const PromoBar = () => {
         <nav>
           <ul className="flex items-center justify-center gap-8 border-t border-t-primary/10 bg-white px-8 py-3.5 font-oswald text-sm font-semibold uppercase sm:hidden">
             <li>
-              <Link href="/men">Shop men</Link>
+              <Link href="/shop/men">Shop men</Link>
             </li>
             <li>
-              <Link href="/women">Shop women</Link>
+              <Link href="/shop/women">Shop women</Link>
             </li>
           </ul>
         </nav>

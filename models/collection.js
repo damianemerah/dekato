@@ -165,7 +165,7 @@ campaignSchema.pre("findOneAndUpdate", async function (next) {
       .findById(update.category || doc.category);
     if (categoryDoc) {
       const newSlug = update.slug || doc.slug;
-      update.path = [newSlug, `${categoryDoc.slug}/${newSlug}`];
+      update.path = [`${categoryDoc.slug}/${newSlug}`];
     } else {
       return next(new Error("Category not found"));
     }
