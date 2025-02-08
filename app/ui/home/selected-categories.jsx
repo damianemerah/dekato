@@ -1,18 +1,19 @@
 "use client";
 import { useState, useEffect, useCallback, memo } from "react";
-import { oswald } from "@/style/font";
 import useSWRImmutable from "swr/immutable";
 import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
 import { useCategoryStore, useRecommendMutateStore } from "@/store/store";
 import dynamic from "next/dynamic";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Campaign from "./Campaign";
 
 const CategoryLink = dynamic(() => import("./category-link"), {
   ssr: false,
   loading: () => (
-    <div className="flex aspect-square w-full animate-pulse items-end justify-center bg-gray-200 px-2 pb-4 sm:px-3 sm:pb-6 md:px-4 md:pb-8 lg:px-5 lg:pb-10">
-      <div className="h-8 w-32 rounded bg-gray-300" />
+    <div className="relative aspect-square w-full overflow-hidden">
+      <div className="absolute inset-0 animate-pulse bg-gray-200">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/20 to-gray-900/40" />
+        <div className="absolute bottom-4 left-1/2 h-6 w-32 -translate-x-1/2 animate-pulse rounded bg-gray-300 sm:bottom-6 md:bottom-8 lg:bottom-10" />
+      </div>
     </div>
   ),
 });
@@ -37,7 +38,7 @@ export default memo(function HomeCategory() {
     () => selectedCategory && getPinnedCategoriesByParent(selectedCategory),
     {
       revalidateOnFocus: false,
-      refreshInterval: 1000 * 60 * 5,
+      refreshInterval: 1000 * 60 * 60,
     },
   );
 
@@ -87,10 +88,10 @@ export default memo(function HomeCategory() {
   return (
     <>
       <div
-        className={`${oswald.className} min-h-[300px] px-4 py-6 sm:px-6 lg:px-8`}
+        className={`min-h-[300px] px-4 py-6 font-oswald sm:px-6 lg:px-8`}
         id="selected-category"
       >
-        <div className="ml-2 flex flex-col sm:ml-4 md:ml-8">
+        <div className="flex flex-col sm:ml-4 md:ml-8">
           <h2>SHOP BY CATEGORY</h2>
           <div className="mb-4 mt-4 flex flex-wrap gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
             <p className="whitespace-nowrap text-sm font-bold tracking-wide text-grayText">
@@ -115,23 +116,15 @@ export default memo(function HomeCategory() {
         </div>
 
         <div className="relative">
-          <button
-            onClick={() => handleScroll("left")}
-            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-
           <div
             id="category-container"
-            className="flex gap-4 overflow-x-auto scroll-smooth px-3 pb-4"
+            className={`lg:no-scrollbar lg-gap-6 flex gap-2 overflow-x-auto scroll-smooth pb-4 sm:gap-4 lg:overflow-x-visible`}
           >
             {isLoading
               ? Array.from({ length: 5 }).map((_, index) => (
                   <div
                     key={index}
-                    className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+                    className="w-1/3 flex-none md:w-1/4 lg:w-[calc(100%/5-16px)]"
                   >
                     <div className="aspect-square w-full animate-pulse bg-gray-200">
                       <div className="flex h-full items-end justify-center">
@@ -143,18 +136,11 @@ export default memo(function HomeCategory() {
               : categorizedListState.map((category, index) => (
                   <div
                     key={index}
-                    className="w-1/2 flex-none sm:w-1/3 md:w-1/4 lg:w-1/5"
+                    className="w-1/3 flex-none md:w-1/4 lg:w-[calc(100%/5-16px)]"
                   >
                     <CategoryLink category={category} />
                   </div>
                 ))}
-            <button
-              onClick={() => handleScroll("right")}
-              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/80 p-2 shadow-md transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
           </div>
         </div>
       </div>

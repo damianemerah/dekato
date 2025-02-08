@@ -1,4 +1,3 @@
-import { oswald } from "@/style/font";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -8,8 +7,8 @@ const CampaignSection = ({ image, title, priority = false }) => {
       <Image
         src={image}
         alt={`${title} for Men and Women`}
-        layout="fill"
-        objectFit="cover"
+        fill
+        style={{ objectFit: "cover" }}
         priority={priority}
       />
       <div className="absolute inset-0 bg-black bg-opacity-30" />
@@ -40,7 +39,7 @@ const CampaignSection = ({ image, title, priority = false }) => {
 
 export default function Campaign() {
   return (
-    <div className={`${oswald.className} mt-0.5 flex flex-col md:flex-row`}>
+    <div className={`mt-0.5 flex flex-col font-oswald md:flex-row`}>
       <CampaignSection
         image="/assets/image4.png"
         title="New Arrivals"

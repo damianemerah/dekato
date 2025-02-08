@@ -166,9 +166,6 @@ export async function updateCategory(formData) {
     // Return category with id instead of _id
     const { _id, parent, ...rest } = category;
 
-    revalidatePath(`/admin/categories/${category.slug}`);
-    revalidatePath(`/admin/categories`);
-
     return {
       id: _id.toString(),
       parent: parent

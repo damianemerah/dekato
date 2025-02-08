@@ -1,10 +1,8 @@
-import { oswald } from "@/style/font";
-
 export function Button({ children, className, type }) {
   return (
     <button
       href="#"
-      className={`${className} ${oswald.className} self-start border-2 border-primary px-8 py-1 text-[13px] font-semibold no-underline`}
+      className={`${className} self-start border-2 border-primaryDark px-8 py-1 font-oswald text-[13px] font-semibold no-underline`}
       type={type}
     >
       {children}
@@ -21,7 +19,7 @@ export function ButtonPrimary({
 }) {
   return (
     <button
-      className={`${oswald.className} ${className} h-[44px] px-8 py-2 uppercase text-white active:scale-95`}
+      className={`font-oswald ${className} h-[44px] px-8 py-2 uppercase text-white active:scale-95`}
       onClick={onClick}
       type={type}
       disabled={disabled}

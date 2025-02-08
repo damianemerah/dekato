@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { oswald } from "@/style/font";
 import DeleteIcon from "@/public/assets/icons/remove.svg";
 import {
   removeFromCart,
@@ -109,7 +108,7 @@ const CartCard = ({ cartItem }) => {
           <div className="mb-1 flex h-full items-start justify-between">
             <Link
               href={`/product/${cartItem?.product?.slug}-${cartItem?.product?.id}`}
-              className={`${oswald.className} mr-2 line-clamp-2 overflow-ellipsis text-sm capitalize text-gray-800 hover:opacity-70 sm:text-base`}
+              className={`mr-2 line-clamp-2 overflow-ellipsis font-oswald text-sm capitalize text-gray-800 hover:opacity-70 sm:text-base`}
             >
               {cartItem?.product?.name}
             </Link>

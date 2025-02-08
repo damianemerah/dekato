@@ -1,13 +1,25 @@
 import Image from "next/image";
-import { oswald } from "@/style/font";
 import { getOrderById } from "@/app/action/orderAction";
 import { Suspense } from "react";
 import { SmallSpinner } from "../../spinner";
+import { ButtonSecondary } from "../../button";
+import Link from "next/link";
+
 async function OrderDetailContent({ orderId }) {
   const order = await getOrderById(orderId);
 
   if (!order) {
-    return <div className="text-center text-red-500">Order not found</div>;
+    ("");
+    return (
+      <div className="flex h-[calc(100vh-35rem)] flex-col items-center justify-center gap-6">
+        <p className="text-xl text-gray-600">Order not found</p>
+        <Link href="/">
+          <ButtonSecondary className="px-6 py-3">
+            Continue Shopping
+          </ButtonSecondary>
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -33,7 +45,7 @@ async function OrderDetailContent({ orderId }) {
       <section className="mb-6" aria-labelledby="shipping-details">
         <h3
           id="shipping-details"
-          className={`${oswald.className} mb-4 text-lg font-semibold`}
+          className={`mb-4 font-oswald text-lg font-semibold`}
         >
           Shipping Details
         </h3>
@@ -55,7 +67,7 @@ async function OrderDetailContent({ orderId }) {
       <section className="mb-6" aria-labelledby="order-items">
         <h3
           id="order-items"
-          className={`${oswald.className} mb-4 text-lg font-semibold`}
+          className={`mb-4 font-oswald text-lg font-semibold`}
         >
           Order Items
         </h3>
@@ -74,9 +86,7 @@ async function OrderDetailContent({ orderId }) {
                   className="mr-4 rounded-md object-cover"
                 />
                 <div>
-                  <h4 className={`${oswald.className} font-semibold`}>
-                    {item.name}
-                  </h4>
+                  <h4 className={`font-oswald font-semibold`}>{item.name}</h4>
                   {item.option && (
                     <p className="text-sm text-gray-500">
                       {Object.entries(item.option)
@@ -99,7 +109,7 @@ async function OrderDetailContent({ orderId }) {
 
       <div className="border-t border-gray-200 pt-6">
         <div className="flex justify-between">
-          <h3 className={`${oswald.className} text-xl font-semibold`}>Total</h3>
+          <h3 className={`font-oswald text-xl font-semibold`}>Total</h3>
           <p className="text-xl font-semibold">${order?.total?.toFixed(2)}</p>
         </div>
       </div>
@@ -116,7 +126,7 @@ function OrderInfoItem({
   return (
     <div>
       <h4
-        className={`${oswald.className} text-sm font-semibold uppercase text-gray-500`}
+        className={`font-oswald text-sm font-semibold uppercase text-gray-500`}
       >
         {title}
       </h4>
@@ -128,10 +138,16 @@ function OrderInfoItem({
 export default function OrderDetail({ params }) {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className={`${oswald.className} mb-6 text-2xl font-bold sm:text-3xl`}>
+      <h1 className={`mb-6 font-oswald text-2xl font-bold sm:text-3xl`}>
         Order Details
       </h1>
-      <Suspense fallback={<SmallSpinner className="mx-auto" />}>
+      <Suspense
+        fallback={
+          <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
+            <SmallSpinner className="!text-primary" />
+          </div>
+        }
+      >
         <OrderDetailContent orderId={params.id} />
       </Suspense>
     </div>

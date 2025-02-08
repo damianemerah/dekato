@@ -55,7 +55,7 @@ export async function getOrderById(id) {
       .lean({ virtuals: true });
 
     if (!order) {
-      throw new Error("Order not found");
+      return null;
     }
 
     const renamedOrder = mapKeys(order, (value, key) =>

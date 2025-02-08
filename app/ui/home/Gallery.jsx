@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { oswald } from "@/style/font";
 
 const galleryImages = [
   { src: "/assets/image5.webp", alt: "Fashion model in urban setting" },
@@ -28,7 +27,7 @@ export default function Gallery() {
   return (
     <div className="py-12">
       {/* <div className="mb-10 text-center"> */}
-      <h2 className={`${oswald.className} mb-6 text-center md:text-left`}>
+      <h2 className={`mb-6 text-center font-oswald md:text-left`}>
         FOLLOW OUR INSTAGRAM
       </h2>
       {/* <p className="mt-4 text-lg">

@@ -1,0 +1,42 @@
+.sitemap-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.sitemap-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.sitemap-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sitemap-list-item {
+  margin: 10px 0;
+}
+
+.sitemap-list-item a {
+  text-decoration: none;
+  color: #0070f3;
+  transition: color 0.3s;
+}
+
+.sitemap-list-item a:hover {
+  color: #0056b3;
+}
+
+.sitemap-section {
+  margin-bottom: 30px;
+}
+
+.sitemap-section-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #555;
+}

@@ -1,6 +1,5 @@
 "use client";
 
-import { oswald } from "@/style/font";
 import { useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
@@ -64,7 +63,7 @@ const RecommendedProducts = ({ category, productId }) => {
 
   return (
     <div className="bg-white px-4 py-12 sm:px-6 lg:px-8">
-      <h2 className={`${oswald.className} mb-6 text-center md:text-left`}>
+      <h2 className={`mb-6 text-center font-oswald md:text-left`}>
         YOU MAY ALSO LIKE
       </h2>
       <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">

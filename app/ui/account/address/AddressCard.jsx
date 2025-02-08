@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef } from "react";
 import { ButtonPrimary } from "@/app/ui/button";
-import { oswald } from "@/style/font";
 import { InputType } from "@/app/ui/inputType";
 import { Modal, message } from "antd";
 import { updateUserAddress, createUserAddress } from "@/app/action/userAction";

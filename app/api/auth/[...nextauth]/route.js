@@ -1,11 +1,11 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import FacebookProvider from "next-auth/providers/facebook";
+// import FacebookProvider from "next-auth/providers/facebook";
 import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
 import NextAuth from "next-auth";
 
-export const OPTIONS = {
+export const authOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -13,18 +13,19 @@ export const OPTIONS = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID || "your-google-client-id",
-      clientSecret: process.env.GOOGLE_SECRET || "your-google-client-secret",
+      clientId: process.env.GOOGLE_ID,
+      clientSecret: process.env.GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
     }),
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_ID || "your-facebook-client-id",
-      clientSecret:
-        process.env.FACEBOOK_SECRET || "your-facebook-client-secret",
-    }),
+    // FacebookProvider({
+    //   clientId: process.env.FACEBOOK_ID,
+    //   clientSecret: process.env.FACEBOOK_SECRET,
+    //   allowDangerousEmailAccountLinking: true,
+    // }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {},
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         try {
           const { email, password } = credentials;
 
@@ -34,14 +35,22 @@ export const OPTIONS = {
 
           await dbConnect();
 
-          const user = await User.findOne({ email }).select(
-            "+password +passwordChangedAt",
-          );
+          const user = await User.findOne({ email })
+            .select("+password +passwordChangedAt")
+            .lean();
+
           if (!user) {
             throw new Error("User with that email not found");
           }
 
-          if (!(await user.correctPassword(password, user?.password))) {
+          const isValidPassword =
+            await User.schema.methods.correctPassword.call(
+              user,
+              password,
+              user.password,
+            );
+
+          if (!isValidPassword) {
             throw new Error("Invalid credentials");
           }
 
@@ -58,24 +67,30 @@ export const OPTIONS = {
         try {
           await dbConnect();
 
-          let existingUser = await User.findOne({ email: user.email });
+          const existingUser = await User.findOneAndUpdate(
+            { email: user.email },
+            {
+              $setOnInsert: {
+                email: user.email,
+                firstname: profile.given_name || user.name?.split(" ")[0] || "",
+                lastname: profile.family_name || user.name?.split(" ")[1] || "",
+                emailVerified: true,
+                role: "user",
+              },
+            },
+            {
+              upsert: true,
+              new: true,
+              lean: true,
+            },
+          );
 
-          if (!existingUser) {
-            // Create new user if doesn't exist
-            existingUser = await User.create({
-              email: user.email,
-              firstname: profile.given_name || user.name?.split(" ")[0] || "",
-              lastname: profile.family_name || user.name?.split(" ")[1] || "",
-              emailVerified: true,
-              role: "user",
-            });
-          }
-
-          // Update user object with existing user details
-          user._id = existingUser._id;
-          user.role = existingUser.role;
-          user.firstname = existingUser.firstname;
-          user.lastname = existingUser.lastname;
+          Object.assign(user, {
+            _id: existingUser._id,
+            role: existingUser.role,
+            firstname: existingUser.firstname,
+            lastname: existingUser.lastname,
+          });
 
           return true;
         } catch (error) {
@@ -87,15 +102,17 @@ export const OPTIONS = {
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.id = user._id;
-        token.role = user.role;
-        token.firstname = user.firstname;
-        token.lastname = user.lastname;
-        token.passwordChangedAt = user.passwordChangedAt?.getTime() || null;
+        Object.assign(token, {
+          id: user._id,
+          role: user.role,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          passwordChangedAt: user.passwordChangedAt?.getTime() || null,
+        });
       }
 
       if (trigger === "update" && session?.passwordChanged) {
-        token.passwordChangedAt = new Date().getTime();
+        token.passwordChangedAt = Date.now();
       }
 
       return token;
@@ -111,22 +128,22 @@ export const OPTIONS = {
           iat: token.iat,
         };
 
-        if (token.passwordChangedAt) {
-          if (token.passwordChangedAt > token.iat * 1000) {
-            return null;
-          }
+        if (
+          token.passwordChangedAt &&
+          token.passwordChangedAt > token.iat * 1000
+        ) {
+          return null;
         }
       }
 
       return session;
     },
   },
-
   pages: {
     signIn: "/signin",
   },
 };
 
-const handler = NextAuth(OPTIONS);
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

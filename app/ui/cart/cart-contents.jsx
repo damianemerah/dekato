@@ -2,7 +2,6 @@
 
 import { ButtonPrimary, ButtonSecondary } from "@/app/ui/button";
 import CartCards from "@/app/ui/cart/cart-card";
-import { oswald } from "@/style/font";
 import Link from "next/link";
 import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
 import ArrowRight from "@/public/assets/icons/arrow_right.svg";
@@ -78,7 +77,7 @@ function CartHeader() {
   return (
     <header className="flex items-center justify-between">
       <h1
-        className={`${oswald.className} mx-auto text-center text-2xl font-medium uppercase text-primary`}
+        className={`mx-auto text-center font-oswald text-2xl font-medium uppercase text-primary`}
       >
         Shopping Bag
       </h1>

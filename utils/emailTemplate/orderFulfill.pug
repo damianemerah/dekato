@@ -1,15 +1,15 @@
 extends baseEmail
 
 block content
-  p Hi #{firstName},
-  p Your order has been fulfilled successfully! 🎉
-  p Here are your order details:
-  table
+  p(style="text-align: center;") Hi #{firstName},
+  p(style="text-align: center;") Your order has been fulfilled successfully! 🎉
+  p(style="text-align: center;") Here are your order details:
+  table(role="table", aria-label="Order Details")
     thead
       tr
-        th Product
-        th Quantity
-        th Price
+        th(scope="col") Product
+        th(scope="col") Quantity
+        th(scope="col") Price
     tbody
       each item in order.product
         tr
@@ -18,11 +18,11 @@ block content
           td #{formatToNaira(item.price * item.fulfilledItems)}
   if order.shippingMethod === 'delivery'
     br
-    p Tracking Number: #{order.tracking}
-    p Carrier: #{order.carrier}
+    p(style="text-align: center;") Tracking Number: #{order.tracking}
+    p(style="text-align: center;") Carrier: #{order.carrier}
     if order.trackingLink
-      p Track your order:
-        a(href=order.trackingLink) #{order.trackingLink}
-  p Shipping Method: #{order.shippingMethod}
-  p If you have any questions, feel free to contact us!
-  p - Dekato Store
+      p(style="text-align: center;") Track your order:
+        a(href=order.trackingLink, aria-label="Track your order") #{order.trackingLink}
+  p(style="text-align: center;") Shipping Method: #{order.shippingMethod}
+  p(style="text-align: center;") If you have any questions, feel free to contact us!
+  p(style="text-align: center;") - Dekato Store

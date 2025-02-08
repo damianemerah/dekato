@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, memo, useCallback, useRef } from "react";
-import { oswald } from "@/style/font";
 
 import HeartIcon from "@/public/assets/icons/heart.svg";
 import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
@@ -25,10 +24,14 @@ const CollapsibleSection = memo(
     loading: () => (
       <div className="border-b border-gray-200 px-2 sm:px-5">
         <div className="flex items-center justify-between py-4">
-          <div className="h-4 w-32 animate-pulse bg-gray-200" />
-          <div className="h-6 w-6 animate-pulse bg-gray-200" />
+          <div className="h-6 w-48 animate-pulse bg-gray-200" />
+          <div className="h-6 w-6 animate-pulse rounded-full bg-gray-200" />
         </div>
-        <div className="h-20 w-full animate-pulse bg-gray-100" />
+        <div className="space-y-3 pb-4">
+          <div className="h-4 w-full animate-pulse bg-gray-100" />
+          <div className="h-4 w-3/4 animate-pulse bg-gray-100" />
+          <div className="h-4 w-1/2 animate-pulse bg-gray-100" />
+        </div>
       </div>
     ),
     ssr: false,
@@ -38,14 +41,14 @@ const CollapsibleSection = memo(
 const VariantOptionMap = memo(
   dynamic(() => import("./variant-option"), {
     loading: () => (
-      <div className="mb-4">
-        <div className="mb-2 h-6 w-32 animate-pulse bg-gray-200" />
+      <div className="mb-6">
+        <div className="mb-3 h-6 w-32 animate-pulse bg-gray-200" />
         <div className="flex flex-wrap gap-3">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-16 w-16 animate-pulse rounded-full bg-gray-200"
-            />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-2">
+              <div className="h-16 w-16 animate-pulse rounded-full border-2 border-gray-300 bg-gray-200" />
+              <div className="h-4 w-12 animate-pulse rounded bg-gray-200" />
+            </div>
           ))}
         </div>
       </div>
@@ -58,12 +61,26 @@ const ProductSwiper = memo(
   dynamic(() => import("@/app/ui/product/product-swiper"), {
     loading: () => (
       <div className="relative h-full w-full">
-        <div className="absolute left-8 top-8 z-10 flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 w-16 animate-pulse bg-gray-200" />
+        {/* Thumbnail column */}
+        <div className="absolute left-8 top-8 z-10 flex flex-col gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-20 w-16 animate-pulse overflow-hidden rounded bg-gray-200"
+            >
+              <div className="h-full w-full bg-gradient-to-b from-transparent to-gray-300/30" />
+            </div>
           ))}
         </div>
-        <div className="h-full w-full animate-pulse bg-gray-100" />
+        {/* Main image */}
+        <div className="h-full w-full animate-pulse bg-gray-100">
+          <div className="h-full w-full bg-gradient-to-b from-transparent via-gray-200/20 to-gray-200/40" />
+        </div>
+        {/* Navigation arrows */}
+        <div className="absolute right-4 top-1/2 flex -translate-y-1/2 gap-4">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200/80" />
+          <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200/80" />
+        </div>
       </div>
     ),
     ssr: false,
@@ -315,9 +332,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
 
         <div className="no-scrollbar w-full border-b lg:max-h-screen lg:w-1/3 lg:overflow-y-scroll">
           <div className="px-2 sm:px-4 lg:p-5">
-            <h3
-              className={`${oswald.className} mb-3 text-center text-xl font-[900] uppercase lg:text-left`}
-            >
+            <h3 className="mb-3 text-center font-oswald text-xl font-[900] uppercase lg:text-left">
               {product.name}
             </h3>
 

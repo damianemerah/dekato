@@ -1,11 +1,15 @@
-import { oswald } from "@/style/font";
+import Image from "next/image";
+import logo from "@/public/assets/logo.png";
 
 const Logo = () => {
   return (
-    <div className={`${oswald.className} text-xl font-semibold uppercase`}>
-      {/* dekato-outfit */}
-      dekato
-    </div>
+    <Image
+      src={logo}
+      alt="Dekato Logo"
+      width={90}
+      height={30}
+      className="text-xl font-semibold uppercase"
+    />
   );
 };
 

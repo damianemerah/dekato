@@ -30,5 +30,6 @@ export default async function SidebarFetcher() {
     getCategories(),
     getAllCollections(),
   ]);
+
   return <Sidebar categories={categories} collections={collections} />;
 }
