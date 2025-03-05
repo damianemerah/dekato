@@ -171,7 +171,11 @@ const SearchBox = ({ className }) => {
           onClick={handleMobileSearchClick}
           className="flex h-6 w-6 items-center justify-center"
         >
+<<<<<<< HEAD
           <Search className="h-5 w-5 !text-white" />
+=======
+          <SearchOutlined className="!text-white" />
+>>>>>>> 509872436a0a9e3bc980bb15c75cc7ba26cc56e6
         </button>
       </div>
       {showMobileSearch && (
@@ -181,7 +185,11 @@ const SearchBox = ({ className }) => {
             className="relative w-full"
           >
             <div className="flex h-6 w-6 items-center justify-center">
+<<<<<<< HEAD
               <Search className="absolute left-4 top-1/2 z-10 h-5 w-5 -translate-y-1/2 transform !text-gray-800" />
+=======
+              <SearchOutlined className="absolute left-4 top-1/2 z-10 -translate-y-1/2 transform !text-gray-800" />
+>>>>>>> 509872436a0a9e3bc980bb15c75cc7ba26cc56e6
             </div>
             <input
               ref={mobileSearchRef}
@@ -196,7 +204,11 @@ const SearchBox = ({ className }) => {
               className="absolute right-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 transform items-center justify-center"
               onClick={handleCloseMobileSearch}
             >
+<<<<<<< HEAD
               <X className="!text-primary" />
+=======
+              <CloseOutlined className="!text-primary" />
+>>>>>>> 509872436a0a9e3bc980bb15c75cc7ba26cc56e6
             </button>
           </form>
           {activeDropdown && searchString?.length > 2 && (
