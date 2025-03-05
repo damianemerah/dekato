@@ -15,14 +15,7 @@ export const authOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
-<<<<<<< HEAD
       allowDangerousEmailAccountLinking: true,
-=======
-    }),
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_ID,
-      clientSecret: process.env.FACEBOOK_SECRET,
->>>>>>> 509872436a0a9e3bc980bb15c75cc7ba26cc56e6
     }),
     // FacebookProvider({
     //   clientId: process.env.FACEBOOK_ID,
