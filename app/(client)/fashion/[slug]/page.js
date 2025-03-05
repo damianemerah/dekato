@@ -59,9 +59,9 @@ export default async function BlogDetailPage({ params }) {
       {/* Header */}
       <header className="mb-8 text-center">
         <div className="mb-4 flex items-center justify-center gap-2 text-sm text-gray-600">
-          {/* {blog.categories?.map((category) => (
-          ))} */}
-          <Badge key={category.id}>{category.name || "Uncategorized"}</Badge>
+          {blog.categories?.map((category) => (
+            <Badge key={category.id}>{category.name || "Uncategorized"}</Badge>
+          ))}
           <span>•</span>
           <time dateTime={blog.createdAt}>
             {new Date(blog.createdAt).toLocaleDateString()}
