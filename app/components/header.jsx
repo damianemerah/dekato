@@ -1,14 +1,14 @@
-"use client";
-import { useCartStore, useSidebarStore } from "@/store/store";
-import Link from "next/link";
-import Logo from "./dekato-logo.jsx";
-import SearchBox from "./searchbox.jsx";
-import { usePathname } from "next/navigation";
-import useUserData from "@/app/hooks/useUserData.js";
-import useCartData from "@/app/hooks/useCartData.js";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { SettingOutlined } from "@ant-design/icons";
+'use client';
+import { useCartStore, useSidebarStore } from '@/app/store/store.js';
+import Link from 'next/link';
+import Logo from './dekato-logo.jsx';
+import SearchBox from './searchbox.jsx';
+import { usePathname } from 'next/navigation';
+import useUserData from '@/app/hooks/useUserData.js';
+import useCartData from '@/app/hooks/useCartData.js';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { SettingOutlined } from '@ant-design/icons';
 
 import {
   HeartOutlined,
@@ -16,7 +16,7 @@ import {
   ShoppingOutlined,
   MenuOutlined,
   UserOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
 function Header() {
   const { data: session } = useSession();
@@ -28,7 +28,7 @@ function Header() {
   const toggleSidebarState = useSidebarStore((state) => state.toggleSidebar);
   const pathname = usePathname();
   const setLgScreenSidebar = useSidebarStore(
-    (state) => state.setLgScreenSidebar,
+    (state) => state.setLgScreenSidebar
   );
   const setMenuIsClicked = useSidebarStore((state) => state.setMenuIsClicked);
 
@@ -54,7 +54,7 @@ function Header() {
     }
   };
 
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <>
@@ -80,13 +80,13 @@ function Header() {
             </div>
 
             <nav className="hidden space-x-2 sm:flex sm:space-x-4">
-              {["women", "men"].map((category) => (
+              {['women', 'men'].map((category) => (
                 <Link key={category} href={`/shop/${category}`}>
                   <span
                     className={`text-sm font-bold uppercase tracking-widest transition-all duration-200 ease-in-out hover:border-b-2 hover:border-white sm:text-sm ${
-                      pathname.split("/")[1].toLowerCase() === category
-                        ? "border-b-2 border-white"
-                        : ""
+                      pathname.split('/')[1].toLowerCase() === category
+                        ? 'border-b-2 border-white'
+                        : ''
                     }`}
                   >
                     {category}
@@ -104,7 +104,7 @@ function Header() {
             <div className="hidden sm:block lg:mx-auto">
               <SearchBox />
             </div>
-            {user?.role === "admin" && (
+            {user?.role === 'admin' && (
               <Link href="/admin">
                 <span className="flex items-center gap-2 text-sm uppercase transition-all duration-200 ease-in-out hover:border-b-2 hover:border-white sm:text-base">
                   <div className="flex h-6 w-6 items-center justify-center">
@@ -145,7 +145,7 @@ function Header() {
             >
               <div className="flex h-6 w-6 items-center justify-center">
                 <ShoppingOutlined
-                  className={`stroke-2 ${isShaking ? "animate-shake" : ""}`}
+                  className={`stroke-2 ${isShaking ? 'animate-shake' : ''}`}
                 />
               </div>
               {cart?.totalItems > 0 && (

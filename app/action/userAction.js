@@ -1,33 +1,33 @@
-"use server";
+'use server';
 
-import dbConnect from "@/lib/mongoConnection";
-import User from "@/models/user";
-import { Cart } from "@/models/cart";
-import { restrictTo } from "@/utils/checkPermission";
-import Email from "@/lib/email";
-import Address from "@/models/address";
-import { filterObj, formDataToObject } from "@/utils/filterObj";
-import handleAppError from "@/utils/appError";
-import { revalidatePath, revalidateTag } from "next/cache";
-import crypto from "crypto";
-import { omit } from "lodash";
-import Order from "@/models/order";
-import Product from "@/models/product";
-import Collection from "@/models/collection";
-import Notification from "@/models/notification";
-import { EmailSubscription } from "@/models/subscription";
+import dbConnect from '@/app/lib/mongoConnection';
+import User from '@/models/user';
+import { Cart } from '@/models/cart';
+import { restrictTo } from '@/utils/checkPermission';
+import Email from '@/app/lib/email';
+import Address from '@/models/address';
+import { filterObj, formDataToObject } from '@/utils/filterObj';
+import handleAppError from '@/utils/appError';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import crypto from 'crypto';
+import { omit } from 'lodash';
+import Order from '@/models/order';
+import Product from '@/models/product';
+import Collection from '@/models/collection';
+import Notification from '@/models/notification';
+import { EmailSubscription } from '@/models/subscription';
 
 export async function createProductNotification(productName, adminName) {
   await dbConnect();
   try {
     await Notification.create({
       userId: null, // Admin notification
-      title: "New Product Added",
+      title: 'New Product Added',
       message: `Admin ${adminName} added new product "${productName}" to inventory`,
-      type: "info",
+      type: 'info',
     });
   } catch (error) {
-    console.error("Error creating product notification:", error);
+    console.error('Error creating product notification:', error);
     throw error;
   }
 }
@@ -49,36 +49,36 @@ export async function getDashboardData() {
         {
           $group: {
             _id: null,
-            totalSales: { $sum: "$total" },
+            totalSales: { $sum: '$total' },
             totalOrders: { $sum: 1 },
             pendingOrders: {
-              $sum: { $cond: [{ $eq: ["$deliveryStatus", "pending"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$deliveryStatus', 'pending'] }, 1, 0] },
             },
             shippedOrders: {
-              $sum: { $cond: [{ $eq: ["$deliveryStatus", "shipped"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$deliveryStatus', 'shipped'] }, 1, 0] },
             },
             deliveredOrders: {
               $sum: {
-                $cond: [{ $eq: ["$deliveryStatus", "delivered"] }, 1, 0],
+                $cond: [{ $eq: ['$deliveryStatus', 'delivered'] }, 1, 0],
               },
             },
           },
         },
       ]),
-      User.countDocuments({ role: "user" }),
+      User.countDocuments({ role: 'user' }),
       Order.aggregate([
         { $sort: { createdAt: -1 } },
         { $limit: 5 },
         {
           $lookup: {
-            from: "users",
-            localField: "userId",
-            foreignField: "_id",
-            as: "user",
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
           },
         },
         {
-          $unwind: "$user",
+          $unwind: '$user',
         },
         {
           $project: {
@@ -87,8 +87,8 @@ export async function getDashboardData() {
             total: 1,
             deliveryStatus: 1,
             createdAt: 1,
-            "user.firstname": 1,
-            "user.lastname": 1,
+            'user.firstname': 1,
+            'user.lastname': 1,
           },
         },
       ]),
@@ -98,13 +98,13 @@ export async function getDashboardData() {
             _id: null,
             totalProducts: { $sum: 1 },
             activeProducts: {
-              $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] },
             },
             outOfStock: {
-              $sum: { $cond: [{ $eq: ["$status", "outofstock"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'outofstock'] }, 1, 0] },
             },
             discountedProducts: {
-              $sum: { $cond: [{ $gt: ["$discount", 0] }, 1, 0] },
+              $sum: { $cond: [{ $gt: ['$discount', 0] }, 1, 0] },
             },
           },
         },
@@ -115,7 +115,7 @@ export async function getDashboardData() {
             _id: null,
             totalCollections: { $sum: 1 },
             saleCollections: {
-              $sum: { $cond: [{ $eq: ["$isSale", true] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$isSale', true] }, 1, 0] },
             },
           },
         },
@@ -139,16 +139,16 @@ export async function getDashboardData() {
             _id: null,
             totalSubscribers: { $sum: 1 },
             activeSubscribers: {
-              $sum: { $cond: [{ $eq: ["$status", "subscribed"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'subscribed'] }, 1, 0] },
             },
             menPreference: {
-              $sum: { $cond: [{ $eq: ["$gender", "men"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$gender', 'men'] }, 1, 0] },
             },
             womenPreference: {
-              $sum: { $cond: [{ $eq: ["$gender", "women"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$gender', 'women'] }, 1, 0] },
             },
             bothPreference: {
-              $sum: { $cond: [{ $eq: ["$gender", "both"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$gender', 'both'] }, 1, 0] },
             },
           },
         },
@@ -197,8 +197,8 @@ export async function getDashboardData() {
       newsletter,
     };
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    throw new Error("Failed to fetch dashboard data");
+    console.error('Error fetching dashboard data:', error);
+    throw new Error('Failed to fetch dashboard data');
   }
 }
 
@@ -206,11 +206,11 @@ export async function createUser(formData) {
   await dbConnect();
 
   const userData = {
-    firstname: formData.get("firstname"),
-    lastname: formData.get("lastname"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    passwordConfirm: formData.get("passwordConfirm"),
+    firstname: formData.get('firstname'),
+    lastname: formData.get('lastname'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+    passwordConfirm: formData.get('passwordConfirm'),
   };
 
   const createdUser = await User.create(userData);
@@ -229,18 +229,18 @@ export async function createUser(formData) {
 
 export async function getUser(userId) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   if (!userId) {
     return null;
   }
 
   const userData = await User.findById(userId)
-    .where("active", true)
+    .where('active', true)
     .lean({ virtuals: true });
 
   if (!userData) {
-    throw new Error("No active user found with that ID");
+    throw new Error('No active user found with that ID');
   }
 
   const { _id, wishlist, ...rest } = userData;
@@ -256,11 +256,11 @@ export async function getUser(userId) {
 
 export async function getWishlist(userId) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   const { wishlist } = await User.findById(userId)
-    .select("wishlist")
-    .populate("wishlist", "name price image variant slug")
+    .select('wishlist')
+    .populate('wishlist', 'name price image variant slug')
     .lean();
 
   return wishlist.map(({ _id, variant, ...rest }) => ({
@@ -275,12 +275,12 @@ export async function getWishlist(userId) {
 
 export async function updateUserInfo(formData) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const userId = formData.get("userId");
+  const userId = formData.get('userId');
 
   const userObj = formDataToObject(formData);
-  const userData = filterObj(userObj, "firstname", "lastname");
+  const userData = filterObj(userObj, 'firstname', 'lastname');
 
   const user = await User.findByIdAndUpdate(userId, userData, {
     new: true,
@@ -288,7 +288,7 @@ export async function updateUserInfo(formData) {
   }).lean({ virtuals: true });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 
   const { _id, wishlist, ...rest } = user;
@@ -304,11 +304,11 @@ export async function updateUserInfo(formData) {
 
 export async function addToWishlist(userId, productId) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 
   await user.addToWishlist(productId);
@@ -324,12 +324,12 @@ export async function addToWishlist(userId, productId) {
 
 export async function removeFromWishlist(userId, productId) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   await User.findByIdAndUpdate(
     userId,
     { $pull: { wishlist: productId } },
-    { new: true },
+    { new: true }
   );
 
   return null;
@@ -337,14 +337,14 @@ export async function removeFromWishlist(userId, productId) {
 
 export async function deleteUser(userId) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   const user = await User.findByIdAndUpdate(userId, { active: false });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
-  revalidatePath("/admin/customers");
+  revalidatePath('/admin/customers');
   return null;
 }
 
@@ -359,16 +359,16 @@ export async function getUserAddress(userId) {
   }
   return address.map(({ _id, userId, ...rest }) => ({
     id: _id.toString(),
-    ...omit(rest, ["_id", "userId"]),
+    ...omit(rest, ['_id', 'userId']),
   }));
 }
 
 export async function createUserAddress(formData) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   const addressData = formDataToObject(formData);
-  const userId = formData.get("userId");
+  const userId = formData.get('userId');
 
   if (addressData.isDefault) {
     await Address.updateMany({ userId }, { isDefault: false });
@@ -387,11 +387,11 @@ export async function createUserAddress(formData) {
 
 export async function updateUserAddress(formData) {
   await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
   const addressData = formDataToObject(formData);
-  const userId = formData.get("userId");
-  const addressId = formData.get("addressId");
+  const userId = formData.get('userId');
+  const addressId = formData.get('addressId');
 
   if (addressData.isDefault) {
     await Address.updateMany({ userId }, { isDefault: false });
@@ -403,7 +403,7 @@ export async function updateUserAddress(formData) {
   });
 
   if (!address) {
-    throw new Error("No address found with that ID");
+    throw new Error('No address found with that ID');
   }
   // revalidatePath("/checkout");
   // revalidateTag("checkout-data");
@@ -413,13 +413,13 @@ export async function updateUserAddress(formData) {
 }
 
 export async function deleteUserAddress(addressId) {
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
   await dbConnect();
 
   const address = await Address.findByIdAndDelete(addressId);
 
   if (!address) {
-    throw new Error("Address not found");
+    throw new Error('Address not found');
   }
 
   return null;
@@ -438,7 +438,7 @@ export async function getAllUsers(searchParams) {
     const usersDoc = await User.find()
       .skip(skip)
       .limit(limit)
-      .select("+active")
+      .select('+active')
       .lean({ virtuals: true });
 
     const users = usersDoc.map((user) => {
@@ -459,17 +459,17 @@ export async function getAllUsers(searchParams) {
     };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw new Error(error.message || 'An error occurred');
   }
 }
 
 export async function sendPasswordResetToken(formData) {
   await dbConnect();
 
-  const user = await User.findOne({ email: formData.get("email") });
+  const user = await User.findOne({ email: formData.get('email') });
 
   if (!user) {
-    throw new Error("User with that email not found", 404);
+    throw new Error('User with that email not found', 404);
   }
   try {
     const resetToken = await user.createPasswordResetToken();
@@ -481,7 +481,7 @@ export async function sendPasswordResetToken(formData) {
 
     await new Email(user, resetURL).sendPasswordReset();
 
-    return { success: true, message: "Reset Token sent to your email" };
+    return { success: true, message: 'Reset Token sent to your email' };
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
@@ -492,18 +492,18 @@ export async function sendPasswordResetToken(formData) {
 }
 
 export async function updatePassword(formData) {
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
   try {
     const body = formDataToObject(formData);
 
-    const user = await User.findById(body.userId).select("+password");
+    const user = await User.findById(body.userId).select('+password');
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     if (!(await user.correctPassword(body.currentPassword, user.password)))
-      throw new Error("Incorrect current password");
+      throw new Error('Incorrect current password');
 
     user.password = body.password;
     user.passwordConfirm = body.passwordConfirm;
@@ -518,10 +518,10 @@ export async function updatePassword(formData) {
 
 export async function forgotPassword(formData) {
   try {
-    const token = formData.get("token");
+    const token = formData.get('token');
     const body = formDataToObject(formData);
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     await dbConnect();
 
@@ -531,7 +531,7 @@ export async function forgotPassword(formData) {
     });
 
     if (!user) {
-      throw new Error("Token is invalid or has expired", 400);
+      throw new Error('Token is invalid or has expired', 400);
     }
 
     // check if password and passwordConfirm are the same

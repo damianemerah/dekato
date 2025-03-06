@@ -1,24 +1,24 @@
-"use client";
-import React, { useEffect, useState, memo } from "react";
-import { useSidebarStore, useUserStore } from "@/store/store";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import useIsBelowThreshold from "@/app/hooks/useIsBelowThreshold";
-import { signOut } from "next-auth/react";
-import { mutate } from "swr";
+'use client';
+import React, { useEffect, useState, memo } from 'react';
+import { useSidebarStore, useUserStore } from '@/app/store/store';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import useIsBelowThreshold from '@/app/hooks/useIsBelowThreshold';
+import { signOut } from 'next-auth/react';
+import { mutate } from 'swr';
 
-import FacebookIcon from "@/public/assets/icons/Facebook.svg";
-import InstagramIcon from "@/public/assets/icons/Instagram.svg";
-import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import TiktokIcon from "@/public/assets/icons/tiktok.svg";
+import FacebookIcon from '@/public/assets/icons/Facebook.svg';
+import InstagramIcon from '@/public/assets/icons/Instagram.svg';
+import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
+import TiktokIcon from '@/public/assets/icons/tiktok.svg';
 
 const accountLinks = [
-  { href: "/account", label: "Account Dashboard" },
-  { href: "/account/orders", label: "My Orders" },
-  { href: "/account/wishlist", label: "My Wishlist" },
-  { href: "/account/address", label: "Address Book" },
-  { href: "/account/payment", label: "Payment Method" },
-  { href: "/account/newsletter", label: "Newsletter" },
+  { href: '/account', label: 'Account Dashboard' },
+  { href: '/account/orders', label: 'My Orders' },
+  { href: '/account/wishlist', label: 'My Wishlist' },
+  { href: '/account/address', label: 'Address Book' },
+  { href: '/account/payment', label: 'Payment Method' },
+  { href: '/account/newsletter', label: 'Newsletter' },
 ];
 
 const UpperFirstLetter = (str) => {
@@ -45,7 +45,7 @@ export default memo(function Sidebar({ categories, collections }) {
   const isBelowThreshold = useIsBelowThreshold();
   const [expandedShopItem, setExpandedShopItem] = useState(null);
   const [isAccountExpanded, setIsAccountExpanded] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("shop");
+  const [selectedTab, setSelectedTab] = useState('shop');
 
   // Handle window resize
   useEffect(() => {
@@ -57,7 +57,7 @@ export default memo(function Sidebar({ categories, collections }) {
       if (
         !isBelowThreshold &&
         lgScreenSidebar &&
-        !pathname.startsWith("/cart")
+        !pathname.startsWith('/cart')
       ) {
         openSidebar();
       }
@@ -65,8 +65,8 @@ export default memo(function Sidebar({ categories, collections }) {
     }
 
     handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [
     closeSidebar,
     openSidebar,
@@ -80,11 +80,11 @@ export default memo(function Sidebar({ categories, collections }) {
   // Handle restricted paths
   useEffect(() => {
     const restrictedPaths = [
-      "/cart",
-      "/checkout",
-      "/signin",
-      "/signup",
-      "/forgot-password",
+      '/cart',
+      '/checkout',
+      '/signin',
+      '/signup',
+      '/forgot-password',
     ];
     if (restrictedPaths.some((path) => pathname.startsWith(path))) {
       closeSidebar();
@@ -93,7 +93,7 @@ export default memo(function Sidebar({ categories, collections }) {
   }, [pathname, closeSidebar, setLgScreenSidebar]);
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" });
+    await signOut({ callbackUrl: '/' });
     setUser(null);
     await mutate(`/api/user/${user?.id}`, null);
   };
@@ -111,7 +111,7 @@ export default memo(function Sidebar({ categories, collections }) {
       <span className="h-0.5 w-3 bg-primary transition-transform duration-300" />
       <span
         className={`absolute h-0.5 w-3 bg-primary transition-transform duration-300 ${
-          expandedItem === toggleItem ? "rotate-0" : "rotate-90"
+          expandedItem === toggleItem ? 'rotate-0' : 'rotate-90'
         }`}
       />
     </span>
@@ -120,9 +120,9 @@ export default memo(function Sidebar({ categories, collections }) {
   // Process categories into sidebar items
   const sidebarItems = [
     {
-      label: "NEW ARRIVALS",
+      label: 'NEW ARRIVALS',
       children: collections
-        ?.filter((items) => items.slug.startsWith("new-arrival"))
+        ?.filter((items) => items.slug.startsWith('new-arrival'))
         .map((collection) => ({
           label: categories.find((cat) => cat.id === collection.category).name,
           href: `/shop/${collection.path[0]}`,
@@ -139,9 +139,9 @@ export default memo(function Sidebar({ categories, collections }) {
         })),
       })) || []),
     {
-      label: "COLLECTIONS",
+      label: 'COLLECTIONS',
       children: collections
-        ?.filter((item) => !item.slug.startsWith("new-arrival"))
+        ?.filter((item) => !item.slug.startsWith('new-arrival'))
         .map((collection) => ({
           label: collection.name,
           href: `/shop/${collection.path[0]}`,
@@ -149,15 +149,15 @@ export default memo(function Sidebar({ categories, collections }) {
     },
   ];
 
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <aside
       className={`${
         isSidebarOpen
-          ? "visible h-[calc(100vh-3.5rem)] min-w-[280px] translate-x-0 ring-1 ring-primary/10"
-          : "invisible w-0 -translate-x-full"
-      } ${!lgScreenSidebar && !isBelowThreshold && "hidden"} relative z-50 flex flex-shrink-0 flex-col justify-between bg-white text-primary transition-all duration-300 ease-in-out`}
+          ? 'visible h-[calc(100vh-3.5rem)] min-w-[280px] translate-x-0 ring-1 ring-primary/10'
+          : 'invisible w-0 -translate-x-full'
+      } ${!lgScreenSidebar && !isBelowThreshold && 'hidden'} relative z-50 flex flex-shrink-0 flex-col justify-between bg-white text-primary transition-all duration-300 ease-in-out`}
     >
       <nav className="overflow-y-auto">
         <div
@@ -166,42 +166,42 @@ export default memo(function Sidebar({ categories, collections }) {
         >
           <button
             role="tab"
-            aria-selected={selectedTab === "shop"}
+            aria-selected={selectedTab === 'shop'}
             aria-controls="shop-panel"
             className={`flex basis-1/2 items-center justify-center gap-2 p-4 text-sm uppercase tracking-wider transition-colors ${
-              selectedTab === "shop"
-                ? "border-b-2 border-primary bg-grayBg"
-                : "bg-white hover:bg-gray-50"
+              selectedTab === 'shop'
+                ? 'border-b-2 border-primary bg-grayBg'
+                : 'bg-white hover:bg-gray-50'
             }`}
-            onClick={() => setSelectedTab("shop")}
+            onClick={() => setSelectedTab('shop')}
           >
             Shop
           </button>
           {
             <button
               role="tab"
-              aria-selected={selectedTab === "account"}
+              aria-selected={selectedTab === 'account'}
               aria-controls="account-panel"
               className={`flex basis-1/2 items-center justify-center gap-2 p-4 text-sm uppercase tracking-wider transition-colors ${
-                selectedTab === "account"
-                  ? "border-b-2 border-primary bg-grayBg"
-                  : "bg-white hover:bg-gray-50"
+                selectedTab === 'account'
+                  ? 'border-b-2 border-primary bg-grayBg'
+                  : 'bg-white hover:bg-gray-50'
               }`}
-              onClick={() => setSelectedTab("account")}
+              onClick={() => setSelectedTab('account')}
             >
               Account
             </button>
           }
         </div>
         <ul className={`divide-y divide-gray-200 font-oswald`}>
-          {selectedTab === "shop" &&
+          {selectedTab === 'shop' &&
             sidebarItems?.map((item, index) => (
               <li key={index} className="p-4">
                 {item.children?.length ? (
                   <>
                     <div
                       onClick={() => toggleShopExpand(item.label)}
-                      className={`flex cursor-pointer items-center justify-between text-base font-bold uppercase tracking-wider ${item.label.toLowerCase().includes("new arrival") ? "text-red-500 hover:text-red-500/75" : "text-primaryDark hover:text-primaryDark/75"}`}
+                      className={`flex cursor-pointer items-center justify-between text-base font-bold uppercase tracking-wider ${item.label.toLowerCase().includes('new arrival') ? 'text-red-500 hover:text-red-500/75' : 'text-primaryDark hover:text-primaryDark/75'}`}
                     >
                       {item.label}
                       {toggleIcon(expandedShopItem, item.label)}
@@ -209,15 +209,15 @@ export default memo(function Sidebar({ categories, collections }) {
                     <ul
                       className={`mt-3 overflow-hidden transition-all duration-300 ease-in-out ${
                         expandedShopItem === item.label
-                          ? "max-h-[1000px] opacity-100"
-                          : "max-h-0 opacity-0"
+                          ? 'max-h-[1000px] opacity-100'
+                          : 'max-h-0 opacity-0'
                       }`}
                     >
                       {item.children.map((child, childIndex) => (
                         <li key={childIndex} className="px-2 py-1">
                           <Link
-                            href={child.href || "#"}
-                            className={`block text-sm font-bold tracking-wide ${pathname === child.href ? "text-primary" : "text-primaryDark/65 hover:text-primary"}`}
+                            href={child.href || '#'}
+                            className={`block text-sm font-bold tracking-wide ${pathname === child.href ? 'text-primary' : 'text-primaryDark/65 hover:text-primary'}`}
                           >
                             {UpperFirstLetter(child.label)}
                           </Link>
@@ -227,15 +227,15 @@ export default memo(function Sidebar({ categories, collections }) {
                   </>
                 ) : (
                   <Link
-                    href={item.href || "#"}
-                    className={`cursor-pointer text-sm font-bold uppercase tracking-wider ${pathname === item.href ? "text-primary" : "text-primaryDark hover:text-primaryDark/75"}`}
+                    href={item.href || '#'}
+                    className={`cursor-pointer text-sm font-bold uppercase tracking-wider ${pathname === item.href ? 'text-primary' : 'text-primaryDark hover:text-primaryDark/75'}`}
                   >
                     {item.label}
                   </Link>
                 )}
               </li>
             ))}
-          {selectedTab === "account" &&
+          {selectedTab === 'account' &&
             (user?.id ? (
               <li className="p-4">
                 <div
@@ -243,20 +243,20 @@ export default memo(function Sidebar({ categories, collections }) {
                   className="flex cursor-pointer items-center justify-between text-sm font-bold uppercase tracking-wider text-primaryDark hover:text-primaryDark/75"
                 >
                   MY ACCOUNT
-                  {toggleIcon(isAccountExpanded, "MY ACCOUNT")}
+                  {toggleIcon(isAccountExpanded, 'MY ACCOUNT')}
                 </div>
                 <ul
                   className={`mt-3 overflow-hidden transition-all duration-300 ease-in-out ${
                     isAccountExpanded
-                      ? "max-h-[1000px] opacity-100"
-                      : "max-h-0 opacity-0"
+                      ? 'max-h-[1000px] opacity-100'
+                      : 'max-h-0 opacity-0'
                   }`}
                 >
                   {accountLinks.map(({ href, label }) => (
                     <li key={href} className="p-2 font-bold tracking-wide">
                       <Link
                         href={href}
-                        className={`block text-sm ${pathname === href ? "text-primary" : "text-primaryDark/65 hover:text-primary"}`}
+                        className={`block text-sm ${pathname === href ? 'text-primary' : 'text-primaryDark/65 hover:text-primary'}`}
                       >
                         {UpperFirstLetter(label)}
                       </Link>
@@ -304,7 +304,7 @@ export default memo(function Sidebar({ categories, collections }) {
             >
               <Icon width={18} height={18} className="text-white" />
             </a>
-          ),
+          )
         )}
       </div>
     </aside>

@@ -1,6 +1,6 @@
-import useSWR from "swr";
-import { getCart } from "@/app/action/cartAction";
-import { useCartStore } from "@/store/store";
+import useSWR from 'swr';
+import { getCart } from '@/app/action/cartAction';
+import { useCartStore } from '@/app/store/store';
 
 const fetchCart = (userId) => getCart(userId);
 
@@ -13,7 +13,7 @@ export default function useCartData(userId) {
       onSuccess: setCart,
       fallbackData: cart,
       revalidateOnFocus: false,
-    },
+    }
   );
 
   return { cartData: data, isLoading, isValidating, error };

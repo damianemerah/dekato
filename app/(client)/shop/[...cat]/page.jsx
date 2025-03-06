@@ -1,6 +1,6 @@
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
-import dbConnect from '@/lib/mongoConnection';
+import dbConnect from '@/app/lib/mongoConnection';
 import { LoadingSpinner } from '@/app/components/spinner';
 import { unstable_cache } from 'next/cache';
 import dynamic from 'next/dynamic';

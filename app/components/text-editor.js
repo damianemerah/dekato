@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import TextAlign from "@tiptap/extension-text-align";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import Focus from "@tiptap/extension-focus";
-import Typography from "@tiptap/extension-typography";
-import { uploadFiles } from "@/lib/s3Func";
-import { SmallSpinner } from "./spinner";
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import Focus from '@tiptap/extension-focus';
+import Typography from '@tiptap/extension-typography';
+import { uploadFiles } from '@/app/lib/s3Func';
+import { SmallSpinner } from './spinner';
 import {
   Bold,
   Italic,
@@ -30,9 +30,9 @@ import {
   Plus,
   Type,
   Minus,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { Upload, Button, Dropdown, ColorPicker } from "antd";
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Upload, Button, Dropdown, ColorPicker } from 'antd';
 
 const CustomImage = Image.extend({
   addAttributes() {
@@ -45,7 +45,7 @@ const CustomImage = Image.extend({
         default: null,
       },
       display: {
-        default: "inline",
+        default: 'inline',
         rendered: false,
       },
     };
@@ -66,10 +66,10 @@ const Tiptap = ({ value, onChange, preview = false }) => {
       }),
       TextStyle,
       TextAlign.configure({
-        types: ["heading", "paragraph"],
+        types: ['heading', 'paragraph'],
       }),
       Color.configure({
-        types: ["textStyle"],
+        types: ['textStyle'],
       }),
       CustomImage.configure({
         inline: true,
@@ -78,20 +78,20 @@ const Tiptap = ({ value, onChange, preview = false }) => {
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-blue-600 hover:text-blue-800",
+          class: 'text-blue-600 hover:text-blue-800',
         },
       }),
       Placeholder.configure({
         placeholder: ({ node }) => {
-          if (node.type.name === "heading") {
+          if (node.type.name === 'heading') {
             return "What's the title?";
           }
-          return "Tell your story...";
+          return 'Tell your story...';
         },
       }),
       Focus.configure({
-        className: "has-focus",
-        mode: "all",
+        className: 'has-focus',
+        mode: 'all',
       }),
       Typography,
     ],
@@ -103,20 +103,20 @@ const Tiptap = ({ value, onChange, preview = false }) => {
     editorProps: {
       attributes: {
         class:
-          "prose max-w-none min-h-[120px] focus:outline-none" +
-          " prose-headings:font-bold prose-headings:text-gray-800" +
-          " prose-p:text-base prose-p:text-gray-600 prose-p:leading-normal" +
-          " prose-a:text-blue-600 prose-a:no-underline hover:prose-a:text-blue-700" +
-          " prose-strong:font-bold prose-strong:text-gray-800" +
-          " prose-ul:list-disc prose-ol:list-decimal" +
-          " prose-li:text-gray-600 prose-li:my-0" +
-          " prose-li:p:my-0" +
-          " prose-img:rounded-lg prose-img:shadow-md max-w-full" +
-          " prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic" +
-          " prose-hr:border-gray-200" +
-          " prose-pre:bg-gray-50 prose-pre:rounded prose-pre:p-4" +
-          " [&>*]:my-2" +
-          " forced-colors-mode:prose-img:border forced-colors-mode:prose-img:border-solid",
+          'prose max-w-none min-h-[120px] focus:outline-none' +
+          ' prose-headings:font-bold prose-headings:text-gray-800' +
+          ' prose-p:text-base prose-p:text-gray-600 prose-p:leading-normal' +
+          ' prose-a:text-blue-600 prose-a:no-underline hover:prose-a:text-blue-700' +
+          ' prose-strong:font-bold prose-strong:text-gray-800' +
+          ' prose-ul:list-disc prose-ol:list-decimal' +
+          ' prose-li:text-gray-600 prose-li:my-0' +
+          ' prose-li:p:my-0' +
+          ' prose-img:rounded-lg prose-img:shadow-md max-w-full' +
+          ' prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic' +
+          ' prose-hr:border-gray-200' +
+          ' prose-pre:bg-gray-50 prose-pre:rounded prose-pre:p-4' +
+          ' [&>*]:my-2' +
+          ' forced-colors-mode:prose-img:border forced-colors-mode:prose-img:border-solid',
       },
     },
     enableCoreExtensions: true,
@@ -140,12 +140,12 @@ const Tiptap = ({ value, onChange, preview = false }) => {
   const setLink = useCallback(() => {
     if (!editor) return;
 
-    if (editor.isActive("link")) {
+    if (editor.isActive('link')) {
       editor.chain().focus().unsetLink().run();
       return;
     }
 
-    const url = window.prompt("URL:");
+    const url = window.prompt('URL:');
     if (url) {
       editor.chain().focus().setLink({ href: url }).run();
     }
@@ -157,8 +157,8 @@ const Tiptap = ({ value, onChange, preview = false }) => {
       setIsUploading(true);
       try {
         const formData = new FormData();
-        formData.append("file", file);
-        const [imageUrl] = await uploadFiles(formData, "blog-images");
+        formData.append('file', file);
+        const [imageUrl] = await uploadFiles(formData, 'blog-images');
 
         if (imageUrl) {
           editor
@@ -166,20 +166,20 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             .focus()
             .setImage({
               src: imageUrl,
-              display: "block",
+              display: 'block',
             })
             .run();
         }
       } catch (error) {
-        console.error("Failed to upload image:", error);
+        console.error('Failed to upload image:', error);
       } finally {
         setIsUploading(false);
       }
     },
-    [editor],
+    [editor]
   );
 
-  const defaultColors = ["#000000", "#666666", "#ff0000", "#0000ff", "#00ff00"];
+  const defaultColors = ['#000000', '#666666', '#ff0000', '#0000ff', '#00ff00'];
 
   if (!editor || !isMounted || preview) {
     return (
@@ -196,14 +196,14 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           editor={editor}
           tippyOptions={{ duration: 100 }}
           shouldShow={({ editor }) => {
-            return !editor.isActive("image") && !editor.state.selection.empty;
+            return !editor.isActive('image') && !editor.state.selection.empty;
           }}
         >
           <div className="flex items-center gap-1 rounded-lg bg-white px-2 py-1 shadow-lg">
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive("bold") ? "bg-gray-200" : ""
+                editor.isActive('bold') ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Bold"
@@ -213,7 +213,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             <button
               onClick={() => editor.chain().focus().toggleItalic().run()}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive("italic") ? "bg-gray-200" : ""
+                editor.isActive('italic') ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Italic"
@@ -223,12 +223,12 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             <button
               onClick={setLink}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive("link") ? "bg-gray-200" : ""
+                editor.isActive('link') ? 'bg-gray-200' : ''
               }`}
               type="button"
-              aria-label={editor.isActive("link") ? "Remove link" : "Add link"}
+              aria-label={editor.isActive('link') ? 'Remove link' : 'Add link'}
             >
-              {editor.isActive("link") ? (
+              {editor.isActive('link') ? (
                 <Unlink size={14} />
               ) : (
                 <LinkIcon size={14} />
@@ -238,7 +238,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             <button
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive("bulletList") ? "bg-gray-200" : ""
+                editor.isActive('bulletList') ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Bullet list"
@@ -248,7 +248,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             <button
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive("orderedList") ? "bg-gray-200" : ""
+                editor.isActive('orderedList') ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Numbered list"
@@ -257,9 +257,9 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             </button>
             <div className="mx-1 h-4 w-px bg-gray-200" />
             <button
-              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              onClick={() => editor.chain().focus().setTextAlign('left').run()}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive({ textAlign: "left" }) ? "bg-gray-200" : ""
+                editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Align left"
@@ -268,10 +268,10 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             </button>
             <button
               onClick={() =>
-                editor.chain().focus().setTextAlign("center").run()
+                editor.chain().focus().setTextAlign('center').run()
               }
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive({ textAlign: "center" }) ? "bg-gray-200" : ""
+                editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Align center"
@@ -279,9 +279,9 @@ const Tiptap = ({ value, onChange, preview = false }) => {
               <AlignCenter size={14} />
             </button>
             <button
-              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              onClick={() => editor.chain().focus().setTextAlign('right').run()}
               className={`rounded p-1 hover:bg-gray-100 ${
-                editor.isActive({ textAlign: "right" }) ? "bg-gray-200" : ""
+                editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''
               }`}
               type="button"
               aria-label="Align right"
@@ -298,19 +298,19 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             menu={{
               items: [
                 {
-                  key: "p",
-                  label: "Normal",
+                  key: 'p',
+                  label: 'Normal',
                   onClick: () => editor.chain().focus().setParagraph().run(),
                 },
                 {
-                  key: "h1",
-                  label: "Heading 1",
+                  key: 'h1',
+                  label: 'Heading 1',
                   onClick: () =>
                     editor.chain().focus().setHeading({ level: 1 }).run(),
                 },
                 {
-                  key: "h2",
-                  label: "Heading 2",
+                  key: 'h2',
+                  label: 'Heading 2',
                   onClick: () =>
                     editor.chain().focus().setHeading({ level: 2 }).run(),
                 },
@@ -323,9 +323,9 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           <div className="h-6 w-px bg-gray-200" />
 
           <button
-            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive({ textAlign: "left" }) ? "bg-gray-200" : ""
+              editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Align left"
@@ -333,9 +333,9 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             <AlignLeft size={16} />
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive({ textAlign: "center" }) ? "bg-gray-200" : ""
+              editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Align center"
@@ -343,9 +343,9 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             <AlignCenter size={16} />
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive({ textAlign: "right" }) ? "bg-gray-200" : ""
+              editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Align right"
@@ -358,7 +358,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           <button
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive("bulletList") ? "bg-gray-200" : ""
+              editor.isActive('bulletList') ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Bullet list"
@@ -368,7 +368,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           <button
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive("orderedList") ? "bg-gray-200" : ""
+              editor.isActive('orderedList') ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Numbered list"
@@ -397,7 +397,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           <button
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive("blockquote") ? "bg-gray-200" : ""
+              editor.isActive('blockquote') ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Quote"
@@ -408,7 +408,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           <button
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              editor.isActive("codeBlock") ? "bg-gray-200" : ""
+              editor.isActive('codeBlock') ? 'bg-gray-200' : ''
             }`}
             type="button"
             aria-label="Code block"
@@ -431,14 +431,14 @@ const Tiptap = ({ value, onChange, preview = false }) => {
           <ColorPicker
             presets={[
               {
-                label: "Default Colors",
+                label: 'Default Colors',
                 colors: defaultColors,
               },
             ]}
             onChange={(color) => {
               editor.chain().focus().setColor(color.toHexString()).run();
             }}
-            defaultValue={editor.getAttributes("textStyle").color || "#000000"}
+            defaultValue={editor.getAttributes('textStyle').color || '#000000'}
           />
 
           <div className="h-6 w-px bg-gray-200" />
@@ -447,7 +447,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              !editor.can().undo() ? "opacity-50" : ""
+              !editor.can().undo() ? 'opacity-50' : ''
             }`}
             type="button"
             aria-label="Undo"
@@ -458,7 +458,7 @@ const Tiptap = ({ value, onChange, preview = false }) => {
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
             className={`rounded p-2 hover:bg-gray-100 ${
-              !editor.can().redo() ? "opacity-50" : ""
+              !editor.can().redo() ? 'opacity-50' : ''
             }`}
             type="button"
             aria-label="Redo"

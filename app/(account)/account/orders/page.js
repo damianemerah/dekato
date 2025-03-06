@@ -10,7 +10,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Database imports
 import Order from '@/models/order';
-import dbConnect from '@/lib/mongoConnection';
+import dbConnect from '@/app/lib/mongoConnection';
 
 // UI Components
 import { SmallSpinner } from '@/app/components/spinner';

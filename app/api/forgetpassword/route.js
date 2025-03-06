@@ -1,9 +1,9 @@
-import dbConnect from "@/lib/mongoConnection";
-import User from "@/models/user";
-import { NextResponse } from "next/server";
-import handleAppError from "@/utils/appError";
-import AppError from "@/utils/errorClass";
-import Email from "@/lib/email";
+import dbConnect from '@/app/lib/mongoConnection';
+import User from '@/models/user';
+import { NextResponse } from 'next/server';
+import handleAppError from '@/utils/appError';
+import AppError from '@/utils/errorClass';
+import Email from '@/app/lib/email';
 
 export async function POST(req) {
   const body = await req.json();
@@ -12,7 +12,7 @@ export async function POST(req) {
   const user = await User.findOne({ email: body.email });
 
   if (!user) {
-    throw new AppError("User with that email not found", 404);
+    throw new AppError('User with that email not found', 404);
   }
   try {
     const resetToken = await user.createPasswordResetToken();
@@ -25,8 +25,8 @@ export async function POST(req) {
     await new Email(user, resetURL).sendPasswordReset();
 
     return NextResponse.json(
-      { success: true, message: "Reset Token sent to your email" },
-      { status: 200 },
+      { success: true, message: 'Reset Token sent to your email' },
+      { status: 200 }
     );
   } catch (error) {
     user.passwordResetToken = undefined;

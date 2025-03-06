@@ -11,7 +11,7 @@ import CheckoutProgress from '@/app/components/checkout-progress';
 import { ButtonPrimary, ButtonSecondary } from '@/app/components/button';
 import { SmallSpinner } from '@/app/components/spinner';
 import AddressOption from '@/app/components/checkout/addressForm';
-import { useUserStore } from '@/store/store';
+import { useUserStore } from '@/app/store/store';
 import useUserData from '@/app/hooks/useUserData';
 import useAddressData from '@/app/hooks/useAddressData';
 import usePaymentData from '@/app/hooks/usePaymentData';

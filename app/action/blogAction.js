@@ -1,27 +1,27 @@
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
-import dbConnect from "@/lib/mongoConnection";
-import Blog from "@/models/blog";
-import handleAppError from "@/utils/appError";
-import { formDataToObject } from "@/utils/filterObj";
-import { uploadFiles } from "@/lib/s3Func";
+import { revalidatePath } from 'next/cache';
+import dbConnect from '@/app/lib/mongoConnection';
+import Blog from '@/models/blog';
+import handleAppError from '@/utils/appError';
+import { formDataToObject } from '@/utils/filterObj';
+import { uploadFiles } from '@/app/lib/s3Func';
 
 const toObject = (data) => {
-  if (typeof data.categories === "string") {
+  if (typeof data.categories === 'string') {
     try {
       data.categories = JSON.parse(data.categories);
     } catch (err) {
-      console.error("Error parsing categories:", err);
+      console.error('Error parsing categories:', err);
       data.categories = [];
     }
   }
 
-  if (typeof data.tags === "string") {
+  if (typeof data.tags === 'string') {
     try {
       data.tags = JSON.parse(data.tags);
     } catch (err) {
-      console.error("Error parsing tags:", err);
+      console.error('Error parsing tags:', err);
       data.tags = [];
     }
   }
@@ -36,8 +36,8 @@ export async function createBlog(formData) {
     const { featuredImage } = data;
     if (featuredImage) {
       const imageData = new FormData();
-      imageData.append("file", featuredImage);
-      const [imageUrl] = await uploadFiles(imageData, "blog");
+      imageData.append('file', featuredImage);
+      const [imageUrl] = await uploadFiles(imageData, 'blog');
       data.featuredImage = imageUrl;
     }
 
@@ -45,13 +45,13 @@ export async function createBlog(formData) {
 
     const blog = await Blog.create(data);
 
-    revalidatePath("/blog");
-    revalidatePath("/admin/blog");
+    revalidatePath('/blog');
+    revalidatePath('/admin/blog');
     return { id: blog._id.toString(), ...blog.toObject() };
   } catch (err) {
-    console.error("Create blog error:", err);
+    console.error('Create blog error:', err);
     const error = handleAppError(err);
-    throw new Error(error.message || "Failed to create blog post");
+    throw new Error(error.message || 'Failed to create blog post');
   }
 }
 
@@ -63,28 +63,28 @@ export async function updateBlog(id, formData) {
     const { featuredImage } = data;
     if (featuredImage && featuredImage.size > 0) {
       const imageData = new FormData();
-      imageData.append("file", featuredImage);
-      const [imageUrl] = await uploadFiles(imageData, "blog");
+      imageData.append('file', featuredImage);
+      const [imageUrl] = await uploadFiles(imageData, 'blog');
       data.featuredImage = imageUrl;
     }
     toObject(data);
     const blog = await Blog.findByIdAndUpdate(
       id,
       { ...data },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
 
     if (!blog) {
-      throw new Error("Blog post not found");
+      throw new Error('Blog post not found');
     }
 
-    revalidatePath("/blog");
-    revalidatePath("/admin/blog");
+    revalidatePath('/blog');
+    revalidatePath('/admin/blog');
     revalidatePath(`/blog/${blog.slug}`);
     return { id: blog._id.toString(), ...blog.toObject() };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Failed to update blog post");
+    throw new Error(error.message || 'Failed to update blog post');
   }
 }
 
@@ -93,12 +93,12 @@ export async function getBlog(id) {
 
   try {
     const blog = await Blog.findById(id)
-      .populate("author", "name email")
-      .populate("categories", "name slug _id")
+      .populate('author', 'name email')
+      .populate('categories', 'name slug _id')
       .lean();
 
     if (!blog) {
-      throw new Error("Blog post not found");
+      throw new Error('Blog post not found');
     }
 
     const formattedBlog = {
@@ -115,7 +115,7 @@ export async function getBlog(id) {
     return formattedBlog;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Failed to fetch blog post");
+    throw new Error(error.message || 'Failed to fetch blog post');
   }
 }
 
@@ -146,8 +146,8 @@ export async function getAllBlogs({
 
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } },
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -155,8 +155,8 @@ export async function getAllBlogs({
 
     const [blogs, total] = await Promise.all([
       Blog.find(query)
-        .populate("author", "name email")
-        .populate("categories", "name slug")
+        .populate('author', 'name email')
+        .populate('categories', 'name slug')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -180,7 +180,7 @@ export async function getAllBlogs({
     };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Failed to fetch blog posts");
+    throw new Error(error.message || 'Failed to fetch blog posts');
   }
 }
 
@@ -191,15 +191,15 @@ export async function deleteBlog(id) {
     const blog = await Blog.findByIdAndDelete(id);
 
     if (!blog) {
-      throw new Error("Blog post not found");
+      throw new Error('Blog post not found');
     }
 
-    revalidatePath("/blog");
-    revalidatePath("/admin/blog");
+    revalidatePath('/blog');
+    revalidatePath('/admin/blog');
     return null;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Failed to delete blog post");
+    throw new Error(error.message || 'Failed to delete blog post');
   }
 }
 
@@ -208,8 +208,8 @@ export async function getBlogBySlug(slug) {
 
   try {
     const blog = await Blog.findOne({ slug })
-      .populate("author", "name email")
-      .populate("categories", "name slug _id")
+      .populate('author', 'name email')
+      .populate('categories', 'name slug _id')
       .lean();
 
     if (!blog) {
@@ -230,6 +230,6 @@ export async function getBlogBySlug(slug) {
     return formattedBlog;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Failed to fetch blog post");
+    throw new Error(error.message || 'Failed to fetch blog post');
   }
 }

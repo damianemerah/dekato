@@ -1,16 +1,16 @@
-"use server";
+'use server';
 
-import Product from "@/models/product";
-import Category from "@/models/category";
-import Campaign from "@/models/collection";
-import APIFeatures from "@/utils/apiFeatures";
-import { handleFormData } from "@/utils/handleForm";
-import { restrictTo } from "@/utils/checkPermission";
-import dbConnect from "@/lib/mongoConnection";
-import { getQueryObj } from "@/utils/getFunc";
-import handleAppError from "@/utils/appError";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { deleteFiles } from "@/lib/s3Func";
+import Product from '@/models/product';
+import Category from '@/models/category';
+import Campaign from '@/models/collection';
+import APIFeatures from '@/utils/apiFeatures';
+import { handleFormData } from '@/utils/handleForm';
+import { restrictTo } from '@/utils/checkPermission';
+import dbConnect from '@/app/lib/mongoConnection';
+import { getQueryObj } from '@/utils/getFunc';
+import handleAppError from '@/utils/appError';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { deleteFiles } from '@/app/lib/s3Func';
 
 const formatProduct = (product, isAdmin = false) => {
   const { _id, category, campaign, variant = [], ...rest } = product;
@@ -25,7 +25,7 @@ const formatProduct = (product, isAdmin = false) => {
 
   if (!isAdmin) {
     formattedProduct.variant = formattedProduct.variant.filter(
-      (v) => v.quantity > 0,
+      (v) => v.quantity > 0
     );
   }
 
@@ -34,7 +34,7 @@ const formatProduct = (product, isAdmin = false) => {
 
 const setupIndexes = async () => {
   try {
-    console.log("Setting up indexes...");
+    console.log('Setting up indexes...');
     await dbConnect();
     // await Promise.all([
     //   Product.collection.createIndex({
@@ -47,12 +47,12 @@ const setupIndexes = async () => {
     //   Product.collection.createIndex({ slug: 1 }),
     // ]);
     Product.collection.createIndex({
-      name: "text",
-      description: "text",
-      tag: "text",
+      name: 'text',
+      description: 'text',
+      tag: 'text',
     });
   } catch (error) {
-    console.error("Error setting up indexes:", error);
+    console.error('Error setting up indexes:', error);
   }
 };
 
@@ -72,9 +72,9 @@ export async function setProductStatus(id, status) {
 export async function updateProductDiscount(
   productId,
   discountData,
-  campaignId = null,
+  campaignId = null
 ) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
@@ -83,7 +83,7 @@ export async function updateProductDiscount(
     const product = await Product.findById(productId);
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new Error('Product not found');
     }
 
     product.discount = discount;
@@ -94,7 +94,7 @@ export async function updateProductDiscount(
       await Product.findByIdAndUpdate(
         productId,
         { $addToSet: { campaign: campaignId } },
-        { new: true },
+        { new: true }
       );
     }
 
@@ -131,11 +131,11 @@ export async function getAdminProduct(params) {
     await dbConnect();
 
     const query = Product.find()
-      .populate("category", "name")
-      .populate("campaign", "name")
+      .populate('category', 'name')
+      .populate('campaign', 'name')
       .lean();
     const searchParams = {
-      sort: "-createdAt",
+      sort: '-createdAt',
       page: params.page || 1,
       limit: params.limit || 20,
     };
@@ -153,10 +153,10 @@ export async function productSearch(searchQuery) {
   try {
     await dbConnect();
     const productData = await handleProductQuery(
-      Product.find({ status: "active", quantity: { $gt: 0 } })
-        .select("name slug image status")
+      Product.find({ status: 'active', quantity: { $gt: 0 } })
+        .select('name slug image status')
         .lean(),
-      { ...searchQuery, limit: 9 },
+      { ...searchQuery, limit: 9 }
     );
 
     const products = productData.map(({ _id, ...rest }) => ({
@@ -165,8 +165,8 @@ export async function productSearch(searchQuery) {
     }));
 
     const categories = await handleProductQuery(
-      Category.find().select("name slug").lean(),
-      { ...searchQuery, limit: 6 },
+      Category.find().select('name slug').lean(),
+      { ...searchQuery, limit: 6 }
     );
 
     return { products, categories };
@@ -176,24 +176,24 @@ export async function productSearch(searchQuery) {
   }
 }
 
-export async function getVariantsByCategory(catArr, searchStr = "") {
+export async function getVariantsByCategory(catArr, searchStr = '') {
   try {
     await dbConnect();
     let matchCondition = {};
 
-    if (searchStr && catArr[0].toLowerCase() === "search") {
+    if (searchStr && catArr[0].toLowerCase() === 'search') {
       const regexPattern = searchStr
-        .split(" ")
+        .split(' ')
         .map((word) => `\\b${word.trim()}`)
-        .join(".*");
+        .join('.*');
       matchCondition = {
         $or: [
-          { name: { $regex: regexPattern, $options: "i" } },
-          { description: { $regex: regexPattern, $options: "i" } },
-          { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
+          { name: { $regex: regexPattern, $options: 'i' } },
+          { description: { $regex: regexPattern, $options: 'i' } },
+          { tag: { $elemMatch: { $regex: regexPattern, $options: 'i' } } },
         ],
       };
-    } else if (Array.isArray(catArr) && catArr[0].toLowerCase() !== "search") {
+    } else if (Array.isArray(catArr) && catArr[0].toLowerCase() !== 'search') {
       let category;
       let campaign;
 
@@ -238,7 +238,7 @@ export async function getVariantsByCategory(catArr, searchStr = "") {
 
     const variantData = await Product.aggregate([
       { $match: matchCondition },
-      { $unwind: "$variant" },
+      { $unwind: '$variant' },
       { $project: { _id: 0, variant: 1 } },
     ]);
 
@@ -246,7 +246,7 @@ export async function getVariantsByCategory(catArr, searchStr = "") {
       variant: { id: variant._id.toString(), ...variant },
     }));
   } catch (err) {
-    console.error("Error in getVariantsByCategory:", err);
+    console.error('Error in getVariantsByCategory:', err);
     return []; // Return empty array on error
   }
 }
@@ -257,12 +257,12 @@ export async function getAllProducts(slugArray, searchParams = {}) {
 
     let categories = [];
     let campaigns = [];
-    let baseQuery = Product.find({ quantity: { $gt: 0 }, status: "active" });
+    let baseQuery = Product.find({ quantity: { $gt: 0 }, status: 'active' });
     let isFallback = false;
     searchParams.limit = 20;
     const lastSlug = slugArray[slugArray.length - 1].toLowerCase();
 
-    if (lastSlug !== "search") {
+    if (lastSlug !== 'search') {
       if (slugArray.length === 1) {
         // Case 1: Single slug (e.g., [men] or [jeans])
         const topLevelCategory = await Category.findOne({
@@ -289,7 +289,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
         }).lean();
       } else if (slugArray.length > 1) {
         // Case 2: Multiple slugs (e.g., [men, jeans])
-        const exactPath = slugArray.join("/");
+        const exactPath = slugArray.join('/');
         categories = await Category.find({ path: exactPath }).lean();
         campaigns = await Campaign.find({ path: exactPath }).lean();
 
@@ -321,13 +321,13 @@ export async function getAllProducts(slugArray, searchParams = {}) {
           { category: { $in: categoryIds } },
           { campaign: { $in: campaignIds } },
         ],
-        status: "active",
+        status: 'active',
       })
         .select(
-          "name slug _id image price discount status quantity discountPrice discountDuration variant",
+          'name slug _id image price discount status quantity discountPrice discountDuration variant'
         )
-        .populate("category", "name slug path")
-        .populate("campaign", "name slug path");
+        .populate('category', 'name slug path')
+        .populate('campaign', 'name slug path');
     }
 
     const populatedQuery = baseQuery.lean({ virtuals: true });
@@ -343,8 +343,8 @@ export async function getAllProducts(slugArray, searchParams = {}) {
 
     if (!productData?.length) return [];
 
-    if (searchParams["color-vr"]) {
-      const colorVariants = searchParams["color-vr"].split(",");
+    if (searchParams['color-vr']) {
+      const colorVariants = searchParams['color-vr'].split(',');
 
       // Expand products with matching color variants
       const expandedProducts = productData.flatMap((product) => {
@@ -391,12 +391,12 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     };
 
     // Get description based on exact path match
-    const exactPath = slugArray.join("/");
+    const exactPath = slugArray.join('/');
     let description;
 
     if (isCampaign) {
       const matchedCampaign = await Campaign.findOne({ path: exactPath })
-        .select("banner description")
+        .select('banner description')
         .lean();
 
       if (matchedCampaign) {
@@ -407,7 +407,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       }
     } else {
       const matchedCategory = await Category.findOne({ path: exactPath })
-        .select("description")
+        .select('description')
         .lean();
       if (matchedCategory) {
         description = matchedCategory.description;
@@ -429,10 +429,10 @@ export async function getProductById(id) {
   try {
     await dbConnect();
     const product = await Product.findById(id)
-      .populate("category", "name slug")
-      .populate("campaign", "name slug")
+      .populate('category', 'name slug')
+      .populate('campaign', 'name slug')
       .lean({ virtuals: true });
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error('Product not found');
     return formatProduct(product);
   } catch (err) {
     const error = handleAppError(err);
@@ -444,10 +444,10 @@ export async function getAdminProductById(id) {
   try {
     await dbConnect();
     const product = await Product.findById(id)
-      .populate("category", "name slug")
-      .populate("campaign", "name slug")
+      .populate('category', 'name slug')
+      .populate('campaign', 'name slug')
       .lean({ virtuals: true });
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error('Product not found');
     return formatProduct(product, true);
   } catch (err) {
     const error = handleAppError(err);
@@ -457,13 +457,13 @@ export async function getAdminProductById(id) {
 
 export async function createProduct(formData) {
   try {
-    await restrictTo("admin");
+    await restrictTo('admin');
     await dbConnect();
 
     const obj = await handleFormData(formData);
 
     const createdProduct = await Product.create(obj);
-    if (!createdProduct) throw new Error("Product not created");
+    if (!createdProduct) throw new Error('Product not created');
 
     const productDoc = createdProduct.toObject();
 
@@ -478,11 +478,11 @@ export async function createProduct(formData) {
 
 export async function updateProduct(formData) {
   try {
-    await restrictTo("admin");
+    await restrictTo('admin');
     await dbConnect();
 
-    const id = formData.get("id");
-    if (!id) throw new Error("Product not found");
+    const id = formData.get('id');
+    if (!id) throw new Error('Product not found');
 
     const data = await handleFormData(formData);
 
@@ -503,11 +503,11 @@ export async function updateProduct(formData) {
 
 export const deleteProduct = async (id) => {
   try {
-    await restrictTo("admin");
+    await restrictTo('admin');
     await dbConnect();
 
     const product = await Product.findByIdAndDelete(id).lean();
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error('Product not found');
 
     const imagesToDelete = [
       ...product.image,
@@ -529,14 +529,14 @@ export const deleteProduct = async (id) => {
 export async function getProductsByCategory(cat) {
   await dbConnect();
   const products = await Product.find({ cat })
-    .populate("category", "name slug")
-    .populate("campaign", "name slug")
+    .populate('category', 'name slug')
+    .populate('campaign', 'name slug')
     .lean();
   return products.map((product) => {
     const formattedProduct = formatProduct(product);
     if (formattedProduct.category) {
       formattedProduct.category = formattedProduct.category.map(
-        ({ id, ...rest }) => ({ id, ...rest }),
+        ({ id, ...rest }) => ({ id, ...rest })
       );
     }
     return formattedProduct;
@@ -551,9 +551,9 @@ export async function getProductByCollection(slug) {
 
 function revalidateProduct(id) {
   revalidatePath(`/admin/products/${id}`);
-  revalidateTag("single-product-data");
-  revalidateTag("products-all");
-  revalidatePath("/admin/products");
+  revalidateTag('single-product-data');
+  revalidateTag('products-all');
+  revalidatePath('/admin/products');
   // revalidateTag("checkout-data");
 }
 

@@ -1,10 +1,10 @@
-import AppError from "@/utils/errorClass";
-import { uploadFiles, deleteFiles } from "@/lib/s3Func";
-import Category from "@/models/category";
-import { partition, endsWith, fromPairs, keys } from "lodash";
+import AppError from '@/utils/errorClass';
+import { uploadFiles, deleteFiles } from '@/app/lib/s3Func';
+import Category from '@/models/category';
+import { partition, endsWith, fromPairs, keys } from 'lodash';
 
 export const handleFormData = async (formData, Model, id) => {
-  const productName = formData.get("name") || "untitled";
+  const productName = formData.get('name') || 'untitled';
 
   const obj = {
     image: [],
@@ -30,7 +30,7 @@ export const handleFormData = async (formData, Model, id) => {
     imagesToUpload,
     videosToUpload,
     bannerToUpload,
-    variantsFilesToUpload,
+    variantsFilesToUpload
   );
 
   if (Model && id) {
@@ -43,23 +43,23 @@ export const handleFormData = async (formData, Model, id) => {
 
   const uploadedImageNames = await uploadNewFiles(
     imagesToUpload,
-    "image",
-    productName,
+    'image',
+    productName
   );
   const uploadedVideoNames = await uploadNewFiles(
     videosToUpload,
-    "video",
-    productName,
+    'video',
+    productName
   );
   const uploadedBannerNames = await uploadNewFiles(
     bannerToUpload,
-    "banner",
-    productName,
+    'banner',
+    productName
   );
 
-  updateObjWithUploadedFiles(obj, uploadedImageNames, "image");
-  updateObjWithUploadedFiles(obj, uploadedVideoNames, "video");
-  updateObjWithUploadedFiles(obj, uploadedBannerNames, "banner");
+  updateObjWithUploadedFiles(obj, uploadedImageNames, 'image');
+  updateObjWithUploadedFiles(obj, uploadedVideoNames, 'video');
+  updateObjWithUploadedFiles(obj, uploadedBannerNames, 'banner');
 
   await handleVariantImages(obj, variantsFilesToUpload);
 
@@ -71,17 +71,17 @@ export const handleFormData = async (formData, Model, id) => {
 };
 
 function validateFormData(formData) {
-  const status = formData.get("status");
-  const images = formData.getAll("image");
-  const videos = formData.getAll("video");
-  const banners = formData.getAll("banner");
+  const status = formData.get('status');
+  const images = formData.getAll('image');
+  const videos = formData.getAll('video');
+  const banners = formData.getAll('banner');
 
-  if (status === "active") {
-    if (!formData.get("category")) {
-      throw new AppError("Category is required", 400);
+  if (status === 'active') {
+    if (!formData.get('category')) {
+      throw new AppError('Category is required', 400);
     }
     if (images.length === 0 && videos.length === 0 && banners.length === 0) {
-      throw new AppError("Please upload image, video, or banner", 400);
+      throw new AppError('Please upload image, video, or banner', 400);
     }
   }
 }
@@ -92,24 +92,24 @@ function processFormEntries(
   imagesToUpload,
   videosToUpload,
   bannerToUpload,
-  variantsFilesToUpload,
+  variantsFilesToUpload
 ) {
   for (const [key, value] of formData.entries()) {
-    if (key.startsWith("variantData")) {
+    if (key.startsWith('variantData')) {
       processVariantData(obj, key, value);
-    } else if (key.startsWith("variantImage")) {
+    } else if (key.startsWith('variantImage')) {
       processVariantImage(obj, variantsFilesToUpload, key, value);
-    } else if (key === "category") {
+    } else if (key === 'category') {
       obj.category.push(value);
-    } else if (key === "campaign") {
+    } else if (key === 'campaign') {
       obj.campaign.push(value);
-    } else if (key === "image") {
+    } else if (key === 'image') {
       processMediaFile(obj, imagesToUpload, key, value);
-    } else if (key === "tag") {
+    } else if (key === 'tag') {
       obj.tag.push(value);
-    } else if (key === "video") {
+    } else if (key === 'video') {
       processMediaFile(obj, videosToUpload, key, value);
-    } else if (key === "banner") {
+    } else if (key === 'banner') {
       processMediaFile(obj, bannerToUpload, key, value);
     } else {
       obj[key] = value;
@@ -123,12 +123,12 @@ function processVariantData(obj, key, value) {
 
   const options = data.options;
   const labelEntries = Object.entries(data).filter(([key]) =>
-    key.endsWith("_label"),
+    key.endsWith('_label')
   );
 
   const optionType = labelEntries.map(([key, value]) => ({
     labelId: value,
-    label: key.replace("_label", ""),
+    label: key.replace('_label', ''),
   }));
 
   obj.variant[index] = {
@@ -141,14 +141,14 @@ function processVariantData(obj, key, value) {
 
 function processVariantImage(obj, variantsFilesToUpload, key, value) {
   const index = key.match(/\d+/)[0];
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     obj.variant[index] = { ...obj.variant[index], image: value };
   }
   variantsFilesToUpload[index] = value;
 }
 
 function processMediaFile(obj, filesToUpload, key, file) {
-  if (typeof file === "string") {
+  if (typeof file === 'string') {
     obj[key].push(file);
   } else if (file.size > 0) {
     filesToUpload.push(file);
@@ -173,7 +173,7 @@ async function findExistingProduct(Model, id) {
 
 async function handleExistingFiles(existingProd, obj, filesToDelete) {
   const imagesToDelete = existingProd.image.filter(
-    (img) => !obj.image.includes(img),
+    (img) => !obj.image.includes(img)
   );
   const videosToDelete = existingProd.video
     ? existingProd.video.filter((vid) => !obj.video.includes(vid))
@@ -205,9 +205,9 @@ async function handleVariantImages(obj, variantsFilesToUpload) {
   const variantImages = await Promise.all(
     variantsFilesToUpload.map(async (file) => {
       if (file.size > 0) {
-        return await uploadFiles([file], "variant");
+        return await uploadFiles([file], 'variant');
       }
-    }),
+    })
   );
 
   obj.variant = obj.variant.map((variant, index) => {

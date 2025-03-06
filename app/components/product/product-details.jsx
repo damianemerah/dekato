@@ -9,7 +9,7 @@ import { Button, ButtonPrimary } from '@/app/components/button';
 import { mutate } from 'swr';
 import { formatToNaira, generateVariantOptions } from '@/utils/getFunc';
 import { createCartItem } from '@/app/action/cartAction';
-import { useUserStore } from '@/store/store';
+import { useUserStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
 import { message } from 'antd';
 import { SmallSpinner } from '../spinner';

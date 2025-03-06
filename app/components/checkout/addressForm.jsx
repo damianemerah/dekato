@@ -4,7 +4,7 @@ import { useState, memo, useCallback } from 'react';
 import { Modal, message } from 'antd';
 import { ButtonPrimary } from '../button';
 import { updateUserAddress, createUserAddress } from '@/app/action/userAction';
-import { useUserStore } from '@/store/store';
+import { useUserStore } from '@/app/store/store';
 import { mutate } from 'swr';
 import EditIcon from '@/public/assets/icons/edit.svg';
 import { SmallSpinner } from '@/app/components/spinner';

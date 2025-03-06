@@ -6,7 +6,7 @@ import ProductCardSkeleton from '@/app/components/products/product-card-skeleton
 import HeaderOne from '@/app/components/heading1';
 import Image from 'next/image';
 import { Suspense, useMemo, useState, useCallback, useEffect } from 'react';
-import { useUserStore } from '@/store/store';
+import { useUserStore } from '@/app/store/store';
 import { trackView, activityQueue } from '@/utils/tracking';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 

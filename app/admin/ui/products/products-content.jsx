@@ -17,7 +17,7 @@ import { getAllCollections } from '@/app/action/collectionAction';
 import { getFiles } from '@/app/admin/utils/utils';
 import { generateVariantOptions } from '@/utils/getFunc';
 import useConfirmModal from '@/app/components/confirm-modal';
-import { useUserStore } from '@/store/store';
+import { useUserStore } from '@/app/store/store';
 import ProductForm from '@/app/admin/ui/products/productForm';
 
 const Page = memo(function Page({ slug }) {

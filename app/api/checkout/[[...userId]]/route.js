@@ -1,26 +1,26 @@
 // External dependencies
-import { NextResponse } from "next/server";
-import { startSession } from "mongoose";
-import { customAlphabet } from "nanoid";
+import { NextResponse } from 'next/server';
+import { startSession } from 'mongoose';
+import { customAlphabet } from 'nanoid';
 
 // Database models
-import Order from "@/models/order";
-import Address from "@/models/address";
-import Payment from "@/models/payment";
-import { Cart, CartItem } from "@/models/cart";
-import dbConnect from "@/lib/mongoConnection";
+import Order from '@/models/order';
+import Address from '@/models/address';
+import Payment from '@/models/payment';
+import { Cart, CartItem } from '@/models/cart';
+import dbConnect from '@/app/lib/mongoConnection';
 
 // Utils
-import AppError from "@/utils/errorClass";
-import handleAppError from "@/utils/appError";
-import { restrictTo } from "@/utils/checkPermission";
+import AppError from '@/utils/errorClass';
+import handleAppError from '@/utils/appError';
+import { restrictTo } from '@/utils/checkPermission';
 
 // Initialize nanoid and payment gateway
-const nanoId = customAlphabet("0123456789", 6);
-const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
+const nanoId = customAlphabet('0123456789', 6);
+const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
 
 export async function GET(req, { params }) {
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
   try {
     const { userId } = params;
 
@@ -33,7 +33,7 @@ export async function GET(req, { params }) {
     });
 
     if (items.length === 0) {
-      throw new AppError("No items selected", 400);
+      throw new AppError('No items selected', 400);
     }
 
     const amount = items.reduce((acc, item) => {
@@ -48,7 +48,7 @@ export async function GET(req, { params }) {
 
     return NextResponse.json(
       { success: true, data: checkoutData },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     return handleAppError(error, req);
@@ -56,7 +56,7 @@ export async function GET(req, { params }) {
 }
 
 export async function POST(req, { params }) {
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
   await dbConnect();
   const session = await startSession();
   try {
@@ -69,11 +69,11 @@ export async function POST(req, { params }) {
     const { shippingMethod, address, items, amount, email, saveCard, cardId } =
       body;
 
-    if (shippingMethod?.toLowerCase() === "delivery" && !address) {
-      throw new AppError("Address is required for delivery", 400);
+    if (shippingMethod?.toLowerCase() === 'delivery' && !address) {
+      throw new AppError('Address is required for delivery', 400);
     }
 
-    if (shippingMethod?.toLowerCase() === "delivery") {
+    if (shippingMethod?.toLowerCase() === 'delivery') {
       const userAddress = await Address.findOne({
         userId,
         _id: address.id,
@@ -81,7 +81,7 @@ export async function POST(req, { params }) {
       }).session(session);
 
       if (!userAddress) {
-        throw new AppError("User address not found", 404);
+        throw new AppError('User address not found', 404);
       }
     }
     const payId = nanoId();
@@ -104,7 +104,7 @@ export async function POST(req, { params }) {
       totalItems,
       shippingMethod: shippingMethod?.toLowerCase(),
       address:
-        shippingMethod?.toLowerCase() === "delivery" ? address.id : undefined,
+        shippingMethod?.toLowerCase() === 'delivery' ? address.id : undefined,
     };
 
     //session require array of objects
@@ -113,17 +113,17 @@ export async function POST(req, { params }) {
     const createdOrder = order[0];
 
     if (!order) {
-      throw new AppError("Order could not be created", 500);
+      throw new AppError('Order could not be created', 500);
     }
 
     let paymentInitializeOptions = {
       email: email,
       amount: Math.round(amount * 100),
       callback_url: `${process.env.NEXTAUTH_URL}/checkout/success`,
-      currency: "NGN",
+      currency: 'NGN',
       reference: payId,
       metadata: {
-        orderId: createdOrder["_id"].toString(),
+        orderId: createdOrder['_id'].toString(),
         userId,
         saveCard: saveCard,
       },
@@ -135,7 +135,7 @@ export async function POST(req, { params }) {
         userId,
       });
       if (!paymentMethod) {
-        throw new AppError("Payment method not found", 404);
+        throw new AppError('Payment method not found', 404);
       }
       paymentInitializeOptions.authorization_code =
         paymentMethod.authorization.authorization_code;
@@ -144,7 +144,7 @@ export async function POST(req, { params }) {
     }
 
     const payment = await Paystack.transaction.initialize(
-      paymentInitializeOptions,
+      paymentInitializeOptions
     );
 
     if (!payment || payment.status === false) {
@@ -155,13 +155,13 @@ export async function POST(req, { params }) {
 
     return NextResponse.json(
       { success: true, data: { payment, order: createdOrder } },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     await session.abortTransaction();
     return NextResponse.json(
       { success: false, message: error.message },
-      { status: error.statusCode || 500 },
+      { status: error.statusCode || 500 }
     );
   } finally {
     session.endSession();

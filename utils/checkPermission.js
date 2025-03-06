@@ -1,22 +1,22 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { redirect } from "next/navigation";
-import dbConnect from "@/lib/mongoConnection";
-import User from "@/models/user";
-import { cookies } from "next/headers";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { redirect } from 'next/navigation';
+import dbConnect from '@/app/lib/mongoConnection';
+import User from '@/models/user';
+import { cookies } from 'next/headers';
 
 //isLoggedin middleware
 export const protect = async () => {
   const session = await getServerSession(authOptions);
   if (!session) {
-    redirect("/signin");
+    redirect('/signin');
     return null;
   }
 
   await dbConnect();
 
   const currentUser = await User.findById(session.user.id).select(
-    "+passwordChangedAt",
+    '+passwordChangedAt'
   );
 
   const passwordChangedAt = currentUser.passwordChangedAt;
@@ -26,8 +26,8 @@ export const protect = async () => {
 
     if (passwordChangedTimestamp > session.user.iat) {
       const cookieStore = cookies();
-      cookieStore.delete("next-auth.session-token");
-      redirect("/signin");
+      cookieStore.delete('next-auth.session-token');
+      redirect('/signin');
     }
   }
 
@@ -38,7 +38,7 @@ export const restrictTo = async (...roles) => {
   const session = await protect();
   if (!session?.user || !roles.includes(session.user.role)) {
     // return { error: "You do not have permission to perform this action" };
-    redirect("/");
+    redirect('/');
   }
   return session;
 };

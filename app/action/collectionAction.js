@@ -1,13 +1,13 @@
-"use server";
+'use server';
 
-import dbConnect from "@/lib/mongoConnection";
-import Campaign from "@/models/collection";
-import Product from "@/models/product";
-import { handleFormData } from "@/utils/handleForm";
-import { restrictTo } from "@/utils/checkPermission";
-import handleAppError from "@/utils/appError";
-import { revalidatePath, revalidateTag } from "next/cache";
-import APIFeatures from "@/utils/apiFeatures";
+import dbConnect from '@/app/lib/mongoConnection';
+import Campaign from '@/models/collection';
+import Product from '@/models/product';
+import { handleFormData } from '@/utils/handleForm';
+import { restrictTo } from '@/utils/checkPermission';
+import handleAppError from '@/utils/appError';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import APIFeatures from '@/utils/apiFeatures';
 
 function formatCollections(collections) {
   const formattedCollections = collections.map(
@@ -15,7 +15,7 @@ function formatCollections(collections) {
       id: _id.toString(),
       ...rest,
       createdAt: createdAt?.toISOString(),
-    }),
+    })
   );
 
   return formattedCollections;
@@ -27,9 +27,9 @@ export async function getAllCollections(params) {
   try {
     const query = Campaign.find(
       {},
-      "name description image slug createdAt category banner isSale",
+      'name description image slug createdAt category banner isSale'
     )
-      .populate("category", "name slug")
+      .populate('category', 'name slug')
       .lean({ virtuals: true });
 
     const searchParams = {
@@ -52,7 +52,7 @@ export async function getAllCollections(params) {
           productCount,
           ...rest,
         };
-      }),
+      })
     );
 
     const totalCount = await Campaign.countDocuments(query.getFilter());
@@ -65,7 +65,7 @@ export async function getAllCollections(params) {
 }
 
 export async function createCollection(formData) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
@@ -89,24 +89,24 @@ export async function createCollection(formData) {
 }
 
 export async function updateCollection(formData) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
-    const id = formData.get("id");
+    const id = formData.get('id');
     const data = await handleFormData(formData, Campaign, id);
     const body = Object.fromEntries(
-      Object.entries(data).filter(([key]) => formData.get(key)),
+      Object.entries(data).filter(([key]) => formData.get(key))
     );
 
     const collection = await Campaign.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
-      select: "name description image slug createdAt category banner",
+      select: 'name description image slug createdAt category banner',
     }).lean({ virtuals: true });
 
     if (!collection) {
-      throw new Error("Collection not found");
+      throw new Error('Collection not found');
     }
 
     const productCount = await Product.countDocuments({
@@ -115,7 +115,7 @@ export async function updateCollection(formData) {
 
     revalidatePath(`/admin/collections/${collection.slug}`);
     revalidatePath(`/admin/collections`);
-    revalidateTag("products-all");
+    revalidateTag('products-all');
 
     return { ...formatCollections([collection])[0], productCount };
   } catch (err) {
@@ -125,7 +125,7 @@ export async function updateCollection(formData) {
 }
 
 export async function deleteCollection(id) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
@@ -134,10 +134,10 @@ export async function deleteCollection(id) {
     });
 
     if (!deletedCollection) {
-      throw new Error("Collection not found");
+      throw new Error('Collection not found');
     }
 
-    revalidatePath("/admin/collections");
+    revalidatePath('/admin/collections');
     revalidatePath(`/admin/collections/${deletedCollection.slug}`);
 
     return null;
@@ -148,7 +148,7 @@ export async function deleteCollection(id) {
 }
 
 export const addProductToCollection = async (collectionId, productId) => {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
@@ -156,7 +156,7 @@ export const addProductToCollection = async (collectionId, productId) => {
     const product = await Product.findById(productId);
 
     if (!collection || !product) {
-      throw new Error("Collection or product not found");
+      throw new Error('Collection or product not found');
     }
 
     collection.products.push(product);
@@ -194,7 +194,7 @@ export async function getSaleCollections() {
           collections: collection._id,
         });
         return { ...collection, productCount };
-      }),
+      })
     );
 
     return formatCollections(formattedCollections);

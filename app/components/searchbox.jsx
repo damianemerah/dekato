@@ -1,11 +1,11 @@
-import { useSearchStore } from "@/store/store";
-import { useEffect, useRef, useState } from "react";
-import useSWR from "swr";
-import { productSearch } from "../action/productAction";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Search, X } from "lucide-react";
-import Image from "next/image";
+import { useSearchStore } from '@/app/store/store';
+import { useEffect, useRef, useState } from 'react';
+import useSWR from 'swr';
+import { productSearch } from '../action/productAction';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Search, X } from 'lucide-react';
+import Image from 'next/image';
 
 // Debounce hook to delay the search input
 function useDebounce(value, delay) {
@@ -45,7 +45,7 @@ const SearchBox = ({ className }) => {
   // Fetch data using SWR
   const { data: pSearchList, error } = useSWR(
     debouncedSearch?.length > 2 ? debouncedSearch : null,
-    fetcher,
+    fetcher
   );
 
   useEffect(() => {
@@ -68,8 +68,8 @@ const SearchBox = ({ className }) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [setActiveDropdown]);
 
   const handleSearchProduct = async (e) => {
@@ -86,7 +86,7 @@ const SearchBox = ({ className }) => {
 
   const handleCloseMobileSearch = () => {
     setShowMobileSearch(false);
-    setSearchString("");
+    setSearchString('');
   };
 
   return (

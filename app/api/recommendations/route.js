@@ -1,56 +1,56 @@
-import { NextResponse } from "next/server";
-import Product from "@/models/product";
-import Category from "@/models/category";
-import UserActivity from "@/models/userActivity";
-import dbConnect from "@/lib/mongoConnection";
-import { recommendationService } from "@/lib/recommendationService";
-import { auth } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import Product from '@/models/product';
+import Category from '@/models/category';
+import UserActivity from '@/models/userActivity';
+import dbConnect from '@/app/lib/mongoConnection';
+import { recommendationService } from '@/app/lib/recommendationService';
+import { auth } from '@/app/lib/auth';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
   try {
     await dbConnect();
     const searchParams = req.nextUrl.searchParams;
-    const category = searchParams.get("category");
-    const limit = searchParams.get("limit") || 4;
-    const productId = searchParams.get("productId");
-    const type = searchParams.get("type");
+    const category = searchParams.get('category');
+    const limit = searchParams.get('limit') || 4;
+    const productId = searchParams.get('productId');
+    const type = searchParams.get('type');
     const session = await auth();
     const userId = session?.user?.id;
 
     let products = [];
 
-    if (productId && type === "similar") {
+    if (productId && type === 'similar') {
       // Get similar products for a specific product
       const product = await Product.findById(productId);
       if (!product) {
         return NextResponse.json(
-          { error: "Product not found" },
-          { status: 404 },
+          { error: 'Product not found' },
+          { status: 404 }
         );
       }
       const userActivity = await UserActivity.findOne({ userId }).select(
-        "naughtyList",
+        'naughtyList'
       );
 
       products = await product.findSimilarProducts(
         userActivity,
-        parseInt(limit, 10),
+        parseInt(limit, 10)
       );
-    } else if (userId && type === "personalized") {
+    } else if (userId && type === 'personalized') {
       // Get personalized recommendations
       products = await recommendationService.getPersonalizedRecommendations(
         userId,
-        parseInt(limit, 10),
+        parseInt(limit, 10)
       );
     } else {
       // Fallback to category-based or general recommendations
-      let filter = { status: "active" };
+      let filter = { status: 'active' };
 
       if (category) {
         const categoryDoc = await Category.findOne({ slug: category }).select(
-          "_id",
+          '_id'
         );
         if (categoryDoc) {
           filter.category = categoryDoc._id;
@@ -60,7 +60,7 @@ export async function GET(req) {
       products = await Product.find(filter)
         .sort({ purchaseCount: -1, viewCount: -1, createdAt: -1 })
         .limit(parseInt(limit, 10))
-        .populate("category", "name slug")
+        .populate('category', 'name slug')
         .lean();
     }
 
@@ -85,8 +85,8 @@ export async function GET(req) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Error fetching recommendations" },
-      { status: 500 },
+      { error: 'Error fetching recommendations' },
+      { status: 500 }
     );
   }
 }
@@ -96,8 +96,8 @@ export async function POST(req) {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
+        { error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
@@ -106,32 +106,32 @@ export async function POST(req) {
     // Validate request parameters
     if (!productId) {
       return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 },
+        { error: 'Product ID is required' },
+        { status: 400 }
       );
     }
 
-    if (!["view", "purchase", "click"].includes(interactionType)) {
+    if (!['view', 'purchase', 'click'].includes(interactionType)) {
       return NextResponse.json(
         {
           error:
             "Invalid interaction type. Must be 'view', 'click' or 'purchase'",
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     // Verify product exists
     const product = await Product.findById(productId);
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     // Track the interaction
     await recommendationService.trackProductInteraction(
       session.user.id,
       productId,
-      interactionType,
+      interactionType
     );
 
     return NextResponse.json({
@@ -139,16 +139,16 @@ export async function POST(req) {
       message: `Product ${interactionType} tracked successfully`,
     });
   } catch (error) {
-    if (error.name === "CastError") {
+    if (error.name === 'CastError') {
       return NextResponse.json(
-        { error: "Invalid product ID format" },
-        { status: 400 },
+        { error: 'Invalid product ID format' },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: "Error tracking product interaction" },
-      { status: 500 },
+      { error: 'Error tracking product interaction' },
+      { status: 500 }
     );
   }
 }
@@ -158,7 +158,7 @@ export async function PATCH(req) {
     // Get session
     const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get productId from request body
@@ -166,8 +166,8 @@ export async function PATCH(req) {
 
     if (!productId) {
       return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 },
+        { error: 'Product ID is required' },
+        { status: 400 }
       );
     }
 
@@ -175,7 +175,7 @@ export async function PATCH(req) {
     const product = await Product.findById(productId);
 
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     // Add to naughty list
@@ -183,19 +183,19 @@ export async function PATCH(req) {
 
     return NextResponse.json({
       success: true,
-      message: "Product added to naughty list successfully",
+      message: 'Product added to naughty list successfully',
     });
   } catch (error) {
-    if (error.name === "CastError") {
+    if (error.name === 'CastError') {
       return NextResponse.json(
-        { error: "Invalid product ID format" },
-        { status: 400 },
+        { error: 'Invalid product ID format' },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: "Error adding product to naughty list" },
-      { status: 500 },
+      { error: 'Error adding product to naughty list' },
+      { status: 500 }
     );
   }
 }

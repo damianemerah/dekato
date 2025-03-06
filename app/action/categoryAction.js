@@ -1,14 +1,14 @@
-"use server";
+'use server';
 
-import dbConnect from "@/lib/mongoConnection";
-import Category from "@/models/category";
-import Product from "@/models/product";
-import { handleFormData } from "@/utils/handleForm";
-import { restrictTo } from "@/utils/checkPermission";
-import handleAppError from "@/utils/appError";
-import APIFeatures from "@/utils/apiFeatures";
-import { revalidatePath } from "next/cache";
-import { formatCategories } from "@/utils/filterHelpers";
+import dbConnect from '@/app/lib/mongoConnection';
+import Category from '@/models/category';
+import Product from '@/models/product';
+import { handleFormData } from '@/utils/handleForm';
+import { restrictTo } from '@/utils/checkPermission';
+import handleAppError from '@/utils/appError';
+import APIFeatures from '@/utils/apiFeatures';
+import { revalidatePath } from 'next/cache';
+import { formatCategories } from '@/utils/filterHelpers';
 
 export async function getAllCategories(params) {
   try {
@@ -16,9 +16,9 @@ export async function getAllCategories(params) {
 
     const query = Category.find(
       {},
-      "name description image slug createdAt parent pinned pinOrder ",
+      'name description image slug createdAt parent pinned pinOrder '
     )
-      .populate("parent", "name _id slug")
+      .populate('parent', 'name _id slug')
       .lean({ virtuals: true });
 
     const searchParams = {
@@ -48,7 +48,7 @@ export async function getAllCategories(params) {
           productCount,
           ...rest,
         };
-      }),
+      })
     );
 
     const totalCount = await Category.countDocuments(query.getFilter());
@@ -65,7 +65,7 @@ export async function getSubCategories(slug) {
     await dbConnect();
 
     // Early return for search routes
-    if (!Array.isArray(slug) || slug[0].toLowerCase() === "search") {
+    if (!Array.isArray(slug) || slug[0].toLowerCase() === 'search') {
       return null;
     }
 
@@ -73,7 +73,7 @@ export async function getSubCategories(slug) {
     const parentCategory = await Category.findOne({
       slug: slug[0].toLowerCase(),
     })
-      .populate("children", "name description image slug createdAt")
+      .populate('children', 'name description image slug createdAt')
       .sort({ slug: 1 })
       .lean();
 
@@ -86,12 +86,12 @@ export async function getSubCategories(slug) {
     return formattedCategories;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "Something went wrong");
+    throw new Error(error.message || 'Something went wrong');
   }
 }
 
 export async function createCategory(formData) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
@@ -105,11 +105,11 @@ export async function createCategory(formData) {
       const parentDoc = await Category.findByIdAndUpdate(
         body.parent,
         { $push: { children: category._id } },
-        { new: true },
+        { new: true }
       );
 
       if (!parentDoc) {
-        throw new Error("Parent category not found");
+        throw new Error('Parent category not found');
       }
 
       category.parent = parentDoc._id.toString();
@@ -126,15 +126,15 @@ export async function createCategory(formData) {
     return { id: _id.toString(), productCount, ...rest };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw new Error(error.message || 'An error occurred');
   }
 }
 
 export async function updateCategory(formData) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
   try {
-    const id = formData.get("id");
+    const id = formData.get('id');
     const data = await handleFormData(formData, Category, id);
 
     const body = {};
@@ -149,11 +149,11 @@ export async function updateCategory(formData) {
       new: true,
       runValidators: true,
     })
-      .select("name description image slug createdAt parent pinned pinOrder")
-      .populate("parent", "name _id slug");
+      .select('name description image slug createdAt parent pinned pinOrder')
+      .populate('parent', 'name _id slug');
 
     if (!categoryDoc) {
-      throw new Error("Category not found");
+      throw new Error('Category not found');
     }
 
     const category = categoryDoc.toObject();
@@ -180,19 +180,19 @@ export async function updateCategory(formData) {
     };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw new Error(error.message || 'An error occurred');
   }
 }
 
 export async function deleteCategory(id) {
-  await restrictTo("admin");
+  await restrictTo('admin');
   await dbConnect();
 
   try {
     const categoryToDelete = await Category.findById(id);
 
     if (!categoryToDelete) {
-      throw new Error("Category not found");
+      throw new Error('Category not found');
     }
 
     // Check if any products are using this category
@@ -202,7 +202,7 @@ export async function deleteCategory(id) {
 
     if (productsUsingCategory > 0) {
       throw new Error(
-        "Cannot delete category. It is still being used by products.",
+        'Cannot delete category. It is still being used by products.'
       );
     }
 
@@ -210,12 +210,12 @@ export async function deleteCategory(id) {
 
     const orphanedCategories = await Category.find({
       parent: deletedCategory._id,
-    }).select("_id");
+    }).select('_id');
 
     if (orphanedCategories.length > 0) {
       await Category.updateMany(
         { parent: deletedCategory._id },
-        { parent: null },
+        { parent: null }
       );
     }
     const categoriesWithDeletedChild = await Category.find({
@@ -223,16 +223,16 @@ export async function deleteCategory(id) {
     });
     for (const category of categoriesWithDeletedChild) {
       category.children = category.children.filter(
-        (childId) => !childId.equals(deletedCategory._id),
+        (childId) => !childId.equals(deletedCategory._id)
       );
       await category.save();
     }
 
-    revalidatePath("/admin/categories");
+    revalidatePath('/admin/categories');
     return null;
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw new Error(error.message || 'An error occurred');
   }
 }
 

@@ -1,17 +1,16 @@
-import dbConnect from "@/lib/mongoConnection";
-import User from "@/models/user";
-import { NextResponse } from "next/server";
-import handleAppError from "@/utils/appError";
-import AppError from "@/utils/errorClass";
-import crypto from "crypto";
+import dbConnect from '@/app/lib/mongoConnection';
+import User from '@/models/user';
+import { NextResponse } from 'next/server';
+import handleAppError from '@/utils/appError';
+import AppError from '@/utils/errorClass';
+import crypto from 'crypto';
 
 export async function GET(req, { params }) {
   try {
     const token = params.token;
     const body = await req.json();
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     await dbConnect();
 
@@ -21,7 +20,7 @@ export async function GET(req, { params }) {
     });
 
     if (!user) {
-      throw new AppError("Token is invalid or has expired", 400);
+      throw new AppError('Token is invalid or has expired', 400);
     }
 
     user.password = body.password;

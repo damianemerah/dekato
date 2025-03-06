@@ -6,7 +6,7 @@ import ProductCardSkeleton from '@/app/components/products/product-card-skeleton
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import ProductCard from '@/app/components/products/product-card';
-import { useRecommendMutateStore } from '@/store/store';
+import { useRecommendMutateStore } from '@/app/store/store';
 
 const fetcher = async (type, category, productId) => {
   const url = `/api/recommendations?type=${type}${

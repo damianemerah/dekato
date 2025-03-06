@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { usePathname } from 'next/navigation';
-import { useSidebarStore } from '@/store/store';
+import { useSidebarStore } from '@/app/store/store';
 import useIsBelowThreshold from '@/app/hooks/useIsBelowThreshold';
 import Footer from '@/app/components/footer';
 import NewsLetter from '../(client)/(home)/newsletter';

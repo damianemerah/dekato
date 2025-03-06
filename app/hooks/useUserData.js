@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { useUserStore } from "@/store/store";
-import { getUser } from "@/app/action/userAction";
+import useSWR from 'swr';
+import { useUserStore } from '@/app/store/store';
+import { getUser } from '@/app/action/userAction';
 
 const fetchUser = (userId) => getUser(userId);
 
@@ -16,7 +16,7 @@ export default function useUserData(userId) {
       onSuccess: setUser,
       revalidateOnFocus: false,
       fallbackData: user,
-    },
+    }
   );
 
   return { userData: data, isLoading, isValidating, error };

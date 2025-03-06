@@ -1,12 +1,12 @@
-"use client";
-import { useState, useEffect, useCallback, memo } from "react";
-import useSWRImmutable from "swr/immutable";
-import { getPinnedCategoriesByParent } from "@/app/action/categoryAction";
-import { useCategoryStore, useRecommendMutateStore } from "@/store/store";
-import dynamic from "next/dynamic";
-import Campaign from "./Campaign";
+'use client';
+import { useState, useEffect, useCallback, memo } from 'react';
+import useSWRImmutable from 'swr/immutable';
+import { getPinnedCategoriesByParent } from '@/app/action/categoryAction';
+import { useCategoryStore, useRecommendMutateStore } from '@/app/store/store';
+import dynamic from 'next/dynamic';
+import Campaign from './Campaign';
 
-const CategoryLink = dynamic(() => import("./category-link"), {
+const CategoryLink = dynamic(() => import('./category-link'), {
   ssr: false,
   loading: () => (
     <div className="relative aspect-square w-full overflow-hidden">
@@ -23,10 +23,10 @@ export default memo(function HomeCategory() {
     (state) => ({
       selectedCategory: state.selectedCategory,
       setSelectedCategory: state.setSelectedCategory,
-    }),
+    })
   );
   const setShouldMutate = useRecommendMutateStore(
-    (state) => state.setShouldMutate,
+    (state) => state.setShouldMutate
   );
   const [categorizedListState, setCategorizedListState] = useState([]);
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -39,7 +39,7 @@ export default memo(function HomeCategory() {
     {
       revalidateOnFocus: false,
       refreshInterval: 1000 * 60 * 60,
-    },
+    }
   );
 
   useEffect(() => {
@@ -53,29 +53,29 @@ export default memo(function HomeCategory() {
       setSelectedCategory(category);
       setShouldMutate(true);
     },
-    [setSelectedCategory, setShouldMutate],
+    [setSelectedCategory, setShouldMutate]
   );
 
   const handleScroll = useCallback(
     (direction) => {
-      const container = document.getElementById("category-container");
+      const container = document.getElementById('category-container');
       const scrollAmount = 300;
 
-      if (direction === "left") {
+      if (direction === 'left') {
         container.scrollTo({
           left: Math.max(0, scrollPosition - scrollAmount),
-          behavior: "smooth",
+          behavior: 'smooth',
         });
       } else {
         container.scrollTo({
           left: scrollPosition + scrollAmount,
-          behavior: "smooth",
+          behavior: 'smooth',
         });
       }
 
       setScrollPosition(container.scrollLeft);
     },
-    [scrollPosition],
+    [scrollPosition]
   );
 
   if (
@@ -98,13 +98,13 @@ export default memo(function HomeCategory() {
               Filter by:
             </p>
             <ul className="flex gap-4">
-              {["women", "men"].map((category) => (
+              {['women', 'men'].map((category) => (
                 <li
                   key={category}
                   className={`${
                     selectedCategory === category
-                      ? "border-b-2 border-primary"
-                      : ""
+                      ? 'border-b-2 border-primary'
+                      : ''
                   } cursor-pointer text-base font-bold uppercase tracking-wide`}
                   onClick={() => handleCategoryChange(category)}
                 >

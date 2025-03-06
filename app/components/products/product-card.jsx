@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
+import Image from 'next/image';
+import Link from 'next/link';
 import {
   HeartOutlined,
   HeartFilled,
   CloseOutlined,
   ShoppingOutlined,
-} from "@ant-design/icons";
-import { useState, useCallback, memo, useEffect } from "react";
-import { useUserStore, useRecommendMutateStore } from "@/store/store";
-import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { message } from "antd";
-import { mutate } from "swr";
-import { formatToNaira } from "@/utils/getFunc";
-import { trackClick } from "@/utils/tracking";
-import { createCartItem } from "@/app/action/cartAction";
+} from '@ant-design/icons';
+import { useState, useCallback, memo, useEffect } from 'react';
+import { useUserStore, useRecommendMutateStore } from '@/app/store/store';
+import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
+import { message } from 'antd';
+import { mutate } from 'swr';
+import { formatToNaira } from '@/utils/getFunc';
+import { trackClick } from '@/utils/tracking';
+import { createCartItem } from '@/app/action/cartAction';
 
 const ProductCard = memo(({ product, key, showDelete = false }) => {
   const [supportsHover, setSupportsHover] = useState(true);
@@ -25,10 +25,10 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const userId = user?.id;
   const [isFavorite, setIsFavorite] = useState(
-    user?.wishlist?.includes(product.id),
+    user?.wishlist?.includes(product.id)
   );
   const setShouldMutate = useRecommendMutateStore(
-    (state) => state.setShouldMutate,
+    (state) => state.setShouldMutate
   );
 
   const [currentImage, setCurrentImage] = useState(product?.image[0]);
@@ -40,8 +40,8 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
   }, [product]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(hover: hover)");
-    const screenQuery = window.matchMedia("(min-width: 640px)");
+    const mediaQuery = window.matchMedia('(hover: hover)');
+    const screenQuery = window.matchMedia('(min-width: 640px)');
 
     const updateMediaQueries = () => {
       setSupportsHover(mediaQuery.matches);
@@ -50,12 +50,12 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
 
     updateMediaQueries();
 
-    mediaQuery.addEventListener("change", updateMediaQueries);
-    screenQuery.addEventListener("change", updateMediaQueries);
+    mediaQuery.addEventListener('change', updateMediaQueries);
+    screenQuery.addEventListener('change', updateMediaQueries);
 
     return () => {
-      mediaQuery.removeEventListener("change", updateMediaQueries);
-      screenQuery.removeEventListener("change", updateMediaQueries);
+      mediaQuery.removeEventListener('change', updateMediaQueries);
+      screenQuery.removeEventListener('change', updateMediaQueries);
     };
   }, []);
 
@@ -71,7 +71,7 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
       e.stopPropagation();
 
       if (!userId) {
-        message.error("Please login to add to cart");
+        message.error('Please login to add to cart');
         return;
       }
 
@@ -89,14 +89,14 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
         await createCartItem(userId, newItem);
         await mutate(`/api/user/${userId}`);
         await mutate(`/cart/${userId}`);
-        message.success("Item added to cart");
+        message.success('Item added to cart');
       } catch (error) {
         message.info(error.message, 4);
       } finally {
         setIsAddingToCart(false);
       }
     },
-    [userId, product],
+    [userId, product]
   );
 
   const handleFavoriteClick = useCallback(
@@ -106,17 +106,17 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
       setIsLoading(true);
 
       if (!userId) {
-        message.error("Please login to add to wishlist");
+        message.error('Please login to add to wishlist');
         return;
       }
 
       try {
         if (isFavorite) {
           await removeFromWishlist(userId, product.id);
-          message.success("Removed from wishlist");
+          message.success('Removed from wishlist');
         } else {
           await addToWishlist(userId, product.id);
-          message.success("Added to wishlist");
+          message.success('Added to wishlist');
         }
         setIsFavorite(!isFavorite);
         await mutate(`/api/user/${userId}`);
@@ -126,14 +126,14 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
         setIsLoading(false);
       }
     },
-    [isFavorite, userId, product.id],
+    [isFavorite, userId, product.id]
   );
 
   const handleDelete = useCallback(async () => {
     try {
-      const response = await fetch("/api/recommendations", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/recommendations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: product.id }),
       });
       if (response.ok) {
@@ -195,10 +195,10 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
             </div>
           ) : (
             <div
-              className={`absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-secondary transition-all duration-300 hover:scale-110 hover:bg-secondary/10 ${isLoading ? "animate-pulse" : ""}`}
+              className={`absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-secondary transition-all duration-300 hover:scale-110 hover:bg-secondary/10 ${isLoading ? 'animate-pulse' : ''}`}
               onClick={handleFavoriteClick}
               aria-label={
-                isFavorite ? "Remove from wishlist" : "Add to wishlist"
+                isFavorite ? 'Remove from wishlist' : 'Add to wishlist'
               }
             >
               {isFavorite ? <HeartFilled /> : <HeartOutlined />}
@@ -207,7 +207,7 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
         </div>
 
         <div
-          className={`relative z-10 flex min-h-8 w-full flex-1 flex-col items-center bg-white pb-2 pt-1 text-[13px] transition-all duration-300 ${shouldShowVariantsOnHover ? "sm:group-hover:-translate-y-9" : ""}`}
+          className={`relative z-10 flex min-h-8 w-full flex-1 flex-col items-center bg-white pb-2 pt-1 text-[13px] transition-all duration-300 ${shouldShowVariantsOnHover ? 'sm:group-hover:-translate-y-9' : ''}`}
         >
           {product.isDiscounted && (
             <div className="absolute -top-9 left-0 bg-red-500 px-3 py-0.5 text-[13px] text-white">
@@ -236,7 +236,7 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
               onClick={handleAddToCart}
               disabled={isAddingToCart}
               className={`flex h-6 w-6 items-center justify-center rounded-full bg-secondary/10 text-secondary transition-all duration-300 sm:ml-2 ${
-                isAddingToCart ? "animate-pulse" : ""
+                isAddingToCart ? 'animate-pulse' : ''
               }`}
               aria-label="Add to cart"
             >
@@ -247,7 +247,7 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
       </Link>
       {product?.variant?.length > 0 && (
         <div
-          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white pb-2 transition-all duration-300 ${shouldShowVariantsOnHover ? "bottom-0 left-1/2 sm:absolute sm:-translate-x-1/2" : ""}`}
+          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white pb-2 transition-all duration-300 ${shouldShowVariantsOnHover ? 'bottom-0 left-1/2 sm:absolute sm:-translate-x-1/2' : ''}`}
         >
           {product?.variant?.slice(0, 5).map((variant, index) => (
             <div
@@ -280,6 +280,6 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
   );
 });
 
-ProductCard.displayName = "ProductCard";
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;
