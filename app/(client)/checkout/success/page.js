@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { checkOrderPayment } from "@/app/action/orderAction";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { SmallSpinner } from "@/app/ui/spinner";
+import Link from 'next/link';
+import { checkOrderPayment } from '@/app/action/orderAction';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { SmallSpinner } from '@/app/components/spinner';
 
 function LoadingSpinner() {
   return (
@@ -23,7 +23,7 @@ export default function PaymentSuccess({ searchParams }) {
 
   useEffect(() => {
     if (!session?.user?.id) return;
-    if (!reference) router.push("/");
+    if (!reference) router.push('/');
     async function verifyPayment() {
       if (session?.user?.id && reference) {
         try {
@@ -31,11 +31,11 @@ export default function PaymentSuccess({ searchParams }) {
           if (result.success === true) {
             setOrderSuccess(true);
           } else {
-            router.push("/");
+            router.push('/');
           }
         } catch (error) {
-          console.error("Payment verification failed:", error);
-          router.push("/");
+          console.error('Payment verification failed:', error);
+          router.push('/');
         }
       }
     }

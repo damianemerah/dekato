@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, Suspense } from "react";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
-import Link from "next/link";
-import { InputType } from "@/app/ui/inputType";
-import { ButtonPrimary } from "@/app/ui/button";
-import GoogleIcon from "@/public/assets/icons/google.svg";
-import ArrowRightIcon from "@/public/assets/icons/arrow_right.svg";
-const ViewIcon = dynamic(() => import("@/public/assets/icons/view.svg"));
-const ViewOff = dynamic(() => import("@/public/assets/icons/view-off.svg"));
+import { useState, useCallback, useEffect, Suspense } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { SmallSpinner } from '@/app/components/spinner';
+import Link from 'next/link';
+import { InputType } from '@/app/components/inputType';
+import { ButtonPrimary } from '@/app/components/button';
+import GoogleIcon from '@/public/assets/icons/google.svg';
+import ArrowRightIcon from '@/public/assets/icons/arrow_right.svg';
+const ViewIcon = dynamic(() => import('@/public/assets/icons/view.svg'));
+const ViewOff = dynamic(() => import('@/public/assets/icons/view-off.svg'));
 
 function SignInContent({ searchParams }) {
   const [viewPassword, setViewPassword] = useState(false);
@@ -19,15 +19,15 @@ function SignInContent({ searchParams }) {
   const router = useRouter();
   const [isNewLogin, setIsNewLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
-  const callbackUrl = searchParams?.callbackUrl || "/";
+  const callbackUrl = searchParams?.callbackUrl || '/';
 
   useEffect(() => {
     if (session?.user?.passwordChanged) {
-      alert("Your password has been changed. Please sign in again.");
+      alert('Your password has been changed. Please sign in again.');
     }
-    if (status === "authenticated" && !isNewLogin) {
+    if (status === 'authenticated' && !isNewLogin) {
       router.push(callbackUrl);
     }
   }, [status, router, isNewLogin, callbackUrl, session]);
@@ -35,7 +35,7 @@ function SignInContent({ searchParams }) {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        setError("");
+        setError('');
       }, 10000);
       return () => clearTimeout(timer);
     }
@@ -47,15 +47,15 @@ function SignInContent({ searchParams }) {
 
   const handleSubmit = useCallback(
     async (formData) => {
-      if (status === "authenticated" && !isNewLogin) {
+      if (status === 'authenticated' && !isNewLogin) {
         router.push(callbackUrl);
         return;
       }
       setIsLoading(true);
-      setError("");
-      const result = await signIn("credentials", {
-        email: formData.get("email"),
-        password: formData.get("password"),
+      setError('');
+      const result = await signIn('credentials', {
+        email: formData.get('email'),
+        password: formData.get('password'),
         redirect: false,
       });
 
@@ -67,14 +67,14 @@ function SignInContent({ searchParams }) {
       }
       setIsLoading(false);
     },
-    [router, status, isNewLogin, callbackUrl],
+    [router, status, isNewLogin, callbackUrl]
   );
 
   const handleContinueShopping = useCallback(() => {
-    router.push("/");
+    router.push('/');
   }, [router]);
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <SmallSpinner className="!text-primary" />
@@ -99,7 +99,7 @@ function SignInContent({ searchParams }) {
           <InputType
             name="password"
             label="Password"
-            type={viewPassword ? "text" : "password"}
+            type={viewPassword ? 'text' : 'password'}
             required={true}
           />
           <div
@@ -129,7 +129,7 @@ function SignInContent({ searchParams }) {
               <SmallSpinner className="!text-white" />
             </div>
           ) : (
-            "Sign in"
+            'Sign in'
           )}
         </ButtonPrimary>
       </form>
@@ -142,7 +142,7 @@ function SignInContent({ searchParams }) {
       <div className="flex__center mt-4 gap-5">
         <GoogleIcon
           className="inline-block cursor-pointer text-4xl"
-          onClick={() => signIn("google")}
+          onClick={() => signIn('google')}
         />
       </div>
       <Link

@@ -1,19 +1,19 @@
-"use client";
-import { Pagination as AntdPagination } from "antd";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
-import HeaderOne from "@/app/ui/heading1";
-import Image from "next/image";
-import { Suspense, useMemo, useState, useCallback, useEffect } from "react";
-import { useUserStore } from "@/store/store";
-import { trackView, activityQueue } from "@/utils/tracking";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+'use client';
+import { Pagination as AntdPagination } from 'antd';
+import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import ProductCardSkeleton from '@/app/components/products/product-card-skeleton';
+import HeaderOne from '@/app/components/heading1';
+import Image from 'next/image';
+import { Suspense, useMemo, useState, useCallback, useEffect } from 'react';
+import { useUserStore } from '@/store/store';
+import { trackView, activityQueue } from '@/utils/tracking';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MAX_TRACK_TIME = 5000;
 
 const ProductHeader = dynamic(
-  () => import("@/app/ui/products/product-header"),
+  () => import('@/app/components/products/product-header'),
   {
     loading: () => (
       <div className="sticky top-0 z-10 mb-10 bg-gray-100">
@@ -23,10 +23,10 @@ const ProductHeader = dynamic(
       </div>
     ),
     ssr: false,
-  },
+  }
 );
 
-const ProductCard = dynamic(() => import("./product-card"), {
+const ProductCard = dynamic(() => import('./product-card'), {
   loading: () => <ProductCardSkeleton />,
   ssr: false,
 });
@@ -117,12 +117,12 @@ const ProductList = ({
       },
       {
         threshold: 0.5, // Product is considered visible when 50% in view
-        rootMargin: "0px 0px 100px 0px", // Add margin to start loading earlier
-      },
+        rootMargin: '0px 0px 100px 0px', // Add margin to start loading earlier
+      }
     );
 
     // Observe all product cards
-    const productCards = document.querySelectorAll("[data-product-id]");
+    const productCards = document.querySelectorAll('[data-product-id]');
     productCards.forEach((card) => observer.observe(card));
 
     return () => {
@@ -139,17 +139,17 @@ const ProductList = ({
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
     const queryString = new URLSearchParams(newSearchParams).toString();
-    router.push(`/${cat.join("/")}?${queryString}`);
+    router.push(`/${cat.join('/')}?${queryString}`);
     // Reset tracked products when page changes
     setTrackedProducts(new Set());
   };
 
   const currentCategory = useMemo(
     () =>
-      cat.slice(-1)[0].toLowerCase() === "search"
+      cat.slice(-1)[0].toLowerCase() === 'search'
         ? `${products.length} results for ${searchParams.q}`
         : cat.slice(-1)[0],
-    [cat, products, searchParams],
+    [cat, products, searchParams]
   );
 
   const nextSlide = useCallback(() => {
@@ -212,7 +212,7 @@ const ProductList = ({
                     key={index}
                     onClick={() => setCurrentSlide(index)}
                     className={`h-2 w-2 rounded-full ${
-                      currentSlide === index ? "bg-white" : "bg-white/50"
+                      currentSlide === index ? 'bg-white' : 'bg-white/50'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />

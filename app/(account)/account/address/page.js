@@ -1,8 +1,8 @@
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 
 const AddressCard = dynamic(
-  () => import("@/app/ui/account/address/AddressCard"),
-  { ssr: false },
+  () => import('@/app/components/account/address/AddressCard'),
+  { ssr: false }
 );
 
 export default function AddressPage() {

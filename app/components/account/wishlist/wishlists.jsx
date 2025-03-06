@@ -1,16 +1,16 @@
-"use client";
-import { ButtonSecondary } from "@/app/ui/button";
-import Wishlist from "@/app/ui/account/wishlist/wishlist";
-import useSWR from "swr";
-import { getWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { SmallSpinner } from "@/app/ui/spinner";
-import { useSession } from "next-auth/react";
-import useUserData from "@/app/hooks/useUserData";
-import Link from "next/link";
-import { createCartItem } from "@/app/action/cartAction";
-import { mutate } from "swr";
-import { message } from "antd";
-import { useState } from "react";
+'use client';
+import { ButtonSecondary } from '@/app/components/button';
+import Wishlist from '@/app/components/account/wishlist/wishlist';
+import useSWR from 'swr';
+import { getWishlist, removeFromWishlist } from '@/app/action/userAction';
+import { SmallSpinner } from '@/app/components/spinner';
+import { useSession } from 'next-auth/react';
+import useUserData from '@/app/hooks/useUserData';
+import Link from 'next/link';
+import { createCartItem } from '@/app/action/cartAction';
+import { mutate } from 'swr';
+import { message } from 'antd';
+import { useState } from 'react';
 
 const fetcher = async (id) => {
   const res = await getWishlist(id);
@@ -33,12 +33,12 @@ export default function WishlistPage() {
     () => fetcher(user.id),
     {
       revalidateOnFocus: false,
-    },
+    }
   );
 
   const addAllToCart = async () => {
     if (!userId) {
-      message.error("Please login to add to cart");
+      message.error('Please login to add to cart');
       return;
     }
     setIsAddingAll(true);
@@ -58,9 +58,9 @@ export default function WishlistPage() {
       await mutate(`/api/user/${userId}`);
       await mutate(`/cart/${userId}`);
       await mutateWishlist();
-      message.success("All items added to cart");
+      message.success('All items added to cart');
     } catch (error) {
-      message.error("Failed to add all items to cart");
+      message.error('Failed to add all items to cart');
     } finally {
       setIsAddingAll(false);
     }
@@ -123,7 +123,7 @@ export default function WishlistPage() {
             {isAddingAll ? (
               <SmallSpinner className="!text-grayText" />
             ) : (
-              "Add all to cart"
+              'Add all to cart'
             )}
           </ButtonSecondary>
           <ButtonSecondary

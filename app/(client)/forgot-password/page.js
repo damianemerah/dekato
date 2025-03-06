@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { ButtonPrimary } from "@/app/ui/button";
-import { SmallSpinner } from "@/app/ui/spinner";
-import { InputType } from "@/app/ui/inputType";
-import { sendPasswordResetToken } from "@/app/action/userAction";
+import { useState, useCallback } from 'react';
+import { ButtonPrimary } from '@/app/components/button';
+import { SmallSpinner } from '@/app/components/spinner';
+import { InputType } from '@/app/components/inputType';
+import { sendPasswordResetToken } from '@/app/action/userAction';
 
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = useCallback(async (formData) => {
     setIsLoading(true);
     setShowMessage(false);
-    setError("");
+    setError('');
     try {
       await sendPasswordResetToken(formData);
       setShowMessage(true);
     } catch (error) {
-      console.error("Failed to send password reset token:", error);
-      setError("Failed to send reset email. Please try again.");
+      console.error('Failed to send password reset token:', error);
+      setError('Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +52,7 @@ export default function ForgotPassword() {
             {isLoading ? (
               <SmallSpinner className="!text-white" />
             ) : (
-              "Send Reset Link"
+              'Send Reset Link'
             )}
           </ButtonPrimary>
         </form>

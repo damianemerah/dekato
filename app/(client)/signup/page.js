@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import GoogleIcon from "@/public/assets/icons/google.svg";
-import ViewIcon from "@/public/assets/icons/view.svg";
-import ViewOff from "@/public/assets/icons/view-off.svg";
-import { InputType } from "@/app/ui/inputType";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import GoogleIcon from '@/public/assets/icons/google.svg';
+import ViewIcon from '@/public/assets/icons/view.svg';
+import ViewOff from '@/public/assets/icons/view-off.svg';
+import { InputType } from '@/app/components/inputType';
+import { signIn } from 'next-auth/react';
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
-    email: "",
-    password: "",
-    passwordConfirm: "",
+    firstname: '',
+    lastname: '',
+    email: '',
+    password: '',
+    passwordConfirm: '',
   });
 
   const [viewPassword, setViewPassword] = useState(false);
@@ -30,16 +30,16 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await fetch("/api/user", {
-      method: "POST",
+    const result = await fetch('/api/user', {
+      method: 'POST',
       body: JSON.stringify(formData),
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
     if (result.ok) {
-      router.push("/signin");
+      router.push('/signin');
     }
   };
 
@@ -76,7 +76,7 @@ const SignUp = () => {
         <InputType
           name="password"
           label="Password"
-          type={viewPassword ? "text" : "password"}
+          type={viewPassword ? 'text' : 'password'}
           required={true}
           value={formData.password}
           onChange={handleChange}
@@ -87,7 +87,7 @@ const SignUp = () => {
         <InputType
           name="passwordConfirm"
           label="Password Confirm"
-          type={viewPassword ? "text" : "password"}
+          type={viewPassword ? 'text' : 'password'}
           required={true}
           value={formData.passwordConfirm}
           onChange={handleChange}
@@ -110,7 +110,7 @@ const SignUp = () => {
       <div className="flex__center mt-4 gap-5">
         <GoogleIcon
           className="inline-block cursor-pointer text-4xl"
-          onClick={() => signIn("google")}
+          onClick={() => signIn('google')}
         />
       </div>
     </div>

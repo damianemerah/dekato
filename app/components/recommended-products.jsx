@@ -1,47 +1,47 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import useSWR, { mutate } from "swr";
-import ProductCardSkeleton from "@/app/ui/products/product-card-skeleton";
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import ProductCard from "@/app/ui/products/product-card";
-import { useRecommendMutateStore } from "@/store/store";
+import { useEffect, useState } from 'react';
+import useSWR, { mutate } from 'swr';
+import ProductCardSkeleton from '@/app/components/products/product-card-skeleton';
+import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import ProductCard from '@/app/components/products/product-card';
+import { useRecommendMutateStore } from '@/store/store';
 
 const fetcher = async (type, category, productId) => {
   const url = `/api/recommendations?type=${type}${
-    category ? `&category=${category}` : ""
-  }${productId ? `&productId=${productId}` : ""}`;
+    category ? `&category=${category}` : ''
+  }${productId ? `&productId=${productId}` : ''}`;
   return fetch(url).then((res) => res.json());
 };
 
 const RecommendedProducts = ({ category, productId }) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [type, setType] = useState("");
+  const [type, setType] = useState('');
 
   const { shouldMutate, setShouldMutate } = useRecommendMutateStore(
     (state) => ({
       shouldMutate: state.shouldMutate,
       setShouldMutate: state.setShouldMutate,
-    }),
+    })
   );
 
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname.startsWith("/product/")) {
-      setType("similar");
-    } else if (userId && pathname === "/") {
-      setType("personalized");
+    if (pathname.startsWith('/product/')) {
+      setType('similar');
+    } else if (userId && pathname === '/') {
+      setType('personalized');
     } else {
-      setType("general");
+      setType('general');
     }
   }, [userId, pathname]);
 
   useEffect(() => {
     if (shouldMutate) {
-      mutate(["/api/recommendations", type, category, productId], async () => {
+      mutate(['/api/recommendations', type, category, productId], async () => {
         const updatedData = await fetcher(type, category, productId); // Re-fetch data
         return updatedData;
       });
@@ -50,8 +50,8 @@ const RecommendedProducts = ({ category, productId }) => {
   }, [category, productId, type, shouldMutate, setShouldMutate]);
 
   const { data, error, isLoading } = useSWR(
-    type ? ["/api/recommendations", type, category, productId] : null,
-    () => fetcher(type, category, productId),
+    type ? ['/api/recommendations', type, category, productId] : null,
+    () => fetcher(type, category, productId)
   );
 
   if (error) return null;

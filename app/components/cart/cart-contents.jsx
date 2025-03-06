@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { ButtonPrimary, ButtonSecondary } from "@/app/ui/button";
-import CartCards from "@/app/ui/cart/cart-card";
-import Link from "next/link";
-import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
-import ArrowRight from "@/public/assets/icons/arrow_right.svg";
-import Paystack from "@/public/assets/icons/paystack.svg";
-import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import { SmallSpinner } from "@/app/ui/spinner";
-import { useSession } from "next-auth/react";
-import useCartData from "@/app/hooks/useCartData";
-import { formatToNaira } from "@/utils/getFunc";
+import { ButtonPrimary, ButtonSecondary } from '@/app/components/button';
+import CartCards from '@/app/components/cart/cart-card';
+import Link from 'next/link';
+import ArrowLeft from '@/public/assets/icons/arrow_left.svg';
+import ArrowRight from '@/public/assets/icons/arrow_right.svg';
+import Paystack from '@/public/assets/icons/paystack.svg';
+import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
+import { SmallSpinner } from '@/app/components/spinner';
+import { useSession } from 'next-auth/react';
+import useCartData from '@/app/hooks/useCartData';
+import { formatToNaira } from '@/utils/getFunc';
 
 export default function Cart() {
   const { data: session } = useSession();

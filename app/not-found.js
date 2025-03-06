@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { ButtonSecondary } from "@/app/ui/button";
+import Link from 'next/link';
+import { ButtonSecondary } from '@/app/components/button';
 
 export default function NotFound() {
   return (

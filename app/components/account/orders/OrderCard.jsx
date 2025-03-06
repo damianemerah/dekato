@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import React, { useState, useCallback } from "react";
-import Link from "next/link";
-import { deleteOrder } from "@/app/action/orderAction";
-import { X } from "lucide-react";
-import { ButtonSecondary } from "../../button";
-import useConfirmModal from "@/app/ui/confirm-modal";
+import Image from 'next/image';
+import React, { useState, useCallback } from 'react';
+import Link from 'next/link';
+import { deleteOrder } from '@/app/action/orderAction';
+import { X } from 'lucide-react';
+import { ButtonSecondary } from '../../button';
+import useConfirmModal from '@/app/components/confirm-modal';
 
 function OrderCard({ order, onDelete }) {
   const showConfirmModal = useConfirmModal();
 
   const handleDelete = useCallback(() => {
     showConfirmModal({
-      title: "Are you sure you want to delete this order?",
-      content: "This action cannot be undone",
+      title: 'Are you sure you want to delete this order?',
+      content: 'This action cannot be undone',
       async onOk() {
         try {
           await deleteOrder(order.id);
           onDelete(order.id);
         } catch (error) {
-          console.error("Error deleting order:", error);
+          console.error('Error deleting order:', error);
         }
       },
     });
@@ -39,7 +39,7 @@ function OrderCard({ order, onDelete }) {
         <div className="mb-2 flex w-full flex-col sm:mb-0 sm:w-auto">
           <span className="font-oswald font-semibold md:text-lg">Status</span>
           <span className="text-green-600">
-            {order?.status || "Pending/Canceled"}
+            {order?.status || 'Pending/Canceled'}
           </span>
         </div>
         <div className="mb-2 flex w-full flex-col sm:mb-0 sm:w-auto">
@@ -68,9 +68,9 @@ function OrderCard({ order, onDelete }) {
           Estimated Delivery:
         </span>
         <span className="ml-2 text-gray-500">
-          {order?.deliveryStatus !== "delivered"
+          {order?.deliveryStatus !== 'delivered'
             ? order?.deliveryStatus
-            : "Not yet delivered"}
+            : 'Not yet delivered'}
         </span>
       </div>
 
@@ -112,7 +112,7 @@ export default function OrderList({ orders: initialOrders }) {
 
   const handleDeleteOrder = useCallback((deletedOrderId) => {
     setOrders((prevOrders) =>
-      prevOrders.filter((order) => order.id !== deletedOrderId),
+      prevOrders.filter((order) => order.id !== deletedOrderId)
     );
   }, []);
 

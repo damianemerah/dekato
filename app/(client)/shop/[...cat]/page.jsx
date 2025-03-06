@@ -1,24 +1,24 @@
-import Category from "@/models/category";
-import Campaign from "@/models/collection";
-import dbConnect from "@/lib/mongoConnection";
-import { LoadingSpinner } from "@/app/ui/spinner";
-import { unstable_cache } from "next/cache";
-import dynamic from "next/dynamic";
+import Category from '@/models/category';
+import Campaign from '@/models/collection';
+import dbConnect from '@/lib/mongoConnection';
+import { LoadingSpinner } from '@/app/components/spinner';
+import { unstable_cache } from 'next/cache';
+import dynamic from 'next/dynamic';
 
 const CategoryProducts = dynamic(
-  () => import("@/app/ui/products/categoried-products"),
+  () => import('@/app/components/products/categoried-products'),
   {
     loading: () => <LoadingSpinner className="min-h-screen" />,
     ssr: true,
-  },
+  }
 );
 
 async function getAllCategoryPaths() {
   await dbConnect();
 
   const [categories, collections] = await Promise.all([
-    Category.find().select("slug path").lean(),
-    Campaign.find().select("slug path").lean(),
+    Category.find().select('slug path').lean(),
+    Campaign.find().select('slug path').lean(),
   ]);
 
   const categoryPaths = categories.map((category) => category.path);
@@ -28,12 +28,12 @@ async function getAllCategoryPaths() {
 }
 
 export async function generateStaticParams() {
-  const paths = await unstable_cache(getAllCategoryPaths, ["categoryPaths"], {
+  const paths = await unstable_cache(getAllCategoryPaths, ['categoryPaths'], {
     revalidate: 1800,
   })();
 
   const filteredPaths = paths.map((path) => ({
-    cat: path.map((p) => (p.includes("/") ? p.split("/")[1] : p)),
+    cat: path.map((p) => (p.includes('/') ? p.split('/')[1] : p)),
   }));
 
   return filteredPaths;
@@ -43,12 +43,12 @@ export async function generateStaticParams() {
 async function getCategoryData(cat) {
   await dbConnect();
 
-  const path = cat.join("/").toLowerCase();
+  const path = cat.join('/').toLowerCase();
   // Try to find as category first
   let data = await Category.findOne({
     path: { $all: path },
   })
-    .select("name description metaTitle metaDescription")
+    .select('name description metaTitle metaDescription')
     .lean();
 
   // If not found, try as collection
@@ -56,7 +56,7 @@ async function getCategoryData(cat) {
     data = await Campaign.findOne({
       path: { $all: path },
     })
-      .select("name description metaTitle metaDescription")
+      .select('name description metaTitle metaDescription')
       .lean();
   }
 
@@ -69,14 +69,14 @@ export async function generateMetadata({ params: { cat } }, parent) {
 
   const data = await unstable_cache(
     () => getCategoryData(cat),
-    [`category-meta-${cat.join("-")}`],
-    { revalidate: 1800 },
+    [`category-meta-${cat.join('-')}`],
+    { revalidate: 1800 }
   )();
 
   if (!data) {
     return {
-      title: "Products | Dekato Outfit",
-      description: "Browse our curated collection of products.",
+      title: 'Products | Dekato Outfit',
+      description: 'Browse our curated collection of products.',
       robots: {
         index: false,
       },
@@ -96,10 +96,10 @@ export async function generateMetadata({ params: { cat } }, parent) {
         data.description ||
         `Browse our ${data.name} collection`,
       images: [...previousImages],
-      type: "website",
+      type: 'website',
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: data.metaTitle || data.name,
       description:
         data.metaDescription ||
@@ -107,7 +107,7 @@ export async function generateMetadata({ params: { cat } }, parent) {
         `Browse our ${data.name} collection`,
     },
     alternates: {
-      canonical: `/products/${cat.join("/")}`,
+      canonical: `/products/${cat.join('/')}`,
     },
   };
 }

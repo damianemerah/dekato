@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
-import { observeElement } from "@/utils/observer";
-import BlogCard from "@/app/ui/blog-card";
-import useSWR from "swr";
-import { getAllBlogs } from "@/app/action/blogAction";
-import { Button } from "../button";
-import Link from "next/link";
+import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import { observeElement } from '@/utils/observer';
+import BlogCard from '@/app/components/blog-card';
+import useSWR from 'swr';
+import { getAllBlogs } from '@/app/action/blogAction';
+import { Button } from '../button';
+import Link from 'next/link';
 
-const Gallery = dynamic(() => import("@/app/ui/home/Gallery"), {
+const Gallery = dynamic(() => import('@/app/components/home/Gallery'), {
   loading: () => <GallerySkeleton />,
   ssr: false,
 });
@@ -26,8 +26,8 @@ function GallerySkeleton() {
             key={index}
             className={`${
               index === 2
-                ? "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2"
-                : ""
+                ? 'col-span-2 row-span-2 sm:col-span-2 sm:row-span-2'
+                : ''
             } relative`}
           >
             <div className="aspect-square w-full animate-pulse bg-gray-200">
@@ -84,8 +84,8 @@ export default function BelowFold() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [maxScroll, setMaxScroll] = useState(0);
 
-  const { data: blogs, isLoading } = useSWR("/api/blogs", () =>
-    getAllBlogs({ limit: 3, status: "published" }),
+  const { data: blogs, isLoading } = useSWR('/api/blogs', () =>
+    getAllBlogs({ limit: 3, status: 'published' })
   );
 
   useEffect(() => {
@@ -100,31 +100,31 @@ export default function BelowFold() {
     const updateMaxScroll = () => {
       if (containerRef.current) {
         setMaxScroll(
-          containerRef.current.scrollWidth - containerRef.current.clientWidth,
+          containerRef.current.scrollWidth - containerRef.current.clientWidth
         );
       }
     };
 
     updateMaxScroll();
-    window.addEventListener("resize", updateMaxScroll);
+    window.addEventListener('resize', updateMaxScroll);
 
-    return () => window.removeEventListener("resize", updateMaxScroll);
+    return () => window.removeEventListener('resize', updateMaxScroll);
   }, [blogs]);
 
   const scroll = (direction) => {
     if (!containerRef.current) return;
 
     const cardWidth =
-      containerRef.current.querySelector("div")?.offsetWidth || 300;
+      containerRef.current.querySelector('div')?.offsetWidth || 300;
     const newPosition =
-      direction === "left"
+      direction === 'left'
         ? Math.max(0, scrollPosition - cardWidth)
         : Math.min(maxScroll, scrollPosition + cardWidth);
 
     setScrollPosition(newPosition);
     containerRef.current.scrollTo({
       left: newPosition,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
   };
 

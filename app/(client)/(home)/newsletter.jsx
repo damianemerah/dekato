@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/app/ui/button";
+import { useState } from 'react';
+import { Button } from '@/app/components/button';
 
 export default function Newsletter() {
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [formError, setFormError] = useState('');
 
   async function subscribeToNewsletter(formData) {
-    setFormError("");
-    const email = formData.get("newsletter");
-    const gender = formData.get("gender");
+    setFormError('');
+    const email = formData.get('newsletter');
+    const gender = formData.get('gender');
 
     if (!email || !gender) {
-      setFormError("Please fill in all required fields");
+      setFormError('Please fill in all required fields');
       return;
     }
 
-    const res = await fetch("/api/subscribe", {
-      method: "POST",
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
       body: JSON.stringify({ email, gender }),
     });
 
@@ -35,14 +35,14 @@ export default function Newsletter() {
           <h2
             className={`text-center font-oswald text-3xl font-bold leading-none tracking-tight md:text-4xl`}
             style={{
-              wordSpacing: "0.05em",
+              wordSpacing: '0.05em',
             }}
           >
             join us & save 20% off + free shipping
           </h2>
           <p className="mb-5 mt-2.5 text-center text-[13px] text-gray-600">
             Join our newsletter and get monthly updates on new releases, promos
-            and exclusive deals{" "}
+            and exclusive deals{' '}
             <span className="font-semibold">
               for all new G-Star newsletter subscribers
             </span>
@@ -57,9 +57,9 @@ export default function Newsletter() {
                   </p>
                   <div className="flex flex-col gap-6 sm:flex-row">
                     {[
-                      { id: "men", label: "Men's fashion" },
-                      { id: "women", label: "Women's fashion" },
-                      { id: "both", label: "Both" },
+                      { id: 'men', label: "Men's fashion" },
+                      { id: 'women', label: "Women's fashion" },
+                      { id: 'both', label: 'Both' },
                     ].map((option) => (
                       <div key={option.id} className="flex items-center gap-2">
                         <input

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { ButtonPrimary } from "@/app/ui/button";
-import { SmallSpinner } from "@/app/ui/spinner";
-import { InputType } from "@/app/ui/inputType";
-import { forgotPassword } from "@/app/action/userAction";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useState, useCallback, useEffect } from 'react';
+import { ButtonPrimary } from '@/app/components/button';
+import { SmallSpinner } from '@/app/components/spinner';
+import { InputType } from '@/app/components/inputType';
+import { forgotPassword } from '@/app/action/userAction';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function ResetPassword({ params: { token } }) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { update: updateSession } = useSession();
@@ -18,7 +18,7 @@ export default function ResetPassword({ params: { token } }) {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        setError("");
+        setError('');
       }, 10000);
       return () => clearTimeout(timer);
     }
@@ -27,25 +27,25 @@ export default function ResetPassword({ params: { token } }) {
   const handleResetPassword = useCallback(
     async (formData) => {
       setIsUpdating(true);
-      setError("");
+      setError('');
       try {
-        formData.set("token", token);
+        formData.set('token', token);
         const res = await forgotPassword(formData);
 
         if (res.success) {
           await updateSession({ passwordChanged: true });
           setSuccess(true);
           setTimeout(() => {
-            router.push("/signin");
+            router.push('/signin');
           }, 4000);
         }
       } catch (error) {
-        setError(error.message || "Something went wrong. Please try again.");
+        setError(error.message || 'Something went wrong. Please try again.');
       } finally {
         setIsUpdating(false);
       }
     },
-    [token, router, updateSession],
+    [token, router, updateSession]
   );
 
   return (
@@ -91,7 +91,7 @@ export default function ResetPassword({ params: { token } }) {
             {isUpdating ? (
               <SmallSpinner className="!text-white" />
             ) : (
-              "Reset Password"
+              'Reset Password'
             )}
           </ButtonPrimary>
         </form>

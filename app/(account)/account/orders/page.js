@@ -1,30 +1,33 @@
 // import OrderList from "@/app/ui/account/orders/OrderCard";
 // React and Next.js imports
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { unstable_cache } from "next/cache";
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 
 // Auth imports
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Database imports
-import Order from "@/models/order";
-import dbConnect from "@/lib/mongoConnection";
+import Order from '@/models/order';
+import dbConnect from '@/lib/mongoConnection';
 
 // UI Components
-import { SmallSpinner } from "@/app/ui/spinner";
-import { ButtonSecondary } from "@/app/ui/button";
-import { ShoppingOutlined } from "@ant-design/icons";
+import { SmallSpinner } from '@/app/components/spinner';
+import { ButtonSecondary } from '@/app/components/button';
+import { ShoppingOutlined } from '@ant-design/icons';
 
-const OrderList = dynamic(() => import("@/app/ui/account/orders/OrderCard"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
-      <SmallSpinner className="!text-primary" />
-    </div>
-  ),
-});
+const OrderList = dynamic(
+  () => import('@/app/components/account/orders/OrderCard'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
+        <SmallSpinner className="!text-primary" />
+      </div>
+    ),
+  }
+);
 
 const getOrders = unstable_cache(
   async (userId) => {
@@ -48,8 +51,8 @@ const getOrders = unstable_cache(
       };
     });
   },
-  ["orders"],
-  { revalidate: 10 },
+  ['orders'],
+  { revalidate: 10 }
 );
 
 export default async function Orders() {

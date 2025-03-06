@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import dynamic from 'next/dynamic';
+import { SmallSpinner } from '@/app/components/spinner';
 
 const ProductContent = dynamic(
-  () => import("@/app/admin/ui/products/products-content"),
+  () => import('@/app/admin/ui/products/products-content'),
   {
     ssr: false,
     loading: () => <LoadingSpinner />,
-  },
+  }
 );
 
 function LoadingSpinner() {

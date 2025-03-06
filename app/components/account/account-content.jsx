@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { Modal, message } from "antd";
-import { useSWRConfig } from "swr";
-import { ButtonSecondary } from "@/app/ui/button";
-import { SmallSpinner } from "@/app/ui/spinner";
-import useUserData from "@/app/hooks/useUserData";
-import useAddressData from "@/app/hooks/useAddressData";
-import { InputType } from "@/app/ui/inputType";
-import { updateUserInfo, updatePassword } from "@/app/action/userAction";
-import { Package, Heart, CreditCard, User, Mail } from "lucide-react";
-import useOrders from "@/app/hooks/useOrders";
-import Image from "next/image";
+import { useState, useCallback } from 'react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { Modal, message } from 'antd';
+import { useSWRConfig } from 'swr';
+import { ButtonSecondary } from '@/app/components/button';
+import { SmallSpinner } from '@/app/components/spinner';
+import useUserData from '@/app/hooks/useUserData';
+import useAddressData from '@/app/hooks/useAddressData';
+import { InputType } from '@/app/components/inputType';
+import { updateUserInfo, updatePassword } from '@/app/action/userAction';
+import { Package, Heart, CreditCard, User, Mail } from 'lucide-react';
+import useOrders from '@/app/hooks/useOrders';
+import Image from 'next/image';
 
 export default function Overview() {
   const { data: session, update: updateSession } = useSession();
@@ -32,7 +32,7 @@ export default function Overview() {
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
   const handleDeleteAccountClick = useCallback(
     () => setShowDeleteAccountModal(true),
-    [],
+    []
   );
   const handleModalClose = useCallback(() => {
     setShowEditModal(false);
@@ -44,43 +44,43 @@ export default function Overview() {
     async (formData) => {
       setIsUpdating(true);
       try {
-        formData.append("userId", userId);
+        formData.append('userId', userId);
         const updatedUser = await updateUserInfo(formData);
         mutate(`/api/user/${userId}`, updatedUser, false);
         handleModalClose();
-        message.success("User information updated successfully");
+        message.success('User information updated successfully');
       } catch (error) {
-        console.error("Failed to update user info:", error);
-        message.error("Failed to update user info");
+        console.error('Failed to update user info:', error);
+        message.error('Failed to update user info');
       } finally {
         setIsUpdating(false);
       }
     },
-    [userId, mutate, handleModalClose],
+    [userId, mutate, handleModalClose]
   );
 
   const handleUpdatePassword = useCallback(
     async (formData) => {
       setIsUpdating(true);
       try {
-        formData.append("userId", userId);
+        formData.append('userId', userId);
         const updatedUser = await updatePassword(formData);
         mutate(`/api/user/${userId}`, updatedUser, false);
         handleModalClose();
-        message.success("Password updated successfully");
+        message.success('Password updated successfully');
         await updateSession({ passwordChanged: true });
       } catch (error) {
-        console.error("Failed to update password:", error);
-        message.error("Failed to update password");
+        console.error('Failed to update password:', error);
+        message.error('Failed to update password');
       } finally {
         setIsUpdating(false);
       }
     },
-    [userId, mutate, handleModalClose, updateSession],
+    [userId, mutate, handleModalClose, updateSession]
   );
 
   const handleDeleteAccount = useCallback(async () => {
-    message.info("Account deletion functionality to be implemented");
+    message.info('Account deletion functionality to be implemented');
     handleModalClose();
   }, [handleModalClose]);
 
@@ -188,8 +188,8 @@ export default function Overview() {
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 flex-shrink-0">
                       <Image
-                        src={order.product?.[0]?.image || "/placeholder.jpg"}
-                        alt={order.product?.[0]?.name || "Product image"}
+                        src={order.product?.[0]?.image || '/placeholder.jpg'}
+                        alt={order.product?.[0]?.name || 'Product image'}
                         width={80}
                         height={80}
                         className="h-full w-full object-cover object-center"
@@ -245,13 +245,13 @@ export default function Overview() {
               name="firstname"
               label="First name"
               required={true}
-              defaultValue={user?.firstname || ""}
+              defaultValue={user?.firstname || ''}
             />
             <InputType
               name="lastname"
               label="Last name"
               required={true}
-              defaultValue={user?.lastname || ""}
+              defaultValue={user?.lastname || ''}
             />
             <ButtonSecondary
               type="submit"
@@ -261,7 +261,7 @@ export default function Overview() {
               {isUpdating ? (
                 <SmallSpinner className="!text-primary" />
               ) : (
-                "Save Changes"
+                'Save Changes'
               )}
             </ButtonSecondary>
           </form>
@@ -334,7 +334,7 @@ export default function Overview() {
             {isUpdating ? (
               <SmallSpinner className="!text-primary" />
             ) : (
-              "Confirm Delete Account"
+              'Confirm Delete Account'
             )}
           </ButtonSecondary>
         </div>

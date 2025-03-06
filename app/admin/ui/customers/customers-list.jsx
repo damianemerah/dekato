@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useMemo, memo, useCallback } from "react";
-import { Button, Flex, Table, message } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
-import Link from "next/link";
-import useConfirmModal from "@/app/ui/confirm-modal";
-import { deleteUser, getAllUsers } from "@/app/action/userAction";
-import useSWR from "swr";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, memo, useCallback } from 'react';
+import { Button, Flex, Table, message } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import Link from 'next/link';
+import useConfirmModal from '@/app/components/confirm-modal';
+import { deleteUser, getAllUsers } from '@/app/action/userAction';
+import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
 
 const CustomersList = ({ searchParams, data }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [limit] = useState(searchParams?.limit || 20);
   const page = useMemo(() => searchParams.page || 1, [searchParams]);
   const [totalCount, setTotalCount] = useState(
-    data?.pagination?.totalCount || 0,
+    data?.pagination?.totalCount || 0
   );
 
   const router = useRouter();
@@ -31,47 +31,47 @@ const CustomersList = ({ searchParams, data }) => {
       onSuccess: (data) => {
         setTotalCount(data.pagination.totalCount);
       },
-    },
+    }
   );
 
   const handlePageChange = useCallback(
     (page) => {
       router.push(`/admin/customers?page=${page}`);
     },
-    [router],
+    [router]
   );
 
   const handleDelete = useCallback(
     async (id) => {
       try {
         showConfirmModal({
-          title: "Are you sure you want to delete this customer?",
-          content: "This action cannot be undone",
+          title: 'Are you sure you want to delete this customer?',
+          content: 'This action cannot be undone',
           async onOk() {
             try {
               await deleteUser(id);
-              message.success("Customer deleted successfully");
+              message.success('Customer deleted successfully');
             } catch (error) {
-              message.error(error.message || "Failed to delete customer");
+              message.error(error.message || 'Failed to delete customer');
             }
           },
         });
       } catch (error) {
-        message.error("Failed to delete customer");
+        message.error('Failed to delete customer');
       }
     },
-    [showConfirmModal],
+    [showConfirmModal]
   );
 
   const dataSource = useMemo(() => {
     return userData?.data?.map((item) => ({
       key: item.id,
-      customer: item.firstname + " " + item.lastname,
+      customer: item.firstname + ' ' + item.lastname,
       email: item.email,
       orders: item?.orderCount,
       amountSpent: item?.amountSpent,
       action:
-        item?.active && item?.role !== "admin" ? (
+        item?.active && item?.role !== 'admin' ? (
           <Button onClick={() => handleDelete(item.id)}>Deactivate</Button>
         ) : null,
     }));
@@ -79,28 +79,28 @@ const CustomersList = ({ searchParams, data }) => {
 
   const columns = [
     {
-      title: "Customer",
-      dataIndex: "customer",
+      title: 'Customer',
+      dataIndex: 'customer',
       sorter: (a, b) => a.customer.localeCompare(b.customer),
     },
     {
-      title: "Email",
-      dataIndex: "email",
+      title: 'Email',
+      dataIndex: 'email',
     },
     {
-      title: "Orders",
-      dataIndex: "orders",
+      title: 'Orders',
+      dataIndex: 'orders',
       sorter: (a, b) => a.orders - b.orders,
     },
     {
-      title: "Amount Spent",
-      dataIndex: "amountSpent",
+      title: 'Amount Spent',
+      dataIndex: 'amountSpent',
       sorter: (a, b) => a.amountSpent - b.amountSpent,
     },
 
     {
-      title: "Action",
-      dataIndex: "action",
+      title: 'Action',
+      dataIndex: 'action',
     },
   ];
 
@@ -141,10 +141,10 @@ const CustomersList = ({ searchParams, data }) => {
         loading={
           isLoading && {
             indicator: <LoadingOutlined spin className="!text-primary" />,
-            size: "large",
+            size: 'large',
           }
         }
-        scroll={{ x: "max-content" }}
+        scroll={{ x: 'max-content' }}
         className="overflow-x-auto sm:overflow-x-auto md:overflow-x-visible"
       />
     </Flex>

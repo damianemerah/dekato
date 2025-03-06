@@ -1,18 +1,18 @@
-import { memo, useCallback, useEffect } from "react";
-import { useAdminStore } from "../../store/adminStore";
-import { v4 as uuidv4 } from "uuid";
-import Image from "next/image";
-import { message, Dropdown } from "antd";
+import { memo, useCallback, useEffect } from 'react';
+import { useAdminStore } from '../../store/adminStore';
+import { v4 as uuidv4 } from 'uuid';
+import Image from 'next/image';
+import { message, Dropdown } from 'antd';
 
-import { InfoCircleOutlined } from "@ant-design/icons";
-import DeleteIcon from "@/public/assets/icons/remove.svg";
-import AddIcon from "@/public/assets/icons/add.svg";
-import ListIcon from "@/public/assets/icons/list.svg";
-import noImage from "@/public/assets/no-image.webp";
+import { InfoCircleOutlined } from '@ant-design/icons';
+import DeleteIcon from '@/public/assets/icons/remove.svg';
+import AddIcon from '@/public/assets/icons/add.svg';
+import ListIcon from '@/public/assets/icons/list.svg';
+import noImage from '@/public/assets/no-image.webp';
 
-import { ButtonPrimary } from "@/app/ui/button";
-import ModalWrapper from "./ModalWrapper";
-import VariantGroupTable from "./VariantGroupTable";
+import { ButtonPrimary } from '@/app/components/button';
+import ModalWrapper from './ModalWrapper';
+import VariantGroupTable from './VariantGroupTable';
 
 export default memo(function EditVariant({
   setOpenSlider,
@@ -29,10 +29,10 @@ export default memo(function EditVariant({
   const variantOptions = useAdminStore((state) => state.variantOptions);
   const addVariantOptions = useAdminStore((state) => state.addVariantOptions);
   const setDefaultVariantOptions = useAdminStore(
-    (state) => state.setDefaultVariantOptions,
+    (state) => state.setDefaultVariantOptions
   );
   const defaultVariantOptions = useAdminStore(
-    (state) => state.defaultVariantOptions,
+    (state) => state.defaultVariantOptions
   );
   const setVariantOptions = useAdminStore((state) => state.setVariantOptions);
   const optionIsSaved = useAdminStore((state) => state.optionIsSaved);
@@ -62,19 +62,19 @@ export default memo(function EditVariant({
           index + 1,
           { ...currentVariant },
           { ...currentLabels },
-          result,
+          result
         );
       });
 
       return result;
     },
-    [],
+    []
   );
 
   useEffect(() => {
-    if (actionType === "edit" && defaultVariantOptions.length) {
+    if (actionType === 'edit' && defaultVariantOptions.length) {
       setVariantOptions(defaultVariantOptions);
-    } else if (actionType === "create") {
+    } else if (actionType === 'create') {
       setVariants([]);
       setVariantOptions([]);
       setOptionIsSaved(false);
@@ -93,12 +93,12 @@ export default memo(function EditVariant({
     (e, index, field) => {
       const { value } = e.target;
       if (isNaN(value) || value < 0) {
-        message.warning("Please enter a valid number.");
+        message.warning('Please enter a valid number.');
         return;
       }
       updateVariant(variants[index].id, { [field]: value });
     },
-    [updateVariant, variants],
+    [updateVariant, variants]
   );
 
   const handleSaveVariant = useCallback(() => {
@@ -106,7 +106,7 @@ export default memo(function EditVariant({
     setDefaultVariantOptions(variantOptions);
 
     setOpenSlider(false);
-    message.success("Variants saved");
+    message.success('Variants saved');
   }, [
     setVariantIsSaved,
     setOpenSlider,
@@ -119,47 +119,47 @@ export default memo(function EditVariant({
 
     if (
       variantOptions.some(
-        (option) => option.name === "" || option.values.length === 0,
+        (option) => option.name === '' || option.values.length === 0
       )
     ) {
-      message.warning("Values cannot be empty");
+      message.warning('Values cannot be empty');
       return;
     }
 
     // Check for duplicate option names
     const optionNames = variantOptions.map((option) =>
-      option.name.toLowerCase().trim(),
+      option.name.toLowerCase().trim()
     );
     const hasDuplicates = optionNames.some(
-      (name, index) => optionNames.indexOf(name) !== index,
+      (name, index) => optionNames.indexOf(name) !== index
     );
 
     if (hasDuplicates) {
-      message.warning("Duplicate option names are not allowed");
+      message.warning('Duplicate option names are not allowed');
       return;
     }
 
     // If no duplicates, proceed with saving
 
     setOptionIsSaved(true);
-    message.success("Options saved");
+    message.success('Options saved');
   }, [setOptionIsSaved, variantOptions, optionIsSaved]);
 
   const items = [
     {
-      key: "1",
+      key: '1',
       label: <span className="text-red-500">Remove</span>,
       onClick: (variantId) => removeVariant(variantId),
     },
     {
-      key: "2",
-      label: "Cancel",
+      key: '2',
+      label: 'Cancel',
       onClick: () => {},
     },
   ];
 
   const renderSaveProductWarning = () => {
-    if (actionType === "create") {
+    if (actionType === 'create') {
       return (
         <div className="mb-6 flex h-full items-center justify-center">
           <div className="flex items-center justify-center rounded-md bg-yellow-50 p-4">
@@ -182,7 +182,7 @@ export default memo(function EditVariant({
           <DeleteIcon onClick={() => setOpenSlider(false)} />
         </div>
       </div>
-      {actionType === "create" ? (
+      {actionType === 'create' ? (
         renderSaveProductWarning()
       ) : (
         <div>
@@ -195,7 +195,7 @@ export default memo(function EditVariant({
                   onClick={() => {
                     addVariantOptions({
                       id: uuidv4(),
-                      name: "",
+                      name: '',
                       values: [],
                     });
                     setOptionIsSaved(false);
@@ -270,7 +270,7 @@ export default memo(function EditVariant({
                                 handleEditSingleVariant(variant.id)
                               }
                             >
-                              {typeof variant?.image === "string" ? (
+                              {typeof variant?.image === 'string' ? (
                                 <Image
                                   src={variant.image}
                                   alt="product image"
@@ -282,7 +282,7 @@ export default memo(function EditVariant({
                               ) : (
                                 <Image
                                   src={
-                                    typeof variant.image === "object" &&
+                                    typeof variant.image === 'object' &&
                                     variant.imageURL
                                       ? variant.imageURL
                                       : noImage
@@ -312,20 +312,20 @@ export default memo(function EditVariant({
                                         {value}
                                       </span>
                                     </div>
-                                  ),
+                                  )
                                 )}
                             </div>
                           </td>
                           <td className="">
                             <input
                               type="number"
-                              value={variant?.quantity || ""}
+                              value={variant?.quantity || ''}
                               name="quantity"
                               autoComplete="off"
                               placeholder="Quantity"
                               className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
                               onChange={(e) =>
-                                handleInputChange(e, index, "quantity")
+                                handleInputChange(e, index, 'quantity')
                               }
                             />
                           </td>
@@ -333,12 +333,12 @@ export default memo(function EditVariant({
                             <input
                               type="number"
                               name="price"
-                              value={variant?.price || ""}
+                              value={variant?.price || ''}
                               autoComplete="off"
                               placeholder="Price"
                               className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
                               onChange={(e) =>
-                                handleInputChange(e, index, "price")
+                                handleInputChange(e, index, 'price')
                               }
                             />
                           </td>
@@ -350,7 +350,7 @@ export default memo(function EditVariant({
                                   onClick: () => item.onClick(variant.id),
                                 })),
                               }}
-                              trigger={["click"]}
+                              trigger={['click']}
                             >
                               <span className="cursor-pointer text-xl font-bold tracking-wider text-primary">
                                 ...
@@ -366,7 +366,7 @@ export default memo(function EditVariant({
           </div>
         </div>
       )}
-      {actionType === "edit" && (
+      {actionType === 'edit' && (
         <div className="sticky bottom-0 z-[25] flex min-h-24 w-full items-center justify-end gap-6 bg-white shadow-shadowSm">
           <button
             className="text-[15px] font-bold tracking-wider"

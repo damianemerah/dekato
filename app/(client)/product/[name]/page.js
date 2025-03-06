@@ -1,30 +1,30 @@
-import { unstable_cache } from "next/cache";
-import { getProductById } from "@/app/action/productAction";
-import dynamic from "next/dynamic";
-import ProductDetail from "@/app/ui/product/product-details";
-import RecommendedProductsSkeleton from "@/app/ui/recommended-products-skeleton";
+import { unstable_cache } from 'next/cache';
+import { getProductById } from '@/app/action/productAction';
+import dynamic from 'next/dynamic';
+import ProductDetail from '@/app/components/product/product-details';
+import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
 
 const RecommendedProducts = dynamic(
-  () => import("@/app/ui/recommended-products"),
+  () => import('@/app/components/recommended-products'),
   {
     loading: () => <RecommendedProductsSkeleton />,
     ssr: false,
-  },
+  }
 );
 
 const getProductData = unstable_cache(
   async (id) => {
     return await getProductById(id);
   },
-  ["product-data"],
+  ['product-data'],
   {
-    tags: ["single-product-data"],
+    tags: ['single-product-data'],
     revalidate: 10,
-  },
+  }
 );
 
 export async function generateMetadata({ params }, parent) {
-  const id = params.name.split("-").slice(-1)[0];
+  const id = params.name.split('-').slice(-1)[0];
   const product = await getProductData(id);
   const previousImages = (await parent).openGraph?.images || [];
 
@@ -43,10 +43,10 @@ export async function generateMetadata({ params }, parent) {
         },
         ...previousImages,
       ],
-      type: "website",
+      type: 'website',
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: product.name,
       description: product.description.slice(0, 160),
       images: [product.image[0]],
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }, parent) {
 }
 
 export default async function ProductInfoPage({ params: { name } }) {
-  const id = name.split("-").slice(-1)[0];
+  const id = name.split('-').slice(-1)[0];
   const product = await getProductData(id);
 
   return (

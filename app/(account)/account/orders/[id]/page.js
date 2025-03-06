@@ -1,8 +1,8 @@
-import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import dynamic from 'next/dynamic';
+import { SmallSpinner } from '@/app/components/spinner';
 
 const OrderDetail = dynamic(
-  () => import("@/app/ui/account/orders/order-detail"),
+  () => import('@/app/components/account/orders/order-detail'),
   {
     ssr: false,
     loading: () => (
@@ -10,7 +10,7 @@ const OrderDetail = dynamic(
         <SmallSpinner className="!text-primary" />
       </div>
     ),
-  },
+  }
 );
 
 export default function OrderDetailPage({ params }) {

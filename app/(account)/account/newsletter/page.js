@@ -1,12 +1,12 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { NewsletterContent } from "@/app/ui/account/newsletter/newsletter-content";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { NewsletterContent } from '@/app/components/account/newsletter/newsletter-content';
 
 export default async function NewsletterPage() {
   const session = await getServerSession(authOptions);
   const initialData = await fetch(
     `${process.env.NEXTAUTH_URL}/api/subscribe?email=${session?.user?.email}`,
-    { next: { revalidate: 3600, tags: ["emailSubscription"] } },
+    { next: { revalidate: 3600, tags: ['emailSubscription'] } }
   ).then((res) => res.json());
 
   return (

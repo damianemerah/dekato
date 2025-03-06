@@ -1,7 +1,7 @@
-import ProductList from "@/app/ui/products/products-list";
-import { unstable_cache } from "next/cache";
-import { getAllProducts } from "@/app/action/productAction";
-import { notFound } from "next/navigation";
+import ProductList from '@/app/components/products/products-list';
+import { unstable_cache } from 'next/cache';
+import { getAllProducts } from '@/app/action/productAction';
+import { notFound } from 'next/navigation';
 
 const cachedProducts = unstable_cache(
   async (cat, searchParams) => {
@@ -9,12 +9,12 @@ const cachedProducts = unstable_cache(
     return products;
   },
   (cat, searchParams) => [
-    `products-${cat.join("-")}-${searchParams.toString()}`,
+    `products-${cat.join('-')}-${searchParams.toString()}`,
   ],
   {
     revalidate: 10, // 30 seconds
-    tags: ["products-all"],
-  },
+    tags: ['products-all'],
+  }
 );
 
 export default async function CategoryProducts({ cat, searchParams }) {

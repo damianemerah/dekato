@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef } from "react";
-import { ButtonPrimary } from "@/app/ui/button";
-import { InputType } from "@/app/ui/inputType";
-import { Modal, message } from "antd";
-import { updateUserAddress, createUserAddress } from "@/app/action/userAction";
-import { mutate } from "swr";
-import { SmallSpinner } from "@/app/ui/spinner";
-import EditIcon from "@/public/assets/icons/edit.svg";
-import useAddressData from "@/app/hooks/useAddressData";
-import { useSession } from "next-auth/react";
+import { useState, useCallback, useRef } from 'react';
+import { ButtonPrimary } from '@/app/components/button';
+import { InputType } from '@/app/components/inputType';
+import { Modal, message } from 'antd';
+import { updateUserAddress, createUserAddress } from '@/app/action/userAction';
+import { mutate } from 'swr';
+import { SmallSpinner } from '@/app/components/spinner';
+import EditIcon from '@/public/assets/icons/edit.svg';
+import useAddressData from '@/app/hooks/useAddressData';
+import { useSession } from 'next-auth/react';
 
 export default function Address() {
   const [showForm, setShowForm] = useState(false);
@@ -30,67 +30,67 @@ export default function Address() {
     async (data, isDefault) => {
       setIsUpdating(true);
       try {
-        if (isDefault && typeof isDefault === "boolean") {
+        if (isDefault && typeof isDefault === 'boolean') {
           const formData = new FormData();
-          formData.append("addressId", data);
-          formData.append("isDefault", isDefault);
-          formData.append("userId", userId);
+          formData.append('addressId', data);
+          formData.append('isDefault', isDefault);
+          formData.append('userId', userId);
           await updateUserAddress(formData);
-          await mutate("/checkout-data");
+          await mutate('/checkout-data');
           await mutate(`/api/user/${userId}`);
           await mutate(`/api/userAddress/${userId}`);
-          message.success("Address updated successfully");
+          message.success('Address updated successfully');
 
           return;
         }
-        data.append("userId", userId);
-        if (data.get("isDefault") === "on") {
-          data.set("isDefault", "true");
+        data.append('userId', userId);
+        if (data.get('isDefault') === 'on') {
+          data.set('isDefault', 'true');
         }
         await updateUserAddress(data);
 
-        await mutate("/checkout-data");
+        await mutate('/checkout-data');
         await mutate(`/api/user/${userId}`);
         await mutate(`/api/userAddress/${userId}`);
-        message.success("Address updated successfully");
+        message.success('Address updated successfully');
       } catch (error) {
-        console.error("Error updating address:", error);
-        message.error("Failed to update address. Please try again.");
+        console.error('Error updating address:', error);
+        message.error('Failed to update address. Please try again.');
       } finally {
         setIsUpdating(false);
         setShowForm(false);
         setEditingAddress(null);
       }
     },
-    [userId],
+    [userId]
   );
 
   const handleCreateAddress = useCallback(
     async (formData) => {
-      formData.append("userId", userId);
-      if (formData.get("isDefault") === "on") {
-        formData.set("isDefault", true);
+      formData.append('userId', userId);
+      if (formData.get('isDefault') === 'on') {
+        formData.set('isDefault', true);
       }
 
       try {
         await createUserAddress(formData);
 
-        await mutate("/checkout-data");
+        await mutate('/checkout-data');
         await mutate(`/api/user/${userId}`);
         await mutate(`/api/userAddress/${userId}`);
 
-        message.success("Address added successfully");
+        message.success('Address added successfully');
 
         // Reset form by clearing all input fields
         formRef.current.reset();
       } catch (error) {
-        message.error("Failed to add address. Please try again.");
+        message.error('Failed to add address. Please try again.');
       } finally {
         setIsUpdating(false);
         setShowForm(false);
       }
     },
-    [userId],
+    [userId]
   );
 
   const handleModalClose = useCallback(() => {
@@ -108,7 +108,7 @@ export default function Address() {
     >
       <div className="relative">
         <h2 className="mb-6 text-xl font-semibold text-primary">
-          {editingAddress ? "Edit Address" : "Add New Address"}
+          {editingAddress ? 'Edit Address' : 'Add New Address'}
         </h2>
 
         <form
@@ -125,13 +125,13 @@ export default function Address() {
               name="firstname"
               label="First name"
               required={true}
-              value={editingAddress?.firstname || ""}
+              value={editingAddress?.firstname || ''}
             />
             <InputType
               name="lastname"
               label="Last name"
               required={true}
-              value={editingAddress?.lastname || ""}
+              value={editingAddress?.lastname || ''}
             />
           </div>
 
@@ -148,7 +148,7 @@ export default function Address() {
               label="Phone number"
               required={true}
               type="tel"
-              value={editingAddress?.phone || ""}
+              value={editingAddress?.phone || ''}
             />
           </div>
 
@@ -156,27 +156,27 @@ export default function Address() {
             name="address"
             label="Delivery Address"
             required={true}
-            value={editingAddress?.address || ""}
+            value={editingAddress?.address || ''}
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <InputType
               name="city"
               label="City"
               required={true}
-              value={editingAddress?.city || ""}
+              value={editingAddress?.city || ''}
             />
             <InputType
               name="state"
               label="State"
               required={true}
-              value={editingAddress?.state || ""}
+              value={editingAddress?.state || ''}
             />
           </div>
           <InputType
             name="postalCode"
             label="Postal code"
             required={true}
-            value={editingAddress?.postalCode || ""}
+            value={editingAddress?.postalCode || ''}
           />
 
           <div className="text-sm">
@@ -197,7 +197,7 @@ export default function Address() {
               className="w-full bg-primary hover:opacity-90"
               disabled={isUpdating}
             >
-              {editingAddress ? "Update Address" : "Add Address"}
+              {editingAddress ? 'Update Address' : 'Add Address'}
             </ButtonPrimary>
           </div>
         </form>
@@ -236,9 +236,9 @@ export default function Address() {
                   </p>
                   <p className="text-sm text-gray-600">{address.phone}</p>
                   <p className="text-sm text-gray-600">{address.address}</p>
-                  <p className="text-sm text-gray-600">{`${address.city ? address.city + ", " : ""}${
-                    address.state ? address.state + ", " : ""
-                  }${address.postalCode ? address.postalCode : ""}`}</p>
+                  <p className="text-sm text-gray-600">{`${address.city ? address.city + ', ' : ''}${
+                    address.state ? address.state + ', ' : ''
+                  }${address.postalCode ? address.postalCode : ''}`}</p>
                 </div>
               </div>
               {address.isDefault && (

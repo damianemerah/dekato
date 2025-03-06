@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo, memo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react';
 
-import HeartIcon from "@/public/assets/icons/heart.svg";
-import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
-import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import { Button, ButtonPrimary } from "@/app/ui/button";
-import { mutate } from "swr";
-import { formatToNaira, generateVariantOptions } from "@/utils/getFunc";
-import { createCartItem } from "@/app/action/cartAction";
-import { useUserStore } from "@/store/store";
-import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { message } from "antd";
-import { SmallSpinner } from "../spinner";
-import useSWR from "swr";
-import { getVarOptionById } from "@/app/action/variantAction";
-import dynamic from "next/dynamic";
+import HeartIcon from '@/public/assets/icons/heart.svg';
+import HeartFilledIcon from '@/public/assets/icons/heart-filled.svg';
+import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
+import { Button, ButtonPrimary } from '@/app/components/button';
+import { mutate } from 'swr';
+import { formatToNaira, generateVariantOptions } from '@/utils/getFunc';
+import { createCartItem } from '@/app/action/cartAction';
+import { useUserStore } from '@/store/store';
+import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
+import { message } from 'antd';
+import { SmallSpinner } from '../spinner';
+import useSWR from 'swr';
+import { getVarOptionById } from '@/app/action/variantAction';
+import dynamic from 'next/dynamic';
 
-const SocialSharePanel = dynamic(() => import("../social-panal"));
+const SocialSharePanel = dynamic(() => import('../social-panal'));
 
 const CollapsibleSection = memo(
-  dynamic(() => import("./collasible"), {
+  dynamic(() => import('./collasible'), {
     loading: () => (
       <div className="border-b border-gray-200 px-2 sm:px-5">
         <div className="flex items-center justify-between py-4">
@@ -35,11 +35,11 @@ const CollapsibleSection = memo(
       </div>
     ),
     ssr: false,
-  }),
+  })
 );
 
 const VariantOptionMap = memo(
-  dynamic(() => import("./variant-option"), {
+  dynamic(() => import('./variant-option'), {
     loading: () => (
       <div className="mb-6">
         <div className="mb-3 h-6 w-32 animate-pulse bg-gray-200" />
@@ -54,11 +54,11 @@ const VariantOptionMap = memo(
       </div>
     ),
     ssr: false,
-  }),
+  })
 );
 
 const ProductSwiper = memo(
-  dynamic(() => import("@/app/ui/product/product-swiper"), {
+  dynamic(() => import('@/app/components/product/product-swiper'), {
     loading: () => (
       <div className="relative h-full w-full">
         {/* Thumbnail column */}
@@ -84,7 +84,7 @@ const ProductSwiper = memo(
       </div>
     ),
     ssr: false,
-  }),
+  })
 );
 
 const variantFetcher = async (ids) => {
@@ -110,7 +110,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
     () => variantFetcher(hasVariationTypes),
     {
       revalidateOnFocus: false,
-    },
+    }
   );
 
   useEffect(() => {
@@ -168,7 +168,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
       const y = (e.clientY - top) / height;
       setZoomPosition({ x, y });
     },
-    [isZoomed],
+    [isZoomed]
   );
 
   const handleImageClick = useCallback(() => {
@@ -177,17 +177,17 @@ const ProductDetail = memo(function ProductDetail({ product }) {
 
   const addItemToCart = useCallback(async () => {
     if (!userId) {
-      message.info("Please login to add to cart", 4);
+      message.info('Please login to add to cart', 4);
       return;
     }
     try {
       if (!isProductAvailable) {
-        message.error("This product option is currently unavailable");
+        message.error('This product option is currently unavailable');
         return;
       }
       setIsAddingToCart(true);
       const selectedVariant = product.variant.find(
-        (variant) => variant.id === selectedVariantId,
+        (variant) => variant.id === selectedVariantId
       );
       const newItem = {
         product: product.id,
@@ -199,9 +199,9 @@ const ProductDetail = memo(function ProductDetail({ product }) {
       await mutate(`/api/user/${userId}`);
       await mutate(`/cart/${userId}`);
       await mutate(`/checkout-data`);
-      message.success("Item added to cart");
+      message.success('Item added to cart');
     } catch (error) {
-      message.info("Unable to add item to cart", 4);
+      message.info('Unable to add item to cart', 4);
     } finally {
       setIsAddingToCart(false);
     }
@@ -220,7 +220,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
       }
       await mutate(`/api/user/${userId}`);
     } catch (error) {
-      message.info("Unable to add to wishlist", 4);
+      message.info('Unable to add to wishlist', 4);
     }
   }, [userId, user?.wishlist, product.id]);
 
@@ -232,8 +232,8 @@ const ProductDetail = memo(function ProductDetail({ product }) {
 
       const newSelectedVariant = product.variant.find((variant) =>
         Object.entries(updatedOptions).every(
-          ([key, val]) => variant.options[key] === val,
-        ),
+          ([key, val]) => variant.options[key] === val
+        )
       );
 
       if (newSelectedVariant) {
@@ -243,7 +243,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
         setIsProductAvailable(false);
       }
     },
-    [selectedVariantOption, product.variant],
+    [selectedVariantOption, product.variant]
   );
 
   const isOptionAvailable = useCallback(
@@ -252,21 +252,21 @@ const ProductDetail = memo(function ProductDetail({ product }) {
         (variant) =>
           variant.options[optionName] === value &&
           Object.entries(selectedVariantOption).every(
-            ([key, val]) => key === optionName || variant.options[key] === val,
-          ),
+            ([key, val]) => key === optionName || variant.options[key] === val
+          )
       );
     },
-    [product.variant, selectedVariantOption],
+    [product.variant, selectedVariantOption]
   );
 
   const memoizedVariantOptions = useMemo(() => {
     if (!variantOptions) return [];
     return [
       ...variantOptions.filter(
-        (option) => option.name.toLowerCase() === "color",
+        (option) => option.name.toLowerCase() === 'color'
       ),
       ...variantOptions.filter(
-        (option) => option.name.toLowerCase() !== "color",
+        (option) => option.name.toLowerCase() !== 'color'
       ),
     ];
   }, [variantOptions]);
@@ -345,16 +345,16 @@ const ProductDetail = memo(function ProductDetail({ product }) {
                       <p className="text-gray-500 line-through">
                         {formatToNaira(
                           product.variant.find(
-                            (v) => v.id === selectedVariantId,
-                          ).price,
+                            (v) => v.id === selectedVariantId
+                          ).price
                         )}
                       </p>
                       <p className="font-bold text-green-600">
                         {formatToNaira(
                           product.variant.find(
-                            (v) => v.id === selectedVariantId,
+                            (v) => v.id === selectedVariantId
                           ).price *
-                            (1 - product.discount / 100),
+                            (1 - product.discount / 100)
                         )}
                       </p>
                     </>
@@ -362,7 +362,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
                     <p className="font-bold">
                       {formatToNaira(
                         product.variant.find((v) => v.id === selectedVariantId)
-                          .price,
+                          .price
                       )}
                     </p>
                   )}
@@ -401,9 +401,9 @@ const ProductDetail = memo(function ProductDetail({ product }) {
             )}
             <div className="mb-8 mt-auto space-y-4">
               <p
-                className={`text-sm ${isProductAvailable ? "text-green-600" : "text-red-600"}`}
+                className={`text-sm ${isProductAvailable ? 'text-green-600' : 'text-red-600'}`}
               >
-                {isProductAvailable ? "Product is available" : "Out of stock"}
+                {isProductAvailable ? 'Product is available' : 'Out of stock'}
               </p>
               <Button className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500">
                 <WhatsappIcon className="mr-2 h-5 w-5 group-hover:text-white" />
@@ -413,7 +413,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
               </Button>
               <div className="flex items-center gap-3">
                 <ButtonPrimary
-                  className={`flex-1 text-sm normal-case ${isAddingToCart || !isProductAvailable ? "cursor-not-allowed opacity-75" : ""} flex items-center justify-center bg-secondary`}
+                  className={`flex-1 text-sm normal-case ${isAddingToCart || !isProductAvailable ? 'cursor-not-allowed opacity-75' : ''} flex items-center justify-center bg-secondary`}
                   onClick={addItemToCart}
                   disabled={isAddingToCart || !isProductAvailable}
                 >
@@ -434,7 +434,7 @@ const ProductDetail = memo(function ProductDetail({ product }) {
                   {isAddingToCart ? (
                     <SmallSpinner className="!text-white" />
                   ) : (
-                    "Add to Bag"
+                    'Add to Bag'
                   )}
                 </ButtonPrimary>
                 <button
@@ -454,8 +454,8 @@ const ProductDetail = memo(function ProductDetail({ product }) {
             <ul className="divide-y border-t border-gray-200">
               <CollapsibleSection
                 title="Product Details"
-                isOpen={activeSections["Product Details"]}
-                onToggle={() => handleToggleSection("Product Details")}
+                isOpen={activeSections['Product Details']}
+                onToggle={() => handleToggleSection('Product Details')}
               >
                 <div
                   dangerouslySetInnerHTML={{ __html: product.description }}
@@ -464,8 +464,8 @@ const ProductDetail = memo(function ProductDetail({ product }) {
 
               <CollapsibleSection
                 title="Delivery & Returns"
-                isOpen={activeSections["Delivery & Returns"]}
-                onToggle={() => handleToggleSection("Delivery & Returns")}
+                isOpen={activeSections['Delivery & Returns']}
+                onToggle={() => handleToggleSection('Delivery & Returns')}
               >
                 <p className="text-sm sm:text-base">
                   We deliver your order within 1-2 business days. Easy returns

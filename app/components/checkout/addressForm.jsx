@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, memo, useCallback } from "react";
-import { Modal, message } from "antd";
-import { ButtonPrimary } from "../button";
-import { updateUserAddress, createUserAddress } from "@/app/action/userAction";
-import { useUserStore } from "@/store/store";
-import { mutate } from "swr";
-import EditIcon from "@/public/assets/icons/edit.svg";
-import { SmallSpinner } from "@/app/ui/spinner";
-import { InputType } from "@/app/ui/inputType";
+import { useState, memo, useCallback } from 'react';
+import { Modal, message } from 'antd';
+import { ButtonPrimary } from '../button';
+import { updateUserAddress, createUserAddress } from '@/app/action/userAction';
+import { useUserStore } from '@/store/store';
+import { mutate } from 'swr';
+import EditIcon from '@/public/assets/icons/edit.svg';
+import { SmallSpinner } from '@/app/components/spinner';
+import { InputType } from '@/app/components/inputType';
 
 const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
   const [showForm, setShowForm] = useState(false);
@@ -25,65 +25,65 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
     async (data, isDefault) => {
       setIsUpdating(true);
       try {
-        if (isDefault && typeof isDefault === "boolean") {
+        if (isDefault && typeof isDefault === 'boolean') {
           const formData = new FormData();
-          formData.append("addressId", data);
-          formData.append("isDefault", isDefault);
-          formData.append("userId", user.id);
+          formData.append('addressId', data);
+          formData.append('isDefault', isDefault);
+          formData.append('userId', user.id);
           await updateUserAddress(formData);
-          await mutate("/checkout-data");
+          await mutate('/checkout-data');
           await mutate(`/api/user/${user.id}`);
           await mutate(`/api/userAddress/${user.id}`);
 
-          message.success("Address updated successfully");
+          message.success('Address updated successfully');
 
           return;
         }
-        data.append("userId", user.id);
-        if (data.get("isDefault") === "on") {
-          data.set("isDefault", "true");
+        data.append('userId', user.id);
+        if (data.get('isDefault') === 'on') {
+          data.set('isDefault', 'true');
         }
         await updateUserAddress(data);
 
-        await mutate("/checkout-data");
+        await mutate('/checkout-data');
         await mutate(`/api/user/${user.id}`);
         await mutate(`/api/userAddress/${user.id}`);
-        message.success("Address updated successfully");
+        message.success('Address updated successfully');
       } catch (error) {
-        console.error("Error updating address:", error);
-        message.error("Failed to update address. Please try again.");
+        console.error('Error updating address:', error);
+        message.error('Failed to update address. Please try again.');
       } finally {
         setIsUpdating(false);
         setChangeAddress(false);
         setEditingAddress(null);
       }
     },
-    [setChangeAddress, user?.id],
+    [setChangeAddress, user?.id]
   );
   const handleCreateAddress = useCallback(
     async (formData) => {
-      formData.append("userId", user.id);
-      if (formData.get("isDefault") === "on") {
-        formData.set("isDefault", true);
+      formData.append('userId', user.id);
+      if (formData.get('isDefault') === 'on') {
+        formData.set('isDefault', true);
       }
 
       try {
         const res = await createUserAddress(formData);
 
-        await mutate("/checkout-data");
+        await mutate('/checkout-data');
         await mutate(`/api/user/${user.id}`);
         await mutate(`/api/userAddress/${user.id}`);
 
-        message.success("Address added successfully");
+        message.success('Address added successfully');
       } catch (error) {
-        message.error("Failed to add address. Please try again.");
+        message.error('Failed to add address. Please try again.');
       } finally {
         setIsUpdating(false);
         setChangeAddress(false);
         setShowForm(false);
       }
     },
-    [user?.id, setChangeAddress, setShowForm],
+    [user?.id, setChangeAddress, setShowForm]
   );
 
   const renderAddress = useCallback(
@@ -105,9 +105,9 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
             </p>
             <p className="text-sm text-gray-600">{address.phone}</p>
             <p className="text-sm text-gray-600">{address.address}</p>
-            <p className="text-sm text-gray-600">{`${address.city ? address.city + ", " : ""}${
-              address.state ? address.state + ", " : ""
-            }${address.country ? address.country : ""}`}</p>
+            <p className="text-sm text-gray-600">{`${address.city ? address.city + ', ' : ''}${
+              address.state ? address.state + ', ' : ''
+            }${address.country ? address.country : ''}`}</p>
           </div>
         </div>
         {address.isDefault && (
@@ -126,7 +126,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
         </button>
       </div>
     ),
-    [handleUpdateAddress],
+    [handleUpdateAddress]
   );
 
   return (
@@ -153,7 +153,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
             onClick={toggleForm}
             className="w-full !bg-primary hover:opacity-90"
           >
-            {showForm ? "Cancel" : "Add New Address"}
+            {showForm ? 'Cancel' : 'Add New Address'}
           </ButtonPrimary>
         </div>
 
@@ -171,13 +171,13 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
                 name="firstname"
                 label="First name"
                 required={true}
-                value={editingAddress?.firstname || ""}
+                value={editingAddress?.firstname || ''}
               />
               <InputType
                 name="lastname"
                 label="Last name"
                 required={true}
-                value={editingAddress?.lastname || ""}
+                value={editingAddress?.lastname || ''}
               />
             </div>
 
@@ -194,7 +194,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
                 label="Phone number"
                 required={true}
                 type="tel"
-                value={editingAddress?.phone || ""}
+                value={editingAddress?.phone || ''}
               />
             </div>
 
@@ -202,27 +202,27 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
               name="address"
               label="Delivery Address"
               required={true}
-              value={editingAddress?.address || ""}
+              value={editingAddress?.address || ''}
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <InputType
                 name="city"
                 label="City"
                 required={true}
-                value={editingAddress?.city || ""}
+                value={editingAddress?.city || ''}
               />
               <InputType
                 name="state"
                 label="State"
                 required={true}
-                value={editingAddress?.state || ""}
+                value={editingAddress?.state || ''}
               />
             </div>
             <InputType
               name="postalCode"
               label="Postal code"
               required={true}
-              value={editingAddress?.postalCode || ""}
+              value={editingAddress?.postalCode || ''}
             />
 
             <div className="text-sm">
@@ -243,7 +243,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
                 className="w-full bg-primary hover:opacity-90"
                 disabled={isUpdating}
               >
-                {editingAddress ? "Update Address" : "Add Address"}
+                {editingAddress ? 'Update Address' : 'Add Address'}
               </ButtonPrimary>
             </div>
           </form>
