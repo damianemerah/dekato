@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import dbConnect from '@/app/lib/mongoConnection';
 import Blog from '@/models/blog';
-import handleAppError from '@/utils/appError';
-import { formDataToObject } from '@/utils/filterObj';
+import handleAppError from '@/app/utils/appError';
+import { formDataToObject } from '@/app/utils/filterObj';
 import { uploadFiles } from '@/app/lib/s3Func';
 
 const toObject = (data) => {

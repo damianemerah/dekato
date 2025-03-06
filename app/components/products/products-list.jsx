@@ -7,7 +7,7 @@ import HeaderOne from '@/app/components/heading1';
 import Image from 'next/image';
 import { Suspense, useMemo, useState, useCallback, useEffect } from 'react';
 import { useUserStore } from '@/app/store/store';
-import { trackView, activityQueue } from '@/utils/tracking';
+import { trackView, activityQueue } from '@/app/utils/tracking';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MAX_TRACK_TIME = 5000;

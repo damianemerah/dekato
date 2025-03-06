@@ -11,9 +11,9 @@ import { Cart, CartItem } from '@/models/cart';
 import dbConnect from '@/app/lib/mongoConnection';
 
 // Utils
-import AppError from '@/utils/errorClass';
-import handleAppError from '@/utils/appError';
-import { restrictTo } from '@/utils/checkPermission';
+import AppError from '@/app/utils/errorClass';
+import handleAppError from '@/app/utils/appError';
+import { restrictTo } from '@/app/utils/checkPermission';
 
 // Initialize nanoid and payment gateway
 const nanoId = customAlphabet('0123456789', 6);

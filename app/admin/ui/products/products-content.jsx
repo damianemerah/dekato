@@ -15,7 +15,7 @@ import {
 import { getAllCategories } from '@/app/action/categoryAction';
 import { getAllCollections } from '@/app/action/collectionAction';
 import { getFiles } from '@/app/admin/utils/utils';
-import { generateVariantOptions } from '@/utils/getFunc';
+import { generateVariantOptions } from '@/app/utils/getFunc';
 import useConfirmModal from '@/app/components/confirm-modal';
 import { useUserStore } from '@/app/store/store';
 import ProductForm from '@/app/admin/ui/products/productForm';

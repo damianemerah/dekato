@@ -1,19 +1,19 @@
-"use client";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import useSWR from "swr";
-import { getVariantsByCategory } from "@/app/action/productAction";
-import { getSubCategories } from "@/app/action/categoryAction";
-import { generateVariantOptions } from "@/utils/getFunc";
-import FilterContent from "./filter-content";
-import { ButtonPrimary } from "../button";
-import { createSearchParams } from "@/utils/filterHelpers";
-import MobileFilterContent from "./mobile-filter-content";
+'use client';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
+import { getVariantsByCategory } from '@/app/action/productAction';
+import { getSubCategories } from '@/app/action/categoryAction';
+import { generateVariantOptions } from '@/app/utils/getFunc';
+import FilterContent from './filter-content';
+import { ButtonPrimary } from '../button';
+import { createSearchParams } from '@/app/utils/filterHelpers';
+import MobileFilterContent from './mobile-filter-content';
 
 const sortOptions = [
-  { value: "+createdAt", label: "Newest" },
-  { value: "price", label: "Price: Low to High" },
-  { value: "-price", label: "Price: High to Low" },
+  { value: '+createdAt', label: 'Newest' },
+  { value: 'price', label: 'Price: Low to High' },
+  { value: '-price', label: 'Price: High to Low' },
 ];
 
 const priceRanges = [
@@ -36,45 +36,45 @@ export default function Filter({
     price: [],
     cat: [],
   });
-  const [searchStr, setSearchStr] = useState("");
+  const [searchStr, setSearchStr] = useState('');
   const [variantOptions, setVariantOptions] = useState([]);
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort] = useState('newest');
 
   const router = useRouter();
   const dropdownRef = useRef(null);
 
   const { data: subCategories } = useSWR(
-    cat ? `subCat:${cat.join("|")}` : null,
+    cat ? `subCat:${cat.join('|')}` : null,
     () => getSubCategories(cat),
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   const { data: productVariants, isLoading: varIsLoading } = useSWR(
-    cat ? `productsVariant:${cat.join("|")}:${searchStr}` : null,
+    cat ? `productsVariant:${cat.join('|')}:${searchStr}` : null,
     () => cat && getVariantsByCategory(cat, searchStr),
     {
       revalidateOnFocus: false,
-    },
+    }
   );
 
   const filters = useMemo(
     () => [
       {
-        name: "price",
+        name: 'price',
         options: [
-          "₦0 - ₦10000",
-          "₦10000 - ₦30000",
-          "₦30000 - ₦100000",
-          "₦100000 - Above",
+          '₦0 - ₦10000',
+          '₦10000 - ₦30000',
+          '₦30000 - ₦100000',
+          '₦100000 - Above',
         ],
       },
       ...variantOptions,
       {
-        name: "cat",
+        name: 'cat',
         options: (subCategories && subCategories?.map((sub) => sub.slug)) || [],
       },
     ],
-    [variantOptions, subCategories],
+    [variantOptions, subCategories]
   );
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function Filter({
       const variants = generateVariantOptions(variantOptions);
 
       setVariantOptions(
-        variants.map(({ values, ...rest }) => ({ ...rest, options: values })),
+        variants.map(({ values, ...rest }) => ({ ...rest, options: values }))
       );
 
       setSelectedFilters((prev) => {
@@ -116,22 +116,22 @@ export default function Filter({
       const params = { ...searchParams };
 
       for (const [key, value] of Object.entries(params)) {
-        const newKey = key.endsWith("-vr") ? key.split("-vr")[0] : key;
+        const newKey = key.endsWith('-vr') ? key.split('-vr')[0] : key;
         const curFilter = variantOptions.find(
-          (filter) => filter.name === newKey,
+          (filter) => filter.name === newKey
         );
 
-        if (newKey === "price") {
+        if (newKey === 'price') {
           const priceValue = value
-            .split(",")
-            .map((price) => (isFinite(price) ? parseInt(price) : "Above"));
+            .split(',')
+            .map((price) => (isFinite(price) ? parseInt(price) : 'Above'));
 
           const selectedPriceIndex = priceRanges.findIndex(
             (range) =>
               priceValue[0] >= range.min &&
-              (priceValue[1] === "Above"
+              (priceValue[1] === 'Above'
                 ? Number.MAX_SAFE_INTEGER
-                : priceValue[1]) <= range.max,
+                : priceValue[1]) <= range.max
           );
 
           setSelectedFilters((prev) => ({
@@ -140,10 +140,10 @@ export default function Filter({
               ? [filters[0].options[selectedPriceIndex]]
               : [],
           }));
-        } else if (curFilter || newKey === "cat") {
+        } else if (curFilter || newKey === 'cat') {
           setSelectedFilters((prev) => ({
             ...prev,
-            [newKey]: Array.isArray(value) ? value : value.split(","),
+            [newKey]: Array.isArray(value) ? value : value.split(','),
           }));
         }
       }
@@ -157,8 +157,8 @@ export default function Filter({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleDropdown = (name) => {
@@ -170,7 +170,7 @@ export default function Filter({
       const { value, checked } = e.target;
 
       let updatedFilter;
-      if (name === "price") {
+      if (name === 'price') {
         updatedFilter = checked ? [value] : [];
       } else {
         const currentFilter = selectedFilters[name] || [];
@@ -189,39 +189,39 @@ export default function Filter({
           ([key, value]) =>
             value.length > 0 &&
             value.every((v) => v.length > 0) &&
-            key in newFilters,
-        ),
+            key in newFilters
+        )
       );
 
       if (Object.keys(queryObj).length === 0) {
-        router.push(`/${cat.join("/")}`);
+        router.push(`/${cat.join('/')}`);
         return;
       }
 
       for (const [key, value] of Object.entries(queryObj)) {
         if (variantOptions.some((opt) => opt.name === key)) {
-          queryObj[key + "-vr"] = value;
+          queryObj[key + '-vr'] = value;
           delete queryObj[key];
         }
       }
 
       const searchParams = createSearchParams(queryObj);
-      router.push(`/${cat.join("/")}?${searchParams}`);
+      router.push(`/${cat.join('/')}?${searchParams}`);
     },
-    [cat, router, variantOptions, selectedFilters],
+    [cat, router, variantOptions, selectedFilters]
   );
 
   const handleSortChange = useCallback(
     (value) => {
       setSort(value);
       const params = new URLSearchParams(window.location.search);
-      params.set("sort", value);
+      params.set('sort', value);
 
       // Close dropdown before navigation
-      toggleDropdown("sort");
-      router.push(`/${cat.join("/")}?${params.toString()}`);
+      toggleDropdown('sort');
+      router.push(`/${cat.join('/')}?${params.toString()}`);
     },
-    [cat, router],
+    [cat, router]
   );
 
   if (products?.length === 0) {

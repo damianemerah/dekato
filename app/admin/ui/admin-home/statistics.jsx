@@ -1,20 +1,20 @@
-import { formatToNaira } from "@/utils/getFunc";
+import { formatToNaira } from '@/app/utils/getFunc';
 
 // Static imports
-import { Space } from "antd";
+import { Space } from 'antd';
 import {
   ShoppingCartOutlined,
   UserOutlined,
   ShopOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
 // Dynamic imports
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 
-const Row = dynamic(() => import("antd/lib/row"), { ssr: false });
-const Col = dynamic(() => import("antd/lib/col"), { ssr: false });
-const Card = dynamic(() => import("antd/lib/card"), { ssr: false });
-const Statistic = dynamic(() => import("antd/lib/statistic"), { ssr: false });
+const Row = dynamic(() => import('antd/lib/row'), { ssr: false });
+const Col = dynamic(() => import('antd/lib/col'), { ssr: false });
+const Card = dynamic(() => import('antd/lib/card'), { ssr: false });
+const Statistic = dynamic(() => import('antd/lib/statistic'), { ssr: false });
 
 const Statistics = ({ dashboardData }) => {
   return (
@@ -24,7 +24,7 @@ const Statistics = ({ dashboardData }) => {
           <Statistic
             title="Total Sales"
             value={formatToNaira(dashboardData?.totalSales)}
-            valueStyle={{ color: "#3f8600" }}
+            valueStyle={{ color: '#3f8600' }}
           />
         </Card>
       </Col>
@@ -34,7 +34,7 @@ const Statistics = ({ dashboardData }) => {
             title="Total Orders"
             value={dashboardData?.totalOrders}
             prefix={<ShoppingCartOutlined />}
-            valueStyle={{ color: "#1890ff" }}
+            valueStyle={{ color: '#1890ff' }}
           />
         </Card>
       </Col>
@@ -44,7 +44,7 @@ const Statistics = ({ dashboardData }) => {
             title="Total Customers"
             value={dashboardData?.totalCustomers}
             prefix={<UserOutlined />}
-            valueStyle={{ color: "#722ed1" }}
+            valueStyle={{ color: '#722ed1' }}
           />
         </Card>
       </Col>
@@ -54,7 +54,7 @@ const Statistics = ({ dashboardData }) => {
             title="Total Products"
             value={dashboardData?.products?.total}
             prefix={<ShopOutlined />}
-            valueStyle={{ color: "#fa8c16" }}
+            valueStyle={{ color: '#fa8c16' }}
           />
         </Card>
       </Col>

@@ -3,7 +3,7 @@ import { unstable_cache } from 'next/cache';
 import Sidebar from './sidebar';
 import Category from '@/models/category';
 import dbConnect from '@/app/lib/mongoConnection';
-import { formatCategories } from '@/utils/filterHelpers';
+import { formatCategories } from '@/app/utils/filterHelpers';
 
 const getCategories = unstable_cache(
   async () => {

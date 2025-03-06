@@ -17,7 +17,7 @@ import useAddressData from '@/app/hooks/useAddressData';
 import usePaymentData from '@/app/hooks/usePaymentData';
 import { getCheckoutData } from '@/app/action/checkoutAction';
 import { updatePaymentMethod } from '@/app/action/paymentAction';
-import { formatToNaira } from '@/utils/getFunc';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 import StoreIcon from '@/public/assets/icons/store.svg';
 import HomeIcon from '@/public/assets/icons/home.svg';

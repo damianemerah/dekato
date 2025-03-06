@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import {
   Card,
   Space,
@@ -9,10 +9,10 @@ import {
   Typography,
   Tag,
   Divider,
-} from "antd";
-import { CheckCircleOutlined, MoreOutlined } from "@ant-design/icons";
-import Link from "next/link";
-import { formatToNaira } from "@/utils/getFunc";
+} from 'antd';
+import { CheckCircleOutlined, MoreOutlined } from '@ant-design/icons';
+import Link from 'next/link';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 const { Text } = Typography;
 
@@ -21,12 +21,12 @@ export default function OrderProducts({ order, menu }) {
     <Card
       title={
         <Space>
-          <CheckCircleOutlined style={{ color: "#52c41a" }} />
+          <CheckCircleOutlined style={{ color: '#52c41a' }} />
           <Text strong>Fulfilled</Text>
         </Space>
       }
       extra={
-        <Dropdown menu={menu} trigger={["click"]}>
+        <Dropdown menu={menu} trigger={['click']}>
           <Button icon={<MoreOutlined />} />
         </Dropdown>
       }
@@ -51,7 +51,7 @@ export default function OrderProducts({ order, menu }) {
                 <Space direction="vertical">
                   {item.option && (
                     <Tag className="uppercase">
-                      {Object.values(item.option).join(" / ")}
+                      {Object.values(item.option).join(' / ')}
                     </Tag>
                   )}
                   <Text type="secondary">SKU: {item.productId}</Text>

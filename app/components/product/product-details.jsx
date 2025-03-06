@@ -7,7 +7,7 @@ import HeartFilledIcon from '@/public/assets/icons/heart-filled.svg';
 import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
 import { Button, ButtonPrimary } from '@/app/components/button';
 import { mutate } from 'swr';
-import { formatToNaira, generateVariantOptions } from '@/utils/getFunc';
+import { formatToNaira, generateVariantOptions } from '@/app/utils/getFunc';
 import { createCartItem } from '@/app/action/cartAction';
 import { useUserStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';

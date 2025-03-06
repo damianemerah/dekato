@@ -13,8 +13,8 @@ import { useUserStore, useRecommendMutateStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
 import { message } from 'antd';
 import { mutate } from 'swr';
-import { formatToNaira } from '@/utils/getFunc';
-import { trackClick } from '@/utils/tracking';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { trackClick } from '@/app/utils/tracking';
 import { createCartItem } from '@/app/action/cartAction';
 
 const ProductCard = memo(({ product, key, showDelete = false }) => {

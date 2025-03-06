@@ -10,7 +10,7 @@ import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
 import { SmallSpinner } from '@/app/components/spinner';
 import { useSession } from 'next-auth/react';
 import useCartData from '@/app/hooks/useCartData';
-import { formatToNaira } from '@/utils/getFunc';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 export default function Cart() {
   const { data: session } = useSession();

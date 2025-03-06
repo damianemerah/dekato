@@ -3,12 +3,12 @@
 import dbConnect from '@/app/lib/mongoConnection';
 import Category from '@/models/category';
 import Product from '@/models/product';
-import { handleFormData } from '@/utils/handleForm';
-import { restrictTo } from '@/utils/checkPermission';
-import handleAppError from '@/utils/appError';
-import APIFeatures from '@/utils/apiFeatures';
+import { handleFormData } from '@/app/utils/handleForm';
+import { restrictTo } from '@/app/utils/checkPermission';
+import handleAppError from '@/app/utils/appError';
+import APIFeatures from '@/app/utils/apiFeatures';
 import { revalidatePath } from 'next/cache';
-import { formatCategories } from '@/utils/filterHelpers';
+import { formatCategories } from '@/app/utils/filterHelpers';
 
 export async function getAllCategories(params) {
   try {

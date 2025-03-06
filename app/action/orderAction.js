@@ -2,10 +2,10 @@
 
 import dbConnect from '@/app/lib/mongoConnection';
 import Order from '@/models/order';
-import { restrictTo } from '@/utils/checkPermission';
-import handleAppError from '@/utils/appError';
+import { restrictTo } from '@/app/utils/checkPermission';
+import handleAppError from '@/app/utils/appError';
 import { omit, mapKeys } from 'lodash';
-import APIFeatures from '@/utils/apiFeatures';
+import APIFeatures from '@/app/utils/apiFeatures';
 import { revalidatePath } from 'next/cache';
 import Email from '@/app/lib/email';
 

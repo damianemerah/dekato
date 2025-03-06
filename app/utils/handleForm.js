@@ -1,4 +1,4 @@
-import AppError from '@/utils/errorClass';
+import AppError from '@/app/utils/errorClass';
 import { uploadFiles, deleteFiles } from '@/app/lib/s3Func';
 import Category from '@/models/category';
 import { partition, endsWith, fromPairs, keys } from 'lodash';

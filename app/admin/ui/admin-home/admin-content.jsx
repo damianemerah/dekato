@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
 // Static imports
-import { Button, Row, Col, Skeleton, Layout, Typography, Card } from "antd";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import useSWR from "swr";
-import { getDashboardData } from "@/app/action/userAction";
-import { formatToNaira } from "@/utils/getFunc";
-import { Suspense } from "react";
+import { Button, Row, Col, Skeleton, Layout, Typography, Card } from 'antd';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import useSWR from 'swr';
+import { getDashboardData } from '@/app/action/userAction';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { Suspense } from 'react';
 
 const { Content } = Layout;
 const { Title } = Typography;
 
 // Dynamic component imports
-const OrderTable = dynamic(() => import("./order-table"), {
+const OrderTable = dynamic(() => import('./order-table'), {
   loading: () => <Skeleton active paragraph={{ rows: 5 }} />,
   ssr: false,
 });
 
-const Statistics = dynamic(() => import("./statistics"), {
+const Statistics = dynamic(() => import('./statistics'), {
   loading: () => (
     <Row gutter={[24, 24]}>
       {[...Array(4)].map((_, i) => (
@@ -33,7 +33,7 @@ const Statistics = dynamic(() => import("./statistics"), {
   ssr: false,
 });
 
-const OrderStatus = dynamic(() => import("./order-status"), {
+const OrderStatus = dynamic(() => import('./order-status'), {
   loading: () => (
     <Card>
       <Skeleton active paragraph={{ rows: 6 }} />
@@ -42,7 +42,7 @@ const OrderStatus = dynamic(() => import("./order-status"), {
   ssr: false,
 });
 
-const NotificationList = dynamic(() => import("./notification-list"), {
+const NotificationList = dynamic(() => import('./notification-list'), {
   loading: () => (
     <Card>
       <Skeleton active avatar paragraph={{ rows: 4 }} />
@@ -51,7 +51,7 @@ const NotificationList = dynamic(() => import("./notification-list"), {
   ssr: false,
 });
 
-const ProductStatistics = dynamic(() => import("./product-stat"), {
+const ProductStatistics = dynamic(() => import('./product-stat'), {
   loading: () => (
     <Card>
       <Skeleton active paragraph={{ rows: 4 }} />
@@ -60,7 +60,7 @@ const ProductStatistics = dynamic(() => import("./product-stat"), {
   ssr: false,
 });
 
-const NewsletterStatistics = dynamic(() => import("./newsletter-stat"), {
+const NewsletterStatistics = dynamic(() => import('./newsletter-stat'), {
   loading: () => (
     <Card>
       <Skeleton active paragraph={{ rows: 4 }} />
@@ -71,12 +71,12 @@ const NewsletterStatistics = dynamic(() => import("./newsletter-stat"), {
 
 const AdminContent = ({ initialData }) => {
   const { data: dashboardData, isLoading } = useSWR(
-    "/api/dashboard",
+    '/api/dashboard',
     getDashboardData,
     {
       refreshInterval: 30000,
       fallbackData: initialData,
-    },
+    }
   );
 
   const recentOrders = dashboardData?.recentOrders?.map((order) => ({
@@ -106,7 +106,7 @@ const AdminContent = ({ initialData }) => {
         <Statistics dashboardData={dashboardData} />
       </Suspense>
 
-      <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
+      <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
         <Col span={24} lg={16}>
           <Card
             title="Recent Orders"
@@ -128,7 +128,7 @@ const AdminContent = ({ initialData }) => {
         </Col>
       </Row>
 
-      <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
+      <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
         <Col span={24} lg={12}>
           <Suspense fallback={<Skeleton active paragraph={{ rows: 4 }} />}>
             <ProductStatistics
@@ -144,7 +144,7 @@ const AdminContent = ({ initialData }) => {
         </Col>
       </Row>
 
-      <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
+      <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
         <Col span={24}>
           <Suspense
             fallback={<Skeleton active avatar paragraph={{ rows: 4 }} />}

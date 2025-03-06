@@ -1,7 +1,7 @@
-"use client";
-import { Card, Space, Row, Col, Typography, Divider } from "antd";
-import { DollarOutlined } from "@ant-design/icons";
-import { formatToNaira } from "@/utils/getFunc";
+'use client';
+import { Card, Space, Row, Col, Typography, Divider } from 'antd';
+import { DollarOutlined } from '@ant-design/icons';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 const { Text } = Typography;
 
@@ -11,7 +11,7 @@ export default function OrderPayment({ order }) {
       style={{ marginTop: 24 }}
       title={
         <Space>
-          <DollarOutlined style={{ color: "#52c41a" }} />
+          <DollarOutlined style={{ color: '#52c41a' }} />
           <Text strong>Paid</Text>
         </Space>
       }

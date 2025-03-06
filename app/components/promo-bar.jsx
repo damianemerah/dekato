@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   GiftOutlined,
   TagOutlined,
   ThunderboltOutlined,
-} from "@ant-design/icons";
-import { formatToNaira } from "@/utils/getFunc";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+} from '@ant-design/icons';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 const PromoBar = () => {
   const pathname = usePathname();
@@ -29,7 +29,7 @@ const PromoBar = () => {
       icon: <TagOutlined className="font-bold" />,
       text: (
         <p className="text-primary">
-          <span className="font-bold text-red-500">20% Student Discount</span>{" "}
+          <span className="font-bold text-red-500">20% Student Discount</span>{' '}
           with valid ID
         </p>
       ),
@@ -53,11 +53,11 @@ const PromoBar = () => {
     return () => clearInterval(interval);
   }, [promos.length]);
 
-  if (pathname.includes("/admin") || pathname.includes("/account")) return null;
+  if (pathname.includes('/admin') || pathname.includes('/account')) return null;
 
   return (
     <div
-      className={`font-oswald ${pathname.startsWith("/product/") ? "sticky top-0 z-[20]" : ""} `}
+      className={`font-oswald ${pathname.startsWith('/product/') ? 'sticky top-0 z-[20]' : ''} `}
     >
       <div className="hidden h-10 gap-16 md:flex md:items-center md:justify-center md:bg-white md:px-8">
         {promos.map(({ icon, text }, index) => (
@@ -76,7 +76,7 @@ const PromoBar = () => {
           {promos[currentPromo].text}
         </div>
       </div>
-      {pathname === "/" && (
+      {pathname === '/' && (
         <nav>
           <ul className="flex items-center justify-center gap-8 border-t border-t-primary/10 bg-white px-8 py-3.5 font-oswald text-sm font-semibold uppercase sm:hidden">
             <li>

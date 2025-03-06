@@ -3,12 +3,12 @@
 import Product from '@/models/product';
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
-import APIFeatures from '@/utils/apiFeatures';
-import { handleFormData } from '@/utils/handleForm';
-import { restrictTo } from '@/utils/checkPermission';
+import APIFeatures from '@/app/utils/apiFeatures';
+import { handleFormData } from '@/app/utils/handleForm';
+import { restrictTo } from '@/app/utils/checkPermission';
 import dbConnect from '@/app/lib/mongoConnection';
-import { getQueryObj } from '@/utils/getFunc';
-import handleAppError from '@/utils/appError';
+import { getQueryObj } from '@/app/utils/getFunc';
+import handleAppError from '@/app/utils/appError';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { deleteFiles } from '@/app/lib/s3Func';
 

@@ -1,7 +1,7 @@
-"use client";
-import { createSearchParams } from "@/utils/filterHelpers";
-import { ChevronDown, ChevronUp, Check, X } from "lucide-react";
-import { useCallback, useMemo } from "react";
+'use client';
+import { createSearchParams } from '@/app/utils/filterHelpers';
+import { ChevronDown, ChevronUp, Check, X } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 
 export default function FilterContent({
   dropdownRef,
@@ -19,7 +19,7 @@ export default function FilterContent({
   variantOptions,
 }) {
   const handleClearAll = useCallback(() => {
-    router.push(`/${cat.join("/")}`);
+    router.push(`/${cat.join('/')}`);
 
     setSelectedFilters((prev) => {
       const newFilters = Object.keys(prev).reduce(
@@ -27,7 +27,7 @@ export default function FilterContent({
           ...acc,
           [key]: [],
         }),
-        {},
+        {}
       );
 
       return newFilters;
@@ -48,44 +48,44 @@ export default function FilterContent({
             ([key, value]) =>
               value.length > 0 &&
               value.every((v) => v.length > 0) &&
-              key in newFilters,
-          ),
+              key in newFilters
+          )
         );
 
         if (Object.keys(queryObj).length === 0) {
-          router.push(`/${cat.join("/")}`);
+          router.push(`/${cat.join('/')}`);
           return newFilters;
         }
 
         // Handle variant filters
         for (const [key, value] of Object.entries(queryObj)) {
           if (variantOptions.some((opt) => opt.name === key)) {
-            queryObj[key + "-vr"] = value;
+            queryObj[key + '-vr'] = value;
             delete queryObj[key];
           }
         }
 
         const searchParams = createSearchParams(queryObj);
-        router.push(`/${cat.join("/")}?${searchParams}`);
+        router.push(`/${cat.join('/')}?${searchParams}`);
 
         return newFilters;
       });
     },
-    [cat, router, setSelectedFilters, variantOptions],
+    [cat, router, setSelectedFilters, variantOptions]
   );
 
   const filterButtons = useMemo(() => {
     return filters.map((filter) => (
       <div
         key={filter.name}
-        className={`relative mb-2 sm:mb-0 ${filter.options.length > 0 ? "block" : "hidden"}`}
+        className={`relative mb-2 sm:mb-0 ${filter.options.length > 0 ? 'block' : 'hidden'}`}
       >
         <button
           onClick={() => toggleDropdown(filter.name)}
-          className={`flex items-center gap-2 pr-3 text-[13px] font-bold capitalize ${activeDropdown === filter.name ? "bg-white" : ""}`}
+          className={`flex items-center gap-2 pr-3 text-[13px] font-bold capitalize ${activeDropdown === filter.name ? 'bg-white' : ''}`}
         >
-          {filter.name === "cat"
-            ? "Category"
+          {filter.name === 'cat'
+            ? 'Category'
             : filter.name.charAt(0).toUpperCase() + filter.name.slice(1)}
           {activeDropdown === filter.name ? (
             <ChevronUp className="h-4 w-4" />
@@ -106,15 +106,15 @@ export default function FilterContent({
               >
                 <div className="relative flex items-center">
                   <input
-                    type={filter.name === "price" ? "radio" : "checkbox"}
+                    type={filter.name === 'price' ? 'radio' : 'checkbox'}
                     name={filter?.name}
                     value={option.toLowerCase()}
                     onChange={(e) => handleChange(e, filter.name)}
                     checked={selectedFilters[filter.name]?.includes(
-                      option.toLowerCase(),
+                      option.toLowerCase()
                     )}
                     className={`peer relative h-5 w-5 cursor-pointer ${
-                      filter.name === "price" ? "" : "appearance-none"
+                      filter.name === 'price' ? '' : 'appearance-none'
                     } border border-gray-900 transition-all checked:bg-gray-900`}
                   />
                   <span className="pointer-events-none absolute left-2/4 top-2/4 -translate-x-2/4 -translate-y-2/4 text-white opacity-0 transition-opacity peer-checked:opacity-100">
@@ -134,20 +134,20 @@ export default function FilterContent({
     return (
       <div className="relative">
         <button
-          onClick={() => toggleDropdown("sort")}
+          onClick={() => toggleDropdown('sort')}
           className={`flex items-center gap-2 pr-3 text-[13px] font-medium capitalize ${
-            activeDropdown === "sort" ? "bg-white" : ""
+            activeDropdown === 'sort' ? 'bg-white' : ''
           } hover:bg-white`}
         >
           {sort}
-          {activeDropdown === "sort" ? (
+          {activeDropdown === 'sort' ? (
             <ChevronUp className="h-4 w-4" />
           ) : (
             <ChevronDown className="h-4 w-4" />
           )}
         </button>
 
-        {activeDropdown === "sort" && (
+        {activeDropdown === 'sort' && (
           <div
             id="dropdown-sort"
             className="absolute right-0 z-10 mt-2 w-48 rounded-md bg-white shadow-lg"
@@ -157,7 +157,7 @@ export default function FilterContent({
                 key={option.value}
                 onClick={() => handleSortChange(option.value)}
                 className={`block w-full px-4 py-3 text-left text-sm capitalize ${
-                  sort === option.value ? "bg-gray-100 font-medium" : ""
+                  sort === option.value ? 'bg-gray-100 font-medium' : ''
                 } hover:bg-gray-100`}
               >
                 {option.label}
@@ -199,7 +199,7 @@ export default function FilterContent({
                   <span className="text-xs font-medium">
                     {value.map((item, index) => (
                       <span key={index}>
-                        {`${item}${index < value.length - 1 ? ", " : ""}`}
+                        {`${item}${index < value.length - 1 ? ', ' : ''}`}
                       </span>
                     ))}
                   </span>
@@ -211,7 +211,7 @@ export default function FilterContent({
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-              ) : null,
+              ) : null
             )}
           </div>
           {Object.values(selectedFilters).some((arr) => arr.length > 0) && (

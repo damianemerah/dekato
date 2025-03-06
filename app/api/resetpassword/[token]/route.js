@@ -1,8 +1,8 @@
 import dbConnect from '@/app/lib/mongoConnection';
 import User from '@/models/user';
 import { NextResponse } from 'next/server';
-import handleAppError from '@/utils/appError';
-import AppError from '@/utils/errorClass';
+import handleAppError from '@/app/utils/appError';
+import AppError from '@/app/utils/errorClass';
 import crypto from 'crypto';
 
 export async function GET(req, { params }) {

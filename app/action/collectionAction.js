@@ -3,11 +3,11 @@
 import dbConnect from '@/app/lib/mongoConnection';
 import Campaign from '@/models/collection';
 import Product from '@/models/product';
-import { handleFormData } from '@/utils/handleForm';
-import { restrictTo } from '@/utils/checkPermission';
-import handleAppError from '@/utils/appError';
+import { handleFormData } from '@/app/utils/handleForm';
+import { restrictTo } from '@/app/utils/checkPermission';
+import handleAppError from '@/app/utils/appError';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import APIFeatures from '@/utils/apiFeatures';
+import APIFeatures from '@/app/utils/apiFeatures';
 
 function formatCollections(collections) {
   const formattedCollections = collections.map(

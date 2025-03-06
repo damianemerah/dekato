@@ -3,8 +3,8 @@
 import { Cart, CartItem } from '@/models/cart';
 import Product from '@/models/product';
 import dbConnect from '@/app/lib/mongoConnection';
-import { getQuantity } from '@/utils/getFunc';
-import { restrictTo } from '@/utils/checkPermission';
+import { getQuantity } from '@/app/utils/getFunc';
+import { restrictTo } from '@/app/utils/checkPermission';
 import mongoose from 'mongoose';
 import { revalidatePath, revalidateTag } from 'next/cache';
 

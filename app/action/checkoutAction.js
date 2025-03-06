@@ -2,8 +2,8 @@
 
 import { Cart, CartItem } from '@/models/cart';
 import dbConnect from '@/app/lib/mongoConnection';
-import { restrictTo } from '@/utils/checkPermission';
-import AppError from '@/utils/errorClass';
+import { restrictTo } from '@/app/utils/checkPermission';
+import AppError from '@/app/utils/errorClass';
 import { omit } from 'lodash';
 
 export async function getCheckoutData(userId) {

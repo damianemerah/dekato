@@ -10,7 +10,7 @@ import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { SmallSpinner } from '@/app/components/spinner';
 import { CloseOutlined } from '@ant-design/icons';
-import { formatToNaira } from '@/utils/getFunc';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 export default function Wishlist({ product }) {
   const { data: session } = useSession();

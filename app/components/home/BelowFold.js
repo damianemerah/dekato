@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { observeElement } from '@/utils/observer';
+import { observeElement } from '@/app/utils/observer';
 import BlogCard from '@/app/components/blog-card';
 import useSWR from 'swr';
 import { getAllBlogs } from '@/app/action/blogAction';

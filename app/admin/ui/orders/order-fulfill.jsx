@@ -31,7 +31,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { getOrderById, fulfillOrder } from '@/app/action/orderAction';
 import { ModalSpinner, SmallSpinner } from '@/app/components/spinner';
-import { formatToNaira } from '@/utils/getFunc';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;

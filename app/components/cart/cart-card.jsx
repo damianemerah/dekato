@@ -15,7 +15,7 @@ import { message } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { SmallSpinner } from '@/app/components/spinner';
 import { useSession } from 'next-auth/react';
-import { formatToNaira } from '@/utils/getFunc';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 const CartCard = ({ cartItem }) => {
   const { data: session } = useSession();

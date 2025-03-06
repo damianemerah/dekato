@@ -4,7 +4,7 @@ import Product from '@/models/product';
 import Notification from '@/models/notification';
 import { Cart, CartItem } from '@/models/cart';
 import { NextResponse } from 'next/server';
-import AppError from '@/utils/errorClass';
+import AppError from '@/app/utils/errorClass';
 import { revalidatePath } from 'next/cache';
 import dbConnect from '@/app/lib/mongoConnection';
 import Payment from '@/models/payment';

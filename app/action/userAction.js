@@ -3,11 +3,11 @@
 import dbConnect from '@/app/lib/mongoConnection';
 import User from '@/models/user';
 import { Cart } from '@/models/cart';
-import { restrictTo } from '@/utils/checkPermission';
+import { restrictTo } from '@/app/utils/checkPermission';
 import Email from '@/app/lib/email';
 import Address from '@/models/address';
-import { filterObj, formDataToObject } from '@/utils/filterObj';
-import handleAppError from '@/utils/appError';
+import { filterObj, formDataToObject } from '@/app/utils/filterObj';
+import handleAppError from '@/app/utils/appError';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import crypto from 'crypto';
 import { omit } from 'lodash';
