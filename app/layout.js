@@ -1,9 +1,10 @@
 import localFont from 'next/font/local';
 import Provider from '@/app/components/Provider';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import '@/styles/globals.css';
+import '@/app/styles/globals.css';
 import LayoutWrapper from '@/app/components/layout-wrapper';
-import SidebarServer from '@/app/components/sidebar/sidebar-fetcher';
+import { SidebarProvider, SidebarInset } from '@/app/components/ui/sidebar';
+import SidebarContent from '@/app/components/sidebar/sidebar-content';
 import Header from '@/app/components/header';
 import PromoBar from '@/app/components/promo-bar';
 
@@ -160,17 +161,15 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${oswald.variable} ${roboto.variable}`}>
       <AntdRegistry>
         <Provider>
-          <body className={`min-h-screen font-roboto antialiased`}>
-            <Header />
-            <div className="relative flex w-full">
-              <div className="sticky top-14 z-50 h-[calc(100vh-3.5rem)]">
-                <SidebarServer />
-              </div>
-              <div className="relative flex flex-1 shrink-0 flex-col md:w-full">
+          <body className={`font-roboto antialiased`}>
+            <SidebarProvider>
+              <SidebarContent />
+              <SidebarInset>
+                <Header />
                 <PromoBar />
                 <LayoutWrapper>{children}</LayoutWrapper>
-              </div>
-            </div>
+              </SidebarInset>
+            </SidebarProvider>
           </body>
         </Provider>
       </AntdRegistry>

@@ -2,40 +2,16 @@
 
 import { memo } from 'react';
 import { usePathname } from 'next/navigation';
-import { useSidebarStore } from '@/app/store/store';
-import useIsBelowThreshold from '@/app/hooks/useIsBelowThreshold';
 import Footer from '@/app/components/footer';
 import NewsLetter from '../(client)/(home)/newsletter';
 import Checkmark from '@/public/assets/icons/check.svg?url';
 
 const LayoutWrapper = ({ children }) => {
-  const isBelowThreshold = useIsBelowThreshold();
-  const { isSidebarOpen, lgScreenSidebar, isMobile, toggleSidebar } =
-    useSidebarStore((state) => ({
-      isSidebarOpen: state.isSidebarOpen,
-      lgScreenSidebar: state.lgScreenSidebar,
-      isMobile: state.isMobile,
-      toggleSidebar: state.toggleSidebar,
-    }));
   const pathname = usePathname();
 
   return (
     <>
-      <main
-        className={`${
-          isSidebarOpen &&
-          !pathname.startsWith('/admin') &&
-          (lgScreenSidebar || isBelowThreshold)
-            ? '[@media(min-width:1250px)]:w-[calc(100vw-280px)]'
-            : ''
-        } min-h-screen w-full transition-[width] duration-300 ease-in-out`}
-      >
-        {isMobile && isSidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 h-full w-full bg-black/50 transition-opacity duration-300"
-            onClick={toggleSidebar}
-          />
-        )}
+      <div className="flex flex-1 flex-col">
         {children}
         {pathname === '/' && (
           <>
@@ -57,7 +33,7 @@ const LayoutWrapper = ({ children }) => {
             </div>
           </>
         )}
-      </main>
+      </div>
       {!pathname.startsWith('/admin') && <Footer />}
     </>
   );

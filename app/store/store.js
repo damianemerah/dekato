@@ -1,12 +1,12 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 const createPersistedStore = (initialState, name, partialize) =>
   create(
     persist((set) => initialState(set), {
       name,
       ...(partialize && { partialize }),
-    }),
+    })
   );
 
 export const useUserStore = createPersistedStore(
@@ -15,10 +15,10 @@ export const useUserStore = createPersistedStore(
     address: [],
     setUser: (user) => set({ user }),
     setAddress: (address) => set({ address }),
-    deliveryMethod: "pickup",
+    deliveryMethod: 'pickup',
     setDeliveryMethod: (deliveryMethod) => set({ deliveryMethod }),
   }),
-  "user-storage",
+  'user-storage',
   (state) => ({
     deliveryMethod: state.deliveryMethod,
     user: {
@@ -28,7 +28,7 @@ export const useUserStore = createPersistedStore(
       address: state.address,
       wishlist: state.user?.wishlist,
     },
-  }),
+  })
 );
 
 export const useAddressStore = createPersistedStore(
@@ -36,7 +36,7 @@ export const useAddressStore = createPersistedStore(
     address: [],
     setAddress: (address) => set({ address }),
   }),
-  "address-storage",
+  'address-storage'
 );
 
 export const useCartStore = createPersistedStore(
@@ -46,23 +46,23 @@ export const useCartStore = createPersistedStore(
     cartIsLoading: false,
     setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
   }),
-  "cart-storage",
+  'cart-storage'
 );
 
 export const useCategoryStore = createPersistedStore(
   (set) => ({
-    selectedCategory: "women",
+    selectedCategory: 'women',
     setSelectedCategory: (category) => set({ selectedCategory: category }),
   }),
-  "selected-category",
+  'selected-category'
 );
 
 export const useSidebarStore = createPersistedStore(
   (set) => ({
     isSidebarOpen:
-      typeof window !== "undefined"
+      typeof window !== 'undefined'
         ? window.innerWidth <= 1024
-          ? JSON.parse(localStorage.getItem("isSidebarOpen")) || true
+          ? JSON.parse(localStorage.getItem('isSidebarOpen')) || true
           : false
         : false,
 
@@ -77,7 +77,7 @@ export const useSidebarStore = createPersistedStore(
     isMobile: false,
     setIsMobile: (isMobile) => set({ isMobile }),
   }),
-  "sidebar-storage",
+  'sidebar-storage'
 );
 
 export const useRecommendMutateStore = create((set) => ({
@@ -86,7 +86,7 @@ export const useRecommendMutateStore = create((set) => ({
 }));
 
 export const useSearchStore = create((set) => ({
-  searchString: "",
+  searchString: '',
   setSearchString: (searchString) => set({ searchString }),
   activeDropdown: false,
   setActiveDropdown: (activeDropdown) => set({ activeDropdown }),

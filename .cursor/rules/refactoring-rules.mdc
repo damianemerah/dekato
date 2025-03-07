@@ -1,0 +1,64 @@
+---
+description: A comprehensive guide for refactoring the Dekato e-commerce codebase using Next.js 14 best practices, shadcn components, and Cursor IDE’s AI capabilities.
+globs: 
+alwaysApply: false
+---
+
+Below is a comprehensive guide for refactoring the Dekato e-commerce codebase using Next.js 14 best practices, shadcn components, and Cursor IDE’s AI capabilities. The aim is to improve maintainability, performance, and consistency while updating the codebase incrementally to avoid breakages. Since the project is in JavaScript, we’ll stick to that language and leverage the tools outlined in the Next.js 14 documentation (https://nextjs.org/docs/14/app/building-your-application) and Cursor IDE’s documentation for AI rules (https://docs.cursor.com/context/rules-for-ai) and notepads (https://docs.cursor.com/beta/notepads).
+
+---
+
+## Objective
+The goal is to transform the existing Dekato e-commerce codebase into a modern, maintainable application that adheres to Next.js 14 best practices. We’ll use shadcn components for consistent and accessible UI elements and leverage Cursor IDE’s AI features to assist with incremental refactoring. This guide ensures changes are made systematically, one section at a time, with testing at each step to prevent disruptions.
+
+---
+
+## Step 2: Define Cursor IDE Rules for AI
+
+Cursor IDE’s AI can assist with refactoring by following predefined rules. Add these rules in Cursor’s settings (via the AI rules panel) to guide the refactoring process.
+
+1. **Rule: Adhere to Next.js 14 Best Practices**
+   - Use the App Router (`app/` directory) exclusively; avoid mixing with Pages Router.
+   - Default to Server Components; use `"use client"` only for interactivity.
+   - Replace third-party data fetching (e.g., SWR) with Next.js `fetch` and caching.
+   - Implement error handling with `error.js` and `not-found.js`.
+   - Use `next/dynamic` for lazy loading heavy components.
+
+2. **Rule: Integrate shadcn Components**
+   - Replace custom UI components (e.g., `app/components/button.jsx`) with shadcn equivalents (e.g., `Button`). Installed shadcn UI are in `app/components/ui`.
+   - Use shadcn’s `Form` for all forms with validation (e.g., in `newsletter.jsx`).
+   - Ensure accessibility with ARIA attributes and semantic HTML.
+   - Install specific components as needed (e.g., Button, Form):
+     ```bash
+     npx shadcn@latest add button form input radio-group sidebar tabs
+     ```
+
+3. **Code Quality and Maintainability**:
+   - Use functional components and hooks over class components.
+   - Avoid inline styles; prefer Tailwind CSS classes.
+   - Extract reusable logic into hooks (e.g., move `useDebounce` from `searchbox.jsx` to `hooks/useDebounce.js`).
+   - Organize components in `app/components/` for consistency.
+   - Use descriptive variable and function names.
+   - Add JSDoc comments for complex logic.
+
+4. **Rule: Refactor Incrementally**
+   - Refactor one component or page at a time to avoid breakages.
+   - Test each change by running `npm run dev` and verifying functionality.
+   - Preserve existing functionality unless explicitly instructed otherwise.
+   - Maintain compatibility with dependencies (e.g., Ant Design, Zustand).
+
+5. **State Management**:
+   - Continue using Zustand; organize stores into separate files (e.g., `store/sidebarStore.js`).
+   - Avoid global state for component-specific logic; use `useState` or `useEffect` instead.
+
+6. **Rule: Optimize Performance**
+   - Use Next.js `Image` with `loading="lazy"` for images.
+   - Minimize client-side JavaScript with Server Components.
+   - Cache data fetching with Next.js `fetch` options (e.g., `{ cache: 'force-cache' }`).
+
+7. **Testing and Debugging**:
+   - Run `npm run lint` after each step to catch errors.
+   - Use `console.log` or Cursor's debugging tools to verify data flow.
+   - Ensure API routes return proper responses before proceeding. Check `./models` for the collections structure.
+
+---

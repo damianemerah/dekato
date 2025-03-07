@@ -1,18 +1,23 @@
-import Image from "next/image";
-import Link from "next/link";
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/app/components/ui/card';
 
-export default function BlogCard({ className, blog }) {
+export default function BlogCard({ blog }) {
   const { featuredImage, categories, publishedAt, title, excerpt, slug } =
     blog || {};
   const link = `/fashion/${slug}`;
+
   return (
-    <article
-      className={`${className} w-[75vw] min-w-[280px] max-w-[480px] flex-shrink-0 snap-start bg-white first:pl-0 sm:w-[calc(50vw-3rem)] lg:w-[calc(33.333vw-3rem)]`}
-    >
+    <Card className="h-full overflow-hidden">
       <div className="relative aspect-[16/9] w-full overflow-hidden">
-        <Link href={link || "#"} passHref>
+        <Link href={link || '#'} passHref>
           <Image
-            src={featuredImage}
+            src={featuredImage || '/placeholder.svg'}
             alt={title}
             width={420}
             height={300}
@@ -20,9 +25,7 @@ export default function BlogCard({ className, blog }) {
           />
         </Link>
       </div>
-      <div
-        className={`flex flex-col justify-between p-4 text-center font-oswald sm:p-6`}
-      >
+      <CardHeader className="font-oswald px-4 pb-0 pt-4 text-center sm:px-6">
         <div className="mb-2 flex items-center justify-between text-sm text-gray-500">
           <span className="uppercase">{categories?.[0]?.name}</span>
           {publishedAt instanceof Date && (
@@ -31,23 +34,25 @@ export default function BlogCard({ className, blog }) {
             </time>
           )}
         </div>
-        <h3 className="mb-4 truncate text-lg font-bold capitalize leading-tight sm:text-xl">
+        <h3 className="mb-2 truncate text-lg font-bold capitalize leading-tight sm:text-xl">
           {title}
         </h3>
-        <p className="mb-6 line-clamp-2 font-roboto text-sm text-gray-700 sm:text-base">
+      </CardHeader>
+      <CardContent className="font-oswald px-4 py-2 text-center sm:px-6">
+        <p className="font-roboto line-clamp-2 text-sm text-gray-700 sm:text-base">
           {excerpt}
         </p>
-        <div className="mt-auto flex justify-center">
-          <Link href={link} passHref>
-            <button
-              className="inline-flex items-center justify-center border-b-2 border-b-primary px-0 text-[15px] font-semibold tracking-wider text-primary transition-colors hover:border-b-gray-400"
-              aria-label="Read more about this article"
-            >
-              explore
-            </button>
-          </Link>
-        </div>
-      </div>
-    </article>
+      </CardContent>
+      <CardFooter className="flex justify-center px-4 pb-4 pt-2 sm:px-6">
+        <Link href={link} passHref>
+          <button
+            className="inline-flex items-center justify-center border-b-2 border-b-primary px-0 text-[15px] font-semibold tracking-wider text-primary transition-colors hover:border-b-gray-400"
+            aria-label="Read more about this article"
+          >
+            explore
+          </button>
+        </Link>
+      </CardFooter>
+    </Card>
   );
 }

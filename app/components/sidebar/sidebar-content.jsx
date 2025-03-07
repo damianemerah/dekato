@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import Sidebar from './sidebar';
+import NewSidebar from './app-sidebar';
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
 import dbConnect from '@/app/lib/mongoConnection';
@@ -25,11 +25,11 @@ const getAllCollections = unstable_cache(
   { revalidate: 120, tags: ['collections'] }
 );
 
-export default async function SidebarFetcher() {
+export default async function SidebarContent() {
   const [categories, collections] = await Promise.all([
     getCategories(),
     getAllCollections(),
   ]);
 
-  return <Sidebar categories={categories} collections={collections} />;
+  return <NewSidebar categories={categories} collections={collections} />;
 }
