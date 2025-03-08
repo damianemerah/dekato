@@ -16,6 +16,7 @@ import {
   CarouselPrevious,
 } from '@/app/components/ui/carousel';
 import BlogCard from '@/app/components/blog-card';
+import { useSidebar } from '@/app/components/ui/sidebar'; // Import useSidebar hook
 
 const Gallery = dynamic(() => import('@/app/components/home/gallery'), {
   loading: () => <GallerySkeleton />,
@@ -81,6 +82,7 @@ function BlogSkeleton() {
 export default function BelowFold() {
   const [showGallery, setShowGallery] = useState(false);
   const galleryRef = useRef(null);
+  const { open, isMobile } = useSidebar(); // Get sidebar state from your hook
 
   const { data: blogs, isLoading } = useSWR('/api/blogs', () =>
     getAllBlogs({ limit: 3, status: 'published' })
@@ -97,51 +99,57 @@ export default function BelowFold() {
   if (!isLoading && !blogs) return null;
 
   return (
-    <div className="container mx-auto">
-      {isLoading ? (
-        <BlogSkeleton />
-      ) : (
-        blogs?.data && (
-          <div className="py-12">
-            <h2 className="font-oswald mb-6 text-center font-bold">
-              LATEST FASHION
-            </h2>
+    <div className="w-full overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {isLoading ? (
+          <BlogSkeleton />
+        ) : (
+          blogs?.data && (
+            <div className="py-12">
+              <h2 className="font-oswald mb-6 text-center font-bold">
+                LATEST FASHION
+              </h2>
 
-            <Carousel className="w-full">
-              <CarouselContent>
-                {blogs?.data?.map((blog) => (
-                  <CarouselItem
-                    key={blog.id}
-                    className="md:basis-1/2 lg:basis-1/3"
-                  >
-                    <div className="p-1">
-                      <BlogCard blog={blog} />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="hidden md:block">
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
+              <div
+                className={`w-full overflow-hidden ${open && !isMobile ? 'pr-0' : ''}`}
+              >
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-2 md:-ml-4">
+                    {blogs?.data?.map((blog) => (
+                      <CarouselItem
+                        key={blog.id}
+                        className="pl-2 md:basis-1/2 md:pl-4 lg:basis-1/3"
+                      >
+                        <div className="h-full">
+                          <BlogCard blog={blog} />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <div className="hidden md:block">
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                  </div>
+                </Carousel>
               </div>
-            </Carousel>
 
-            <div className="mt-6 flex items-center justify-center">
-              <Link href="/fashion">
-                <Button
-                  variant="outline"
-                  className="mt-auto font-semibold uppercase transition-colors hover:bg-primary hover:text-white"
-                  aria-label="View all fashion blog posts"
-                >
-                  View more
-                </Button>
-              </Link>
+              <div className="mt-6 flex items-center justify-center">
+                <Link href="/fashion">
+                  <Button
+                    variant="outline"
+                    className="mt-auto font-semibold uppercase transition-colors hover:bg-primary hover:text-white"
+                    aria-label="View all fashion blog posts"
+                  >
+                    View more
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </div>
-        )
-      )}
-      <div ref={galleryRef} className="mx-auto">
-        {showGallery ? <Gallery /> : <GallerySkeleton />}
+          )
+        )}
+        <div ref={galleryRef} className="mx-auto">
+          {showGallery ? <Gallery /> : <GallerySkeleton />}
+        </div>
       </div>
     </div>
   );

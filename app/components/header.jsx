@@ -11,6 +11,7 @@ import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/app/components/ui/sheet';
 import { SearchBox } from './search-box';
 import { SidebarTrigger } from '@/app/components/ui/sidebar';
+import { Separator } from '@/app/components/ui/separator';
 
 export function Header() {
   const { data: session } = useSession();
@@ -38,7 +39,10 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left section - SidebarTrigger and desktop categories */}
         <div className="flex items-center">
-          <SidebarTrigger className="mr-4 text-white" />
+          <div className="mr-4 flex items-center gap-2">
+            <SidebarTrigger className="text-white" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+          </div>
 
           <Link
             href="/"

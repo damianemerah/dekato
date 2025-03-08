@@ -108,20 +108,26 @@ input[type='password']::-webkit-clear-button {
   }
 }
 
-/* Add this to your globals.css or create a new CSS file and import it */
-.sidebar-open {
-  overflow-x: hidden;
+/* Fix for carousel overflow */
+.carousel-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-/* Fix for sidebar inset content */
-.sidebar-inset-content {
+/* Ensure blog cards don't overflow */
+.blog-card-wrapper {
+  width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-/* Ensure images don't cause overflow */
-img {
-  max-width: 100%;
+/* Ensure content adjusts when sidebar is open */
+@media (min-width: 768px) {
+  .sidebar-open .carousel-container {
+    width: calc(100% - var(--sidebar-width, 16rem));
+    max-width: calc(100% - var(--sidebar-width, 16rem));
+  }
 }
 
 @layer base {

@@ -1,103 +1,152 @@
-"use client";
+'use client';
 
-import Paystack from "@/public/assets/icons/paystack.svg";
-import FacebookIcon from "@/public/assets/icons/Facebook.svg";
-import InstagramIcon from "@/public/assets/icons/Instagram.svg";
-import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import TiktokIcon from "@/public/assets/icons/tiktok.svg";
-import Link from "next/link";
+import Link from 'next/link';
+import {
+  Facebook,
+  Instagram,
+  TwitterIcon as TikTok,
+  Phone,
+  Mail,
+  Clock,
+  MapPin,
+} from 'lucide-react';
+import { Separator } from '@/app/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/app/components/ui/tooltip';
+
+const menuItems = [
+  { title: 'Frequently Asked Questions', href: '/customer-service' },
+  { title: 'About Us', href: '#' },
+  { title: 'Contact us', href: '#' },
+  { title: 'Terms of Sale', href: '#' },
+  { title: 'Blog', href: '#' },
+];
+
+const contactInfo = {
+  address: '30A Oseni Street, Anthony Village, Opposite GTB, Lagos',
+  phones: ['(234) 802 3024 687', '(234) 806 4737 122'],
+  email: 'Mail@Dekato-outfit.com',
+  hours: 'Mon - Sat / 8am - 8pm',
+};
+
+const socialLinks = [
+  { icon: Facebook, href: '#', label: 'Facebook' },
+  { icon: Instagram, href: '#', label: 'Instagram' },
+  { icon: TikTok, href: '#', label: 'TikTok' },
+];
 
 export default function Footer() {
   return (
-    <footer className={`bg-primary font-roboto text-white`}>
-      <div className="px-6 pb-10 pt-12 sm:px-8 sm:pt-20">
-        <div className="flex flex-col justify-center gap-8 md:flex-row md:gap-28">
-          <div className="flex flex-col gap-7">
-            <h3 className="font-oswald text-sm font-semibold md:text-base">
-              Menu
-            </h3>
-            <nav className="flex flex-col gap-4 font-roboto text-sm font-medium leading-6 text-neutral-400">
-              {[
-                {
-                  href: "/customer-service",
-                  text: "Frequently Asked Questions",
-                },
-                { href: "#", text: "About Us" },
-                { href: "#", text: "Contact us" },
-                { href: "#", text: "Terms of Sale" },
-                { href: "#", text: "Blog" },
-              ].map((link) => (
+    <footer className="bg-primary text-white">
+      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        {/* Main Footer Content */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Menu Section */}
+          <div className="space-y-4">
+            <h3 className="font-oswald text-lg font-semibold">Menu</h3>
+            <nav className="flex flex-col space-y-2">
+              {menuItems.map((item) => (
                 <Link
-                  key={link.text}
-                  href={link.href}
-                  className="text-sm hover:text-white"
+                  key={item.title}
+                  href={item.href}
+                  className="text-sm text-gray-300 transition-colors hover:text-white"
                 >
-                  {link.text}
+                  {item.title}
                 </Link>
               ))}
             </nav>
           </div>
 
-          <div className="flex flex-col gap-7">
-            <h3 className="font-oswald text-sm font-semibold md:text-base">
-              Contact us
-            </h3>
-            <address className="flex flex-col gap-4 font-roboto text-sm font-medium not-italic leading-6 text-neutral-400">
-              <div>
-                <p className="font-oswald text-sm text-white">Address</p>
-                <p className="text-sm hover:text-white">
-                  30A Oseni Street, Anthony Village <br />
-                  Opposite GTB, Lagos
-                </p>
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="font-oswald text-lg font-semibold">Contact Us</h3>
+            <div className="space-y-4 text-sm text-gray-300">
+              <div className="flex items-start space-x-3">
+                <MapPin className="mt-1 h-4 w-4 shrink-0" />
+                <p>{contactInfo.address}</p>
               </div>
-              <div>
-                <p className="font-oswald text-sm text-white">Phone</p>
-                <p className="text-sm hover:text-white">(234) 802 3024 687</p>
-                <p className="text-sm hover:text-white">(234) 806 4737 122</p>
+              <div className="flex items-start space-x-3">
+                <Phone className="mt-1 h-4 w-4 shrink-0" />
+                <div className="flex flex-col space-y-1">
+                  {contactInfo.phones.map((phone) => (
+                    <a
+                      key={phone}
+                      href={`tel:${phone}`}
+                      className="transition-colors hover:text-white"
+                    >
+                      {phone}
+                    </a>
+                  ))}
+                </div>
               </div>
-              <div>
-                <p className="font-oswald text-sm text-white">Email</p>
+              <div className="flex items-start space-x-3">
+                <Mail className="mt-1 h-4 w-4 shrink-0" />
                 <a
-                  href="mailto:Mail@Dekato-outfit.com"
-                  className="text-sm hover:text-white"
+                  href={`mailto:${contactInfo.email}`}
+                  className="transition-colors hover:text-white"
                 >
-                  Mail@Dekato-outfit.com
+                  {contactInfo.email}
                 </a>
               </div>
-              <div>
-                <p className="font-oswald text-sm text-white">
-                  Working Days/Hours
-                </p>
-                <p className="text-sm hover:text-white">
-                  Mon - Sat / 8am - 8pm
-                </p>
+              <div className="flex items-start space-x-3">
+                <Clock className="mt-1 h-4 w-4 shrink-0" />
+                <p>{contactInfo.hours}</p>
               </div>
-            </address>
+            </div>
+          </div>
+
+          {/* Company Information */}
+          <div className="space-y-4">
+            <h3 className="font-oswald text-lg font-semibold">About Dekato</h3>
+            <p className="text-sm text-gray-300">
+              Dekato is a premier fashion destination offering curated
+              collections of high-quality clothing and accessories for the
+              modern fashion enthusiast.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <TooltipProvider>
+                {socialLinks.map(({ icon: Icon, href, label }) => (
+                  <Tooltip key={label}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={href}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="sr-only">{label}</span>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Follow us on {label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center justify-center gap-6 px-8 py-6">
-        {[FacebookIcon, InstagramIcon, WhatsappIcon, TiktokIcon].map(
-          (Icon, index) => (
-            <a
-              key={index}
-              href="#"
-              className="rounded-full bg-secondary p-2 transition-colors hover:bg-neutral-400"
-            >
-              <Icon width={21} height={21} className="text-white" />
-            </a>
-          ),
-        )}
-      </div>
+        <Separator className="my-8 bg-white/20" />
 
-      <div className="flex items-center justify-center gap-2 px-8 py-6">
-        <p className="text-xs italic text-white/70">Secured by</p>
-        <Paystack width={123.48} height={22} />
-      </div>
-
-      <div className="flex justify-center border-t border-gray-700 px-4 py-4 text-center text-sm text-neutral-400 sm:px-10">
-        <p className="font-roboto">© 2024 dekato-outfit.com</p>
+        {/* Payment Info & Copyright */}
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <span>Secured by</span>
+            <img
+              src="/assets/icons/paystack.svg"
+              alt="Paystack"
+              className="h-6"
+            />
+          </div>
+          <p className="text-center text-sm text-gray-300">
+            © {new Date().getFullYear()} dekato-outfit.com. All rights
+            reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );
