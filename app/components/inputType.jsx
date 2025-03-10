@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useCallback } from "react";
-import styles from "@/app/ui/inputStyle.module.css";
+import { useCallback } from 'react';
+import styles from '@/app/components/inputStyle.module.css';
 
 export function InputType({
   name,
   label,
   required = false,
-  type = "text",
-  value = "",
-  defaultValue = "",
+  type = 'text',
+  value = '',
+  defaultValue = '',
   icon: Icon = null,
   onIconClick = () => {},
 }) {
@@ -20,9 +20,9 @@ export function InputType({
       name,
       label,
       required = false,
-      type = "text",
-      value = "",
-      defaultValue = "",
+      type = 'text',
+      value = '',
+      defaultValue = '',
       icon: Icon,
       onIconClick,
     }) => (
@@ -35,12 +35,12 @@ export function InputType({
           id={name}
           defaultValue={defaultValue || value}
           className={`w-full border border-primary px-4 pb-2 pt-6 !text-primary ring-inset ring-gray-200 focus:outline-none focus:ring-4 ${
-            Icon ? "pr-12" : ""
+            Icon ? 'pr-12' : ''
           }`}
         />
         <label htmlFor={name} className="text-gray-500">
           {label}
-          {required ? "*" : ""}
+          {required ? '*' : ''}
         </label>
         {Icon && (
           <div
@@ -55,7 +55,7 @@ export function InputType({
         )}
       </div>
     ),
-    [floatingLabel],
+    [floatingLabel]
   );
 
   return renderFormField({

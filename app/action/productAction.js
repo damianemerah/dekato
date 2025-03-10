@@ -1,5 +1,6 @@
 'use server';
 
+import { unstable_cache } from 'next/cache';
 import Product from '@/models/product';
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
@@ -11,6 +12,9 @@ import { getQueryObj } from '@/app/utils/getFunc';
 import handleAppError from '@/app/utils/appError';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { deleteFiles } from '@/app/lib/s3Func';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import UserActivity from '@/models/userActivity';
 
 const formatProduct = (product, isAdmin = false) => {
   const { _id, category, campaign, variant = [], ...rest } = product;
@@ -166,7 +170,10 @@ export async function productSearch(searchQuery) {
 
     const categories = await handleProductQuery(
       Category.find().select('name slug').lean(),
-      { ...searchQuery, limit: 6 }
+      {
+        ...searchQuery,
+        limit: 6,
+      }
     );
 
     return { products, categories };
@@ -378,11 +385,11 @@ export async function getAllProducts(slugArray, searchParams = {}) {
 
     const isCampaign = campaigns.length > 0 && !isFallback;
 
-    const limit = parseInt(newSearchParams.limit) || 20;
-    const page = parseInt(newSearchParams.page) || 1;
+    const limit = Number.parseInt(newSearchParams.limit) || 20;
+    const page = Number.parseInt(newSearchParams.page) || 1;
     const totalCount = await Product.countDocuments(feature.query.getFilter());
 
-    let result = {
+    const result = {
       isCampaign,
       data,
       totalCount,
@@ -559,3 +566,147 @@ function revalidateProduct(id) {
 
 // Call setupIndexes when the module is first loaded
 // setupIndexes();
+
+// Cached server action for recommended products
+export const getRecommendedProducts = unstable_cache(
+  async (category = null, limit = 8) => {
+    await dbConnect();
+
+    try {
+      // Get user session for personalized recommendations
+      const session = await getServerSession(authOptions);
+      const userId = session?.user?.id;
+
+      const query = {
+        status: 'active',
+        quantity: { $gt: 0 },
+      };
+
+      // Add category filter if provided
+      if (category) {
+        const categoryDoc = await Category.findOne({ slug: category }).select(
+          '_id'
+        );
+        if (categoryDoc) {
+          query.category = categoryDoc._id;
+        }
+      }
+
+      // Get user activity for personalized recommendations
+      let userActivity = null;
+      if (userId) {
+        userActivity = await UserActivity.findOne({ userId })
+          .select('recentlyViewed naughtyList')
+          .lean();
+
+        // Exclude products in naughty list
+        if (userActivity?.naughtyList?.length > 0) {
+          query._id = { $nin: userActivity.naughtyList };
+        }
+
+        // Prioritize categories from recently viewed products
+        if (userActivity?.recentlyViewed?.length > 0) {
+          const recentProductIds = userActivity.recentlyViewed
+            .slice(0, 5)
+            .map((item) => item.productId);
+
+          const recentProducts = await Product.find({
+            _id: { $in: recentProductIds },
+          })
+            .select('category')
+            .lean();
+
+          const categoryIds = new Set();
+          recentProducts.forEach((product) => {
+            product.category?.forEach((catId) =>
+              categoryIds.add(catId.toString())
+            );
+          });
+
+          if (categoryIds.size > 0) {
+            query.category = { $in: Array.from(categoryIds) };
+          }
+        }
+      }
+
+      // Find products based on query
+      const products = await Product.find(query)
+        .sort({
+          discount: -1,
+          viewCount: -1,
+          purchaseCount: -1,
+          createdAt: -1,
+        })
+        .limit(limit)
+        .populate('category', 'name slug')
+        .lean({ virtuals: true });
+
+      // Format products for client
+      return products.map((product) => {
+        const { _id, category, campaign, variant = [], ...rest } = product;
+
+        return {
+          id: _id.toString(),
+          ...rest,
+          category: category?.map(({ _id, ...c }) => ({
+            id: _id.toString(),
+            ...c,
+          })),
+          campaign: campaign?.map(({ _id, ...c }) => ({
+            id: _id.toString(),
+            ...c,
+          })),
+          variant: variant
+            .filter((v) => v.quantity > 0)
+            .map(({ _id, ...v }) => ({
+              id: _id.toString(),
+              ...v,
+            })),
+        };
+      });
+    } catch (err) {
+      console.error('Error fetching recommended products:', err);
+      return [];
+    }
+  },
+  ['recommended-products'],
+  { revalidate: 300 } // Revalidate every 5 minutes
+);
+
+export const getProductByIdCached = unstable_cache(
+  async (id) => {
+    try {
+      await dbConnect();
+      const product = await Product.findById(id)
+        .populate('category', 'name slug')
+        .populate('campaign', 'name slug')
+        .lean({ virtuals: true });
+
+      if (!product) throw new Error('Product not found');
+
+      const { _id, category, campaign, variant = [], ...rest } = product;
+
+      return {
+        id: _id.toString(),
+        ...rest,
+        category: category?.map(({ _id, ...c }) => ({
+          id: _id.toString(),
+          ...c,
+        })),
+        campaign: campaign?.map(({ _id, ...c }) => ({
+          id: _id.toString(),
+          ...c,
+        })),
+        variant: variant.map(({ _id, ...v }) => ({
+          id: _id.toString(),
+          ...v,
+        })),
+      };
+    } catch (err) {
+      console.error('Error fetching product by ID:', err);
+      throw new Error(err.message);
+    }
+  },
+  ['product-by-id'],
+  { revalidate: 60 } // Revalidate every minute
+);

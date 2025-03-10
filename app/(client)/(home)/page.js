@@ -1,37 +1,53 @@
-import Hero from '@/app/components/home/Hero';
-import dynamic from 'next/dynamic';
-import { LoadingSpinner } from '@/app/components/spinner';
+import { Suspense } from 'react';
+import Hero from '@/app/components/home/hero';
+import SelectedCategoriesSkeleton from '@/app/components/home/selected-categories-skeleton';
 import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
-const BelowFold = dynamic(() => import('@/app/components/home/below-fold'), {
-  loading: () => <LoadingSpinner />,
-  ssr: false,
-});
+import BelowFoldSkeleton from '@/app/components/home/below-fold-skeleton';
 
-const RecommendProduct = dynamic(
-  () => import('@/app/components/home/recommend-product'),
-  {
-    loading: () => <RecommendedProductsSkeleton />,
-    ssr: false,
-  }
-);
+// Dynamic imports with suspense boundaries
+import SelectedCategories from '@/app/components/home/selected-categories';
+import RecommendProduct from '@/app/components/home/recommend-product';
+import BelowFold from '@/app/components/home/below-fold';
 
-const SelectedCategories = dynamic(
-  () => import('@/app/components/home/selected-categories'),
-  {
-    loading: () => <LoadingSpinner className="min-h-[400px]" />,
-    ssr: false,
-  }
-);
+export const metadata = {
+  title: 'Dekato Outfit | Fashion & Lifestyle',
+  description:
+    'Discover the latest fashion trends and lifestyle products at Dekato Outfit. Shop our curated collection of clothing, accessories, and more.',
+  openGraph: {
+    title: 'Dekato Outfit | Fashion & Lifestyle',
+    description:
+      'Discover the latest fashion trends and lifestyle products at Dekato Outfit.',
+    images: [
+      {
+        url: '/assets/image5.webp',
+        width: 1200,
+        height: 630,
+        alt: 'Dekato Outfit',
+      },
+    ],
+  },
+};
 
 export default function Home() {
   return (
     <div className="font-oswald bg-gray-100">
+      {/* Hero is statically rendered */}
       <Hero />
-      <>
+
+      {/* Categories with suspense boundary */}
+      <Suspense fallback={<SelectedCategoriesSkeleton />}>
         <SelectedCategories />
+      </Suspense>
+
+      {/* Recommended products with suspense boundary */}
+      <Suspense fallback={<RecommendedProductsSkeleton />}>
         <RecommendProduct />
-      </>
-      <BelowFold />
+      </Suspense>
+
+      {/* Below fold content with suspense boundary */}
+      <Suspense fallback={<BelowFoldSkeleton />}>
+        <BelowFold />
+      </Suspense>
     </div>
   );
 }

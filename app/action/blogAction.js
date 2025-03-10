@@ -6,6 +6,7 @@ import Blog from '@/models/blog';
 import handleAppError from '@/app/utils/appError';
 import { formDataToObject } from '@/app/utils/filterObj';
 import { uploadFiles } from '@/app/lib/s3Func';
+import { unstable_cache } from 'next/cache';
 
 const toObject = (data) => {
   if (typeof data.categories === 'string') {
@@ -119,70 +120,74 @@ export async function getBlog(id) {
   }
 }
 
-export async function getAllBlogs({
-  page = 1,
-  limit = 10,
-  status,
-  category,
-  tag,
-  search,
-} = {}) {
-  await dbConnect();
+// Cached server action for blog fetching
+export const getAllBlogs = unstable_cache(
+  async ({ page = 1, limit = 10, status, category, tag, search } = {}) => {
+    await dbConnect();
 
-  try {
-    const query = {};
+    try {
+      const query = {};
 
-    if (status) {
-      query.status = status;
+      if (status) {
+        query.status = status;
+      }
+
+      if (category) {
+        query.categories = category;
+      }
+
+      if (tag) {
+        query.tags = tag;
+      }
+
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [blogs, total] = await Promise.all([
+        Blog.find(query)
+          .populate('author', 'name email')
+          .populate('categories', 'name slug')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Blog.countDocuments(query),
+      ]);
+
+      const blogsWithId = blogs.map((blog) => ({
+        ...blog,
+        id: blog._id.toString(),
+        _id: blog._id.toString(), // Ensure consistent ID format
+        categories: blog.categories?.map((cat) => ({
+          ...cat,
+          id: cat._id.toString(),
+          _id: cat._id.toString(),
+        })),
+      }));
+
+      return {
+        data: blogsWithId,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      };
+    } catch (err) {
+      console.error('Error fetching blogs:', err);
+      throw new Error(err.message || 'Failed to fetch blog posts');
     }
-
-    if (category) {
-      query.categories = category;
-    }
-
-    if (tag) {
-      query.tags = tag;
-    }
-
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const skip = (page - 1) * limit;
-
-    const [blogs, total] = await Promise.all([
-      Blog.find(query)
-        .populate('author', 'name email')
-        .populate('categories', 'name slug')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Blog.countDocuments(query),
-    ]);
-
-    const blogsWithId = blogs.map((blog) => ({
-      ...blog,
-      id: blog._id.toString(),
-    }));
-
-    return {
-      data: blogsWithId,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    };
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Failed to fetch blog posts');
-  }
-}
+  },
+  ['blogs'],
+  { revalidate: 60 } // Revalidate every minute
+);
 
 export async function deleteBlog(id) {
   await dbConnect();
@@ -229,7 +234,7 @@ export async function getBlogBySlug(slug) {
 
     return formattedBlog;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Failed to fetch blog post');
+    console.error('Error fetching blog by slug:', err);
+    throw new Error(err.message || 'Failed to fetch blog post');
   }
 }

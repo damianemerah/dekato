@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarInset } from '@/app/components/ui/sidebar';
 import SidebarContent from '@/app/components/sidebar/sidebar-content';
 import Header from '@/app/components/header';
 import PromoBar from '@/app/components/promo-bar';
+import { Toaster } from '@/app/components/ui/sonner';
 
 const roboto = localFont({
   src: [
@@ -170,6 +171,7 @@ export default function RootLayout({ children }) {
                 <LayoutWrapper>{children}</LayoutWrapper>
               </SidebarInset>
             </SidebarProvider>
+            <Toaster />
           </body>
         </Provider>
       </AntdRegistry>

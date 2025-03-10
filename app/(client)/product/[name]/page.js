@@ -1,35 +1,24 @@
-import { unstable_cache } from 'next/cache';
+import { notFound } from 'next/navigation';
 import { getProductById } from '@/app/action/productAction';
-import dynamic from 'next/dynamic';
 import ProductDetail from '@/app/components/product/product-details';
+import { Suspense } from 'react';
 import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
-
-const RecommendedProducts = dynamic(
-  () => import('@/app/components/recommended-products'),
-  {
-    loading: () => <RecommendedProductsSkeleton />,
-    ssr: false,
-  }
-);
-
-const getProductData = unstable_cache(
-  async (id) => {
-    return await getProductById(id);
-  },
-  ['product-data'],
-  {
-    tags: ['single-product-data'],
-    revalidate: 10,
-  }
-);
+import RecommendedProducts from '@/app/components/recommended-products';
+import ProductStructuredData from '@/app/components/products/product-structured-data';
 
 export async function generateMetadata({ params }, parent) {
   const id = params.name.split('-').slice(-1)[0];
-  const product = await getProductData(id);
-  const previousImages = (await parent).openGraph?.images || [];
+  const product = await getProductById(id);
+
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+      description: 'The requested product could not be found.',
+    };
+  }
 
   return {
-    title: product.name,
+    title: `${product.name} | Dekato Outfit`,
     description: product.description.slice(0, 160),
     openGraph: {
       title: product.name,
@@ -41,7 +30,6 @@ export async function generateMetadata({ params }, parent) {
           height: 630,
           alt: product.name,
         },
-        ...previousImages,
       ],
       type: 'website',
     },
@@ -56,12 +44,25 @@ export async function generateMetadata({ params }, parent) {
 
 export default async function ProductInfoPage({ params: { name } }) {
   const id = name.split('-').slice(-1)[0];
-  const product = await getProductData(id);
 
-  return (
-    <div>
-      <ProductDetail product={product} />
-      <RecommendedProducts productId={id} />
-    </div>
-  );
+  try {
+    const product = await getProductById(id);
+
+    if (!product) {
+      notFound();
+    }
+
+    return (
+      <div>
+        <ProductStructuredData product={product} />
+        <ProductDetail product={product} />
+        <Suspense fallback={<RecommendedProductsSkeleton />}>
+          <RecommendedProducts productId={id} />
+        </Suspense>
+      </div>
+    );
+  } catch (error) {
+    console.error('Error loading product:', error);
+    notFound();
+  }
 }

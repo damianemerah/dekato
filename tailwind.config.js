@@ -74,6 +74,10 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      fontFamily: {
+        oswald: ['var(--font-oswald, Oswald)', 'sans-serif'],
+        roboto: ['var(--font-roboto, Roboto)', 'sans-serif'],
+      },
       keyframes: {
         'accordion-down': {
           from: {

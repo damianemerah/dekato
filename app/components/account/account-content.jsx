@@ -1,198 +1,110 @@
 'use client';
-
-import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Modal, message } from 'antd';
-import { useSWRConfig } from 'swr';
-import { ButtonSecondary } from '@/app/components/button';
-import { SmallSpinner } from '@/app/components/spinner';
 import useUserData from '@/app/hooks/useUserData';
 import useAddressData from '@/app/hooks/useAddressData';
-import { InputType } from '@/app/components/inputType';
-import { updateUserInfo, updatePassword } from '@/app/action/userAction';
-import { Package, Heart, CreditCard, User, Mail } from 'lucide-react';
 import useOrders from '@/app/hooks/useOrders';
 import Image from 'next/image';
+import { Button } from '@/app/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/app/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 export default function Overview() {
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
   const userId = session?.user?.id;
   const { userData: user, isLoading: userIsLoading } = useUserData(userId);
   const { addressData: address } = useAddressData(userId);
   const defaultAddress = address?.find((address) => address.isDefault);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const { mutate } = useSWRConfig();
   const { orders, isLoading: ordersLoading } = useOrders(userId, 3);
-
-  const handleEditClick = useCallback(() => setShowEditModal(true), []);
-  const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
-  const handleDeleteAccountClick = useCallback(
-    () => setShowDeleteAccountModal(true),
-    []
-  );
-  const handleModalClose = useCallback(() => {
-    setShowEditModal(false);
-    setShowPasswordModal(false);
-    setShowDeleteAccountModal(false);
-  }, []);
-
-  const handleUpdateUserInfo = useCallback(
-    async (formData) => {
-      setIsUpdating(true);
-      try {
-        formData.append('userId', userId);
-        const updatedUser = await updateUserInfo(formData);
-        mutate(`/api/user/${userId}`, updatedUser, false);
-        handleModalClose();
-        message.success('User information updated successfully');
-      } catch (error) {
-        console.error('Failed to update user info:', error);
-        message.error('Failed to update user info');
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [userId, mutate, handleModalClose]
-  );
-
-  const handleUpdatePassword = useCallback(
-    async (formData) => {
-      setIsUpdating(true);
-      try {
-        formData.append('userId', userId);
-        const updatedUser = await updatePassword(formData);
-        mutate(`/api/user/${userId}`, updatedUser, false);
-        handleModalClose();
-        message.success('Password updated successfully');
-        await updateSession({ passwordChanged: true });
-      } catch (error) {
-        console.error('Failed to update password:', error);
-        message.error('Failed to update password');
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [userId, mutate, handleModalClose, updateSession]
-  );
-
-  const handleDeleteAccount = useCallback(async () => {
-    message.info('Account deletion functionality to be implemented');
-    handleModalClose();
-  }, [handleModalClose]);
 
   if (userIsLoading || ordersLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <SmallSpinner className="!text-primary" />
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <main className="container mx-auto py-8">
-      <div className="space-y-12">
-        <section className="space-y-6">
-          <div>
-            <div className="bg-white py-8">
-              <div className="px-8">
-                <p className="mb-2 text-lg font-medium sm:text-xl">
-                  {user?.firstname} {user?.lastname}
-                </p>
-                <p className="mb-2 text-gray-600">{user?.email}</p>
-              </div>
-              <div className="flex flex-wrap gap-4 border-b px-8 py-4">
-                <button
-                  className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onClick={handleEditClick}
-                >
-                  Edit name
-                </button>
-                <button
-                  className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onClick={handlePasswordClick}
-                >
-                  Change password
-                </button>
-                <button
-                  className="text-red-500 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500"
-                  onClick={handleDeleteAccountClick}
-                >
-                  Delete account
-                </button>
-              </div>
-              <div className="flex items-center justify-center gap-8">
-                <Link
-                  href="/account/orders"
-                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
-                >
-                  <Package className="h-10 w-10" />
-                  <span className="font-oswald text-sm uppercase">Orders</span>
-                </Link>
-                <Link
-                  href="/account/wishlist"
-                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
-                >
-                  <Heart className="h-10 w-10" />
-                  <span className="font-oswald text-sm uppercase">
-                    Wishlist
-                  </span>
-                </Link>
-                <Link
-                  href="/account/payment"
-                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
-                >
-                  <CreditCard className="h-10 w-10" />
-                  <span className="font-oswald text-sm uppercase">Payment</span>
-                </Link>
-                <Link
-                  href="/account/address"
-                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
-                >
-                  <User className="h-10 w-10" />
-                  <span className="font-oswald text-sm uppercase">Address</span>
-                </Link>
-                <Link
-                  href="/account/newsletter"
-                  className="flex flex-col items-center gap-2 p-4 text-gray-700 transition-colors duration-300 hover:bg-primary hover:text-white"
-                >
-                  <Mail className="h-10 w-10" />
-                  <span className="font-oswald text-sm uppercase">
-                    Newsletter
-                  </span>
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-oswald text-xl">
+            Account Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6">
+            <h3 className="mb-2 font-medium">Personal Information</h3>
+            <div className="rounded-md bg-gray-50 p-4">
+              <p className="mb-1 font-medium">
+                {user?.firstname} {user?.lastname}
+              </p>
+              <p className="text-gray-600">{user?.email}</p>
+              <div className="mt-4">
+                <Link href="/account/settings">
+                  <Button variant="outline" size="sm">
+                    Manage Account Settings
+                  </Button>
                 </Link>
               </div>
             </div>
           </div>
-        </section>
 
-        <section className="space-y-6 bg-white p-8">
-          <div className="flex items-center justify-between border-b pb-4">
-            <h3 className="font-oswald text-xl font-medium uppercase text-gray-700">
-              Recent Orders
-            </h3>
-            <Link href="/account/orders">
-              <ButtonSecondary className="border-2 border-primary bg-white font-oswald text-sm text-primary transition-colors duration-300 hover:bg-primary hover:text-white">
-                View All Orders
-              </ButtonSecondary>
-            </Link>
-          </div>
+          {defaultAddress && (
+            <div className="mb-6">
+              <h3 className="mb-2 font-medium">Default Shipping Address</h3>
+              <div className="rounded-md bg-gray-50 p-4">
+                <p className="mb-1 font-medium">{defaultAddress.name}</p>
+                <p className="text-gray-600">{defaultAddress.street}</p>
+                <p className="text-gray-600">
+                  {defaultAddress.city}, {defaultAddress.state}{' '}
+                  {defaultAddress.zip}
+                </p>
+                <p className="text-gray-600">{defaultAddress.country}</p>
+                <div className="mt-4">
+                  <Link href="/account/address">
+                    <Button variant="outline" size="sm">
+                      Manage Addresses
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="font-oswald text-xl">Recent Orders</CardTitle>
+          <Link href="/account/orders">
+            <Button variant="outline" size="sm">
+              View All Orders
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
           {orders?.length > 0 ? (
             <div className="space-y-4">
               {orders.map((order) => (
-                <div key={order.id} className="border p-4">
+                <div key={order.id} className="rounded-md border p-4">
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 flex-shrink-0">
                       <Image
-                        src={order.product?.[0]?.image || '/placeholder.jpg'}
+                        src={
+                          order.product?.[0]?.image ||
+                          '/placeholder.svg?height=80&width=80'
+                        }
                         alt={order.product?.[0]?.name || 'Product image'}
                         width={80}
                         height={80}
-                        className="h-full w-full object-cover object-center"
+                        className="h-full w-full rounded-md object-cover object-center"
                       />
                     </div>
                     <div className="flex flex-1 items-center justify-between">
@@ -207,7 +119,7 @@ export default function Overview() {
                         <p className="text-sm text-gray-600">{order.status}</p>
                         <Link
                           href={`/account/orders/${order.id}`}
-                          className="mt-2 inline-block text-sm text-secondary !underline"
+                          className="mt-2 inline-block text-sm text-primary hover:underline"
                         >
                           View Details
                         </Link>
@@ -220,125 +132,8 @@ export default function Overview() {
           ) : (
             <p className="text-gray-600">No orders found</p>
           )}
-        </section>
-      </div>
-
-      <Modal
-        open={showEditModal}
-        onCancel={handleModalClose}
-        footer={null}
-        width={600}
-        className="edit-modal"
-      >
-        <div className="p-6">
-          <h2 className={`mb-6 font-oswald text-xl font-semibold text-primary`}>
-            Edit Name
-          </h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUpdateUserInfo(new FormData(e.target));
-            }}
-            className="space-y-4"
-          >
-            <InputType
-              name="firstname"
-              label="First name"
-              required={true}
-              defaultValue={user?.firstname || ''}
-            />
-            <InputType
-              name="lastname"
-              label="Last name"
-              required={true}
-              defaultValue={user?.lastname || ''}
-            />
-            <ButtonSecondary
-              type="submit"
-              className="w-full"
-              disabled={isUpdating}
-            >
-              {isUpdating ? (
-                <SmallSpinner className="!text-primary" />
-              ) : (
-                'Save Changes'
-              )}
-            </ButtonSecondary>
-          </form>
-        </div>
-      </Modal>
-
-      <Modal
-        open={showPasswordModal}
-        onCancel={handleModalClose}
-        footer={null}
-        width={600}
-        className="password-modal"
-      >
-        <div className="p-6">
-          <h2 className={`mb-6 font-oswald text-xl font-semibold text-primary`}>
-            Change Password
-          </h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUpdatePassword(new FormData(e.target));
-            }}
-            className="space-y-4"
-          >
-            <InputType
-              name="currentPassword"
-              label="Current Password"
-              type="password"
-              required={true}
-            />
-            <InputType
-              name="password"
-              label="New Password"
-              type="password"
-              required={true}
-            />
-            <InputType
-              name="passwordConfirm"
-              label="Confirm New Password"
-              type="password"
-              required={true}
-            />
-            <ButtonSecondary type="submit" className="w-full">
-              Change Password
-            </ButtonSecondary>
-          </form>
-        </div>
-      </Modal>
-
-      <Modal
-        open={showDeleteAccountModal}
-        onCancel={handleModalClose}
-        footer={null}
-        width={600}
-        className="delete-account-modal"
-      >
-        <div className="p-6">
-          <h2 className={`mb-6 font-oswald text-xl font-semibold text-primary`}>
-            Delete Account
-          </h2>
-          <p className="mb-4 text-red-600">
-            Are you sure you want to delete your account? This action cannot be
-            undone.
-          </p>
-          <ButtonSecondary
-            onClick={handleDeleteAccount}
-            className="w-full"
-            disabled={isUpdating}
-          >
-            {isUpdating ? (
-              <SmallSpinner className="!text-primary" />
-            ) : (
-              'Confirm Delete Account'
-            )}
-          </ButtonSecondary>
-        </div>
-      </Modal>
-    </main>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -33,7 +33,7 @@ async function BlogList({ searchParams }) {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-      <h1 className={`mb-8 text-center font-oswald text-4xl font-bold`}>
+      <h1 className={`font-oswald mb-8 text-center text-4xl font-bold`}>
         Fashion Blog
       </h1>
       <div className="mx-auto flex flex-wrap justify-center gap-8">

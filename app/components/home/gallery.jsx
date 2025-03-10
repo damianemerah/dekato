@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import { useSidebar } from '@/app/components/ui/sidebar';
 
@@ -24,34 +27,62 @@ const galleryImages = [
 ];
 
 export default function Gallery() {
-  const { open } = useSidebar();
+  const { open, isMobile } = useSidebar();
+  const [selectedImage, setSelectedImage] = useState(null);
 
   return (
-    <div
-      className={`w-full overflow-hidden py-12 transition-all duration-300 ${open ? 'max-w-[calc(100vw-var(--sidebar-width))]' : ''}`}
-    >
+    <div className="py-12">
       <h2 className="font-oswald mb-6 text-center md:text-left">
         FOLLOW OUR INSTAGRAM
       </h2>
-      <div className="grid max-w-full grid-cols-2 gap-1 sm:grid-cols-5 sm:gap-3">
+      <div
+        className={`grid grid-cols-2 gap-1 sm:grid-cols-5 sm:gap-3 ${open && !isMobile ? 'max-w-full' : ''}`}
+      >
         {galleryImages.map((image, index) => (
           <div
             key={index}
-            className={`${index === 2 ? 'col-span-2 row-span-2 sm:col-span-2 sm:row-span-2' : ''}`}
+            className={`${index === 2 ? 'col-span-2 row-span-2 sm:col-span-2 sm:row-span-2' : ''} cursor-pointer`}
+            onClick={() => setSelectedImage(image)}
           >
-            <div className="relative overflow-hidden">
-              <Image
-                src={image.src || '/placeholder.svg'}
-                width={500}
-                height={500}
-                alt={image.alt}
-                loading="lazy"
-                className="aspect-square w-full object-cover transition-opacity duration-300 hover:opacity-80"
-              />
-            </div>
+            <Image
+              src={image.src || '/placeholder.svg'}
+              width={500}
+              height={500}
+              alt={image.alt}
+              loading="lazy"
+              className="aspect-square w-full object-cover transition-opacity duration-300 hover:opacity-80"
+            />
           </div>
         ))}
       </div>
+
+      {/* Modal for image preview */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw]">
+            <Image
+              src={selectedImage.src || '/placeholder.svg'}
+              width={1200}
+              height={800}
+              alt={selectedImage.alt}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+            />
+            <button
+              className="absolute -right-4 -top-4 rounded-full bg-white p-2 text-black"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImage(null);
+              }}
+              aria-label="Close image preview"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

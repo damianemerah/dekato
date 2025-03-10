@@ -8,7 +8,7 @@ export default function BlogCard({ blog }) {
   const link = `/fashion/${slug}`;
 
   return (
-    <Card className="group relative h-full overflow-hidden bg-white transition-all hover:shadow-lg">
+    <Card className="group relative h-full overflow-hidden rounded-3xl bg-white transition-all hover:shadow-lg">
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           src={featuredImage || '/placeholder.svg'}
@@ -16,6 +16,7 @@ export default function BlogCard({ blog }) {
           width={600}
           height={450}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>
 
