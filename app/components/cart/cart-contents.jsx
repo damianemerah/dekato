@@ -52,7 +52,7 @@ export default function Cart() {
     );
   }
   return (
-    <div className="min-h-screen bg-grayBg">
+    <div className="bg-grayBg min-h-screen">
       <div className="mx-auto max-w-5xl py-8 md:px-8">
         <CartHeader />
         <div className="my-8 flex flex-col gap-8 md:flex-row md:justify-between">
@@ -132,7 +132,7 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved }) {
       </div>
 
       <Link href="/checkout">
-        <ButtonPrimary className="flex w-full items-center justify-center !bg-secondary text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
+        <ButtonPrimary className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
           <span>Proceed to checkout</span>
           <ArrowRight className="ml-2 text-white" />
         </ButtonPrimary>

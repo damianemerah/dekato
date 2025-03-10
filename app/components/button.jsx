@@ -19,7 +19,7 @@ export function ButtonPrimary({
 }) {
   return (
     <button
-      className={`font-oswald ${className} h-[44px] px-8 py-2 uppercase text-white active:scale-95`}
+      className={`font-oswald ${className} h-[44px] bg-primary px-8 py-2 uppercase text-primary-foreground text-white shadow hover:bg-primary/90 active:scale-95`}
       onClick={onClick}
       type={type}
       disabled={disabled}
