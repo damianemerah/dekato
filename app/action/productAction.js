@@ -199,6 +199,15 @@ export async function productSearch(searchQuery) {
       ...rest,
     }));
 
+    if (!products || products.length === 0) {
+      return {
+        products: [],
+        totalCount: 0,
+        currentPage: page,
+        limit,
+      };
+    }
+
     // Get categories related to the search
     const categories = await Category.find({
       $or: [

@@ -19,7 +19,8 @@ export default function FilterContent({
   variantOptions,
 }) {
   const handleClearAll = useCallback(() => {
-    router.push(`/${cat.join('/')}`);
+    // Ensure we maintain the /shop prefix in the URL
+    router.push(`/shop/${cat.join('/')}`);
 
     setSelectedFilters((prev) => {
       const newFilters = Object.keys(prev).reduce(
@@ -53,7 +54,8 @@ export default function FilterContent({
         );
 
         if (Object.keys(queryObj).length === 0) {
-          router.push(`/${cat.join('/')}`);
+          // Ensure we maintain the /shop prefix in the URL
+          router.push(`/shop/${cat.join('/')}`);
           return newFilters;
         }
 
@@ -65,8 +67,21 @@ export default function FilterContent({
           }
         }
 
+        // Remove redundant category parameter if it's already in the path
+        if (
+          queryObj.cat &&
+          cat.some((segment) =>
+            queryObj.cat.some(
+              (catFilter) => catFilter.toLowerCase() === segment.toLowerCase()
+            )
+          )
+        ) {
+          delete queryObj.cat;
+        }
+
         const searchParams = createSearchParams(queryObj);
-        router.push(`/${cat.join('/')}?${searchParams}`);
+        // Ensure we maintain the /shop prefix in the URL
+        router.push(`/shop/${cat.join('/')}?${searchParams}`);
 
         return newFilters;
       });
@@ -75,60 +90,76 @@ export default function FilterContent({
   );
 
   const filterButtons = useMemo(() => {
-    return filters.map((filter) => (
-      <div
-        key={filter.name}
-        className={`relative mb-2 sm:mb-0 ${filter.options.length > 0 ? 'block' : 'hidden'}`}
-      >
-        <button
-          onClick={() => toggleDropdown(filter.name)}
-          className={`flex items-center gap-2 pr-3 text-[13px] font-bold capitalize ${activeDropdown === filter.name ? 'bg-white' : ''}`}
-        >
-          {filter.name === 'cat'
-            ? 'Category'
-            : filter.name.charAt(0).toUpperCase() + filter.name.slice(1)}
-          {activeDropdown === filter.name ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </button>
+    return filters
+      .map((filter) => {
+        // Hide category filter on subcategory pages (when cat array has more than 1 item)
+        if (filter.name === 'cat' && cat.length > 1) {
+          return null;
+        }
 
-        {activeDropdown === filter.name && (
+        return (
           <div
-            id={`dropdown-${filter.name}`}
-            className="absolute left-0 z-10 mt-2 flex max-h-[50vh] w-64 flex-col overflow-y-auto rounded-md bg-white shadow-lg"
+            key={filter.name}
+            className={`relative mb-2 sm:mb-0 ${filter.options.length > 0 ? 'block' : 'hidden'}`}
           >
-            {filter.options.map((option, index) => (
-              <label
-                key={index}
-                className="inline-flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-100"
+            <button
+              onClick={() => toggleDropdown(filter.name)}
+              className={`flex items-center gap-2 pr-3 text-[13px] font-bold capitalize ${activeDropdown === filter.name ? 'bg-white' : ''}`}
+            >
+              {filter.name === 'cat'
+                ? 'Category'
+                : filter.name.charAt(0).toUpperCase() + filter.name.slice(1)}
+              {activeDropdown === filter.name ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+
+            {activeDropdown === filter.name && (
+              <div
+                id={`dropdown-${filter.name}`}
+                className="absolute left-0 z-10 mt-2 flex max-h-[50vh] w-64 flex-col overflow-y-auto rounded-md bg-white shadow-lg"
               >
-                <div className="relative flex items-center">
-                  <input
-                    type={filter.name === 'price' ? 'radio' : 'checkbox'}
-                    name={filter?.name}
-                    value={option.toLowerCase()}
-                    onChange={(e) => handleChange(e, filter.name)}
-                    checked={selectedFilters[filter.name]?.includes(
-                      option.toLowerCase()
-                    )}
-                    className={`peer relative h-5 w-5 cursor-pointer ${
-                      filter.name === 'price' ? '' : 'appearance-none'
-                    } border border-gray-900 transition-all checked:bg-gray-900`}
-                  />
-                  <span className="pointer-events-none absolute left-2/4 top-2/4 -translate-x-2/4 -translate-y-2/4 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                    <Check className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-                <span className="text-sm">{option}</span>
-              </label>
-            ))}
+                {filter.options.map((option, index) => (
+                  <label
+                    key={index}
+                    className="inline-flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-100"
+                  >
+                    <div className="relative flex items-center">
+                      <input
+                        type={filter.name === 'price' ? 'radio' : 'checkbox'}
+                        name={filter?.name}
+                        value={option.toLowerCase()}
+                        onChange={(e) => handleChange(e, filter.name)}
+                        checked={selectedFilters[filter.name]?.includes(
+                          option.toLowerCase()
+                        )}
+                        className={`peer relative h-5 w-5 cursor-pointer ${
+                          filter.name === 'price' ? '' : 'appearance-none'
+                        } border border-gray-900 transition-all checked:bg-gray-900`}
+                      />
+                      <span className="pointer-events-none absolute left-2/4 top-2/4 -translate-x-2/4 -translate-y-2/4 text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                        <Check className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    ));
-  }, [activeDropdown, filters, handleChange, selectedFilters, toggleDropdown]);
+        );
+      })
+      .filter(Boolean); // Filter out null values
+  }, [
+    activeDropdown,
+    filters,
+    handleChange,
+    selectedFilters,
+    toggleDropdown,
+    cat,
+  ]);
 
   const sortButton = useMemo(() => {
     return (
@@ -198,9 +229,9 @@ export default function FilterContent({
                 >
                   <span className="text-xs font-medium">
                     {value.map((item, index) => (
-                      <span key={index}>
-                        {`${item}${index < value.length - 1 ? ', ' : ''}`}
-                      </span>
+                      <span
+                        key={index}
+                      >{`${item}${index < value.length - 1 ? ', ' : ''}`}</span>
                     ))}
                   </span>
                   <button

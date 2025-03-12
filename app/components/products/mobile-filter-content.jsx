@@ -1,5 +1,8 @@
-import React, { useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+'use client';
+
+import { useState, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { createSearchParams } from '@/app/utils/filterHelpers';
 
 export default function MobileFilterContent({
   showFilter,
@@ -17,30 +20,72 @@ export default function MobileFilterContent({
   const [selectedSection, setSelectedSection] = useState(null);
 
   const handleClearAll = useCallback(() => {
-    router.push(`/${cat.join("/")}`);
+    // Ensure we maintain the /shop prefix in the URL
+    router.push(`/shop/${cat.join('/')}`);
+
     setSelectedFilters((prev) => {
       const newFilters = Object.keys(prev).reduce(
         (acc, key) => ({
           ...acc,
           [key]: [],
         }),
-        {},
+        {}
       );
       return newFilters;
     });
   }, [cat, router, setSelectedFilters]);
 
+  // Function to apply filters
+  const applyFilters = useCallback(() => {
+    // Get all active filters
+    const queryObj = Object.fromEntries(
+      Object.entries(selectedFilters).filter(
+        ([key, value]) => value.length > 0 && value.every((v) => v.length > 0)
+      )
+    );
+
+    if (Object.keys(queryObj).length === 0) {
+      // No filters, just go back to category page
+      router.push(`/shop/${cat.join('/')}`);
+      return;
+    }
+
+    // Remove redundant category parameter if it's already in the path
+    if (
+      queryObj.cat &&
+      cat.some((segment) =>
+        queryObj.cat.some(
+          (catFilter) => catFilter.toLowerCase() === segment.toLowerCase()
+        )
+      )
+    ) {
+      delete queryObj.cat;
+    }
+
+    const searchParams = createSearchParams(queryObj);
+    // Ensure we maintain the /shop prefix in the URL
+    router.push(`/shop/${cat.join('/')}?${searchParams}`);
+  }, [cat, router, selectedFilters]);
+
   // Combine filters with sort options for the main menu
   const allOptions = [
-    { name: "sort", label: "Sort by", value: sort },
-    ...filters.map((filter) => ({
-      name: filter.name,
-      label:
-        filter.name === "cat"
-          ? "Category"
-          : filter.name.charAt(0).toUpperCase() + filter.name.slice(1),
-      value: selectedFilters[filter.name]?.join(", ") || "All",
-    })),
+    { name: 'sort', label: 'Sort by', value: sort },
+    ...filters
+      .filter((filter) => {
+        // Hide category filter on subcategory pages
+        if (filter.name === 'cat' && cat.length > 1) {
+          return false;
+        }
+        return true;
+      })
+      .map((filter) => ({
+        name: filter.name,
+        label:
+          filter.name === 'cat'
+            ? 'Category'
+            : filter.name.charAt(0).toUpperCase() + filter.name.slice(1),
+        value: selectedFilters[filter.name]?.join(', ') || 'All',
+      })),
   ];
 
   const handleBack = () => {
@@ -54,17 +99,17 @@ export default function MobileFilterContent({
   return (
     <div
       className={`fixed inset-0 top-14 z-50 transform bg-white transition-transform duration-300 ${
-        showFilter ? "translate-y-0" : "translate-y-full"
+        showFilter ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
       {/* Header */}
-      <div className="flex h-14 items-center justify-between border-b border-gray-200 bg-grayBg px-4">
+      <div className="bg-grayBg flex h-14 items-center justify-between border-b border-gray-200 px-4">
         {selectedSection && (
           <button
             onClick={handleBack}
             className="flex items-center text-gray-500"
             aria-label={
-              selectedSection ? "Back to filter menu" : "Close filters"
+              selectedSection ? 'Back to filter menu' : 'Close filters'
             }
           >
             <ChevronLeft className="h-6 w-6" />
@@ -73,7 +118,7 @@ export default function MobileFilterContent({
         <h2 className="text-lg font-medium text-primary/40">
           {selectedSection
             ? allOptions.find((opt) => opt.name === selectedSection)?.label
-            : "Filter Options"}
+            : 'Filter Options'}
         </h2>
         {!selectedSection && (
           <button
@@ -103,7 +148,7 @@ export default function MobileFilterContent({
             </button>
           ))}
         </div>
-      ) : selectedSection === "sort" ? (
+      ) : selectedSection === 'sort' ? (
         // Sort Options Content
         <div className="divide-y divide-gray-200">
           <div className="px-4">
@@ -116,8 +161,8 @@ export default function MobileFilterContent({
                 }}
                 className={`block w-full py-4 text-left text-sm ${
                   sort === option.value
-                    ? "font-medium text-primary"
-                    : "text-gray-700"
+                    ? 'font-medium text-primary'
+                    : 'text-gray-700'
                 }`}
               >
                 {option.label}
@@ -138,12 +183,12 @@ export default function MobileFilterContent({
                 >
                   <span className="text-sm text-gray-700">{option}</span>
                   <input
-                    type={selectedSection === "price" ? "radio" : "checkbox"}
+                    type={selectedSection === 'price' ? 'radio' : 'checkbox'}
                     name={selectedSection}
                     value={option.toLowerCase()}
                     onChange={(e) => handleChange(e, selectedSection)}
                     checked={selectedFilters[selectedSection]?.includes(
-                      option.toLowerCase(),
+                      option.toLowerCase()
                     )}
                     className="h-5 w-5 rounded border-gray-300 text-primary"
                   />
@@ -154,16 +199,19 @@ export default function MobileFilterContent({
       )}
 
       {/* Footer - Only show when a section is selected */}
-
       <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-4">
         <button
           onClick={() => {
-            setSelectedSection(null);
-            !selectedSection && setShowFilter(false);
+            if (selectedSection) {
+              setSelectedSection(null);
+            } else {
+              applyFilters();
+              setShowFilter(false);
+            }
           }}
           className="w-full rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-white"
         >
-          {selectedSection ? "Apply" : "Done"}
+          {selectedSection ? 'Apply' : 'Done'}
         </button>
       </div>
     </div>

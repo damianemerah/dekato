@@ -4,13 +4,15 @@ export function createSearchParams(params) {
   for (const key in params) {
     if (params.hasOwnProperty(key)) {
       const valueArray = params[key];
-      if (key === "price") {
-        const formattedPrice = valueArray.map((priceRange) =>
-          priceRange.replace(/₦|\s/g, "").split("-"),
-        );
-        searchParams.set(key, formattedPrice.join(","));
-      } else {
-        searchParams.set(key, valueArray.join(","));
+      if (valueArray && valueArray.length > 0) {
+        if (key === 'price') {
+          const formattedPrice = valueArray.map((priceRange) =>
+            priceRange.replace(/₦|\s/g, '').split('-')
+          );
+          searchParams.set(key, formattedPrice.join(','));
+        } else {
+          searchParams.set(key, valueArray.join(','));
+        }
       }
     }
   }

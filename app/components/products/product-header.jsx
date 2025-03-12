@@ -26,10 +26,9 @@ const priceRanges = [
 export default function Filter({
   cat,
   searchParams,
-  products,
-  banner,
   showFilter,
   setShowFilter,
+  products,
 }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -46,7 +45,9 @@ export default function Filter({
   const { data: subCategories } = useSWR(
     cat ? `subCat:${cat.join('|')}` : null,
     () => getSubCategories(cat),
-    { revalidateOnFocus: false }
+    {
+      revalidateOnFocus: false,
+    }
   );
 
   const { data: productVariants, isLoading: varIsLoading } = useSWR(
@@ -90,9 +91,9 @@ export default function Filter({
 
   useEffect(() => {
     if (!varIsLoading && productVariants) {
-      const variantOptions = productVariants
-        ?.map((product) => product.variant)
-        .flat();
+      const variantOptions = productVariants?.flatMap(
+        (product) => product.variant
+      );
       const variants = generateVariantOptions(variantOptions);
 
       setVariantOptions(
@@ -124,7 +125,9 @@ export default function Filter({
         if (newKey === 'price') {
           const priceValue = value
             .split(',')
-            .map((price) => (isFinite(price) ? parseInt(price) : 'Above'));
+            .map((price) =>
+              isFinite(price) ? Number.parseInt(price) : 'Above'
+            );
 
           const selectedPriceIndex = priceRanges.findIndex(
             (range) =>
@@ -194,10 +197,12 @@ export default function Filter({
       );
 
       if (Object.keys(queryObj).length === 0) {
-        router.push(`/${cat.join('/')}`);
+        // Ensure we maintain the /shop prefix in the URL
+        router.push(`/shop/${cat.join('/')}`);
         return;
       }
 
+      // Handle variant filters
       for (const [key, value] of Object.entries(queryObj)) {
         if (variantOptions.some((opt) => opt.name === key)) {
           queryObj[key + '-vr'] = value;
@@ -205,8 +210,21 @@ export default function Filter({
         }
       }
 
+      // Remove redundant category parameter if it's already in the path
+      if (
+        queryObj.cat &&
+        cat.some((segment) =>
+          queryObj.cat.some(
+            (catFilter) => catFilter.toLowerCase() === segment.toLowerCase()
+          )
+        )
+      ) {
+        delete queryObj.cat;
+      }
+
       const searchParams = createSearchParams(queryObj);
-      router.push(`/${cat.join('/')}?${searchParams}`);
+      // Ensure we maintain the /shop prefix in the URL
+      router.push(`/shop/${cat.join('/')}?${searchParams}`);
     },
     [cat, router, variantOptions, selectedFilters]
   );
@@ -214,12 +232,18 @@ export default function Filter({
   const handleSortChange = useCallback(
     (value) => {
       setSort(value);
-      const params = new URLSearchParams(window.location.search);
-      params.set('sort', value);
+
+      // Get current query parameters
+      const currentParams = new URLSearchParams(window.location.search);
+
+      // Update or add the sort parameter
+      currentParams.set('sort', value);
 
       // Close dropdown before navigation
       toggleDropdown('sort');
-      router.push(`/${cat.join('/')}?${params.toString()}`);
+
+      // Ensure we maintain the /shop prefix in the URL
+      router.push(`/shop/${cat.join('/')}?${currentParams.toString()}`);
     },
     [cat, router]
   );
@@ -227,7 +251,7 @@ export default function Filter({
   if (products?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
-        <p className="mb-6 text-center font-roboto text-xl text-grayText">
+        <p className="text-grayText mb-6 text-center font-roboto text-xl">
           No products found.
         </p>
         <ButtonPrimary className="w-fit" onClick={() => window.history.back()}>
@@ -238,7 +262,7 @@ export default function Filter({
   }
 
   return (
-    <>
+    <div className="bg-white shadow-sm">
       <button
         className="w-full bg-secondary py-2 text-center text-white sm:hidden"
         onClick={() => {
@@ -275,6 +299,6 @@ export default function Filter({
         sortOptions={sortOptions}
         handleSortChange={handleSortChange}
       />
-    </>
+    </div>
   );
 }

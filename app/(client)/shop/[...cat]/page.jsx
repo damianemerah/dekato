@@ -4,6 +4,7 @@ import dbConnect from '@/app/lib/mongoConnection';
 import { LoadingSpinner } from '@/app/components/spinner';
 import { unstable_cache } from 'next/cache';
 import dynamic from 'next/dynamic';
+import { notFound } from 'next/navigation';
 
 const CategoryProducts = dynamic(
   () => import('@/app/components/products/categoried-products'),
@@ -67,10 +68,20 @@ export async function generateMetadata({ params: { cat } }, parent) {
   const parentMetadata = await parent;
   const previousImages = parentMetadata?.openGraph?.images || [];
 
+  // Handle search path
+  if (cat[0] === 'search') {
+    return {
+      title: 'Search Results | Dekato Outfit',
+      description: 'Browse our products based on your search criteria.',
+    };
+  }
+
   const data = await unstable_cache(
     () => getCategoryData(cat),
     [`category-meta-${cat.join('-')}`],
-    { revalidate: 1800 }
+    {
+      revalidate: 1800,
+    }
   )();
 
   if (!data) {
@@ -107,11 +118,22 @@ export async function generateMetadata({ params: { cat } }, parent) {
         `Browse our ${data.name} collection`,
     },
     alternates: {
-      canonical: `/products/${cat.join('/')}`,
+      canonical: `/shop/${cat.join('/')}`,
     },
   };
 }
 
-export default function Product({ params: { cat }, searchParams }) {
+export default async function Product({ params: { cat }, searchParams }) {
+  // Validate that cat is an array
+  if (!Array.isArray(cat) || cat.length === 0) {
+    notFound();
+  }
+
+  // Special handling for search path
+  if (cat[0] === 'search' && !searchParams.q) {
+    // Redirect to home if search with no query
+    return notFound();
+  }
+
   return <CategoryProducts cat={cat} searchParams={searchParams} />;
 }

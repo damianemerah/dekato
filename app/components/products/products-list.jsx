@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { Suspense, useMemo, useState, useCallback, useEffect } from 'react';
 import { useUserStore } from '@/app/store/store';
 import { trackView, activityQueue } from '@/app/utils/tracking';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, PackageSearch } from 'lucide-react';
 
 const MAX_TRACK_TIME = 5000;
 
@@ -139,7 +139,7 @@ const ProductList = ({
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
     const queryString = new URLSearchParams(newSearchParams).toString();
-    router.push(`/${cat.join('/')}?${queryString}`);
+    router.push(`/shop/${cat.join('/')}?${queryString}`);
     // Reset tracked products when page changes
     setTrackedProducts(new Set());
   };
@@ -165,7 +165,7 @@ const ProductList = ({
   }, [banner]);
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       {banner && banner.length > 0 ? (
         <header className="relative w-full overflow-hidden">
           <div
@@ -178,7 +178,7 @@ const ProductList = ({
                 className="relative h-[20vw] max-h-[378px] min-h-[210px] w-full"
               >
                 <Image
-                  src={image}
+                  src={image || '/placeholder.svg'}
                   alt={`Banner ${index + 1}`}
                   fill
                   priority={index === 0}
@@ -211,9 +211,7 @@ const ProductList = ({
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-2 w-2 rounded-full ${
-                      currentSlide === index ? 'bg-white' : 'bg-white/50'
-                    }`}
+                    className={`h-2 w-2 rounded-full ${currentSlide === index ? 'bg-white' : 'bg-white/50'}`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
@@ -241,28 +239,51 @@ const ProductList = ({
         />
       </div>
 
-      <div className="px-2 md:px-6 lg:px-8">
+      <div className="flex-1 px-2 md:px-6 lg:px-8">
         <h4 className="text-priamry text-center font-oswald text-[13px] font-bold leading-[58px] tracking-widest md:text-left">
           {totalCount} ITEMS
         </h4>
-        <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
-          {products &&
-            products.map((product, index) => (
-              <ProductCard key={index} product={product} />
-            ))}
-        </div>
-        {/* page footer */}
-        <div className="my-6 flex justify-center">
-          <AntdPagination
-            current={parseInt(currentPage)}
-            total={totalCount}
-            pageSize={parseInt(limit)}
-            onChange={handlePageChange}
-            showSizeChanger={false}
-          />
-        </div>
+
+        {products && products.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
+              {products.map((product, index) => (
+                <ProductCard key={index} product={product} />
+              ))}
+            </div>
+            <div className="my-6 flex justify-center">
+              <AntdPagination
+                current={Number.parseInt(currentPage)}
+                total={totalCount}
+                pageSize={Number.parseInt(limit)}
+                onChange={handlePageChange}
+                showSizeChanger={false}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-lg bg-gray-50 py-16 text-center">
+            <div className="mb-4 rounded-full bg-gray-100 p-3">
+              <PackageSearch className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="mb-2 text-lg font-medium text-gray-900">
+              No products found
+            </h3>
+            <p className="mb-6 max-w-md text-sm text-gray-500">
+              We couldn&apos;t find any products matching your current filters.
+              Try adjusting your selection or clearing some filters to see more
+              items.
+            </p>
+            <button
+              onClick={() => router.push(`/shop/${cat[0]}`)}
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
