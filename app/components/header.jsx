@@ -9,7 +9,7 @@ import useUserData from '@/app/hooks/useUserData';
 import useCartData from '@/app/hooks/useCartData';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/app/components/ui/sheet';
-import { SearchBox } from './search-box';
+import SearchBox from './search-box';
 import { SidebarTrigger } from '@/app/components/ui/sidebar';
 import { Separator } from '@/app/components/ui/separator';
 
@@ -20,7 +20,6 @@ export function Header() {
   const { cartData: cart } = useCartData(userId);
   const [isShaking, setIsShaking] = React.useState(false);
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (cart?.totalItems === 0) return;
@@ -103,7 +102,7 @@ export function Header() {
           </Link>
 
           {/* Wishlist */}
-          <Link href="/wishlist" className="hidden md:block">
+          <Link href="/account/wishlist" className="hidden md:block">
             <Heart className="h-5 w-5" />
           </Link>
 

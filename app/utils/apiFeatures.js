@@ -7,7 +7,7 @@ class APIFeatures {
   filter() {
     // Filtering
     const queryObj = { ...this.queryString };
-    const excludedFields = ["page", "sort", "limit", "fields", "q"];
+    const excludedFields = ['page', 'sort', 'limit', 'fields', 'q'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
     this.query = this.query.find(queryObj);
@@ -27,15 +27,15 @@ class APIFeatures {
 
       // Create a simple regex pattern that allows partial matches
       const regexPatterns = searchWords.map(
-        (word) => `\\b${word.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}`,
+        (word) => `\\b${word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`
       );
-      const pattern = regexPatterns.join(".*");
+      const pattern = regexPatterns.join('.*');
 
       this.query = this.query.find({
         $or: [
-          { name: { $regex: pattern, $options: "i" } },
-          { description: { $regex: pattern, $options: "i" } },
-          { tag: { $elemMatch: { $regex: pattern, $options: "i" } } },
+          { name: { $regex: pattern, $options: 'i' } },
+          { description: { $regex: pattern, $options: 'i' } },
+          { tag: { $elemMatch: { $regex: pattern, $options: 'i' } } },
         ],
       });
     }
@@ -44,20 +44,20 @@ class APIFeatures {
 
   sort() {
     if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
+      const sortBy = this.queryString.sort.split(',').join(' ');
       this.query = this.query.sort(sortBy);
     } else {
-      this.query = this.query.sort("-createdAt");
+      this.query = this.query.sort('-createdAt');
     }
     return this;
   }
 
   limitFields() {
     if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(",").join(" ");
+      const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
-      this.query = this.query.select("-__v");
+      this.query = this.query.select('-__v');
     }
     return this;
   }

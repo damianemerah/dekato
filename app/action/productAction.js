@@ -156,30 +156,66 @@ export async function getAdminProduct(params) {
 export async function productSearch(searchQuery) {
   try {
     await dbConnect();
-    const productData = await handleProductQuery(
-      Product.find({ status: 'active', quantity: { $gt: 0 } })
-        .select('name slug image status')
-        .lean(),
-      { ...searchQuery, limit: 9 }
-    );
+
+    // Create a base query for products
+    let productQuery = Product.find({
+      status: 'active',
+      quantity: { $gt: 0 },
+    })
+      .select('name slug image status price discount')
+      .lean();
+
+    // Add text search if q parameter exists
+    if (searchQuery.q) {
+      const searchRegex = new RegExp(searchQuery.q, 'i');
+      productQuery = productQuery.find({
+        $or: [
+          { name: searchRegex },
+          { description: searchRegex },
+          { tag: searchRegex },
+        ],
+      });
+    }
+
+    // If category is specified and is a string (not ObjectId), find by slug
+    if (searchQuery.category && typeof searchQuery.category === 'string') {
+      // Find the category by slug first
+      const category = await Category.findOne({
+        slug: searchQuery.category.toLowerCase(),
+      }).lean();
+
+      if (category) {
+        // Use the category ObjectId in the product query
+        productQuery = productQuery.find({ category: category._id });
+      }
+      // If category not found, we'll just continue with other filters
+    }
+
+    // Execute the query with limit
+    const productData = await productQuery.limit(9);
 
     const products = productData.map(({ _id, ...rest }) => ({
       id: _id.toString(),
       ...rest,
     }));
 
-    const categories = await handleProductQuery(
-      Category.find().select('name slug').lean(),
-      {
-        ...searchQuery,
-        limit: 6,
-      }
-    );
+    // Get categories related to the search
+    const categories = await Category.find({
+      $or: [
+        { name: { $regex: searchQuery.q || '', $options: 'i' } },
+        { description: { $regex: searchQuery.q || '', $options: 'i' } },
+      ],
+    })
+      .populate('parent', 'name slug')
+      .select('name slug path parent')
+      .limit(6)
+      .lean();
 
     return { products, categories };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    console.error('Product search error:', err);
+    // Return empty results instead of throwing
+    return { products: [], categories: [] };
   }
 }
 
@@ -267,9 +303,75 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     let baseQuery = Product.find({ quantity: { $gt: 0 }, status: 'active' });
     let isFallback = false;
     searchParams.limit = 20;
+
+    // Handle the case when slugArray is empty or invalid
+    if (!Array.isArray(slugArray) || slugArray.length === 0) {
+      // Return a default query for all products
+      const populatedQuery = baseQuery
+        .select(
+          'name slug _id image price discount status quantity discountPrice discountDuration variant'
+        )
+        .populate('category', 'name slug path')
+        .populate('campaign', 'name slug path')
+        .lean({ virtuals: true });
+
+      const newSearchParams = getQueryObj(searchParams);
+      const feature = new APIFeatures(populatedQuery, newSearchParams)
+        .filter()
+        .search()
+        .sort()
+        .paginate();
+      const productData = await feature.query;
+
+      if (!productData?.length) return [];
+
+      const data = productData.map(formatProduct);
+      const limit = Number.parseInt(newSearchParams.limit) || 20;
+      const page = Number.parseInt(newSearchParams.page) || 1;
+      const totalCount = await Product.countDocuments(
+        feature.query.getFilter()
+      );
+
+      return {
+        isCampaign: false,
+        data,
+        totalCount,
+        currentPage: page,
+        limit,
+      };
+    }
+
     const lastSlug = slugArray[slugArray.length - 1].toLowerCase();
 
-    if (lastSlug !== 'search') {
+    // Special handling for search queries
+    if (lastSlug === 'search' && searchParams.q) {
+      const searchStr = searchParams.q;
+      const regexPattern = searchStr
+        .split(' ')
+        .map((word) => `\\b${word.trim()}`)
+        .join('.*');
+
+      baseQuery = Product.find({
+        $and: [
+          { quantity: { $gt: 0 }, status: 'active' },
+          {
+            $or: [
+              { name: { $regex: regexPattern, $options: 'i' } },
+              { description: { $regex: regexPattern, $options: 'i' } },
+              { tag: { $elemMatch: { $regex: regexPattern, $options: 'i' } } },
+            ],
+          },
+        ],
+      })
+        .select(
+          'name slug _id image price discount status quantity discountPrice discountDuration variant'
+        )
+        .populate('category', 'name slug path')
+        .populate('campaign', 'name slug path');
+    } else if (lastSlug !== 'search') {
+      // Existing category logic remains the same
+      // (keeping the existing code here)
+
       if (slugArray.length === 1) {
         // Case 1: Single slug (e.g., [men] or [jeans])
         const topLevelCategory = await Category.findOne({
@@ -337,6 +439,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
         .populate('campaign', 'name slug path');
     }
 
+    // Rest of the function remains the same
     const populatedQuery = baseQuery.lean({ virtuals: true });
     const newSearchParams = getQueryObj(searchParams);
 
@@ -425,10 +528,22 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       result.description = description;
     }
 
+    // For search results, add a custom description
+    if (lastSlug === 'search' && searchParams.q) {
+      result.description = `Search results for "${searchParams.q}"`;
+    }
+
     return result;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    console.error('Error in getAllProducts:', err);
+    // Return empty result instead of throwing
+    return {
+      isCampaign: false,
+      data: [],
+      totalCount: 0,
+      currentPage: 1,
+      limit: 20,
+    };
   }
 }
 
