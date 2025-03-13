@@ -34,8 +34,8 @@ export function Header() {
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-black text-white">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-black text-white">
+      <div className="container mx-auto flex h-[--nav-height] items-center justify-between px-4">
         {/* Left section - SidebarTrigger and desktop categories */}
         <div className="flex items-center">
           <div className="mr-4 flex items-center gap-2">

@@ -32,7 +32,7 @@ export default function Gallery() {
 
   return (
     <div className="py-12">
-      <h2 className="font-oswald mb-6 text-center md:text-left">
+      <h2 className="mb-6 text-center font-oswald md:text-left">
         FOLLOW OUR INSTAGRAM
       </h2>
       <div

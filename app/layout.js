@@ -1,12 +1,16 @@
 import localFont from 'next/font/local';
+import { cookies } from 'next/headers';
 import Provider from '@/app/components/Provider';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import '@/app/styles/globals.css';
 import LayoutWrapper from '@/app/components/layout-wrapper';
-import { SidebarProvider, SidebarInset } from '@/app/components/ui/sidebar';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarInset,
+} from '@/app/components/ui/sidebar';
 import SidebarContent from '@/app/components/sidebar/sidebar-content';
 import Header from '@/app/components/header';
-import PromoBar from '@/app/components/promo-bar';
 import { Toaster } from '@/app/components/ui/sonner';
 
 const roboto = localFont({
@@ -157,21 +161,27 @@ export const metadata = {
   // },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const cookieStore = cookies();
+  const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
+
   return (
     <html lang="en" className={`${oswald.variable} ${roboto.variable}`}>
       <AntdRegistry>
         <Provider>
-          <body className={`font-roboto antialiased`}>
-            <SidebarProvider>
-              <SidebarContent />
-              <SidebarInset>
+          <body className="font-roboto antialiased">
+            <SidebarProvider defaultOpen={defaultOpen}>
+              <div className="flex min-h-screen w-full flex-col bg-background">
                 <Header />
-                <PromoBar />
-                <LayoutWrapper>{children}</LayoutWrapper>
-              </SidebarInset>
+                <div className="mt-[--nav-height] flex w-full flex-1">
+                  <SidebarContent />
+                  <SidebarInset>
+                    <LayoutWrapper>{children}</LayoutWrapper>
+                  </SidebarInset>
+                </div>
+              </div>
+              <Toaster />
             </SidebarProvider>
-            <Toaster />
           </body>
         </Provider>
       </AntdRegistry>
