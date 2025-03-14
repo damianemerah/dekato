@@ -1,40 +1,40 @@
-import Order from '@/models/order';
-import User from '@/models/user';
-import Product from '@/models/product';
-import Notification from '@/models/notification';
-import { Cart, CartItem } from '@/models/cart';
-import { NextResponse } from 'next/server';
-import AppError from '@/app/utils/errorClass';
-import { revalidatePath } from 'next/cache';
-import dbConnect from '@/app/lib/mongoConnection';
-import Payment from '@/models/payment';
-import { recommendationService } from '@/app/lib/recommendationService';
+import Order from "@/models/order";
+import User from "@/models/user";
+import Product from "@/models/product";
+import Notification from "@/models/notification";
+import { Cart, CartItem } from "@/models/cart";
+import { NextResponse } from "next/server";
+import AppError from "@/app/utils/errorClass";
+import { revalidatePath } from "next/cache";
+import dbConnect from "@/app/lib/mongoConnection";
+import Payment from "@/models/payment";
+import { recommendationService } from "@/app/lib/recommendationService";
 
-const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
+const Paystack = require("paystack")(process.env.PAYSTACK_SECRET_KEY);
 
 async function handleOutOfStock(item, order, message) {
   await dbConnect();
   try {
     await Product.updateOne(
       { _id: item.productId },
-      { $set: { status: 'outofstock' } }
+      { $set: { status: "outofstock" } }
     );
 
     await Notification.create({
       userId: order.userId,
-      title: 'Out of Stock Alert',
+      title: "Out of Stock Alert",
       message,
       orderId: order._id,
-      type: 'warning',
+      type: "warning",
     });
   } catch (error) {
-    console.error(error, 'error💎💎');
+    console.error(error, "error💎💎");
   }
 }
 
 async function updateProductQuantity(order) {
   if (!order) {
-    throw new AppError('Order not found', 404);
+    throw new AppError("Order not found", 404);
   }
 
   try {
@@ -64,7 +64,7 @@ async function updateProductQuantity(order) {
               product.variant[variantIndex].options
             )
               .map(([key, value]) => `${key}: ${value}`)
-              .join(', ')} is out of stock`;
+              .join(", ")} is out of stock`;
             await handleOutOfStock(item, order, message);
             continue;
           }
@@ -75,7 +75,7 @@ async function updateProductQuantity(order) {
               product.variant[variantIndex].options
             )
               .map(([key, value]) => `${key}: ${value}`)
-              .join(', ')} is out of stock`;
+              .join(", ")} is out of stock`;
             await handleOutOfStock(item, order, message);
           }
         } else {
@@ -105,7 +105,7 @@ async function updateProductQuantity(order) {
       await recommendationService.trackProductInteraction(
         order.userId,
         item.productId,
-        'purchase'
+        "purchase"
       );
     }
 
@@ -118,7 +118,7 @@ async function updateProductQuantity(order) {
       );
     }
   } catch (error) {
-    console.error(error, '😅😅');
+    console.error(error, "😅😅");
   }
 }
 
@@ -138,23 +138,23 @@ export async function POST(req) {
     const order = await Order.findById(orderId);
 
     if (!order) {
-      throw new AppError('Something went wrong', 404);
+      throw new AppError("Something went wrong", 404);
     }
     const verification = await Paystack.transaction.verify(reference);
 
-    if (verification.data.status === 'success') {
+    if (verification.data.status === "success") {
       await updateProductQuantity(order);
     }
     const OrderStatus = {
-      FAILED: 'failed',
-      PENDING: 'pending',
-      SUCCESS: 'success',
+      FAILED: "failed",
+      PENDING: "pending",
+      SUCCESS: "success",
     };
 
     order.status =
-      verification?.data?.status === 'success'
+      verification?.data?.status === "success"
         ? OrderStatus.SUCCESS
-        : verification?.data?.status === 'failed'
+        : verification?.data?.status === "failed"
           ? OrderStatus.FAILED
           : OrderStatus.PENDING;
 
@@ -168,7 +168,7 @@ export async function POST(req) {
     if (saveCard && !!verification?.data?.authorization) {
       const existingCard = await Payment.findOne({
         userId,
-        'authorization.signature': verification?.data?.authorization?.signature,
+        "authorization.signature": verification?.data?.authorization?.signature,
       });
 
       if (!existingCard) {
@@ -182,13 +182,13 @@ export async function POST(req) {
       }
     }
 
-    if (verification?.data?.status === 'success') {
+    if (verification?.data?.status === "success") {
       await Notification.create({
         userId: null, // Admin notification
-        title: 'New Order Payment',
+        title: "New Order Payment",
         message: `New payment received: ${currency} ${order.total} for order #${order.paymentRef}`,
         orderId: order._id,
-        type: 'info',
+        type: "info",
       });
 
       const savedCount = await User.findByIdAndUpdate(userId, {
@@ -196,12 +196,12 @@ export async function POST(req) {
       });
     }
 
-    revalidatePath('/account/orders');
+    revalidatePath("/account/orders");
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Payment verified',
+        message: "Payment verified",
         data: order,
       },
       { status: 200 }
@@ -210,7 +210,7 @@ export async function POST(req) {
     return NextResponse.json(
       {
         success: false,
-        message: 'Payment verification failed',
+        message: "Payment verification failed",
         error: error.message,
       },
       { status: 500 }

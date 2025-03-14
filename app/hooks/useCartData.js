@@ -1,6 +1,6 @@
-import useSWR from 'swr';
-import { getCart } from '@/app/action/cartAction';
-import { useCartStore } from '@/app/store/store';
+import useSWR from "swr";
+import { getCart } from "@/app/action/cartAction";
+import { useCartStore } from "@/app/store/store";
 
 const fetchCart = (userId) => getCart(userId);
 
