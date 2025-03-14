@@ -8,7 +8,9 @@ export default function RecommendedProductsSkeleton() {
       </div>
       <div className="mx-auto grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <ProductCardSkeleton key={i} />
+          <div key={i}>
+            <ProductCardSkeleton />
+          </div>
         ))}
       </div>
     </div>

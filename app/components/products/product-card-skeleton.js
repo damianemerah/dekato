@@ -1,23 +1,23 @@
-export default function ProductCardSkeleton(key) {
+import { Card, CardContent } from "@/app/components/ui/card";
+import { Skeleton } from "@/app/components/ui/skeleton";
+
+export default function ProductCardSkeleton() {
   return (
-    <div key={key} className="flex flex-col bg-white">
+    <Card className="h-full overflow-hidden rounded-none border-none shadow-none">
       <div className="relative w-full overflow-hidden pb-[133.33%]">
-        <div className="absolute inset-0 animate-pulse bg-gray-200" />
+        <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
       </div>
-      <div className="flex flex-1 flex-col items-center p-4">
-        <div className="mb-2 h-5 w-3/4 animate-pulse bg-gray-200" />
-        <div className="mb-1 h-4 w-1/2 animate-pulse bg-gray-200" />
+      <CardContent className="flex flex-1 flex-col items-center space-y-3 p-4">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
         {Math.random() > 0.5 && (
           <div className="mt-2 flex gap-2">
             {[...Array(3)].map((_, j) => (
-              <div
-                key={j}
-                className="h-6 w-6 animate-pulse rounded-full bg-gray-200"
-              />
+              <Skeleton key={j} className="h-6 w-6 rounded-full" />
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

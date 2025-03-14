@@ -1,19 +1,19 @@
-'use client';
-import { Pagination as AntdPagination } from 'antd';
-import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import ProductCardSkeleton from '@/app/components/products/product-card-skeleton';
-import HeaderOne from '@/app/components/heading1';
-import Image from 'next/image';
-import { Suspense, useMemo, useState, useCallback, useEffect } from 'react';
-import { useUserStore } from '@/app/store/store';
-import { trackView, activityQueue } from '@/app/utils/tracking';
-import { ChevronLeft, ChevronRight, PackageSearch } from 'lucide-react';
+"use client";
+import { Pagination as AntdPagination } from "antd";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import ProductCardSkeleton from "@/app/components/products/product-card-skeleton";
+import HeaderOne from "@/app/components/heading1";
+import Image from "next/image";
+import { Suspense, useMemo, useState, useCallback, useEffect } from "react";
+import { useUserStore } from "@/app/store/store";
+import { trackView, activityQueue } from "@/app/utils/tracking";
+import { ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
 
 const MAX_TRACK_TIME = 5000;
 
 const ProductHeader = dynamic(
-  () => import('@/app/components/products/product-header'),
+  () => import("@/app/components/products/product-header"),
   {
     loading: () => (
       <div className="sticky top-0 z-10 mb-10 bg-gray-100">
@@ -26,7 +26,7 @@ const ProductHeader = dynamic(
   }
 );
 
-const ProductCard = dynamic(() => import('./product-card'), {
+const ProductCard = dynamic(() => import("./product-card"), {
   loading: () => <ProductCardSkeleton />,
   ssr: false,
 });
@@ -117,12 +117,12 @@ const ProductList = ({
       },
       {
         threshold: 0.5, // Product is considered visible when 50% in view
-        rootMargin: '0px 0px 100px 0px', // Add margin to start loading earlier
+        rootMargin: "0px 0px 100px 0px", // Add margin to start loading earlier
       }
     );
 
     // Observe all product cards
-    const productCards = document.querySelectorAll('[data-product-id]');
+    const productCards = document.querySelectorAll("[data-product-id]");
     productCards.forEach((card) => observer.observe(card));
 
     return () => {
@@ -139,14 +139,14 @@ const ProductList = ({
   const handlePageChange = (page) => {
     const newSearchParams = { ...searchParams, page: page.toString() };
     const queryString = new URLSearchParams(newSearchParams).toString();
-    router.push(`/shop/${cat.join('/')}?${queryString}`);
+    router.push(`/shop/${cat.join("/")}?${queryString}`);
     // Reset tracked products when page changes
     setTrackedProducts(new Set());
   };
 
   const currentCategory = useMemo(
     () =>
-      cat.slice(-1)[0].toLowerCase() === 'search'
+      cat.slice(-1)[0].toLowerCase() === "search"
         ? `${products.length} results for ${searchParams.q}`
         : cat.slice(-1)[0],
     [cat, products, searchParams]
@@ -178,7 +178,7 @@ const ProductList = ({
                 className="relative h-[20vw] max-h-[378px] min-h-[210px] w-full"
               >
                 <Image
-                  src={image || '/placeholder.svg'}
+                  src={image || "/placeholder.svg"}
                   alt={`Banner ${index + 1}`}
                   fill
                   priority={index === 0}
@@ -211,7 +211,7 @@ const ProductList = ({
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-2 w-2 rounded-full ${currentSlide === index ? 'bg-white' : 'bg-white/50'}`}
+                    className={`h-2 w-2 rounded-full ${currentSlide === index ? "bg-white" : "bg-white/50"}`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
@@ -246,9 +246,13 @@ const ProductList = ({
 
         {products && products.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
-              {products.map((product, index) => (
-                <ProductCard key={index} product={product} />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  showDelete={false}
+                />
               ))}
             </div>
             <div className="my-6 flex justify-center">

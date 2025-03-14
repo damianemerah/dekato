@@ -2,257 +2,354 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  HeartOutlined,
-  HeartFilled,
-  CloseOutlined,
-  ShoppingOutlined,
-} from "@ant-design/icons";
-import { useState, useCallback, memo, useEffect } from "react";
+import { useState, useCallback, useEffect, useTransition } from "react";
 import { useUserStore, useRecommendMutateStore } from "@/app/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { message } from "antd";
-import { mutate } from "swr";
+import { createCartItem } from "@/app/action/cartAction";
+import { toast } from "sonner";
 import { formatToNaira } from "@/app/utils/getFunc";
 import { trackClick } from "@/app/utils/tracking";
-import { createCartItem } from "@/app/action/cartAction";
+import { useMediaQuery } from "@/app/hooks/use-media-query";
+import { mutate } from "swr";
+import useCartData from "@/app/hooks/useCartData";
 
-const ProductCard = memo(({ product, key, showDelete = false }) => {
-  const [supportsHover, setSupportsHover] = useState(true);
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
+// Shadcn components
+import { Card, CardContent, CardFooter } from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
+
+// Icons
+import { Heart, X, Check, ShoppingBag } from "lucide-react";
+
+const ProductCard = ({ product, showDelete = false }) => {
+  const [currentImage, setCurrentImage] = useState(product?.image[0]);
+  const [variantImages, setVariantImages] = useState([]);
+  const [isPending, startTransition] = useTransition();
+  const [optimisticIsFavorite, setOptimisticIsFavorite] = useState(false);
+  const [optimisticInCart, setOptimisticInCart] = useState(false);
+
+  // Get user data from store
   const user = useUserStore((state) => state.user);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const userId = user?.id;
-  const [isFavorite, setIsFavorite] = useState(
-    user?.wishlist?.includes(product.id)
-  );
+
+  // Use the cart data hook for better synchronization
+  const { cartData, isLoading: cartLoading } = useCartData(userId);
+
   const setShouldMutate = useRecommendMutateStore(
     (state) => state.setShouldMutate
   );
 
-  const [currentImage, setCurrentImage] = useState(product?.image[0]);
-  const [variantImages, setVariantImages] = useState([]);
+  // Check if product is in wishlist or cart
+  const isInWishlist = user?.wishlist?.includes(product.id);
 
+  // Enhanced cart item check
+  const isInCart = useCallback(() => {
+    if (!cartData?.item || !Array.isArray(cartData.item)) return false;
+    return cartData.item.some(
+      (item) => item.product?.id === product.id || item.product === product.id
+    );
+  }, [cartData?.item, product.id]);
+
+  // Set initial states based on user data
+  useEffect(() => {
+    setOptimisticIsFavorite(isInWishlist);
+    setOptimisticInCart(isInCart());
+  }, [isInWishlist, isInCart]);
+
+  // Use custom hooks for responsive design
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const supportsHover = useMediaQuery("(hover: hover)");
+
+  // Set up product images and variants
   useEffect(() => {
     setCurrentImage(product?.image[0]);
     setVariantImages(product?.variant?.map((variant) => variant.image));
   }, [product]);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(hover: hover)");
-    const screenQuery = window.matchMedia("(min-width: 640px)");
+  // Calculate discounted price
+  const discountedPrice = product.isDiscounted
+    ? product.price - (product.price * product.discount) / 100
+    : product.price;
 
-    const updateMediaQueries = () => {
-      setSupportsHover(mediaQuery.matches);
-      setIsSmallScreen(!screenQuery.matches);
-    };
-
-    updateMediaQueries();
-
-    mediaQuery.addEventListener("change", updateMediaQueries);
-    screenQuery.addEventListener("change", updateMediaQueries);
-
-    return () => {
-      mediaQuery.removeEventListener("change", updateMediaQueries);
-      screenQuery.removeEventListener("change", updateMediaQueries);
-    };
-  }, []);
-
-  // Handle product click
+  // Handle product click for analytics
   const handleProductClick = useCallback(async () => {
     if (!userId) return;
     await trackClick(userId, product.id);
   }, [userId, product.id]);
 
+  // Handle add to cart action with optimistic update
   const handleAddToCart = useCallback(
     async (e) => {
       e.preventDefault();
       e.stopPropagation();
 
       if (!userId) {
-        message.error("Please login to add to cart");
+        toast.error("Please login to add to cart");
         return;
       }
 
-      try {
-        setIsAddingToCart(true);
-        const newItem = {
-          product: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          image: product.image[0],
-          userId,
-        };
-
-        await createCartItem(userId, newItem);
-        await mutate(`/api/user/${userId}`);
-        await mutate(`/cart/${userId}`);
-        message.success("Item added to cart");
-      } catch (error) {
-        message.info(error.message, 4);
-      } finally {
-        setIsAddingToCart(false);
+      if (optimisticInCart) {
+        toast.info("Item already in cart");
+        return;
       }
+
+      // Optimistic update
+      setOptimisticInCart(true);
+
+      const newItem = {
+        product: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: product.image[0],
+        userId,
+      };
+
+      // Server action with transition
+      startTransition(async () => {
+        try {
+          await createCartItem(userId, newItem);
+          // Add proper revalidation to ensure UI updates
+          await mutate(`/api/user/${userId}`);
+          await mutate(`/cart/${userId}`);
+          toast.success("Item added to cart");
+        } catch (error) {
+          setOptimisticInCart(false);
+          toast.error(error.message || "Failed to add item to cart");
+        }
+      });
     },
-    [userId, product]
+    [userId, product, optimisticInCart]
   );
 
+  // Handle wishlist toggling with optimistic update
   const handleFavoriteClick = useCallback(
     async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsLoading(true);
 
       if (!userId) {
-        message.error("Please login to add to wishlist");
+        toast.error("Please login to add to wishlist");
         return;
       }
 
-      try {
-        if (isFavorite) {
-          await removeFromWishlist(userId, product.id);
-          message.success("Removed from wishlist");
-        } else {
-          await addToWishlist(userId, product.id);
-          message.success("Added to wishlist");
+      // Optimistic update
+      setOptimisticIsFavorite(!optimisticIsFavorite);
+
+      // Server action with transition
+      startTransition(async () => {
+        try {
+          if (optimisticIsFavorite) {
+            await removeFromWishlist(userId, product.id);
+            // Add revalidation for consistency
+            await mutate(`/api/user/${userId}`);
+            toast.success("Removed from wishlist");
+          } else {
+            await addToWishlist(userId, product.id);
+            // Add revalidation for consistency
+            await mutate(`/api/user/${userId}`);
+            toast.success("Added to wishlist");
+          }
+        } catch (error) {
+          // Revert optimistic update on error
+          setOptimisticIsFavorite(!optimisticIsFavorite);
+          toast.error(error.message || "Failed to update wishlist");
         }
-        setIsFavorite(!isFavorite);
-        await mutate(`/api/user/${userId}`);
-      } catch (error) {
-        message.error(error.message);
-      } finally {
-        setIsLoading(false);
-      }
+      });
     },
-    [isFavorite, userId, product.id]
+    [optimisticIsFavorite, userId, product.id]
   );
 
-  const handleDelete = useCallback(async () => {
-    try {
-      const response = await fetch("/api/recommendations", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
+  // Handle removing from recommendations
+  const handleDelete = useCallback(
+    async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      startTransition(async () => {
+        try {
+          const response = await fetch("/api/recommendations", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: product.id }),
+          });
+
+          if (response.ok) {
+            setShouldMutate(true);
+            toast.success("Product removed from recommendations");
+          }
+        } catch (error) {
+          toast.error("Failed to remove product");
+          console.error(error);
+        }
       });
-      if (response.ok) {
-        setShouldMutate(true);
-      }
-    } catch (error) {
-      console.error(error.message);
-    }
-  }, [product.id, setShouldMutate]);
+    },
+    [product.id, setShouldMutate]
+  );
 
-  const discountedPrice = product.isDiscounted
-    ? product.price - (product.price * product.discount) / 100
-    : product.price;
-
-  const shouldShowVariantsOnHover = supportsHover && !isSmallScreen;
+  // Control whether to show variants on hover
+  const shouldShowVariantsOnHover = supportsHover && isDesktop;
 
   return (
-    <div
-      className="group relative flex h-full flex-col bg-white text-center transition-all duration-300 hover:border"
-      onMouseLeave={() => {
-        setCurrentImage(product?.image[0]);
-      }}
-    >
+    <Card className="group relative h-full overflow-hidden rounded-none border-none transition-all duration-300 hover:border hover:shadow-sm">
       <Link
         href={`/product/${product.slug}-${product.id}`}
         onClick={handleProductClick}
-        id={`product-${product.id}`}
         data-product-id={product.id}
-        key={key}
         className="block"
       >
         <div
-          className="relative max-w-full overflow-hidden pb-[133.33%]"
-          role="article"
-          aria-label={`Product: ${product.name}`}
+          className="relative overflow-hidden pb-[133.33%]"
+          onMouseLeave={() => setCurrentImage(product?.image[0])}
         >
           <Image
             src={currentImage}
             alt={product.name}
             fill={true}
             loading="lazy"
-            placeholder="blur"
-            blurDataURL="data:..."
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="absolute left-0 top-0 block h-full w-full object-cover object-center transition-opacity duration-300"
+            className="absolute left-0 top-0 h-full w-full object-cover object-center transition-all duration-300"
           />
 
-          {userId && showDelete ? (
-            <div
-              className="absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center text-red-500 transition-all duration-300 hover:scale-110"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDelete();
-              }}
-              aria-label="Delete product"
-            >
-              <CloseOutlined className="!text-primary" />
-            </div>
-          ) : (
-            <div
-              className={`absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-secondary transition-all duration-300 hover:scale-110 hover:bg-secondary/10 ${isLoading ? "animate-pulse" : ""}`}
-              onClick={handleFavoriteClick}
-              aria-label={
-                isFavorite ? "Remove from wishlist" : "Add to wishlist"
-              }
-            >
-              {isFavorite ? <HeartFilled /> : <HeartOutlined />}
-            </div>
-          )}
-        </div>
-
-        <div
-          className={`relative z-10 flex min-h-8 w-full flex-1 flex-col items-center bg-white pb-2 pt-1 text-[13px] transition-all duration-300 ${shouldShowVariantsOnHover ? "sm:group-hover:-translate-y-9" : ""}`}
-        >
+          {/* Discount badge */}
           {product.isDiscounted && (
-            <div className="absolute -top-9 left-0 bg-red-500 px-3 py-0.5 text-[13px] text-white">
+            <div className="absolute left-0 top-0 bg-destructive px-3 py-1 text-xs text-white">
               -{product.discount}%
             </div>
           )}
-          <p className="mb-1 w-full truncate overflow-ellipsis whitespace-nowrap text-nowrap text-sm capitalize">
-            {product.name}
-          </p>
-          <div className="relative mb-1 grid w-full grid-cols-[1fr_auto] items-center gap-1.5 px-2">
-            {product.isDiscounted ? (
-              <div className="flex items-center justify-center gap-2 text-[15px] sm:ml-8">
-                <p className="text-xs font-bold text-gray-500 line-through">
-                  {formatToNaira(product.price)}
-                </p>
-                <p className="font-bold text-primary">
-                  {formatToNaira(discountedPrice)}
-                </p>
-              </div>
-            ) : (
-              <p className="flex items-center justify-center text-[15px] font-bold sm:ml-8">
-                {formatToNaira(product.price)}
-              </p>
-            )}
-            <button
-              onClick={handleAddToCart}
-              disabled={isAddingToCart}
-              className={`flex h-6 w-6 items-center justify-center rounded-full bg-secondary/10 text-secondary transition-all duration-300 sm:ml-2 ${
-                isAddingToCart ? "animate-pulse" : ""
-              }`}
-              aria-label="Add to cart"
+
+          {/* Delete or Wishlist button */}
+          {userId && showDelete ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 h-7 w-7 bg-white/80 p-1 text-primary hover:bg-white/90"
+              onClick={handleDelete}
+              disabled={isPending}
+              aria-label="Remove product"
             >
-              <ShoppingOutlined className="text-[15px]" />
-            </button>
-          </div>
+              <X className="h-4 w-4" />
+            </Button>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={optimisticIsFavorite ? "default" : "ghost"}
+                    size="icon"
+                    className={`absolute right-2 top-2 h-7 w-7 ${
+                      optimisticIsFavorite
+                        ? "bg-red-500 p-1 text-white hover:bg-red-600"
+                        : "bg-white/80 p-1 text-secondary hover:bg-white/90"
+                    } ${isPending ? "animate-pulse" : ""}`}
+                    onClick={handleFavoriteClick}
+                    disabled={isPending}
+                    aria-label={
+                      optimisticIsFavorite
+                        ? "Remove from wishlist"
+                        : "Add to wishlist"
+                    }
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${
+                        optimisticIsFavorite ? "fill-white stroke-white" : ""
+                      }`}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {optimisticIsFavorite
+                      ? "Added to wishlist"
+                      : "Add to wishlist"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
+
+        <CardContent
+          className={`relative z-10 flex min-h-[4rem] flex-col items-center bg-white p-3 text-sm transition-all duration-300 ${shouldShowVariantsOnHover ? "md:group-hover:-translate-y-9" : ""}`}
+        >
+          <h3 className="mb-1 w-full truncate text-center capitalize">
+            {product.name}
+          </h3>
+
+          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center">
+            {/* Empty left column for balance */}
+            <div className="col-start-1"></div>
+
+            {/* Center column with price */}
+            <div className="col-start-2 flex flex-col items-center justify-center text-center">
+              {product.isDiscounted ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-xs text-muted-foreground line-through">
+                    {formatToNaira(product.price)}
+                  </span>
+                  <span className="font-medium text-primary">
+                    {formatToNaira(discountedPrice)}
+                  </span>
+                </div>
+              ) : (
+                <span className="font-medium text-primary">
+                  {formatToNaira(product.price)}
+                </span>
+              )}
+            </div>
+
+            {/* Right column with cart button */}
+            <div className="col-start-3 flex justify-end">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={optimisticInCart ? "default" : "ghost"}
+                      size="icon"
+                      className={`h-8 w-8 rounded-full ${
+                        optimisticInCart
+                          ? "bg-green-500 hover:bg-green-600"
+                          : "bg-muted text-muted-foreground hover:bg-muted/30"
+                      } p-0 ${isPending ? "animate-pulse" : ""}`}
+                      onClick={handleAddToCart}
+                      disabled={isPending}
+                      aria-label={
+                        optimisticInCart ? "Item in cart" : "Add to cart"
+                      }
+                    >
+                      <ShoppingBag
+                        className={`h-4 w-4 ${
+                          optimisticInCart ? "stroke-white" : ""
+                        }`}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{optimisticInCart ? "Added to cart" : "Add to cart"}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </CardContent>
       </Link>
+
+      {/* Variant selector */}
       {product?.variant?.length > 0 && (
-        <div
-          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white pb-2 transition-all duration-300 ${shouldShowVariantsOnHover ? "bottom-0 left-1/2 sm:absolute sm:-translate-x-1/2" : ""}`}
+        <CardFooter
+          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white p-2 transition-all duration-300 ${shouldShowVariantsOnHover ? "absolute bottom-0 left-1/2 -translate-x-1/2" : ""}`}
         >
           {product?.variant?.slice(0, 5).map((variant, index) => (
-            <div
+            <Button
               key={`${variant._id}-${index}`}
-              className="h-6 w-6 flex-shrink-0 cursor-pointer hover:scale-110 md:h-7 md:w-7"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 rounded-full p-0 md:h-7 md:w-7"
               onMouseEnter={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -264,22 +361,20 @@ const ProductCard = memo(({ product, key, showDelete = false }) => {
                 alt={`${product.name} variant ${index + 1}`}
                 width={28}
                 height={28}
-                loading="lazy"
                 className="h-full w-full rounded-full object-cover object-center"
               />
-            </div>
+            </Button>
           ))}
+
           {product?.variant?.length > 5 && (
-            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600 md:h-7 md:w-7">
+            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground md:h-7 md:w-7">
               +{product.variant.length - 5}
             </div>
           )}
-        </div>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
-});
-
-ProductCard.displayName = "ProductCard";
+};
 
 export default ProductCard;
