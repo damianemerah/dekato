@@ -1,12 +1,12 @@
-'use server';
+"use server";
 
-import { Cart, CartItem } from '@/models/cart';
-import Product from '@/models/product';
-import dbConnect from '@/app/lib/mongoConnection';
-import { getQuantity } from '@/app/utils/getFunc';
-import { restrictTo } from '@/app/utils/checkPermission';
-import mongoose from 'mongoose';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { Cart, CartItem } from "@/models/cart";
+import Product from "@/models/product";
+import dbConnect from "@/app/lib/mongoConnection";
+import { getQuantity } from "@/app/utils/getFunc";
+import { restrictTo } from "@/app/utils/checkPermission";
+import mongoose from "mongoose";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // Helper function to format cart data
 function formatCartData(cart) {
@@ -72,7 +72,7 @@ async function createNewCart(userId, session) {
 }
 
 export async function createCartItem(userId, newItem) {
-  await restrictTo('admin', 'user');
+  await restrictTo("admin", "user");
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -80,7 +80,7 @@ export async function createCartItem(userId, newItem) {
     await dbConnect();
 
     if (!newItem.quantity || !newItem.product) {
-      throw new Error('Missing required fields for cart item');
+      throw new Error("Missing required fields for cart item");
     }
 
     const existingProduct = await Product.findById(newItem.product).session(
@@ -88,7 +88,7 @@ export async function createCartItem(userId, newItem) {
     );
 
     if (!existingProduct) {
-      throw new Error('Product not found');
+      throw new Error("Product not found");
     }
 
     const correctQuantity = getQuantity(newItem, existingProduct);
@@ -152,11 +152,11 @@ export async function getCart(userId) {
 
   const cart = await Cart.findOne({ userId })
     .populate({
-      path: 'item',
+      path: "item",
       populate: {
-        path: 'product',
+        path: "product",
         select:
-          'name variant image slug price discount discountPrice discountDuration ',
+          "name variant image slug price discount discountPrice discountDuration ",
       },
     })
     .lean({ virtuals: true });
@@ -170,20 +170,20 @@ export async function getCart(userId) {
 }
 
 export async function updateCartItemQuantity(updateData) {
-  await restrictTo('admin', 'user');
+  await restrictTo("admin", "user");
   await dbConnect();
 
   const { userId, cartItemId, product } = updateData;
 
   const cart = await Cart.findOne({ userId }).populate({
-    path: 'item.product',
-    select: 'name price discountPrice slug variant image',
+    path: "item.product",
+    select: "name price discountPrice slug variant image",
   });
   if (!cart) {
-    throw new Error('Something went wrong, try again');
+    throw new Error("Something went wrong, try again");
   }
   const cartItem = cart.item.find((item) => item._id.toString() === cartItemId);
-  if (!cartItem) throw new Error('Item not found');
+  if (!cartItem) throw new Error("Item not found");
 
   const existingProduct = await Product.findById(product);
 
@@ -194,40 +194,40 @@ export async function updateCartItemQuantity(updateData) {
 
   const updatedCart = await Cart.findById(cart._id)
     .populate({
-      path: 'item.product',
-      select: 'name price discountPrice slug variant image',
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
     })
     .lean({ virtuals: true });
 
   // revalidateTag("checkout-data");
   // revalidatePath("/checkout");
-  revalidatePath('/cart');
+  revalidatePath("/cart");
   return formatCartData(updatedCart);
 }
 
 export async function updateCartItemChecked(userId, cartItemId, checked) {
-  await restrictTo('admin', 'user');
+  await restrictTo("admin", "user");
   await dbConnect();
 
   const cart = await Cart.findOne({ userId }).populate({
-    path: 'item.product',
-    select: 'name price discountPrice slug variant image',
+    path: "item.product",
+    select: "name price discountPrice slug variant image",
   });
   if (!cart) {
-    throw new Error('Cart not found');
+    throw new Error("Cart not found");
   }
 
   const cartItem = await CartItem.findByIdAndUpdate(cartItemId, {
     checked: checked,
   });
   if (!cartItem) {
-    throw new Error('Item not found');
+    throw new Error("Item not found");
   }
 
   const updatedCart = await Cart.findById(cart._id)
     .populate({
-      path: 'item.product',
-      select: 'name price discountPrice slug variant image',
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
     })
     .lean({ virtuals: true });
 
@@ -238,18 +238,18 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
 }
 
 export async function selectAllCart(userId, selectAll) {
-  await restrictTo('admin', 'user');
+  await restrictTo("admin", "user");
   await dbConnect();
 
   // Ensure that selectAll is a boolean
-  if (typeof selectAll !== 'boolean') {
-    throw new Error('Invalid value for selectAll');
+  if (typeof selectAll !== "boolean") {
+    throw new Error("Invalid value for selectAll");
   }
 
   // Find the user's cart
   const cart = await Cart.findOne({ userId });
   if (!cart) {
-    throw new Error('Cart not found');
+    throw new Error("Cart not found");
   }
 
   // Extract the CartItem ids
@@ -264,8 +264,8 @@ export async function selectAllCart(userId, selectAll) {
   // Fetch the updated cart with items
   const updatedCart = await Cart.findById(cart._id)
     .populate({
-      path: 'item.product',
-      select: 'name price discountPrice slug variant image',
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
     })
     .lean({ virtuals: true });
   // revalidateTag("checkout-data");
@@ -275,12 +275,12 @@ export async function selectAllCart(userId, selectAll) {
 }
 
 export async function removeFromCart(userId, cartItemId) {
-  await restrictTo('admin', 'user');
+  await restrictTo("admin", "user");
   await dbConnect();
 
   const cart = await Cart.findOne({ userId });
   if (!cart) {
-    throw new Error('Cart not found');
+    throw new Error("Cart not found");
   }
 
   // Find the index of the cart item to remove
@@ -288,7 +288,7 @@ export async function removeFromCart(userId, cartItemId) {
     (item) => item._id.toString() === cartItemId
   );
   if (itemIndex === -1) {
-    throw new Error('Item not found');
+    throw new Error("Item not found");
   }
 
   // Remove the item from the cart's item array
@@ -303,8 +303,8 @@ export async function removeFromCart(userId, cartItemId) {
   // Fetch the updated cart with items
   const updatedCart = await Cart.findById(cart._id)
     .populate({
-      path: 'item.product',
-      select: 'name price discountPrice slug variant image',
+      path: "item.product",
+      select: "name price discountPrice slug variant image",
     })
     .lean({ virtuals: true });
 
