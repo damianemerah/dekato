@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useCallback, useEffect, useTransition } from "react";
 import { useUserStore, useRecommendMutateStore } from "@/app/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { createCartItem } from "@/app/action/cartAction";
+import { createCartItem, removeFromCart } from "@/app/action/cartAction";
 import { toast } from "sonner";
 import { formatToNaira } from "@/app/utils/getFunc";
 import { trackClick } from "@/app/utils/tracking";
@@ -93,38 +93,56 @@ const ProductCard = ({ product, showDelete = false }) => {
         return;
       }
 
-      if (optimisticInCart) {
-        toast.info("Item already in cart");
-        return;
-      }
+      // Toggle cart state - add or remove based on current status
+      const newCartState = !optimisticInCart;
 
-      // Optimistic update
-      setOptimisticInCart(true);
-
-      const newItem = {
-        product: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        image: product.image[0],
-        userId,
-      };
+      // Optimistic UI update
+      setOptimisticInCart(newCartState);
 
       // Server action with transition
       startTransition(async () => {
         try {
-          await createCartItem(userId, newItem);
-          // Add proper revalidation to ensure UI updates
+          if (newCartState) {
+            // Add item to cart
+            const newItem = {
+              product: product.id,
+              name: product.name,
+              price: product.price,
+              quantity: 1,
+              image: product.image[0],
+              userId,
+            };
+
+            await createCartItem(userId, newItem);
+            toast.success("Item added to cart");
+          } else {
+            // Remove item from cart
+            // Find the cart item ID first
+            const cartItem = cartData?.item?.find(
+              (item) =>
+                item.product?.id === product.id || item.product === product.id
+            );
+
+            if (cartItem) {
+              await removeFromCart(userId, cartItem.id);
+              toast.success("Item removed from cart");
+            }
+          }
+
+          // Revalidate cart data regardless of action
           await mutate(`/api/user/${userId}`);
           await mutate(`/cart/${userId}`);
-          toast.success("Item added to cart");
         } catch (error) {
-          setOptimisticInCart(false);
-          toast.error(error.message || "Failed to add item to cart");
+          // Revert optimistic update on error
+          setOptimisticInCart(!newCartState);
+          toast.error(
+            error.message ||
+              `Failed to ${newCartState ? "add to" : "remove from"} cart`
+          );
         }
       });
     },
-    [userId, product, optimisticInCart]
+    [userId, product, optimisticInCart, cartData]
   );
 
   // Handle wishlist toggling with optimistic update
@@ -138,27 +156,32 @@ const ProductCard = ({ product, showDelete = false }) => {
         return;
       }
 
-      // Optimistic update
-      setOptimisticIsFavorite(!optimisticIsFavorite);
+      // Toggle wishlist state
+      const newWishlistState = !optimisticIsFavorite;
+
+      // Optimistic update for immediate UI feedback
+      setOptimisticIsFavorite(newWishlistState);
 
       // Server action with transition
       startTransition(async () => {
         try {
-          if (optimisticIsFavorite) {
-            await removeFromWishlist(userId, product.id);
-            // Add revalidation for consistency
-            await mutate(`/api/user/${userId}`);
-            toast.success("Removed from wishlist");
-          } else {
+          if (newWishlistState) {
             await addToWishlist(userId, product.id);
-            // Add revalidation for consistency
-            await mutate(`/api/user/${userId}`);
             toast.success("Added to wishlist");
+          } else {
+            await removeFromWishlist(userId, product.id);
+            toast.success("Removed from wishlist");
           }
+
+          // Revalidate user data to update UI throughout the app
+          await mutate(`/api/user/${userId}`);
         } catch (error) {
           // Revert optimistic update on error
-          setOptimisticIsFavorite(!optimisticIsFavorite);
-          toast.error(error.message || "Failed to update wishlist");
+          setOptimisticIsFavorite(!newWishlistState);
+          toast.error(
+            error.message ||
+              `Failed to ${newWishlistState ? "add to" : "remove from"} wishlist`
+          );
         }
       });
     },
@@ -245,7 +268,7 @@ const ProductCard = ({ product, showDelete = false }) => {
                     className={`absolute right-2 top-2 h-7 w-7 ${
                       optimisticIsFavorite
                         ? "bg-red-500 p-1 text-white hover:bg-red-600"
-                        : "bg-white/80 p-1 text-secondary hover:bg-white/90"
+                        : "bg-muted text-muted-foreground/60 hover:bg-muted/30"
                     } ${isPending ? "animate-pulse" : ""}`}
                     onClick={handleFavoriteClick}
                     disabled={isPending}
@@ -265,7 +288,7 @@ const ProductCard = ({ product, showDelete = false }) => {
                 <TooltipContent>
                   <p>
                     {optimisticIsFavorite
-                      ? "Added to wishlist"
+                      ? "Remove from wishlist"
                       : "Add to wishlist"}
                   </p>
                 </TooltipContent>
@@ -314,12 +337,12 @@ const ProductCard = ({ product, showDelete = false }) => {
                       className={`h-8 w-8 rounded-full ${
                         optimisticInCart
                           ? "bg-green-500 hover:bg-green-600"
-                          : "bg-muted text-muted-foreground hover:bg-muted/30"
+                          : "bg-muted text-muted-foreground/60 hover:bg-muted/30"
                       } p-0 ${isPending ? "animate-pulse" : ""}`}
                       onClick={handleAddToCart}
                       disabled={isPending}
                       aria-label={
-                        optimisticInCart ? "Item in cart" : "Add to cart"
+                        optimisticInCart ? "Remove from cart" : "Add to cart"
                       }
                     >
                       <ShoppingBag
@@ -330,7 +353,9 @@ const ProductCard = ({ product, showDelete = false }) => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{optimisticInCart ? "Added to cart" : "Add to cart"}</p>
+                    <p>
+                      {optimisticInCart ? "Remove from cart" : "Add to cart"}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
