@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
 import {
   Facebook,
   Instagram,
@@ -9,34 +9,35 @@ import {
   Mail,
   Clock,
   MapPin,
-} from 'lucide-react';
-import { Separator } from '@/app/components/ui/separator';
+} from "lucide-react";
+import { Separator } from "@/app/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/app/components/ui/tooltip';
+} from "@/app/components/ui/tooltip";
+import Image from "next/image";
 
 const menuItems = [
-  { title: 'Frequently Asked Questions', href: '/customer-service' },
-  { title: 'About Us', href: '#' },
-  { title: 'Contact us', href: '#' },
-  { title: 'Terms of Sale', href: '#' },
-  { title: 'Blog', href: '#' },
+  { title: "Frequently Asked Questions", href: "/customer-service" },
+  { title: "About Us", href: "#" },
+  { title: "Contact us", href: "#" },
+  { title: "Terms of Sale", href: "#" },
+  { title: "Blog", href: "#" },
 ];
 
 const contactInfo = {
-  address: '30A Oseni Street, Anthony Village, Opposite GTB, Lagos',
-  phones: ['(234) 802 3024 687', '(234) 806 4737 122'],
-  email: 'Mail@Dekato-outfit.com',
-  hours: 'Mon - Sat / 8am - 8pm',
+  address: "30A Oseni Street, Anthony Village, Opposite GTB, Lagos",
+  phones: ["(234) 802 3024 687", "(234) 806 4737 122"],
+  email: "Mail@Dekato-outfit.com",
+  hours: "Mon - Sat / 8am - 8pm",
 };
 
 const socialLinks = [
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: TikTok, href: '#', label: 'TikTok' },
+  { icon: Facebook, href: "#", label: "Facebook" },
+  { icon: Instagram, href: "#", label: "Instagram" },
+  { icon: TikTok, href: "#", label: "TikTok" },
 ];
 
 export default function Footer() {
@@ -136,10 +137,12 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <span>Secured by</span>
-            <img
+            <Image
               src="/assets/icons/paystack.svg"
               alt="Paystack"
               className="h-6"
+              width={100}
+              height={100}
             />
           </div>
           <p className="text-center text-sm text-gray-300">

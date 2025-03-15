@@ -5,13 +5,12 @@ import Link from "next/link";
 import { useState, useCallback, useEffect, useTransition } from "react";
 import { useUserStore, useRecommendMutateStore } from "@/app/store/store";
 import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { createCartItem, removeFromCart } from "@/app/action/cartAction";
 import { toast } from "sonner";
 import { formatToNaira } from "@/app/utils/getFunc";
 import { trackClick } from "@/app/utils/tracking";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
+import { useCart } from "@/app/hooks/use-cart";
 import { mutate } from "swr";
-import useCartData from "@/app/hooks/useCartData";
 
 // Shadcn components
 import { Card, CardContent, CardFooter } from "@/app/components/ui/card";
@@ -31,35 +30,25 @@ const ProductCard = ({ product, showDelete = false }) => {
   const [variantImages, setVariantImages] = useState([]);
   const [isPending, startTransition] = useTransition();
   const [optimisticIsFavorite, setOptimisticIsFavorite] = useState(false);
-  const [optimisticInCart, setOptimisticInCart] = useState(false);
 
   // Get user data from store
   const user = useUserStore((state) => state.user);
   const userId = user?.id;
 
-  // Use the cart data hook for better synchronization
-  const { cartData, isLoading: cartLoading } = useCartData(userId);
+  // Use the cart hook
+  const { toggleCartItem, isInCart, isCartLoading } = useCart();
 
   const setShouldMutate = useRecommendMutateStore(
     (state) => state.setShouldMutate
   );
 
-  // Check if product is in wishlist or cart
+  // Check if product is in wishlist
   const isInWishlist = user?.wishlist?.includes(product.id);
-
-  // Enhanced cart item check
-  const isInCart = useCallback(() => {
-    if (!cartData?.item || !Array.isArray(cartData.item)) return false;
-    return cartData.item.some(
-      (item) => item.product?.id === product.id || item.product === product.id
-    );
-  }, [cartData?.item, product.id]);
 
   // Set initial states based on user data
   useEffect(() => {
     setOptimisticIsFavorite(isInWishlist);
-    setOptimisticInCart(isInCart());
-  }, [isInWishlist, isInCart]);
+  }, [isInWishlist]);
 
   // Use custom hooks for responsive design
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -82,7 +71,7 @@ const ProductCard = ({ product, showDelete = false }) => {
     await trackClick(userId, product.id);
   }, [userId, product.id]);
 
-  // Handle add to cart action with optimistic update
+  // Handle add to cart action using the cart hook
   const handleAddToCart = useCallback(
     async (e) => {
       e.preventDefault();
@@ -93,56 +82,21 @@ const ProductCard = ({ product, showDelete = false }) => {
         return;
       }
 
-      // Toggle cart state - add or remove based on current status
-      const newCartState = !optimisticInCart;
-
-      // Optimistic UI update
-      setOptimisticInCart(newCartState);
-
-      // Server action with transition
-      startTransition(async () => {
-        try {
-          if (newCartState) {
-            // Add item to cart
-            const newItem = {
-              product: product.id,
-              name: product.name,
-              price: product.price,
-              quantity: 1,
-              image: product.image[0],
-              userId,
-            };
-
-            await createCartItem(userId, newItem);
-            toast.success("Item added to cart");
-          } else {
-            // Remove item from cart
-            // Find the cart item ID first
-            const cartItem = cartData?.item?.find(
-              (item) =>
-                item.product?.id === product.id || item.product === product.id
-            );
-
-            if (cartItem) {
-              await removeFromCart(userId, cartItem.id);
-              toast.success("Item removed from cart");
-            }
-          }
-
-          // Revalidate cart data regardless of action
-          await mutate(`/api/user/${userId}`);
-          await mutate(`/cart/${userId}`);
-        } catch (error) {
-          // Revert optimistic update on error
-          setOptimisticInCart(!newCartState);
-          toast.error(
-            error.message ||
-              `Failed to ${newCartState ? "add to" : "remove from"} cart`
-          );
-        }
-      });
+      try {
+        await toggleCartItem({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: 1,
+          image: product.image[0],
+          userId,
+        });
+      } catch (error) {
+        // Error is handled in the hook
+        console.error("Cart operation failed:", error);
+      }
     },
-    [userId, product, optimisticInCart, cartData]
+    [userId, product, toggleCartItem]
   );
 
   // Handle wishlist toggling with optimistic update
@@ -217,6 +171,9 @@ const ProductCard = ({ product, showDelete = false }) => {
 
   // Control whether to show variants on hover
   const shouldShowVariantsOnHover = supportsHover && isDesktop;
+
+  // Check if the product is in the cart
+  const productInCart = isInCart(product.id);
 
   return (
     <Card className="group relative h-full overflow-hidden rounded-none border-none transition-all duration-300 hover:border hover:shadow-sm">
@@ -332,30 +289,28 @@ const ProductCard = ({ product, showDelete = false }) => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={optimisticInCart ? "default" : "ghost"}
+                      variant={productInCart ? "default" : "ghost"}
                       size="icon"
                       className={`h-8 w-8 rounded-full ${
-                        optimisticInCart
+                        productInCart
                           ? "bg-green-500 hover:bg-green-600"
                           : "bg-muted text-muted-foreground/60 hover:bg-muted/30"
-                      } p-0 ${isPending ? "animate-pulse" : ""}`}
+                      } p-0 ${isCartLoading ? "animate-pulse" : ""}`}
                       onClick={handleAddToCart}
-                      disabled={isPending}
+                      disabled={isCartLoading}
                       aria-label={
-                        optimisticInCart ? "Remove from cart" : "Add to cart"
+                        productInCart ? "Remove from cart" : "Add to cart"
                       }
                     >
                       <ShoppingBag
                         className={`h-4 w-4 ${
-                          optimisticInCart ? "stroke-white" : ""
+                          productInCart ? "stroke-white" : ""
                         }`}
                       />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>
-                      {optimisticInCart ? "Remove from cart" : "Add to cart"}
-                    </p>
+                    <p>{productInCart ? "Remove from cart" : "Add to cart"}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

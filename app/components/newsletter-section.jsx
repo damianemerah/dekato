@@ -1,37 +1,37 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
-import { Label } from '@/app/components/ui/label';
+import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+import { Label } from "@/app/components/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/app/components/ui/card';
-import { Check } from 'lucide-react';
+} from "@/app/components/ui/card";
+import { Check } from "lucide-react";
 
 export default function NewsletterSection() {
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [preference, setPreference] = useState('');
+  const [formError, setFormError] = useState("");
+  const [preference, setPreference] = useState("");
 
   async function subscribeToNewsletter(formData) {
-    setFormError('');
-    const email = formData.get('newsletter');
-    const gender = formData.get('gender');
+    setFormError("");
+    const email = formData.get("newsletter");
+    const gender = formData.get("gender");
 
     if (!email || !gender) {
-      setFormError('Please fill in all required fields');
+      setFormError("Please fill in all required fields");
       return;
     }
 
     try {
-      const res = await fetch('/api/subscribe', {
-        method: 'POST',
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
         body: JSON.stringify({ email, gender }),
       });
 
@@ -40,10 +40,10 @@ export default function NewsletterSection() {
       if (data.success) {
         setIsSubscribed(true);
       } else {
-        setFormError(data.message || 'Something went wrong');
+        setFormError(data.message || "Something went wrong");
       }
     } catch (error) {
-      setFormError('Failed to subscribe. Please try again.');
+      setFormError("Failed to subscribe. Please try again.");
     }
   }
 
@@ -77,11 +77,11 @@ export default function NewsletterSection() {
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="men" id="men" />
-                        <Label htmlFor="men">Men's fashion</Label>
+                        <Label htmlFor="men">Men&apos;s fashion</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="women" id="women" />
-                        <Label htmlFor="women">Women's fashion</Label>
+                        <Label htmlFor="women">Women&apos;s fashion</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="both" id="both" />
@@ -108,7 +108,7 @@ export default function NewsletterSection() {
                       />
                       <Button
                         type="submit"
-                        className="font-oswald bg-primary text-white hover:bg-primary/90"
+                        className="bg-primary font-oswald text-white hover:bg-primary/90"
                       >
                         SUBSCRIBE
                       </Button>
@@ -132,9 +132,9 @@ export default function NewsletterSection() {
                   Thank you for subscribing!
                 </h3>
                 <p className="text-muted-foreground">
-                  You've been added to our mailing list. You'll now receive
-                  updates on new releases, exclusive offers, and a 20% discount
-                  code will be sent to your email shortly.
+                  You&apos;ve been added to our mailing list. You&apos;ll now
+                  receive updates on new releases, exclusive offers, and a 20%
+                  discount code will be sent to your email shortly.
                 </p>
               </div>
             )}
