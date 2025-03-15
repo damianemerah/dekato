@@ -19,7 +19,7 @@ const ProductGallery = memo(function ProductGallery({ product }) {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const carouselRef = useRef(null);
-  const carouselApiRef = useRef(null);
+  const [emblaApi, setEmblaApi] = useState(null);
 
   // For desktop: handle zoom on click
   const handleImageClick = useCallback(() => {
@@ -38,12 +38,42 @@ const ProductGallery = memo(function ProductGallery({ product }) {
     setZoomPosition({ x, y });
   }, []);
 
-  // Disable carousel scroll when zoomed
+  // Handle thumbnail clicks
+  const handleThumbnailClick = useCallback(
+    (index) => {
+      setIsZoomed(false); // Reset zoom when changing image
+      setActiveIndex(index);
+
+      // Directly scroll the carousel if API is available
+      if (emblaApi) {
+        emblaApi.scrollTo(index);
+      }
+    },
+    [emblaApi]
+  );
+
+  // Handle carousel slide changes
+  const handleSelect = useCallback(
+    (api) => {
+      if (!isZoomed) {
+        const currentIndex = api.selectedScrollSnap();
+        setActiveIndex(currentIndex);
+      }
+    },
+    [isZoomed]
+  );
+
+  // Sync carousel with activeIndex when it changes
   useEffect(() => {
-    if (carouselApiRef.current) {
+    if (emblaApi && !isZoomed) {
+      emblaApi.scrollTo(activeIndex);
+    }
+  }, [activeIndex, emblaApi, isZoomed]);
+
+  // Manage zoom effects
+  useEffect(() => {
+    if (emblaApi) {
       if (isZoomed) {
-        // Disable carousel controls when zoomed
-        carouselApiRef.current.scrollTo(activeIndex);
         // Add a class to increase the z-index of the active slide
         const activeSlide = carouselRef.current?.querySelector(
           `[data-carousel-item-index="${activeIndex}"]`
@@ -61,7 +91,7 @@ const ProductGallery = memo(function ProductGallery({ product }) {
         });
       }
     }
-  }, [isZoomed, activeIndex]);
+  }, [isZoomed, activeIndex, emblaApi]);
 
   // For mobile: touch handlers
   const handleTouchStart = useCallback(
@@ -117,10 +147,7 @@ const ProductGallery = memo(function ProductGallery({ product }) {
         {product.image.map((image, index) => (
           <button
             key={index}
-            onClick={() => {
-              setIsZoomed(false); // Reset zoom when changing image
-              setActiveIndex(index);
-            }}
+            onClick={() => handleThumbnailClick(index)}
             className={cn(
               "relative h-20 w-16 shrink-0 overflow-hidden shadow-sm transition-all",
               activeIndex === index ? "ring-2 ring-primary ring-offset-2" : ""
@@ -146,12 +173,8 @@ const ProductGallery = memo(function ProductGallery({ product }) {
           loop: product.image.length > 1,
           dragFree: !isZoomed, // Disable drag when zoomed
         }}
-        onSelect={(api) => {
-          carouselApiRef.current = api;
-          if (!isZoomed) {
-            setActiveIndex(api.selectedScrollSnap());
-          }
-        }}
+        setApi={setEmblaApi}
+        onSelect={handleSelect}
         className={cn(
           "w-full",
           isZoomed && "pointer-events-none" // Disable carousel navigation when zoomed
@@ -231,7 +254,7 @@ const ProductGallery = memo(function ProductGallery({ product }) {
         {product.image.map((_, index) => (
           <button
             key={index}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => handleThumbnailClick(index)}
             className={cn(
               "h-2 w-2 rounded-full transition-all",
               index === activeIndex ? "w-4 bg-primary" : "bg-gray-300"
