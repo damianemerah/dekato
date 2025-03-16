@@ -313,3 +313,86 @@ export async function removeFromCart(userId, cartItemId) {
 
   return formatCartData(updatedCart);
 }
+
+export async function verifyCartItemsAvailability(userId) {
+  await restrictTo("admin", "user");
+  await dbConnect();
+
+  const cart = await Cart.findOne({ userId })
+    .populate({
+      path: "item",
+      populate: {
+        path: "product",
+        select:
+          "name variant image slug price discount discountPrice quantity status",
+      },
+    })
+    .lean({ virtuals: true });
+
+  if (!cart) return { valid: true, items: [] };
+
+  const unavailableItems = [];
+  const lowStockItems = [];
+
+  for (const item of cart.item) {
+    if (!item.product) continue;
+
+    let inStock = true;
+    let isLowStock = false;
+    let availableQuantity = 0;
+
+    if (item.variantId && item.product.variant) {
+      const variant = item.product.variant.find(
+        (v) => v._id.toString() === item.variantId.toString()
+      );
+
+      if (!variant || variant.quantity < item.quantity) {
+        inStock = false;
+        availableQuantity = variant?.quantity || 0;
+      } else if (variant.quantity <= 5 && variant.quantity >= item.quantity) {
+        isLowStock = true;
+        availableQuantity = variant.quantity;
+      }
+    } else {
+      if (
+        item.product.quantity < item.quantity ||
+        item.product.status === "outofstock"
+      ) {
+        inStock = false;
+        availableQuantity = item.product.quantity;
+      } else if (
+        item.product.quantity <= 5 &&
+        item.product.quantity >= item.quantity
+      ) {
+        isLowStock = true;
+        availableQuantity = item.product.quantity;
+      }
+    }
+
+    if (!inStock) {
+      unavailableItems.push({
+        id: item.id,
+        name: item.product.name,
+        image: item.image || item.product.image?.[0],
+        requestedQuantity: item.quantity,
+        availableQuantity,
+        slug: item.product.slug,
+      });
+    } else if (isLowStock) {
+      lowStockItems.push({
+        id: item.id,
+        name: item.product.name,
+        image: item.image || item.product.image?.[0],
+        quantity: item.quantity,
+        availableQuantity,
+        slug: item.product.slug,
+      });
+    }
+  }
+
+  return {
+    valid: unavailableItems.length === 0,
+    unavailableItems,
+    lowStockItems,
+  };
+}

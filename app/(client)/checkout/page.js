@@ -1,28 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import useSWR from 'swr';
-import { InfoCircleOutlined, CheckOutlined } from '@ant-design/icons';
+import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import useSWR from "swr";
+import { InfoCircleOutlined, CheckOutlined } from "@ant-design/icons";
+import { Checkbox } from "@/app/components/ui/checkbox";
 
-import CheckoutProgress from '@/app/components/checkout-progress';
-import { ButtonPrimary, ButtonSecondary } from '@/app/components/button';
-import { SmallSpinner } from '@/app/components/spinner';
-import AddressOption from '@/app/components/checkout/addressForm';
-import { useUserStore } from '@/app/store/store';
-import useUserData from '@/app/hooks/useUserData';
-import useAddressData from '@/app/hooks/useAddressData';
-import usePaymentData from '@/app/hooks/usePaymentData';
-import { getCheckoutData } from '@/app/action/checkoutAction';
-import { updatePaymentMethod } from '@/app/action/paymentAction';
-import { formatToNaira } from '@/app/utils/getFunc';
+import CheckoutProgress from "@/app/components/checkout-progress";
+import { ButtonPrimary, ButtonSecondary } from "@/app/components/button";
+import { SmallSpinner } from "@/app/components/spinner";
+import AddressOption from "@/app/components/checkout/addressForm";
+import { useUserStore } from "@/app/store/store";
+import useUserData from "@/app/hooks/useUserData";
+import useAddressData from "@/app/hooks/useAddressData";
+import usePaymentData from "@/app/hooks/usePaymentData";
+import { getCheckoutData } from "@/app/action/checkoutAction";
+import { updatePaymentMethod } from "@/app/action/paymentAction";
+import { formatToNaira } from "@/app/utils/getFunc";
 
-import StoreIcon from '@/public/assets/icons/store.svg';
-import HomeIcon from '@/public/assets/icons/home.svg';
-import PlusIcon from '@/public/assets/icons/add.svg';
-import { message } from 'antd';
+import StoreIcon from "@/public/assets/icons/store.svg";
+import HomeIcon from "@/public/assets/icons/home.svg";
+import PlusIcon from "@/public/assets/icons/add.svg";
+import { message } from "antd";
 
 function PaymentOption({
   paymentMethods,
@@ -39,7 +40,7 @@ function PaymentOption({
       setSelectedPaymentMethod(paymentMethodId);
       await mutatePaymentData();
     } catch (error) {
-      console.error('Error updating payment method:', error);
+      console.error("Error updating payment method:", error);
     } finally {
       setIsUpdatingPayment(false);
     }
@@ -56,15 +57,15 @@ function PaymentOption({
             key={paymentMethod.id}
             className={`flex cursor-pointer items-center justify-between p-4 transition-all duration-300 ${
               selectedPaymentMethod === paymentMethod.id
-                ? 'border-2 border-primary bg-blue-50'
-                : 'border border-gray-200 hover:border-primary'
+                ? "border-2 border-primary bg-blue-50"
+                : "border border-gray-200 hover:border-primary"
             }`}
             onClick={() => handlePaymentMethodSelect(paymentMethod.id)}
           >
             <div className="flex items-center gap-4">
               <div>
                 <p className="font-semibold tracking-wide text-primary">
-                  {paymentMethod.authorization.card_type} ****{' '}
+                  {paymentMethod.authorization.card_type} ****{" "}
                   {paymentMethod.authorization.last4}
                 </p>
                 <p className="text-gray-600">
@@ -85,8 +86,8 @@ function PaymentOption({
           onClick={() => setSelectedPaymentMethod(null)}
           className={`flex w-full cursor-pointer items-center justify-between border p-4 transition-all duration-300 ${
             !selectedPaymentMethod
-              ? 'border-2 border-primary bg-blue-50'
-              : 'border-gray-200 hover:border-primary'
+              ? "border-2 border-primary bg-blue-50"
+              : "border-gray-200 hover:border-primary"
           }`}
           type="button"
         >
@@ -124,7 +125,7 @@ export default function CheckoutPage() {
   const { userData: user, isLoading: userIsLoading } = useUserData(userId);
 
   const { data: checkoutData, isLoading: checkoutIsLoading } = useSWR(
-    userId ? '/checkout-data' : null,
+    userId ? "/checkout-data" : null,
     () => userId && getCheckoutData(userId),
     {
       revalidateOnFocus: true,
@@ -168,9 +169,9 @@ export default function CheckoutPage() {
     try {
       if (data.items.length > 0) {
         const res = await fetch(`/api/checkout/${user.id}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
         });
@@ -181,7 +182,7 @@ export default function CheckoutPage() {
           window.location.href = response.data.payment.data.authorization_url;
         }
         if (!response.success) {
-          throw new Error(response.message || 'Something went wrong');
+          throw new Error(response.message || "Something went wrong");
         }
       }
     } catch (error) {
@@ -195,14 +196,14 @@ export default function CheckoutPage() {
     <div
       className={`flex cursor-pointer items-center justify-between p-4 transition-all duration-300 ${
         deliveryMethod === method
-          ? 'border-2 border-primary bg-blue-50'
-          : 'border border-gray-200 hover:border-primary'
+          ? "border-2 border-primary bg-blue-50"
+          : "border border-gray-200 hover:border-primary"
       }`}
       onClick={() => handleDeliveryMethodClick(method)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           handleDeliveryMethodClick(method);
         }
       }}
@@ -221,7 +222,7 @@ export default function CheckoutPage() {
   const renderAddress = (address) => {
     const defaultAddress = address?.find((add) => add.isDefault);
 
-    if (defaultAddress && deliveryMethod === 'delivery') {
+    if (defaultAddress && deliveryMethod === "delivery") {
       return (
         <div className="flex items-center justify-between border border-primary px-6 py-4 text-sm">
           <div className="flex items-center gap-4">
@@ -240,7 +241,7 @@ export default function CheckoutPage() {
                   defaultAddress?.country,
                 ]
                   .filter(Boolean)
-                  .join(', ')}
+                  .join(", ")}
               </p>
             </div>
           </div>
@@ -255,7 +256,7 @@ export default function CheckoutPage() {
       );
     }
 
-    if (deliveryMethod === 'delivery') {
+    if (deliveryMethod === "delivery") {
       return (
         <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-6">
           <p className="text-gray-600">No address found</p>
@@ -311,7 +312,7 @@ export default function CheckoutPage() {
           )}
           <div className="flex items-center justify-between">
             <p className="font-medium text-gray-600">
-              {`${item.quantity} item${item.quantity > 1 ? 's' : ''}`}
+              {`${item.quantity} item${item.quantity > 1 ? "s" : ""}`}
             </p>
             <p className="mr-4 flex flex-col items-center justify-center text-primary">
               {item?.product?.isDiscounted && (
@@ -374,18 +375,18 @@ export default function CheckoutPage() {
               </h2>
               <div className="mx-auto max-w-[320px] space-y-4 text-sm">
                 {renderDeliveryMethod(
-                  'delivery',
+                  "delivery",
                   <HomeIcon className="h-8 w-8 stroke-2 text-primary" />,
-                  'Home or work address',
-                  '4 - 7 days',
-                  'FREE'
+                  "Home or work address",
+                  "4 - 7 days",
+                  "FREE"
                 )}
                 {renderDeliveryMethod(
-                  'pickup',
+                  "pickup",
                   <StoreIcon className="h-8 w-8 stroke-2 text-primary" />,
-                  'Store pickup',
-                  '2 - 16 days',
-                  'FREE'
+                  "Store pickup",
+                  "2 - 16 days",
+                  "FREE"
                 )}
               </div>
 
@@ -394,7 +395,7 @@ export default function CheckoutPage() {
               </h2>
               {renderAddress(address)}
 
-              {deliveryMethod === 'delivery' && (
+              {deliveryMethod === "delivery" && (
                 <AddressOption
                   changeAddress={changeAddress}
                   setChangeAddress={setChangeAddress}
@@ -421,7 +422,7 @@ export default function CheckoutPage() {
               <div className="mb-4 flex items-center justify-between pb-4">
                 <h2 className="text-xl font-semibold text-primary">
                   {`${checkoutData?.itemCount || 0} Item${
-                    checkoutData?.itemCount > 1 ? 's' : ''
+                    checkoutData?.itemCount > 1 ? "s" : ""
                   }`}
                 </h2>
                 <Link
@@ -459,10 +460,9 @@ export default function CheckoutPage() {
               {!selectedPaymentMethod && (
                 <div className="mt-4">
                   <label className="flex items-center">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       name="saveCard"
-                      className="mr-2 h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 checked:border-primary checked:bg-primary checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+                      className="mr-2 h-5 w-5 cursor-pointer"
                     />
                     <span className="text-sm text-gray-600">
                       Save card for future purchases
@@ -473,7 +473,7 @@ export default function CheckoutPage() {
 
               <div className="mt-6">
                 <ButtonPrimary
-                  className="w-full bg-secondary py-3 text-sm font-medium tracking-wider"
+                  className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90"
                   onClick={handlePayment}
                   disabled={isProcessingPayment}
                 >
@@ -483,7 +483,7 @@ export default function CheckoutPage() {
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    'Review & Pay'
+                    "Review & Pay"
                   )}
                 </ButtonPrimary>
               </div>

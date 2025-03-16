@@ -1,28 +1,44 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import DeleteIcon from '@/public/assets/icons/remove.svg';
+import Image from "next/image";
+import DeleteIcon from "@/public/assets/icons/remove.svg";
 import {
   removeFromCart,
   updateCartItemQuantity,
   updateCartItemChecked,
   selectAllCart,
-} from '@/app/action/cartAction';
-import { mutate } from 'swr';
-import Link from 'next/link';
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { message } from 'antd';
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { SmallSpinner } from '@/app/components/spinner';
-import { useSession } from 'next-auth/react';
-import { formatToNaira } from '@/app/utils/getFunc';
+} from "@/app/action/cartAction";
+import { mutate } from "swr";
+import Link from "next/link";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { message } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { SmallSpinner } from "@/app/components/spinner";
+import { useSession } from "next-auth/react";
+import { formatToNaira } from "@/app/utils/getFunc";
+import { Checkbox } from "@/app/components/ui/checkbox";
 
-const CartCard = ({ cartItem }) => {
+const CartCard = ({ cartItem, stockStatus }) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [quantity, setQuantity] = useState(cartItem.quantity.toString() || '');
+  const [quantity, setQuantity] = useState(cartItem.quantity.toString() || "");
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
+
+  // Check stock status of this cart item
+  const isUnavailable = stockStatus?.unavailableItems?.some(
+    (item) => item.id === cartItem.id
+  );
+
+  const isLowStock = stockStatus?.lowStockItems?.some(
+    (item) => item.id === cartItem.id
+  );
+
+  const availableItem = isUnavailable
+    ? stockStatus.unavailableItems.find((item) => item.id === cartItem.id)
+    : isLowStock
+      ? stockStatus.lowStockItems.find((item) => item.id === cartItem.id)
+      : null;
 
   const handleCheckboxChange = async () => {
     setIsLoading(true);
@@ -39,7 +55,20 @@ const CartCard = ({ cartItem }) => {
   };
 
   const updateQuantity = async (newQuantity) => {
-    if (newQuantity === '' || parseInt(newQuantity) < 1) return;
+    if (newQuantity === "" || parseInt(newQuantity) < 1) return;
+
+    // Check against available quantity if item is unavailable
+    if (
+      isUnavailable &&
+      availableItem &&
+      parseInt(newQuantity) > availableItem.availableQuantity
+    ) {
+      newQuantity = availableItem.availableQuantity.toString();
+      message.warning(
+        `Only ${availableItem.availableQuantity} item(s) available in stock.`
+      );
+    }
+
     setIsLoading(true);
     try {
       const updatedCart = await updateCartItemQuantity({
@@ -64,8 +93,8 @@ const CartCard = ({ cartItem }) => {
 
   const handleQuantityBlur = async () => {
     if (quantity !== previousQuantityRef.current) {
-      if (quantity === '' || parseInt(quantity) < 1) {
-        await updateQuantity('1');
+      if (quantity === "" || parseInt(quantity) < 1) {
+        await updateQuantity("1");
       } else {
         await updateQuantity(quantity);
       }
@@ -80,12 +109,25 @@ const CartCard = ({ cartItem }) => {
         </div>
       )}
       <div className="relative flex w-full flex-nowrap items-start border-b border-b-gray-300 bg-white px-3 py-4 text-sm sm:px-4 sm:py-6">
+        {/* Stock status badges */}
+        {isUnavailable && (
+          <div className="absolute right-2 top-2 z-10 rounded-md bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+            Out of Stock
+          </div>
+        )}
+
+        {isLowStock && !isUnavailable && (
+          <div className="absolute right-2 top-2 z-10 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+            Low Stock
+          </div>
+        )}
+
         <div className="flex items-start">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={cartItem.checked}
-            onChange={handleCheckboxChange}
-            className="mr-2 h-5 w-5 cursor-pointer appearance-none self-center border border-gray-300 checked:border-gray-900 checked:bg-primary checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
+            onCheckedChange={handleCheckboxChange}
+            className="mr-2 h-5 w-5 cursor-pointer self-center"
+            disabled={isUnavailable}
           />
           <div className="w-[80px] sm:w-[120px]">
             <Link
@@ -144,6 +186,22 @@ const CartCard = ({ cartItem }) => {
               ))}
           </div>
 
+          {/* Stock warning message */}
+          {isUnavailable && availableItem && (
+            <div className="text-xs text-red-600">
+              <p>
+                Only {availableItem.availableQuantity} available. Please update
+                quantity.
+              </p>
+            </div>
+          )}
+
+          {isLowStock && availableItem && !isUnavailable && (
+            <div className="text-xs text-amber-600">
+              <p>Only {availableItem.availableQuantity} left in stock.</p>
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-2 sm:flex-row">
             <div className="flex items-center">
               <p className="mr-2 text-xs text-gray-600 sm:mr-3 sm:text-sm">
@@ -161,7 +219,7 @@ const CartCard = ({ cartItem }) => {
                 </button>
                 <input
                   type="number"
-                  value={quantity || ''}
+                  value={quantity || ""}
                   onChange={(e) => handleQuantityChange(e.target.value)}
                   onBlur={handleQuantityBlur}
                   className="w-10 text-center text-sm font-medium [appearance:textfield] focus:outline-none sm:w-12 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -198,7 +256,7 @@ const CartCard = ({ cartItem }) => {
   );
 };
 
-export default function CartCards({ products }) {
+export default function CartCards({ products, stockStatus }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const [selectAll, setSelectAll] = useState(false);
@@ -232,12 +290,11 @@ export default function CartCards({ products }) {
       )}
       <div className="flex w-full flex-col bg-white">
         <div className="mt-2 flex items-center px-4 py-3">
-          <input
-            type="checkbox"
+          <Checkbox
             id="select-all-cart"
             checked={selectAll !== undefined ? selectAll : false}
-            onChange={handleSelectAll}
-            className="mr-2 h-5 w-5 cursor-pointer appearance-none border border-gray-300 checked:border-gray-900 checked:bg-gray-900 checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none"
+            onCheckedChange={handleSelectAll}
+            className="mr-2 h-5 w-5 cursor-pointer"
           />
           <label
             htmlFor="select-all-cart"
@@ -256,7 +313,11 @@ export default function CartCards({ products }) {
           </div>
         </div>
         {memoizedProducts?.map((product) => (
-          <CartCard key={product.id} cartItem={product} />
+          <CartCard
+            key={product.id}
+            cartItem={product}
+            stockStatus={stockStatus}
+          />
         ))}
       </div>
     </div>
