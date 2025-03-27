@@ -1,44 +1,32 @@
-'use client';
-import { ButtonSecondary } from '@/app/components/button';
-import Wishlist from '@/app/components/account/wishlist/wishlist';
-import useSWR from 'swr';
-import { getWishlist, removeFromWishlist } from '@/app/action/userAction';
-import { SmallSpinner } from '@/app/components/spinner';
-import { useSession } from 'next-auth/react';
-import useUserData from '@/app/hooks/useUserData';
-import Link from 'next/link';
-import { createCartItem } from '@/app/action/cartAction';
-import { mutate } from 'swr';
-import { message } from 'antd';
-import { useState } from 'react';
+"use client";
+import { ButtonSecondary } from "@/app/components/button";
+import Wishlist from "@/app/components/account/wishlist/wishlist";
+import { removeFromWishlist } from "@/app/action/userAction";
+import { SmallSpinner } from "@/app/components/spinner";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { createCartItem } from "@/app/action/cartAction";
+import { mutate } from "swr";
+import { message } from "antd";
+import { useState, useEffect } from "react";
 
-const fetcher = async (id) => {
-  const res = await getWishlist(id);
-  return res;
-};
-
-export default function WishlistPage() {
+export default function WishlistPageClient({ initialWishlistProducts }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const { userData: user, isLoading: userIsLoading } = useUserData(userId);
-  const wishlist = user?.wishlist || [];
   const [isAddingAll, setIsAddingAll] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    data: products,
-    isLoading,
-    mutate: mutateWishlist,
-  } = useSWR(
-    wishlist?.length > 0 ? `/account/wishlist/${user.id}` : null,
-    () => fetcher(user.id),
-    {
-      revalidateOnFocus: false,
+  useEffect(() => {
+    if (initialWishlistProducts) {
+      setProducts(initialWishlistProducts);
+      setIsLoading(false);
     }
-  );
+  }, [initialWishlistProducts]);
 
   const addAllToCart = async () => {
     if (!userId) {
-      message.error('Please login to add to cart');
+      message.error("Please login to add to cart");
       return;
     }
     setIsAddingAll(true);
@@ -57,16 +45,17 @@ export default function WishlistPage() {
       }
       await mutate(`/api/user/${userId}`);
       await mutate(`/cart/${userId}`);
-      await mutateWishlist();
-      message.success('All items added to cart');
+      // Update local state
+      setProducts([]);
+      message.success("All items added to cart");
     } catch (error) {
-      message.error('Failed to add all items to cart');
+      message.error("Failed to add all items to cart");
     } finally {
       setIsAddingAll(false);
     }
   };
 
-  if (isLoading || userIsLoading)
+  if (isLoading)
     return (
       <div className="flex h-screen items-center justify-center">
         <SmallSpinner className="!text-primary" />
@@ -116,18 +105,18 @@ export default function WishlistPage() {
         </h1>
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <ButtonSecondary
-            className={`w-full border-2 border-secondary bg-grayBg px-4 py-2 font-oswald text-xs uppercase text-grayText transition-colors duration-300 hover:bg-gray-200 hover:text-primary sm:w-auto sm:text-sm`}
+            className={`bg-grayBg text-grayText w-full border-2 border-secondary px-4 py-2 font-oswald text-xs uppercase transition-colors duration-300 hover:bg-gray-200 hover:text-primary sm:w-auto sm:text-sm`}
             onClick={addAllToCart}
             disabled={isAddingAll}
           >
             {isAddingAll ? (
               <SmallSpinner className="!text-grayText" />
             ) : (
-              'Add all to cart'
+              "Add all to cart"
             )}
           </ButtonSecondary>
           <ButtonSecondary
-            className={`w-full border-2 border-secondary bg-grayBg px-4 py-2 font-oswald text-xs uppercase text-grayText transition-colors duration-300 hover:bg-gray-200 hover:text-primary sm:w-auto sm:text-sm`}
+            className={`bg-grayBg text-grayText w-full border-2 border-secondary px-4 py-2 font-oswald text-xs uppercase transition-colors duration-300 hover:bg-gray-200 hover:text-primary sm:w-auto sm:text-sm`}
           >
             Share Wishlist
           </ButtonSecondary>
@@ -135,7 +124,13 @@ export default function WishlistPage() {
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
         {products?.map((product) => (
-          <Wishlist key={product.id} product={product} />
+          <Wishlist
+            key={product.id}
+            product={product}
+            onRemove={(productId) => {
+              setProducts((prev) => prev.filter((p) => p.id !== productId));
+            }}
+          />
         ))}
       </div>
     </div>

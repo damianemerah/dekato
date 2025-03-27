@@ -1,33 +1,19 @@
 // import OrderList from "@/app/ui/account/orders/OrderCard";
 // React and Next.js imports
-import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { unstable_cache } from 'next/cache';
+import Link from "next/link";
+import { unstable_cache } from "next/cache";
 
 // Auth imports
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from "@/app/lib/auth";
 
 // Database imports
-import Order from '@/models/order';
-import dbConnect from '@/app/lib/mongoConnection';
+import Order from "@/models/order";
+import dbConnect from "@/app/lib/mongoConnection";
 
 // UI Components
-import { SmallSpinner } from '@/app/components/spinner';
-import { ButtonSecondary } from '@/app/components/button';
-import { ShoppingOutlined } from '@ant-design/icons';
-
-const OrderList = dynamic(
-  () => import('@/app/components/account/orders/OrderCard'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
-        <SmallSpinner className="!text-primary" />
-      </div>
-    ),
-  }
-);
+import { ButtonSecondary } from "@/app/components/button";
+import { ShoppingOutlined } from "@ant-design/icons";
+import OrderListClient from "@/app/components/account/orders/OrderCard";
 
 const getOrders = unstable_cache(
   async (userId) => {
@@ -51,13 +37,17 @@ const getOrders = unstable_cache(
       };
     });
   },
-  ['orders'],
+  ["orders"],
   { revalidate: 10 }
 );
 
-export default async function Orders() {
-  const session = await getServerSession(authOptions);
+export default async function OrdersPage() {
+  const session = await auth();
   const userId = session?.user?.id;
+
+  if (!userId) {
+    return <div>Authentication Required.</div>;
+  }
 
   const orders = await getOrders(userId);
 
@@ -79,5 +69,5 @@ export default async function Orders() {
     );
   }
 
-  return <OrderList orders={orders} />;
+  return <OrderListClient orders={orders} />;
 }

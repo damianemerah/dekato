@@ -1,26 +1,34 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { ButtonPrimary } from "@/app/components/button";
 import { InputType } from "@/app/components/inputType";
 import { Modal, message } from "antd";
-import { updateUserAddress, createUserAddress } from "@/app/action/userAction";
+import {
+  updateUserAddress,
+  createUserAddress,
+  getUserAddress,
+} from "@/app/action/userAction";
 import { mutate } from "swr";
 import { SmallSpinner } from "@/app/components/spinner";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import EditIcon from "@/public/assets/icons/edit.svg";
-import useAddressData from "@/app/hooks/useAddressData";
 import { useSession } from "next-auth/react";
 
-export default function Address() {
+export default function Address({ initialAddressData }) {
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef(null);
   const [editingAddress, setEditingAddress] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const { addressData: addresses, isLoading: AddressIsLoading } =
-    useAddressData(userId);
+  const [addresses, setAddresses] = useState([]);
+
+  useEffect(() => {
+    if (initialAddressData) {
+      setAddresses(initialAddressData);
+    }
+  }, [initialAddressData]);
 
   const toggleForm = useCallback(() => {
     setShowForm((prev) => !prev);
@@ -42,6 +50,14 @@ export default function Address() {
           await mutate(`/api/userAddress/${userId}`);
           message.success("Address updated successfully");
 
+          // Update local state
+          setAddresses((prev) =>
+            prev.map((addr) => ({
+              ...addr,
+              isDefault: addr.id === data,
+            }))
+          );
+
           return;
         }
         data.append("userId", userId);
@@ -54,6 +70,10 @@ export default function Address() {
         await mutate(`/api/user/${userId}`);
         await mutate(`/api/userAddress/${userId}`);
         message.success("Address updated successfully");
+
+        // Refresh data by reusing initialAddressData
+        const updatedData = await getUserAddress(userId);
+        setAddresses(updatedData);
       } catch (error) {
         console.error("Error updating address:", error);
         message.error("Failed to update address. Please try again.");
@@ -81,6 +101,10 @@ export default function Address() {
         await mutate(`/api/userAddress/${userId}`);
 
         message.success("Address added successfully");
+
+        // Refresh data
+        const updatedData = await getUserAddress(userId);
+        setAddresses(updatedData);
 
         // Reset form by clearing all input fields
         formRef.current.reset();

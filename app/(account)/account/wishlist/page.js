@@ -1,14 +1,16 @@
-import dynamic from 'next/dynamic';
-import { SmallSpinner } from '@/app/components/spinner';
+import { auth } from "@/app/lib/auth";
+import { getWishlist } from "@/app/action/userAction";
+import WishlistPageClient from "@/app/components/account/wishlist/wishlists";
 
-const Wishlist = dynamic(
-  () => import('@/app/components/account/wishlist/wishlists'),
-  {
-    ssr: false,
-    loading: () => <SmallSpinner className="!text-primary" />,
+export default async function WishlistPage() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return <div>Authentication Required.</div>;
   }
-);
 
-export default function WishlistPage() {
-  return <Wishlist />;
+  const wishlistProducts = await getWishlist(userId);
+
+  return <WishlistPageClient initialWishlistProducts={wishlistProducts} />;
 }

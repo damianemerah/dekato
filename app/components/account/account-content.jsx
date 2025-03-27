@@ -1,35 +1,19 @@
-'use client';
-import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import useUserData from '@/app/hooks/useUserData';
-import useAddressData from '@/app/hooks/useAddressData';
-import useOrders from '@/app/hooks/useOrders';
-import Image from 'next/image';
-import { Button } from '@/app/components/ui/button';
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/app/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from '@/app/components/ui/card';
-import { Loader2 } from 'lucide-react';
+} from "@/app/components/ui/card";
 
-export default function Overview() {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
-  const { userData: user, isLoading: userIsLoading } = useUserData(userId);
-  const { addressData: address } = useAddressData(userId);
-  const defaultAddress = address?.find((address) => address.isDefault);
-  const { orders, isLoading: ordersLoading } = useOrders(userId, 3);
-
-  if (userIsLoading || ordersLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+export default function AccountContent({
+  userData,
+  defaultAddress,
+  recentOrders,
+}) {
   return (
     <div className="space-y-8">
       <Card>
@@ -43,9 +27,9 @@ export default function Overview() {
             <h3 className="mb-2 font-medium">Personal Information</h3>
             <div className="rounded-md bg-gray-50 p-4">
               <p className="mb-1 font-medium">
-                {user?.firstname} {user?.lastname}
+                {userData?.firstname} {userData?.lastname}
               </p>
-              <p className="text-gray-600">{user?.email}</p>
+              <p className="text-gray-600">{userData?.email}</p>
               <div className="mt-4">
                 <Link href="/account/settings">
                   <Button variant="outline" size="sm">
@@ -60,13 +44,15 @@ export default function Overview() {
             <div className="mb-6">
               <h3 className="mb-2 font-medium">Default Shipping Address</h3>
               <div className="rounded-md bg-gray-50 p-4">
-                <p className="mb-1 font-medium">{defaultAddress.name}</p>
-                <p className="text-gray-600">{defaultAddress.street}</p>
-                <p className="text-gray-600">
-                  {defaultAddress.city}, {defaultAddress.state}{' '}
-                  {defaultAddress.zip}
+                <p className="mb-1 font-medium">
+                  {defaultAddress.firstname} {defaultAddress.lastname}
                 </p>
-                <p className="text-gray-600">{defaultAddress.country}</p>
+                <p className="text-gray-600">{defaultAddress.address}</p>
+                <p className="text-gray-600">
+                  {defaultAddress.city}, {defaultAddress.state}{" "}
+                  {defaultAddress.postalCode}
+                </p>
+                <p className="text-gray-600">{defaultAddress.phone}</p>
                 <div className="mt-4">
                   <Link href="/account/address">
                     <Button variant="outline" size="sm">
@@ -90,18 +76,21 @@ export default function Overview() {
           </Link>
         </CardHeader>
         <CardContent>
-          {orders?.length > 0 ? (
+          {recentOrders?.length > 0 ? (
             <div className="space-y-4">
-              {orders.map((order) => (
-                <div key={order.id} className="rounded-md border p-4">
+              {recentOrders.map((order) => (
+                <div
+                  key={order.id || order._id.toString()}
+                  className="rounded-md border p-4"
+                >
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 flex-shrink-0">
                       <Image
                         src={
                           order.product?.[0]?.image ||
-                          '/placeholder.svg?height=80&width=80'
+                          "/placeholder.svg?height=80&width=80"
                         }
-                        alt={order.product?.[0]?.name || 'Product image'}
+                        alt={order.product?.[0]?.name || "Product image"}
                         width={80}
                         height={80}
                         className="h-full w-full rounded-md object-cover object-center"
@@ -118,7 +107,7 @@ export default function Overview() {
                         <p className="font-medium">${order.total}</p>
                         <p className="text-sm text-gray-600">{order.status}</p>
                         <Link
-                          href={`/account/orders/${order.id}`}
+                          href={`/account/orders/${order.id || order._id.toString()}`}
                           className="mt-2 inline-block text-sm text-primary hover:underline"
                         >
                           View Details

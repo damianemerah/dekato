@@ -1,14 +1,16 @@
-import dynamic from 'next/dynamic';
-import { SmallSpinner } from '@/app/components/spinner';
+import { auth } from "@/app/lib/auth";
+import { getPaymentMethod } from "@/app/action/paymentAction";
+import Payment from "@/app/components/account/payment/payment";
 
-const Payment = dynamic(
-  () => import('@/app/components/account/payment/payment'),
-  {
-    ssr: false,
-    loading: () => <SmallSpinner className="!text-primary" />,
+export default async function PaymentPage() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return <div>Authentication Required.</div>;
   }
-);
 
-export default function PaymentPage() {
-  return <Payment />;
+  const paymentMethods = await getPaymentMethod(userId);
+
+  return <Payment initialPaymentMethods={paymentMethods} />;
 }

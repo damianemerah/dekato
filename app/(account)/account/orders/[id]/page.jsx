@@ -1,18 +1,24 @@
-import dynamic from 'next/dynamic';
-import { SmallSpinner } from '@/app/components/spinner';
+import { auth } from "@/app/lib/auth";
+import { getOrderById } from "@/app/action/orderAction";
+import { notFound } from "next/navigation";
+import OrderDetailClient from "@/app/components/account/orders/order-detail";
 
-const OrderDetail = dynamic(
-  () => import('@/app/components/account/orders/order-detail'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
-        <SmallSpinner className="!text-primary" />
-      </div>
-    ),
+export default async function OrderDetailPage({ params }) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return <div>Authentication Required.</div>;
   }
-);
 
-export default function OrderDetailPage({ params }) {
-  return <OrderDetail params={params} />;
+  const order = await getOrderById(params.id);
+
+  if (
+    !order ||
+    (order.userId.toString() !== session.user.id &&
+      session.user.role !== "admin")
+  ) {
+    notFound();
+  }
+
+  return <OrderDetailClient orderData={order} />;
 }

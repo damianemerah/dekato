@@ -1,14 +1,30 @@
-import dynamic from 'next/dynamic';
-import { SmallSpinner } from '@/app/components/spinner';
+import { auth } from "@/app/lib/auth";
+import { getUser, getUserAddress } from "@/app/action/userAction";
+import { getUserOrders } from "@/app/action/orderAction";
+import AccountContent from "@/app/components/account/account-content";
 
-const AccountContent = dynamic(
-  () => import('@/app/components/account/account-content'),
-  {
-    ssr: false,
-    loading: () => <SmallSpinner className="!text-primary" />,
+export default async function AccountPage() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return <div>Authentication Required.</div>;
   }
-);
 
-export default function AccountPage() {
-  return <AccountContent />;
+  // Fetch data concurrently
+  const [userData, addressData, ordersData] = await Promise.all([
+    getUser(userId),
+    getUserAddress(userId),
+    getUserOrders(userId),
+  ]);
+
+  const defaultAddress = addressData?.find((addr) => addr.isDefault);
+
+  return (
+    <AccountContent
+      userData={userData}
+      defaultAddress={defaultAddress}
+      recentOrders={ordersData}
+    />
+  );
 }
