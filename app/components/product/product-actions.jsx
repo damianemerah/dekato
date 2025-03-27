@@ -7,6 +7,7 @@ import { MinusCircle, PlusCircle, ShoppingBag } from "lucide-react";
 import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
 import { SmallSpinner } from "@/app/components/spinner";
 import { cn } from "@/app/lib/utils";
+import { ButtonPrimary } from "../button";
 
 const ProductActions = memo(function ProductActions({
   product,
@@ -109,9 +110,9 @@ const ProductActions = memo(function ProductActions({
             </a>
           </Button>
 
-          <Button
+          <ButtonPrimary
             variant="default"
-            className="flex h-12 w-full items-center justify-center bg-secondary hover:bg-secondary/90"
+            className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90"
             onClick={onAddToCart}
             disabled={isPending || isOutOfStock}
           >
@@ -123,7 +124,7 @@ const ProductActions = memo(function ProductActions({
                 <span>Add to Bag</span>
               </>
             )}
-          </Button>
+          </ButtonPrimary>
         </div>
       </CardContent>
     </Card>
