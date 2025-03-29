@@ -1,14 +1,14 @@
-"use client";
-import { ButtonSecondary } from "@/app/components/button";
-import Wishlist from "@/app/components/account/wishlist/wishlist";
-import { removeFromWishlist } from "@/app/action/userAction";
-import { SmallSpinner } from "@/app/components/spinner";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { createCartItem } from "@/app/action/cartAction";
-import { mutate } from "swr";
-import { message } from "antd";
-import { useState, useEffect } from "react";
+'use client';
+import { ButtonSecondary } from '@/app/components/button';
+import Wishlist from '@/app/components/account/wishlist/wishlist';
+import { removeFromWishlist } from '@/app/action/userAction';
+import { SmallSpinner } from '@/app/components/spinner';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { createCartItem } from '@/app/action/cartAction';
+import { mutate } from 'swr';
+import { message } from 'antd';
+import { useState, useEffect } from 'react';
 
 export default function WishlistPageClient({ initialWishlistProducts }) {
   const { data: session } = useSession();
@@ -26,7 +26,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
 
   const addAllToCart = async () => {
     if (!userId) {
-      message.error("Please login to add to cart");
+      message.error('Please login to add to cart');
       return;
     }
     setIsAddingAll(true);
@@ -47,9 +47,9 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
       await mutate(`/cart/${userId}`);
       // Update local state
       setProducts([]);
-      message.success("All items added to cart");
+      message.success('All items added to cart');
     } catch (error) {
-      message.error("Failed to add all items to cart");
+      message.error('Failed to add all items to cart');
     } finally {
       setIsAddingAll(false);
     }
@@ -112,7 +112,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
             {isAddingAll ? (
               <SmallSpinner className="!text-grayText" />
             ) : (
-              "Add all to cart"
+              'Add all to cart'
             )}
           </ButtonSecondary>
           <ButtonSecondary

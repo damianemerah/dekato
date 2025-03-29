@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server';
-import { EmailSubscription } from '@/models/subscription';
-import dbConnect from '@/app/lib/mongoConnection';
-import Email from '@/app/lib/email';
-import { revalidateTag, revalidatePath } from 'next/cache';
+import { NextResponse } from "next/server";
+import { EmailSubscription } from "@/models/subscription";
+import dbConnect from "@/app/lib/mongoConnection";
+import Email from "@/app/lib/email";
+import { revalidateTag, revalidatePath } from "next/cache";
 
+// These handlers have been migrated to Server Actions in app/action/subscriptionAction.js
+// They are preserved here for reference, but should be considered deprecated.
+
+/*
 export async function POST(req) {
   try {
     await dbConnect();
@@ -66,10 +70,12 @@ export async function POST(req) {
     );
   }
 }
+*/
 
+// The GET handler is kept active as it's used for data retrieval, not state changes
 export async function GET(req) {
   const { searchParams } = req.nextUrl;
-  const email = searchParams.get('email');
+  const email = searchParams.get("email");
 
   try {
     await dbConnect();
@@ -89,15 +95,16 @@ export async function GET(req) {
       );
     }
 
-    return NextResponse.json({ success: false, message: 'Invalid request' });
+    return NextResponse.json({ success: false, message: "Invalid request" });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: 'Error processing request' },
+      { success: false, message: "Error processing request" },
       { status: 500 }
     );
   }
 }
 
+/*
 export async function PATCH(req) {
   try {
     await dbConnect();
@@ -195,3 +202,4 @@ export async function DELETE(req) {
     console.error('Error deleting subscription:', error);
   }
 }
+*/

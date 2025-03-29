@@ -22,6 +22,8 @@ function formatCollections(collections) {
 }
 
 export async function getAllCollections(params) {
+  // No authorization check needed as this is a public endpoint
+
   await dbConnect();
 
   try {
@@ -66,9 +68,9 @@ export async function getAllCollections(params) {
 
 export async function createCollection(formData) {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const body = await handleFormData(formData);
 
     const collection = await Campaign.create(body);
@@ -90,9 +92,9 @@ export async function createCollection(formData) {
 
 export async function updateCollection(formData) {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const id = formData.get('id');
     const data = await handleFormData(formData, Campaign, id);
     const body = Object.fromEntries(
@@ -126,9 +128,9 @@ export async function updateCollection(formData) {
 
 export async function deleteCollection(id) {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const deletedCollection = await Campaign.findByIdAndDelete(id).lean({
       virtuals: true,
     });
@@ -149,9 +151,9 @@ export async function deleteCollection(id) {
 
 export const addProductToCollection = async (collectionId, productId) => {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const collection = await Campaign.findById(collectionId);
     const product = await Product.findById(productId);
 
@@ -177,6 +179,8 @@ export const addProductToCollection = async (collectionId, productId) => {
 };
 
 export async function getSaleCollections() {
+  // No authorization check needed as this is a public endpoint
+
   await dbConnect();
 
   try {

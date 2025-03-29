@@ -1,6 +1,6 @@
-import { auth } from "@/app/lib/auth";
-import { getPaymentMethod } from "@/app/action/paymentAction";
-import Payment from "@/app/components/account/payment/payment";
+import { auth } from '@/app/lib/auth';
+import { getPaymentMethod } from '@/app/action/paymentAction';
+import Payment from '@/app/components/account/payment/payment';
 
 export default async function PaymentPage() {
   const session = await auth();

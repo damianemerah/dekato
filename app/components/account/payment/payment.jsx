@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { SmallSpinner } from "@/app/components/spinner";
-import { CloseOutlined } from "@ant-design/icons";
-import { deletePaymentMethod } from "@/app/action/paymentAction";
-import { message } from "antd";
-import { mutate } from "swr";
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { SmallSpinner } from '@/app/components/spinner';
+import { CloseOutlined } from '@ant-design/icons';
+import { deletePaymentMethod } from '@/app/action/paymentAction';
+import { message } from 'antd';
+import { mutate } from 'swr';
 
 export default function Payment({ initialPaymentMethods }) {
   const { data: session } = useSession();
@@ -29,10 +29,10 @@ export default function Payment({ initialPaymentMethods }) {
       // Update local state
       setPaymentMethods((prev) => prev.filter((item) => item.id !== paymentId));
 
-      message.success("Payment method deleted successfully");
+      message.success('Payment method deleted successfully');
     } catch (error) {
       console.log(error);
-      message.error("Failed to delete payment method");
+      message.error('Failed to delete payment method');
     }
   };
 
@@ -62,7 +62,7 @@ export default function Payment({ initialPaymentMethods }) {
               />
               <div>
                 <p className="font-semibold tracking-wide text-primary">
-                  {card.authorization.card_type} **** **** ****{" "}
+                  {card.authorization.card_type} **** **** ****{' '}
                   {card.authorization.last4}
                 </p>
                 <p className="text-sm text-gray-600">

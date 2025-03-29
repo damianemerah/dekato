@@ -8,6 +8,7 @@ import Product from '@/models/product';
 import Category from '@/models/category';
 import UserActivity from '@/models/userActivity';
 import { recommendationService } from '@/app/lib/recommendationService';
+import { restrictTo } from '@/app/utils/checkPermission';
 
 // Cache recommendations with a 5-minute TTL
 export const getRecommendations = unstable_cache(
@@ -82,62 +83,76 @@ export async function trackProductInteraction(
   productId,
   interactionType = 'view'
 ) {
-  await dbConnect();
-  const session = await auth();
+  await restrictTo('user', 'admin');
 
-  if (!session?.user) {
-    throw new Error('Authentication required');
-  }
+  try {
+    await dbConnect();
+    const session = await auth();
 
-  if (!productId) {
-    throw new Error('Product ID is required');
-  }
+    if (!session?.user) {
+      throw new Error('Authentication required');
+    }
 
-  if (!['view', 'purchase', 'click'].includes(interactionType)) {
-    throw new Error(
-      "Invalid interaction type. Must be 'view', 'click' or 'purchase'"
+    if (!productId) {
+      throw new Error('Product ID is required');
+    }
+
+    if (!['view', 'purchase', 'click'].includes(interactionType)) {
+      throw new Error(
+        "Invalid interaction type. Must be 'view', 'click' or 'purchase'"
+      );
+    }
+
+    // Verify product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Track the interaction
+    await recommendationService.trackProductInteraction(
+      session.user.id,
+      productId,
+      interactionType
     );
+
+    return { success: true };
+  } catch (error) {
+    console.error(`Error tracking product interaction:`, error);
+    throw error;
   }
-
-  // Verify product exists
-  const product = await Product.findById(productId);
-  if (!product) {
-    throw new Error('Product not found');
-  }
-
-  // Track the interaction
-  await recommendationService.trackProductInteraction(
-    session.user.id,
-    productId,
-    interactionType
-  );
-
-  return { success: true };
 }
 
 // Add product to naughty list (not cached, as it modifies data)
 export async function addToNaughtyList(productId) {
-  await dbConnect();
-  const session = await auth();
+  await restrictTo('user', 'admin');
 
-  if (!session?.user) {
-    throw new Error('Authentication required');
+  try {
+    await dbConnect();
+    const session = await auth();
+
+    if (!session?.user) {
+      throw new Error('Authentication required');
+    }
+
+    if (!productId) {
+      throw new Error('Product ID is required');
+    }
+
+    // Verify product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Add to naughty list
+    await recommendationService.addToNaughtyList(session.user.id, productId);
+
+    return { success: true };
+  } catch (error) {
+    console.error(`Error adding to naughty list:`, error);
+    throw error;
   }
-
-  if (!productId) {
-    throw new Error('Product ID is required');
-  }
-
-  // Verify product exists
-  const product = await Product.findById(productId);
-  if (!product) {
-    throw new Error('Product not found');
-  }
-
-  // Add to naughty list
-  await recommendationService.addToNaughtyList(session.user.id, productId);
-
-  return { success: true };
 }
 
 // Get recommended products for the home page

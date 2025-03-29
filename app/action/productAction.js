@@ -61,6 +61,8 @@ const setupIndexes = async () => {
 };
 
 export async function setProductStatus(id, status) {
+  await restrictTo('admin');
+
   await dbConnect();
   try {
     const product = await Product.findByIdAndUpdate(id, { status }).lean({
@@ -79,9 +81,9 @@ export async function updateProductDiscount(
   campaignId = null
 ) {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const { discount, discountDuration } = discountData;
 
     const product = await Product.findById(productId);
@@ -131,6 +133,8 @@ const handleProductQuery = async (query, searchParams = {}) => {
 };
 
 export async function getAdminProduct(params) {
+  await restrictTo('admin');
+
   try {
     await dbConnect();
 
@@ -154,6 +158,8 @@ export async function getAdminProduct(params) {
 }
 
 export async function productSearch(searchQuery) {
+  // No authorization check needed as this is a public endpoint
+
   try {
     await dbConnect();
 
@@ -587,10 +593,10 @@ export async function getAdminProductById(id) {
 }
 
 export async function createProduct(formData) {
-  try {
-    await restrictTo('admin');
-    await dbConnect();
+  await restrictTo('admin');
 
+  try {
+    await dbConnect();
     const obj = await handleFormData(formData);
 
     const createdProduct = await Product.create(obj);
@@ -608,10 +614,10 @@ export async function createProduct(formData) {
 }
 
 export async function updateProduct(formData) {
-  try {
-    await restrictTo('admin');
-    await dbConnect();
+  await restrictTo('admin');
 
+  try {
+    await dbConnect();
     const id = formData.get('id');
     if (!id) throw new Error('Product not found');
 
@@ -633,10 +639,10 @@ export async function updateProduct(formData) {
 }
 
 export const deleteProduct = async (id) => {
-  try {
-    await restrictTo('admin');
-    await dbConnect();
+  await restrictTo('admin');
 
+  try {
+    await dbConnect();
     const product = await Product.findByIdAndDelete(id).lean();
     if (!product) throw new Error('Product not found');
 

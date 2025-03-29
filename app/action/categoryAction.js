@@ -12,6 +12,8 @@ import { revalidatePath } from 'next/cache';
 import { formatCategories } from '@/app/utils/filterHelpers';
 
 export async function getAllCategories(params) {
+  // No authorization check needed as this is a public endpoint
+
   try {
     await dbConnect();
 
@@ -62,6 +64,8 @@ export async function getAllCategories(params) {
 }
 
 export async function getSubCategories(slug) {
+  // No authorization check needed as this is a public endpoint
+
   try {
     await dbConnect();
 
@@ -93,9 +97,9 @@ export async function getSubCategories(slug) {
 
 export async function createCategory(formData) {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const body = await handleFormData(formData);
 
     const categoryDoc = await Category.create(body);
@@ -133,8 +137,9 @@ export async function createCategory(formData) {
 
 export async function updateCategory(formData) {
   await restrictTo('admin');
-  await dbConnect();
+
   try {
+    await dbConnect();
     const id = formData.get('id');
     const data = await handleFormData(formData, Category, id);
 
@@ -187,9 +192,9 @@ export async function updateCategory(formData) {
 
 export async function deleteCategory(id) {
   await restrictTo('admin');
-  await dbConnect();
 
   try {
+    await dbConnect();
     const categoryToDelete = await Category.findById(id);
 
     if (!categoryToDelete) {

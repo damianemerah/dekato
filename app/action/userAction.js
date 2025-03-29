@@ -228,201 +228,259 @@ export async function createUser(formData) {
 }
 
 export async function getUser(userId) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  if (!userId) {
-    return null;
+  try {
+    await dbConnect();
+
+    if (!userId) {
+      return null;
+    }
+
+    const userData = await User.findById(userId)
+      .where('active', true)
+      .lean({ virtuals: true });
+
+    if (!userData) {
+      throw new Error('No active user found with that ID');
+    }
+
+    const { _id, wishlist, ...rest } = userData;
+
+    const userObj = {
+      id: _id.toString(),
+      wishlist: wishlist?.map((item) => item.toString()),
+      ...rest,
+    };
+
+    return userObj;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const userData = await User.findById(userId)
-    .where('active', true)
-    .lean({ virtuals: true });
-
-  if (!userData) {
-    throw new Error('No active user found with that ID');
-  }
-
-  const { _id, wishlist, ...rest } = userData;
-
-  const userObj = {
-    id: _id.toString(),
-    wishlist: wishlist?.map((item) => item.toString()),
-    ...rest,
-  };
-
-  return userObj;
 }
 
 export async function getWishlist(userId) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  const { wishlist } = await User.findById(userId)
-    .select('wishlist')
-    .populate('wishlist', 'name price image variant slug')
-    .lean();
+  try {
+    await dbConnect();
 
-  return wishlist.map(({ _id, variant, ...rest }) => ({
-    id: _id.toString(),
-    variant: variant.map(({ _id, ...variantRest }) => ({
+    const { wishlist } = await User.findById(userId)
+      .select('wishlist')
+      .populate('wishlist', 'name price image variant slug')
+      .lean();
+
+    return wishlist.map(({ _id, variant, ...rest }) => ({
       id: _id.toString(),
-      ...variantRest,
-    })),
-    ...rest,
-  }));
+      variant: variant.map(({ _id, ...variantRest }) => ({
+        id: _id.toString(),
+        ...variantRest,
+      })),
+      ...rest,
+    }));
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function updateUserInfo(formData) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  const userId = formData.get('userId');
+  try {
+    await dbConnect();
 
-  const userObj = formDataToObject(formData);
-  const userData = filterObj(userObj, 'firstname', 'lastname');
+    const userId = formData.get('userId');
 
-  const user = await User.findByIdAndUpdate(userId, userData, {
-    new: true,
-    runValidators: true,
-  }).lean({ virtuals: true });
+    const userObj = formDataToObject(formData);
+    const userData = filterObj(userObj, 'firstname', 'lastname');
 
-  if (!user) {
-    throw new Error('User not found');
+    const user = await User.findByIdAndUpdate(userId, userData, {
+      new: true,
+      runValidators: true,
+    }).lean({ virtuals: true });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const { _id, wishlist, ...rest } = user;
+
+    const userInfo = {
+      id: _id.toString(),
+      wishlist: wishlist?.map((item) => item.toString()),
+      ...rest,
+    };
+
+    return userInfo;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const { _id, wishlist, ...rest } = user;
-
-  const userInfo = {
-    id: _id.toString(),
-    wishlist: wishlist?.map((item) => item.toString()),
-    ...rest,
-  };
-
-  return userInfo;
 }
 
 export async function addToWishlist(userId, productId) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
+  try {
+    await dbConnect();
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await user.addToWishlist(productId);
+
+    const { _id, wishlist, ...rest } = user.toObject();
+
+    return {
+      id: _id.toString(),
+      wishlist: wishlist.map((item) => item.toString()),
+      ...rest,
+    };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  await user.addToWishlist(productId);
-
-  const { _id, wishlist, ...rest } = user.toObject();
-
-  return {
-    id: _id.toString(),
-    wishlist: wishlist.map((item) => item.toString()),
-    ...rest,
-  };
 }
 
 export async function removeFromWishlist(userId, productId) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  await User.findByIdAndUpdate(
-    userId,
-    { $pull: { wishlist: productId } },
-    { new: true }
-  );
+  try {
+    await dbConnect();
 
-  return null;
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { wishlist: productId } },
+      { new: true }
+    );
+
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function deleteUser(userId) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  const user = await User.findByIdAndUpdate(userId, { active: false });
+  try {
+    await dbConnect();
 
-  if (!user) {
-    throw new Error('User not found');
+    const user = await User.findByIdAndUpdate(userId, { active: false });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    revalidatePath('/admin/customers');
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-  revalidatePath('/admin/customers');
-  return null;
 }
 
 export async function getUserAddress(userId) {
-  await dbConnect();
-  // await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const address = await Address.find({ userId }).lean();
+  try {
+    await dbConnect();
 
-  if (!address.length) {
-    return [];
+    const address = await Address.find({ userId }).lean();
+
+    if (!address.length) {
+      return [];
+    }
+    return address.map(({ _id, userId, ...rest }) => ({
+      id: _id.toString(),
+      ...omit(rest, ['_id', 'userId']),
+    }));
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-  return address.map(({ _id, userId, ...rest }) => ({
-    id: _id.toString(),
-    ...omit(rest, ['_id', 'userId']),
-  }));
 }
 
 export async function createUserAddress(formData) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  const addressData = formDataToObject(formData);
-  const userId = formData.get('userId');
+  try {
+    await dbConnect();
 
-  if (addressData.isDefault) {
-    await Address.updateMany({ userId }, { isDefault: false });
+    const addressData = formDataToObject(formData);
+    const userId = formData.get('userId');
+
+    if (addressData.isDefault) {
+      await Address.updateMany({ userId }, { isDefault: false });
+    }
+
+    const address = await Address.create({ ...addressData, userId });
+
+    const { _id, userId: id, ...rest } = address.toObject();
+
+    const newAddress = { id: _id.toString(), ...rest };
+
+    // revalidatePath("/checkout");
+    // revalidateTag("checkout-data");
+    return newAddress;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const address = await Address.create({ ...addressData, userId });
-
-  const { _id, userId: id, ...rest } = address.toObject();
-
-  const newAddress = { id: _id.toString(), ...rest };
-
-  // revalidatePath("/checkout");
-  // revalidateTag("checkout-data");
-  return newAddress;
 }
 
 export async function updateUserAddress(formData) {
-  await dbConnect();
   await restrictTo('admin', 'user');
 
-  const addressData = formDataToObject(formData);
-  const userId = formData.get('userId');
-  const addressId = formData.get('addressId');
+  try {
+    await dbConnect();
 
-  if (addressData.isDefault) {
-    await Address.updateMany({ userId }, { isDefault: false });
+    const addressData = formDataToObject(formData);
+    const userId = formData.get('userId');
+    const addressId = formData.get('addressId');
+
+    if (addressData.isDefault) {
+      await Address.updateMany({ userId }, { isDefault: false });
+    }
+
+    const address = await Address.findByIdAndUpdate(addressId, addressData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!address) {
+      throw new Error('No address found with that ID');
+    }
+    // revalidatePath("/checkout");
+    // revalidateTag("checkout-data");
+
+    const { _id, ...rest } = address.toObject();
+    return { id: _id.toString(), ...rest };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const address = await Address.findByIdAndUpdate(addressId, addressData, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!address) {
-    throw new Error('No address found with that ID');
-  }
-  // revalidatePath("/checkout");
-  // revalidateTag("checkout-data");
-
-  const { _id, ...rest } = address.toObject();
-  return { id: _id.toString(), ...rest };
 }
 
 export async function deleteUserAddress(addressId) {
   await restrictTo('admin', 'user');
-  await dbConnect();
 
-  const address = await Address.findByIdAndDelete(addressId);
+  try {
+    await dbConnect();
 
-  if (!address) {
-    throw new Error('Address not found');
+    const address = await Address.findByIdAndDelete(addressId);
+    if (!address) {
+      throw new Error('No address found with that ID');
+    }
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  return null;
 }
 
 export async function getAllUsers(searchParams) {

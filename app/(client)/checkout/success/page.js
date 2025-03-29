@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { checkOrderPayment } from '@/app/action/orderAction';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SmallSpinner } from '@/app/components/spinner';
+import { getOrderStatus } from '@/app/action/orderAction';
+import { verifyAndCompleteOrder } from '@/app/action/checkoutAction';
+import { message } from 'antd';
 
 function LoadingSpinner() {
   return (
@@ -19,31 +21,67 @@ export default function PaymentSuccess({ searchParams }) {
   const { reference } = searchParams;
   const { data: session } = useSession();
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    // Redirect if no user session or reference
     if (!session?.user?.id) return;
-    if (!reference) router.push('/');
-    async function verifyPayment() {
-      if (session?.user?.id && reference) {
-        try {
-          const result = await checkOrderPayment(session.user.id, reference);
-          if (result.success === true) {
+    if (!reference) {
+      router.push('/');
+      return;
+    }
+
+    async function checkOrderStatus() {
+      try {
+        console.log(
+          `[DEBUG SuccessPage] Processing payment reference: ${reference}`
+        );
+
+        // First verify and complete the order
+        const verifyResult = await verifyAndCompleteOrder(reference);
+        console.log(`[DEBUG SuccessPage] Verification result:`, verifyResult);
+
+        if (verifyResult.success) {
+          console.log(`[DEBUG SuccessPage] Order verified successfully`);
+          setOrderSuccess(true);
+          message.success('Your order has been confirmed!');
+        } else {
+          // If verification through verifyAndCompleteOrder failed,
+          // try getting the order status as a fallback
+          console.log(
+            `[DEBUG SuccessPage] Verification failed, checking order status`
+          );
+          const statusResult = await getOrderStatus(reference);
+
+          if (
+            statusResult.success &&
+            ['success', 'pending', 'processing'].includes(statusResult.status)
+          ) {
+            console.log(
+              `[DEBUG SuccessPage] Order exists with status: ${statusResult.status}`
+            );
             setOrderSuccess(true);
           } else {
-            router.push('/');
+            console.error(
+              '[ERROR SuccessPage] Payment verification failed:',
+              statusResult.message
+            );
+            router.push('/checkout/failed?reason=verification');
           }
-        } catch (error) {
-          console.error('Payment verification failed:', error);
-          router.push('/');
         }
+      } catch (error) {
+        console.error('[ERROR SuccessPage] Error processing order:', error);
+        router.push('/checkout/failed?reason=error');
+      } finally {
+        setIsLoading(false);
       }
     }
 
-    verifyPayment();
+    checkOrderStatus();
   }, [session, reference, router]);
 
-  if (!orderSuccess) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 

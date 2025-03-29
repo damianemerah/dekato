@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { SmallSpinner } from "../../spinner";
-import { ButtonSecondary } from "../../button";
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import Image from 'next/image';
+import { SmallSpinner } from '../../spinner';
+import { ButtonSecondary } from '../../button';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 function OrderInfoItem({
   title,
   value,
-  className = "",
-  valueClassName = "text-gray-600",
+  className = '',
+  valueClassName = 'text-gray-600',
 }) {
   return (
     <div>
@@ -65,7 +65,7 @@ export default function OrderDetailClient({ orderData }) {
         <div className="mb-6 grid grid-cols-1 gap-6 border-b border-gray-200 pb-6 sm:grid-cols-2 lg:grid-cols-4">
           <OrderInfoItem
             title="Order Status"
-            value={order?.status || "Pending"}
+            value={order?.status || 'Pending'}
             valueClassName="text-green-600"
           />
           <OrderInfoItem title="Order Number" value={order?.paymentRef} />
@@ -75,7 +75,7 @@ export default function OrderDetailClient({ orderData }) {
           />
           <OrderInfoItem
             title="Delivery Status"
-            value={order?.deliveryStatus || "Pending"}
+            value={order?.deliveryStatus || 'Pending'}
             className="capitalize"
           />
         </div>
@@ -129,7 +129,7 @@ export default function OrderDetailClient({ orderData }) {
                       <p className="text-sm text-gray-500">
                         {Object.entries(item.option)
                           .map(([key, value]) => `${key}: ${value}`)
-                          .join(", ")}
+                          .join(', ')}
                       </p>
                     )}
                     <p className="mt-1">Quantity: {item.quantity}</p>

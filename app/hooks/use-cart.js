@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { createCartItem, removeFromCart } from "@/app/action/cartAction";
-import { useUserStore } from "@/app/store/store";
-import { mutate } from "swr";
-import { toast } from "sonner";
-import useCartData from "@/app/hooks/useCartData";
+import { useState, useCallback, useEffect } from 'react';
+import { createCartItem, removeFromCart } from '@/app/action/cartAction';
+import { useUserStore } from '@/app/store/store';
+import { mutate } from 'swr';
+import { toast } from 'sonner';
+import useCartData from '@/app/hooks/useCartData';
 
 export function useCart() {
   const [isCartLoading, setIsCartLoading] = useState(false);
@@ -36,7 +36,7 @@ export function useCart() {
         setOptimisticCartItems(newOptimisticItems);
       }
     }
-  }, [cartData]);
+  }, [cartData, optimisticCartItems]);
 
   // Check if an item is in the cart
   const isInCart = useCallback(
@@ -50,8 +50,8 @@ export function useCart() {
   const addToCart = useCallback(
     async (item) => {
       if (!userId) {
-        toast.error("Please sign in to add items to your cart");
-        throw new Error("You must be logged in to add items to your cart");
+        toast.error('Please sign in to add items to your cart');
+        throw new Error('You must be logged in to add items to your cart');
       }
 
       setIsCartLoading(true);
@@ -74,14 +74,14 @@ export function useCart() {
         const result = await createCartItem(userId, newItem);
 
         if (!result) {
-          throw new Error("Failed to add item to cart");
+          throw new Error('Failed to add item to cart');
         }
 
         await mutate(`/api/user/${userId}`);
         await mutate(`/cart/${userId}`);
         await mutate(`/checkout-data`);
 
-        toast.success("Item added to cart");
+        toast.success('Item added to cart');
         return result;
       } catch (error) {
         // Revert optimistic update
@@ -91,7 +91,7 @@ export function useCart() {
           return newMap;
         });
 
-        toast.error(error.message || "Failed to add to cart");
+        toast.error(error.message || 'Failed to add to cart');
         throw error;
       } finally {
         setIsCartLoading(false);
@@ -104,8 +104,8 @@ export function useCart() {
   const removeFromCartById = useCallback(
     async (productId) => {
       if (!userId) {
-        toast.error("Please sign in to remove items from your cart");
-        throw new Error("You must be logged in to remove items from your cart");
+        toast.error('Please sign in to remove items from your cart');
+        throw new Error('You must be logged in to remove items from your cart');
       }
 
       setIsCartLoading(true);
@@ -124,7 +124,7 @@ export function useCart() {
       }
 
       if (!cartItemId) {
-        toast.error("Item not found in cart");
+        toast.error('Item not found in cart');
         setIsCartLoading(false);
         return;
       }
@@ -143,7 +143,7 @@ export function useCart() {
         await mutate(`/cart/${userId}`);
         await mutate(`/checkout-data`);
 
-        toast.success("Item removed from cart");
+        toast.success('Item removed from cart');
       } catch (error) {
         // Revert optimistic update
         if (currentCartState) {
@@ -154,7 +154,7 @@ export function useCart() {
           });
         }
 
-        toast.error(error.message || "Failed to remove from cart");
+        toast.error(error.message || 'Failed to remove from cart');
         throw error;
       } finally {
         setIsCartLoading(false);

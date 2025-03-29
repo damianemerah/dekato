@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { verifyCartItemsAvailability } from "@/app/action/cartAction";
-import { useUserStore } from "@/app/store/store";
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { verifyCartItemsAvailability } from '@/app/action/cartAction';
+import { useUserStore } from '@/app/store/store';
 
-export function useStockVerification(refreshInterval = 60000) {
+export function useStockVerification(cartData = null, refreshInterval = 60000) {
   const [stockStatus, setStockStatus] = useState({
     isVerifying: false,
     valid: true,
@@ -16,17 +16,20 @@ export function useStockVerification(refreshInterval = 60000) {
   const user = useUserStore((state) => state.user);
   const router = useRouter();
 
+  // Verify when cart data changes or on interval
   useEffect(() => {
     if (!user?.id) return;
 
-    // Verify stock immediately on mount
-    verifyStock();
+    // Verify stock when cart data changes
+    if (cartData) {
+      verifyStock();
+    }
 
     // Set up periodic verification
     const intervalId = setInterval(verifyStock, refreshInterval);
 
     return () => clearInterval(intervalId);
-  }, [user?.id, refreshInterval]);
+  }, [user?.id, cartData, refreshInterval]);
 
   async function verifyStock() {
     if (!user?.id || stockStatus.isVerifying) return;
@@ -38,7 +41,7 @@ export function useStockVerification(refreshInterval = 60000) {
 
       setStockStatus({
         isVerifying: false,
-        valid: result.valid,
+        valid: result.unavailableItems?.length === 0,
         unavailableItems: result.unavailableItems || [],
         lowStockItems: result.lowStockItems || [],
       });
@@ -50,8 +53,8 @@ export function useStockVerification(refreshInterval = 60000) {
           {
             duration: 6000,
             action: {
-              label: "View",
-              onClick: () => router.push("/cart"),
+              label: 'View',
+              onClick: () => router.push('/cart'),
             },
           }
         );
@@ -70,7 +73,7 @@ export function useStockVerification(refreshInterval = 60000) {
         );
       }
     } catch (error) {
-      console.error("Error verifying stock:", error);
+      console.error('Error verifying stock:', error);
       setStockStatus((prev) => ({ ...prev, isVerifying: false }));
     }
   }

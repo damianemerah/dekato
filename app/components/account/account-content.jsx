@@ -1,13 +1,13 @@
-"use client";
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/app/components/ui/button";
+'use client';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Button } from '@/app/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/app/components/ui/card";
+} from '@/app/components/ui/card';
 
 export default function AccountContent({
   userData,
@@ -49,7 +49,7 @@ export default function AccountContent({
                 </p>
                 <p className="text-gray-600">{defaultAddress.address}</p>
                 <p className="text-gray-600">
-                  {defaultAddress.city}, {defaultAddress.state}{" "}
+                  {defaultAddress.city}, {defaultAddress.state}{' '}
                   {defaultAddress.postalCode}
                 </p>
                 <p className="text-gray-600">{defaultAddress.phone}</p>
@@ -88,9 +88,9 @@ export default function AccountContent({
                       <Image
                         src={
                           order.product?.[0]?.image ||
-                          "/placeholder.svg?height=80&width=80"
+                          '/placeholder.svg?height=80&width=80'
                         }
-                        alt={order.product?.[0]?.name || "Product image"}
+                        alt={order.product?.[0]?.name || 'Product image'}
                         width={80}
                         height={80}
                         className="h-full w-full rounded-md object-cover object-center"

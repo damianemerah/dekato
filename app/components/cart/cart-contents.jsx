@@ -1,32 +1,50 @@
-"use client";
+'use client';
 
-import { ButtonPrimary, ButtonSecondary } from "@/app/components/button";
-import CartCards from "@/app/components/cart/cart-card";
-import Link from "next/link";
-import ArrowLeft from "@/public/assets/icons/arrow_left.svg";
-import ArrowRight from "@/public/assets/icons/arrow_right.svg";
-import Paystack from "@/public/assets/icons/paystack.svg";
-import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import { SmallSpinner } from "@/app/components/spinner";
-import { useSession } from "next-auth/react";
-import useCartData from "@/app/hooks/useCartData";
-import { formatToNaira } from "@/app/utils/getFunc";
-import { useStockVerification } from "@/app/hooks/useStockVerification";
-import { toast } from "sonner";
+import { ButtonPrimary, ButtonSecondary } from '@/app/components/button';
+import CartCards from '@/app/components/cart/cart-card';
+import Link from 'next/link';
+import ArrowLeft from '@/public/assets/icons/arrow_left.svg';
+import ArrowRight from '@/public/assets/icons/arrow_right.svg';
+import Paystack from '@/public/assets/icons/paystack.svg';
+import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
+import { SmallSpinner } from '@/app/components/spinner';
+import { useSession } from 'next-auth/react';
+import useCartData from '@/app/hooks/useCartData';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { useStockVerification } from '@/app/hooks/useStockVerification';
+import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
 
-export default function Cart() {
+export default function CartContents({ initialCartData = null }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
+  // Use state to track the cart data, initialized with server-rendered data
+  const [cart, setCart] = useState(initialCartData);
+
+  // Still use the hook for post-mutation updates, but skip initial fetch if we have data
   const {
-    cartData: cart,
+    cartData: clientCartData,
     isLoading: cartIsLoading,
     error: cartError,
-  } = useCartData(userId);
+  } = useCartData(userId, { skipInitialFetch: !!initialCartData });
 
-  const stockStatus = useStockVerification();
+  // Update cart state when client data changes (e.g., after mutations)
+  useEffect(() => {
+    if (clientCartData) {
+      setCart(clientCartData);
+    }
+  }, [clientCartData]);
 
-  if (cartIsLoading) {
+  // Show loading state only if we have no initial data and are fetching
+  const isLoading = !initialCartData && cartIsLoading;
+
+  // Determine if cart is empty
+  const isCartEmpty = !cart || cart?.item?.length === 0;
+
+  const stockStatus = useStockVerification(cart);
+
+  if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <SmallSpinner className="!text-primary" />
@@ -35,7 +53,7 @@ export default function Cart() {
     );
   }
 
-  if (cart?.item?.length === 0) {
+  if (isCartEmpty) {
     return (
       <div className="flex h-[calc(100vh-6rem)] flex-col items-center justify-center gap-4">
         <p>Your cart is empty</p>
@@ -76,7 +94,7 @@ export default function Cart() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {stockStatus.unavailableItems.map((item) => (
                 <li key={item.id}>
-                  {item.name} - Requested: {item.requestedQuantity}, Available:{" "}
+                  {item.name} - Requested: {item.requestedQuantity}, Available:{' '}
                   {item.availableQuantity}
                 </li>
               ))}
@@ -183,7 +201,7 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved, stockStatus }) {
         )}
       </div>
 
-      <Link href={stockStatus.valid ? "/checkout" : "#"}>
+      <Link href={stockStatus.valid ? '/checkout' : '#'}>
         <ButtonPrimary
           className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90"
           disabled={!stockStatus.valid}
@@ -191,7 +209,7 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved, stockStatus }) {
             if (!stockStatus.valid) {
               e.preventDefault();
               toast.error(
-                "Please update your cart. Some items are out of stock."
+                'Please update your cart. Some items are out of stock.'
               );
             }
           }}
@@ -207,7 +225,7 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved, stockStatus }) {
           if (!stockStatus.valid) {
             e.preventDefault();
             toast.error(
-              "Please update your cart. Some items are out of stock."
+              'Please update your cart. Some items are out of stock.'
             );
           }
         }}

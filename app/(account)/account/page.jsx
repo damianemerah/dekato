@@ -1,7 +1,7 @@
-import { auth } from "@/app/lib/auth";
-import { getUser, getUserAddress } from "@/app/action/userAction";
-import { getUserOrders } from "@/app/action/orderAction";
-import AccountContent from "@/app/components/account/account-content";
+import { auth } from '@/app/lib/auth';
+import { getUser, getUserAddress } from '@/app/action/userAction';
+import { getUserOrders } from '@/app/action/orderAction';
+import AccountContent from '@/app/components/account/account-content';
 
 export default async function AccountPage() {
   const session = await auth();

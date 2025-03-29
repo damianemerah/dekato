@@ -8,6 +8,7 @@ import { omit, mapKeys } from 'lodash';
 import APIFeatures from '@/app/utils/apiFeatures';
 import { revalidatePath } from 'next/cache';
 import Email from '@/app/lib/email';
+import { auth } from '@/app/lib/auth';
 
 export async function getAllOrders(query) {
   await dbConnect();
@@ -45,10 +46,10 @@ export async function getAllOrders(query) {
 }
 
 export async function getOrderById(id) {
+  await restrictTo('admin');
+
   try {
     await dbConnect();
-    await restrictTo('admin');
-
     const order = await Order.findById(id)
       .populate('userId')
       .populate('address')
@@ -70,13 +71,18 @@ export async function getOrderById(id) {
 }
 
 export async function deleteOrder(id) {
-  await dbConnect();
   await restrictTo('admin');
 
-  await Order.findByIdAndDelete(id);
-  revalidatePath('/account/orders');
-
-  revalidatePath('/admin/orders');
+  try {
+    await dbConnect();
+    await Order.findByIdAndDelete(id);
+    revalidatePath('/account/orders');
+    revalidatePath('/admin/orders');
+    return { success: true };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function checkOrderPayment(userId, paymentRef) {
@@ -116,10 +122,10 @@ export async function fulfillOrder(
   carrier,
   shippingMethod
 ) {
-  await dbConnect();
   await restrictTo('admin');
 
   try {
+    await dbConnect();
     const order = await Order.findById(id)
       .populate('userId', 'email firstname lastName')
       .lean();
@@ -166,5 +172,54 @@ export async function fulfillOrder(
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
+  }
+}
+
+/**
+ * Gets the status of an order by payment reference
+ * @param {string} reference - The payment reference
+ * @returns {Promise<Object>} The order status information
+ */
+export async function getOrderStatus(reference) {
+  // Authorization check
+  await restrictTo('user', 'admin');
+
+  // Get the authenticated user id
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId || !reference) {
+    return { success: false, message: 'Invalid parameters' };
+  }
+
+  try {
+    await dbConnect();
+
+    // Find the order with limited field selection for security
+    const order = await Order.findOne(
+      { paymentRef: reference },
+      { status: 1, paymentRef: 1, userId: 1 }
+    ).lean();
+
+    if (!order) {
+      return { success: false, message: 'Order not found' };
+    }
+
+    // Security check: ensure the user owns this order
+    if (order.userId.toString() !== userId) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    return {
+      success: true,
+      status: order.status,
+      reference: order.paymentRef,
+    };
+  } catch (error) {
+    console.error('Error getting order status:', error);
+    return {
+      success: false,
+      message: 'Failed to get order status',
+    };
   }
 }

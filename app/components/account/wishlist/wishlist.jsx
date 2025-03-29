@@ -1,16 +1,16 @@
-"use client";
-import Image from "next/image";
-import { ButtonPrimary } from "@/app/components/button";
-import { removeFromWishlist } from "@/app/action/userAction";
-import { createCartItem } from "@/app/action/cartAction";
-import { mutate } from "swr";
-import { message } from "antd";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { SmallSpinner } from "@/app/components/spinner";
-import { CloseOutlined } from "@ant-design/icons";
-import { formatToNaira } from "@/app/utils/getFunc";
+'use client';
+import Image from 'next/image';
+import { ButtonPrimary } from '@/app/components/button';
+import { removeFromWishlist } from '@/app/action/userAction';
+import { createCartItem } from '@/app/action/cartAction';
+import { mutate } from 'swr';
+import { message } from 'antd';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import { SmallSpinner } from '@/app/components/spinner';
+import { CloseOutlined } from '@ant-design/icons';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 export default function Wishlist({ product, onRemove }) {
   const { data: session } = useSession();
@@ -25,7 +25,7 @@ export default function Wishlist({ product, onRemove }) {
   const addToCart = async () => {
     try {
       if (!userId) {
-        message.error("Please login to add to cart");
+        message.error('Please login to add to cart');
         return;
       }
       setIsAdding(true);
@@ -48,7 +48,7 @@ export default function Wishlist({ product, onRemove }) {
         onRemove(product.id);
       }
 
-      message.success("Item added to cart");
+      message.success('Item added to cart');
     } catch (error) {
       message.info(error.message, 4);
     } finally {
@@ -67,7 +67,7 @@ export default function Wishlist({ product, onRemove }) {
         onRemove(product.id);
       }
 
-      message.success("Product removed from wishlist");
+      message.success('Product removed from wishlist');
     } catch (error) {
       console.error(error);
     } finally {
@@ -81,7 +81,7 @@ export default function Wishlist({ product, onRemove }) {
         <Link href={`/product/${product.slug}-${product.id}`}>
           <div className="relative w-full overflow-hidden pb-[133.33%]">
             <Image
-              src={product.image[0] || "/placeholder-image.jpg"}
+              src={product.image[0] || '/placeholder-image.jpg'}
               alt={product.name}
               fill={true}
               loading="lazy"
@@ -119,7 +119,7 @@ export default function Wishlist({ product, onRemove }) {
           onClick={addToCart}
           disabled={isAdding}
         >
-          {isAdding ? <SmallSpinner className="!text-white" /> : "Add to Cart"}
+          {isAdding ? <SmallSpinner className="!text-white" /> : 'Add to Cart'}
         </ButtonPrimary>
         <button
           className="absolute right-2 top-2 flex-shrink-0 rounded-full transition-colors duration-300"

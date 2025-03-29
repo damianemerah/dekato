@@ -1,19 +1,19 @@
 // import OrderList from "@/app/ui/account/orders/OrderCard";
 // React and Next.js imports
-import Link from "next/link";
-import { unstable_cache } from "next/cache";
+import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 
 // Auth imports
-import { auth } from "@/app/lib/auth";
+import { auth } from '@/app/lib/auth';
 
 // Database imports
-import Order from "@/models/order";
-import dbConnect from "@/app/lib/mongoConnection";
+import Order from '@/models/order';
+import dbConnect from '@/app/lib/mongoConnection';
 
 // UI Components
-import { ButtonSecondary } from "@/app/components/button";
-import { ShoppingOutlined } from "@ant-design/icons";
-import OrderListClient from "@/app/components/account/orders/OrderCard";
+import { ButtonSecondary } from '@/app/components/button';
+import { ShoppingOutlined } from '@ant-design/icons';
+import OrderListClient from '@/app/components/account/orders/OrderCard';
 
 const getOrders = unstable_cache(
   async (userId) => {
@@ -37,7 +37,7 @@ const getOrders = unstable_cache(
       };
     });
   },
-  ["orders"],
+  ['orders'],
   { revalidate: 10 }
 );
 

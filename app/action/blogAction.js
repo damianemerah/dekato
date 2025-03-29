@@ -7,6 +7,7 @@ import handleAppError from '@/app/utils/appError';
 import { formDataToObject } from '@/app/utils/filterObj';
 import { uploadFiles } from '@/app/lib/s3Func';
 import { unstable_cache } from 'next/cache';
+import { restrictTo } from '@/app/utils/checkPermission';
 
 const toObject = (data) => {
   if (typeof data.categories === 'string') {
@@ -29,9 +30,10 @@ const toObject = (data) => {
 };
 
 export async function createBlog(formData) {
-  await dbConnect();
+  await restrictTo('admin');
 
   try {
+    await dbConnect();
     const data = formDataToObject(formData);
 
     const { featuredImage } = data;
@@ -57,9 +59,10 @@ export async function createBlog(formData) {
 }
 
 export async function updateBlog(id, formData) {
-  await dbConnect();
+  await restrictTo('admin');
 
   try {
+    await dbConnect();
     const data = formDataToObject(formData);
     const { featuredImage } = data;
     if (featuredImage && featuredImage.size > 0) {
@@ -190,9 +193,10 @@ export const getAllBlogs = unstable_cache(
 );
 
 export async function deleteBlog(id) {
-  await dbConnect();
+  await restrictTo('admin');
 
   try {
+    await dbConnect();
     const blog = await Blog.findByIdAndDelete(id);
 
     if (!blog) {

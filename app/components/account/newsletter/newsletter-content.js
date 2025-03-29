@@ -2,16 +2,19 @@
 
 import { ButtonPrimary, ButtonSecondary } from "@/app/components/button";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { message } from "antd";
 import { SmallSpinner } from "@/app/components/spinner";
-
+import {
+  updateSubscription,
+  unsubscribeUser,
+} from "@/app/action/subscriptionAction";
 import useConfirmModal from "@/app/components/confirm-modal";
 import { Checkbox } from "@/app/components/ui/checkbox";
 
 export function NewsletterContent({ initialData }) {
   const { data: session } = useSession();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [isDeleting, setIsDeleting] = useState(false);
   const [subscription, setSubscription] = useState(initialData?.subscription);
   const [formData, setFormData] = useState({
@@ -23,36 +26,26 @@ export function NewsletterContent({ initialData }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    try {
-      const response = await fetch("/api/subscribe", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: session?.user?.email,
-          status: formData.isSubscribed ? "subscribed" : "unsubscribed",
-          gender: formData.gender,
-        }),
-      });
+    startTransition(async () => {
+      try {
+        const response = await updateSubscription(
+          session?.user?.email,
+          formData.isSubscribed ? "subscribed" : "unsubscribed",
+          formData.gender
+        );
 
-      const data = await response.json();
-
-      if (data.success) {
-        message.success(data.message);
-
-        setSubscription(data.subscription);
-      } else {
-        throw new Error(data.message);
+        if (response.success) {
+          message.success(response.message);
+          setSubscription(response.subscription);
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.error("Error updating subscription:", error);
+        message.error("Failed to update subscription preferences");
       }
-    } catch (error) {
-      console.error("Error updating subscription:", error);
-      message.error("Failed to update subscription preferences");
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   }
 
   async function handleUnsubscribe() {
@@ -62,31 +55,21 @@ export function NewsletterContent({ initialData }) {
       async onOk() {
         setIsDeleting(true);
         try {
-          const response = await fetch("/api/subscribe", {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: session?.user?.email,
-            }),
-          });
+          const response = await unsubscribeUser(session?.user?.email);
 
-          const data = await response.json();
-
-          if (data.success) {
-            message.success("Subscription deleted successfully");
+          if (response.success) {
+            message.success("Successfully unsubscribed from newsletter");
             setSubscription(null);
             setFormData({
               isSubscribed: false,
               gender: "both",
             });
           } else {
-            throw new Error(data.message);
+            throw new Error(response.message);
           }
         } catch (error) {
-          console.error("Error deleting subscription:", error);
-          message.error("Failed to delete subscription");
+          console.error("Error unsubscribing:", error);
+          message.error("Failed to unsubscribe from newsletter");
         } finally {
           setIsDeleting(false);
         }
@@ -106,7 +89,7 @@ export function NewsletterContent({ initialData }) {
               onCheckedChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  isSubscribed: e.target.checked,
+                  isSubscribed: e,
                 }))
               }
               className="mr-2 h-4 w-4 cursor-pointer"
@@ -192,11 +175,11 @@ export function NewsletterContent({ initialData }) {
       <div className="flex gap-4">
         <ButtonPrimary
           type="submit"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="bg-primary"
-          aria-busy={isSubmitting}
+          aria-busy={isPending}
         >
-          {isSubmitting ? (
+          {isPending ? (
             <SmallSpinner className="!text-white" />
           ) : (
             "Save Changes"

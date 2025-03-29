@@ -1,6 +1,6 @@
-import { auth } from "@/app/lib/auth";
-import { getWishlist } from "@/app/action/userAction";
-import WishlistPageClient from "@/app/components/account/wishlist/wishlists";
+import { auth } from '@/app/lib/auth';
+import { getWishlist } from '@/app/action/userAction';
+import WishlistPageClient from '@/app/components/account/wishlist/wishlists';
 
 export default async function WishlistPage() {
   const session = await auth();
