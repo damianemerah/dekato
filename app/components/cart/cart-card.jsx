@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import DeleteIcon from "@/public/assets/icons/remove.svg";
+import Image from 'next/image';
+import DeleteIcon from '@/public/assets/icons/remove.svg';
 import {
   removeFromCart,
   updateCartItemQuantity,
   updateCartItemChecked,
   selectAllCart,
-} from "@/app/action/cartAction";
-import { mutate } from "swr";
-import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { message } from "antd";
-import { InfoCircleOutlined } from "@ant-design/icons";
-import { SmallSpinner } from "@/app/components/spinner";
-import { useSession } from "next-auth/react";
-import { formatToNaira } from "@/app/utils/getFunc";
-import { Checkbox } from "@/app/components/ui/checkbox";
+} from '@/app/action/cartAction';
+import { mutate } from 'swr';
+import Link from 'next/link';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { toast } from 'sonner';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { SmallSpinner } from '@/app/components/spinner';
+import { useSession } from 'next-auth/react';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { Checkbox } from '@/app/components/ui/checkbox';
 
 const CartCard = ({ cartItem, stockStatus }) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [quantity, setQuantity] = useState(cartItem.quantity.toString() || "");
+  const [quantity, setQuantity] = useState(cartItem.quantity.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
 
@@ -55,7 +55,7 @@ const CartCard = ({ cartItem, stockStatus }) => {
   };
 
   const updateQuantity = async (newQuantity) => {
-    if (newQuantity === "" || parseInt(newQuantity) < 1) return;
+    if (newQuantity === '' || parseInt(newQuantity) < 1) return;
 
     // Check against available quantity if item is unavailable
     if (
@@ -64,7 +64,7 @@ const CartCard = ({ cartItem, stockStatus }) => {
       parseInt(newQuantity) > availableItem.availableQuantity
     ) {
       newQuantity = availableItem.availableQuantity.toString();
-      message.warning(
+      toast.warning(
         `Only ${availableItem.availableQuantity} item(s) available in stock.`
       );
     }
@@ -93,8 +93,8 @@ const CartCard = ({ cartItem, stockStatus }) => {
 
   const handleQuantityBlur = async () => {
     if (quantity !== previousQuantityRef.current) {
-      if (quantity === "" || parseInt(quantity) < 1) {
-        await updateQuantity("1");
+      if (quantity === '' || parseInt(quantity) < 1) {
+        await updateQuantity('1');
       } else {
         await updateQuantity(quantity);
       }
@@ -219,7 +219,7 @@ const CartCard = ({ cartItem, stockStatus }) => {
                 </button>
                 <input
                   type="number"
-                  value={quantity || ""}
+                  value={quantity || ''}
                   onChange={(e) => handleQuantityChange(e.target.value)}
                   onBlur={handleQuantityBlur}
                   className="w-10 text-center text-sm font-medium [appearance:textfield] focus:outline-none sm:w-12 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -273,7 +273,7 @@ export default function CartCards({ products, stockStatus }) {
       const cart = await selectAllCart(userId, newSelectAllState);
       await mutate(`/cart/${userId}`);
     } catch (error) {
-      message.info(error.message);
+      toast.info(error.message);
     } finally {
       setIsLoading(false);
     }

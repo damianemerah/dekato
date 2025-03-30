@@ -17,9 +17,29 @@ import Notification from '@/models/notification';
 import { revalidatePath } from 'next/cache';
 const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
 import { recommendationService } from '@/app/lib/recommendationService';
+import mongoose from 'mongoose';
+import { VerificationAttempt } from '@/models/verificationAttempt';
 
 // Initialize nanoid for reference generation
 const nanoId = customAlphabet('0123456789', 6);
+
+/**
+ * Generates a unique payment reference
+ * @returns {Promise<string>} A unique payment reference
+ */
+async function generateUniqueReference() {
+  let payId;
+  let isUnique = false;
+
+  while (!isUnique) {
+    payId = nanoId();
+    // Check if reference already exists in orders
+    const existingOrder = await Order.findOne({ paymentRef: payId });
+    isUnique = !existingOrder;
+  }
+
+  return payId;
+}
 
 export async function getCheckoutData(userId) {
   await restrictTo('user', 'admin');
@@ -119,7 +139,7 @@ export async function initiateCheckout(checkoutData) {
       }
     }
 
-    const payId = nanoId();
+    const payId = await generateUniqueReference();
     const totalItems = items.reduce(
       (total, item) => total + (item.quantity ? parseInt(item.quantity) : 0),
       0
@@ -241,7 +261,7 @@ export async function createPendingOrder(orderInputData) {
       }
     }
 
-    const payId = nanoId();
+    const payId = await generateUniqueReference();
     const totalItems = items.reduce(
       (total, item) => total + (item.quantity ? parseInt(item.quantity) : 0),
       0
@@ -324,6 +344,57 @@ export async function verifyAndCompleteOrder(paystackReference) {
   await dbConnect();
 
   try {
+    // Record verification attempt for rate limiting
+    await VerificationAttempt.create({
+      reference: paystackReference,
+      userId,
+      timestamp: new Date(),
+    });
+
+    // Check for too many verification attempts (potential abuse)
+    const recentAttempts = await VerificationAttempt.countDocuments({
+      reference: paystackReference,
+      timestamp: { $gt: new Date(Date.now() - 60000) }, // Last minute
+    });
+
+    if (recentAttempts > 5) {
+      console.warn(
+        `[WARN verifyAndCompleteOrder] Too many verification attempts for ${paystackReference}`
+      );
+      return {
+        success: false,
+        message: 'Too many verification attempts. Please try again later.',
+        status: 'rate_limited',
+      };
+    }
+
+    // Check if the order is already being processed (lock mechanism)
+    const processingOrder = await Order.findOne({
+      paymentRef: paystackReference,
+      processingLock: true,
+      processingLockTime: { $gt: new Date(Date.now() - 2 * 60000) }, // Lock valid for 2 minutes
+    });
+
+    if (processingOrder) {
+      console.warn(
+        `[WARN verifyAndCompleteOrder] Order ${paystackReference} is already being processed`
+      );
+      return {
+        success: true,
+        message: 'Your payment is already being processed',
+        status: 'processing',
+      };
+    }
+
+    // Set a processing lock on the order
+    await Order.findOneAndUpdate(
+      { paymentRef: paystackReference },
+      {
+        processingLock: true,
+        processingLockTime: new Date(),
+      }
+    );
+
     // Verify the transaction with Paystack
     console.log(
       `[DEBUG verifyAndCompleteOrder] Calling Paystack.transaction.verify for ref: ${paystackReference}`
@@ -336,6 +407,11 @@ export async function verifyAndCompleteOrder(paystackReference) {
     if (!verification.data) {
       console.error(
         '[ERROR verifyAndCompleteOrder] Paystack verification returned no data.'
+      );
+      // Release the lock
+      await Order.findOneAndUpdate(
+        { paymentRef: paystackReference },
+        { processingLock: false }
       );
       return { success: false, message: 'Payment verification failed' };
     }
@@ -362,6 +438,11 @@ export async function verifyAndCompleteOrder(paystackReference) {
       console.error(
         `[ERROR verifyAndCompleteOrder] User mismatch: Order User ${order.userId}, Session User ${userId}`
       );
+      // Release the lock
+      await Order.findOneAndUpdate(
+        { paymentRef: paystackReference },
+        { processingLock: false }
+      );
       return { success: false, message: 'Unauthorized' };
     }
 
@@ -369,6 +450,11 @@ export async function verifyAndCompleteOrder(paystackReference) {
     if (order.status === 'success') {
       console.log(
         `[DEBUG verifyAndCompleteOrder] Order ${order._id} already processed.`
+      );
+      // Release the lock
+      await Order.findOneAndUpdate(
+        { paymentRef: paystackReference },
+        { processingLock: false }
       );
       return {
         success: true,
@@ -429,31 +515,68 @@ export async function verifyAndCompleteOrder(paystackReference) {
           `[DEBUG verifyAndCompleteOrder] Clearing ${cartItemIds.length} cart items`
         );
 
-        // Delete cart items
-        const deleteResult = await CartItem.deleteMany({
-          _id: { $in: cartItemIds },
-        });
-        console.log(
-          `[DEBUG verifyAndCompleteOrder] Cart items deleted: ${deleteResult.deletedCount} items`
-        );
+        try {
+          // Use a transaction for cart operations
+          const cartSession = await mongoose.startSession();
+          cartSession.startTransaction();
 
-        // Update cart totals
-        console.log(
-          `[DEBUG verifyAndCompleteOrder] Finding cart for user ${order.userId}`
-        );
-        const cart = await Cart.findOne({ userId: order.userId });
-        if (cart) {
-          console.log(
-            `[DEBUG verifyAndCompleteOrder] Updating cart ${cart._id}`
+          try {
+            // Delete cart items and update cart in one atomic operation
+            const deleteResult = await CartItem.deleteMany(
+              { _id: { $in: cartItemIds } },
+              { session: cartSession }
+            );
+            console.log(
+              `[DEBUG verifyAndCompleteOrder] Cart items deleted: ${deleteResult.deletedCount} items`
+            );
+
+            // Update cart document to remove references to deleted items
+            const cartUpdateResult = await Cart.findOneAndUpdate(
+              { userId: order.userId },
+              {
+                $pull: { item: { $in: cartItemIds } },
+                recalculateTotals: true,
+              },
+              {
+                session: cartSession,
+                new: true,
+              }
+            );
+
+            if (cartUpdateResult) {
+              console.log(
+                `[DEBUG verifyAndCompleteOrder] Cart updated: ${cartUpdateResult._id}`
+              );
+            } else {
+              console.log(
+                '[DEBUG verifyAndCompleteOrder] No cart found for user'
+              );
+            }
+
+            // Commit the transaction
+            await cartSession.commitTransaction();
+            console.log(
+              '[DEBUG verifyAndCompleteOrder] Cart transaction committed successfully'
+            );
+          } catch (cartError) {
+            // Abort the transaction on error
+            await cartSession.abortTransaction();
+            console.error(
+              '[ERROR verifyAndCompleteOrder] Cart operation failed:',
+              cartError
+            );
+            throw cartError;
+          } finally {
+            // End the session
+            cartSession.endSession();
+          }
+        } catch (error) {
+          console.error(
+            '[ERROR verifyAndCompleteOrder] Cart cleanup error:',
+            error
           );
-          // Recalculate cart totals without the ordered items
-          cart.recalculateTotals = true;
-          await cart.save();
-          console.log(
-            '[DEBUG verifyAndCompleteOrder] Cart updated successfully'
-          );
-        } else {
-          console.log('[DEBUG verifyAndCompleteOrder] No cart found for user');
+          // Continue with order processing even if cart cleanup fails
+          // We'll log the error but not fail the whole order process
         }
       } else {
         console.log('[DEBUG verifyAndCompleteOrder] No cart items to clear');
@@ -492,7 +615,11 @@ export async function verifyAndCompleteOrder(paystackReference) {
     console.log(
       `[DEBUG verifyAndCompleteOrder] Attempting to save order ${order._id} with status: ${order.status}`
     );
+
+    // Include removing the processing lock
+    order.processingLock = false;
     await order.save();
+
     console.log(
       `[DEBUG verifyAndCompleteOrder] Order ${order._id} saved successfully.`
     );
@@ -523,6 +650,23 @@ export async function verifyAndCompleteOrder(paystackReference) {
       error.message,
       error.stack
     );
+
+    // Release the processing lock in case of error
+    try {
+      await Order.findOneAndUpdate(
+        { paymentRef: paystackReference },
+        { processingLock: false }
+      );
+      console.log(
+        `[DEBUG verifyAndCompleteOrder] Released processing lock after error`
+      );
+    } catch (lockError) {
+      console.error(
+        '[ERROR verifyAndCompleteOrder] Failed to release lock:',
+        lockError
+      );
+    }
+
     return {
       success: false,
       message:
@@ -538,6 +682,10 @@ export async function verifyAndCompleteOrder(paystackReference) {
  */
 async function updateProductQuantity(order) {
   console.log(`[DEBUG updateProductQuantity] Entered for order: ${order._id}`);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     for (const item of order.product) {
       if (!item.productId) {
@@ -550,97 +698,130 @@ async function updateProductQuantity(order) {
       console.log(
         `[DEBUG updateProductQuantity] Processing product: ${item.productId}, quantity: ${item.quantity}`
       );
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        console.log(
-          `[DEBUG updateProductQuantity] Product not found: ${item.productId}`
-        );
-        continue;
-      }
 
-      // Handle variant products
-      if (item.variantId && product.variant && product.variant.length > 0) {
+      // Check if this is a variant product
+      if (item.variantId) {
         console.log(
           `[DEBUG updateProductQuantity] Processing variant: ${item.variantId}`
         );
-        const variantIndex = product.variant.findIndex(
-          (v) => v._id.toString() === item.variantId.toString()
+
+        // Use atomic operations to update the variant quantity and check stock status
+        const result = await Product.findOneAndUpdate(
+          {
+            _id: item.productId,
+            'variant._id': item.variantId,
+          },
+          {
+            $inc: {
+              'variant.$.quantity': -item.quantity,
+              sold: item.quantity,
+              purchaseCount: 1,
+            },
+          },
+          {
+            new: true,
+            session,
+          }
         );
 
-        if (variantIndex >= 0) {
-          const variant = product.variant[variantIndex];
+        if (!result) {
           console.log(
-            `[DEBUG updateProductQuantity] Found variant at index ${variantIndex}, current quantity: ${variant.quantity}`
+            `[DEBUG updateProductQuantity] Product or variant not found: ${item.productId}/${item.variantId}`
           );
+          continue;
+        }
 
-          // Calculate new quantity, ensuring it doesn't go below 0
-          const newQuantity = Math.max(0, variant.quantity - item.quantity);
-          product.variant[variantIndex].quantity = newQuantity;
-          console.log(
-            `[DEBUG updateProductQuantity] Updated variant quantity to ${newQuantity}`
-          );
+        console.log(
+          `[DEBUG updateProductQuantity] Updated variant quantity for product: ${result._id}`
+        );
 
-          // Check if all variants are out of stock
-          const allVariantsOutOfStock = product.variant.every(
-            (v) => v.quantity <= 0
+        // Check if all variants are out of stock and update status if needed
+        const allVariantsOutOfStock = result.variant.every(
+          (v) => v.quantity <= 0
+        );
+        if (allVariantsOutOfStock) {
+          await Product.findByIdAndUpdate(
+            item.productId,
+            { status: 'outofstock' },
+            { session }
           );
-          if (allVariantsOutOfStock) {
-            product.status = 'outofstock';
-            console.log(
-              '[DEBUG updateProductQuantity] All variants out of stock, marking product as outofstock'
-            );
-          }
-        } else {
           console.log(
-            `[DEBUG updateProductQuantity] Variant not found: ${item.variantId}`
+            '[DEBUG updateProductQuantity] All variants out of stock, marked product as outofstock'
           );
         }
       } else {
-        // Handle non-variant products
+        // Handle non-variant products with atomic operation
         console.log(
-          `[DEBUG updateProductQuantity] Processing non-variant product, current quantity: ${product.quantity}`
-        );
-        // Calculate new quantity, ensuring it doesn't go below 0
-        const newQuantity = Math.max(0, product.quantity - item.quantity);
-        product.quantity = newQuantity;
-        console.log(
-          `[DEBUG updateProductQuantity] Updated product quantity to ${newQuantity}`
+          `[DEBUG updateProductQuantity] Processing non-variant product`
         );
 
-        // Update product status if out of stock
-        if (product.quantity <= 0) {
-          product.status = 'outofstock';
+        const result = await Product.findByIdAndUpdate(
+          item.productId,
+          {
+            $inc: {
+              quantity: -item.quantity,
+              sold: item.quantity,
+              purchaseCount: 1,
+            },
+            // Set status to outofstock if quantity will be zero or less after this update
+            $cond: [
+              { $lte: [{ $subtract: ['$quantity', item.quantity] }, 0] },
+              { $set: { status: 'outofstock' } },
+              {},
+            ],
+          },
+          {
+            new: true,
+            session,
+          }
+        );
+
+        if (!result) {
           console.log(
-            '[DEBUG updateProductQuantity] Product out of stock, marking as outofstock'
+            `[DEBUG updateProductQuantity] Product not found: ${item.productId}`
+          );
+          continue;
+        }
+
+        console.log(
+          `[DEBUG updateProductQuantity] Updated product quantity to ${result.quantity}`
+        );
+
+        // Additional check for out of stock status
+        if (result.quantity <= 0 && result.status !== 'outofstock') {
+          await Product.findByIdAndUpdate(
+            item.productId,
+            { status: 'outofstock' },
+            { session }
+          );
+          console.log(
+            '[DEBUG updateProductQuantity] Product out of stock, marked as outofstock'
           );
         }
       }
-
-      // Increment sold count
-      product.sold = (product.sold || 0) + item.quantity;
-      console.log(
-        `[DEBUG updateProductQuantity] Updated sold count to ${product.sold}`
-      );
-
-      // Increment purchase count for recommendations
-      product.purchaseCount = (product.purchaseCount || 0) + 1;
-      console.log(
-        `[DEBUG updateProductQuantity] Updated purchase count to ${product.purchaseCount}`
-      );
-
-      await product.save();
-      console.log(`[DEBUG updateProductQuantity] Saved product ${product._id}`);
     }
+
     console.log(
       '[DEBUG updateProductQuantity] Successfully updated all product quantities'
     );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    console.log(
+      '[DEBUG updateProductQuantity] Transaction committed successfully'
+    );
   } catch (error) {
+    // Abort the transaction on error
+    await session.abortTransaction();
     console.error(
       '[ERROR updateProductQuantity] Error updating product quantity:',
       error.message,
       error.stack
     );
     throw error;
+  } finally {
+    // End the session
+    session.endSession();
   }
 }
 

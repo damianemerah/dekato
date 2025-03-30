@@ -19,6 +19,7 @@ import useConfirmModal from '@/app/components/confirm-modal';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { LoadingSpinner } from '@/app/components/spinner';
+import { toast } from 'sonner';
 
 const DiscountModal = memo(
   dynamic(() => import('@/app/admin/ui/products/discount-model'), {
@@ -87,9 +88,9 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
         try {
           await deleteProduct(id);
           await mutate();
-          message.success('Product deleted successfully');
+          toast.success('Product deleted successfully');
         } catch (error) {
-          message.error('Failed to delete product');
+          toast.error('Failed to delete product');
         }
       };
       try {
@@ -101,7 +102,7 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
           },
         });
       } catch (error) {
-        message.error('Failed to delete product');
+        toast.error('Failed to delete product');
       }
     },
     [mutate, showConfirmModal]
@@ -112,9 +113,9 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
       try {
         await setProductStatus(id, 'archived');
         await mutate();
-        message.success('Product archived successfully');
+        toast.success('Product archived successfully');
       } catch (error) {
-        message.error('Failed to archive product');
+        toast.error('Failed to archive product');
       }
     },
     [mutate]
@@ -127,9 +128,9 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
         await Promise.all(selectedRowKeys.map((id) => deleteProduct(id)));
         await mutate();
         setSelectedRowKeys([]);
-        message.success('Selected products deleted successfully');
+        toast.success('Selected products deleted successfully');
       } catch (error) {
-        message.error('Failed to delete selected products');
+        toast.error('Failed to delete selected products');
       } finally {
         setLoading(false);
       }

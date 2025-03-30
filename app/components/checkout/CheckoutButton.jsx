@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { PaystackButton } from 'react-paystack';
 import { useRouter } from 'next/navigation';
 import { SmallSpinner } from '@/app/components/spinner';
-import { message } from 'antd';
+import { toast } from 'sonner';
 import {
   createPendingOrder,
   verifyAndCompleteOrder,
@@ -87,7 +87,7 @@ export default function CheckoutButton({
         text: 'Pay Now',
         onSuccess: async (reference) => {
           console.log('[DEBUG CheckoutButton] Payment successful:', reference);
-          message.success('Payment successful! Processing your order...');
+          toast.success('Payment successful! Processing your order...');
 
           try {
             // Verify and complete the order
@@ -98,13 +98,13 @@ export default function CheckoutButton({
             );
 
             if (result.success) {
-              message.success(
+              toast.success(
                 'Order confirmed! Redirecting to confirmation page...'
               );
               // Use window.location for direct navigation
               window.location.href = `/checkout/success?reference=${reference.reference}`;
             } else {
-              message.error(
+              toast.error(
                 result.message ||
                   'Payment verification failed. Please contact support.'
               );
@@ -115,7 +115,7 @@ export default function CheckoutButton({
               '[ERROR CheckoutButton] Order verification error:',
               error
             );
-            message.error(
+            toast.error(
               'An error occurred processing your order. Please contact support.'
             );
             setIsPreparing(false);
@@ -123,7 +123,7 @@ export default function CheckoutButton({
         },
         onClose: () => {
           console.log('[DEBUG CheckoutButton] Payment window closed by user');
-          message.warning('Payment window closed.');
+          toast.warning('Payment window closed.');
           setIsPreparing(false);
         },
       };
@@ -135,7 +135,7 @@ export default function CheckoutButton({
         error.message,
         error.stack
       );
-      message.error(error.message || 'Failed to prepare payment');
+      toast.error(error.message || 'Failed to prepare payment');
       setIsPreparing(false);
     }
   };

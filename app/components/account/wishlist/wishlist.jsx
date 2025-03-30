@@ -4,7 +4,7 @@ import { ButtonPrimary } from '@/app/components/button';
 import { removeFromWishlist } from '@/app/action/userAction';
 import { createCartItem } from '@/app/action/cartAction';
 import { mutate } from 'swr';
-import { message } from 'antd';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
@@ -25,7 +25,7 @@ export default function Wishlist({ product, onRemove }) {
   const addToCart = async () => {
     try {
       if (!userId) {
-        message.error('Please login to add to cart');
+        toast.error('Please login to add to cart');
         return;
       }
       setIsAdding(true);
@@ -48,9 +48,9 @@ export default function Wishlist({ product, onRemove }) {
         onRemove(product.id);
       }
 
-      message.success('Item added to cart');
+      toast.success('Item added to cart');
     } catch (error) {
-      message.info(error.message, 4);
+      toast.info(error.message, { duration: 4000 });
     } finally {
       setIsAdding(false);
     }
@@ -67,7 +67,7 @@ export default function Wishlist({ product, onRemove }) {
         onRemove(product.id);
       }
 
-      message.success('Product removed from wishlist');
+      toast.success('Product removed from wishlist');
     } catch (error) {
       console.error(error);
     } finally {

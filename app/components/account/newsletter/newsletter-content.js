@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { ButtonPrimary, ButtonSecondary } from "@/app/components/button";
-import { useSession } from "next-auth/react";
-import { useState, useTransition } from "react";
-import { message } from "antd";
-import { SmallSpinner } from "@/app/components/spinner";
+import { ButtonPrimary, ButtonSecondary } from '@/app/components/button';
+import { useSession } from 'next-auth/react';
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import { SmallSpinner } from '@/app/components/spinner';
 import {
   updateSubscription,
   unsubscribeUser,
-} from "@/app/action/subscriptionAction";
-import useConfirmModal from "@/app/components/confirm-modal";
-import { Checkbox } from "@/app/components/ui/checkbox";
+} from '@/app/action/subscriptionAction';
+import useConfirmModal from '@/app/components/confirm-modal';
+import { Checkbox } from '@/app/components/ui/checkbox';
 
 export function NewsletterContent({ initialData }) {
   const { data: session } = useSession();
@@ -18,8 +18,8 @@ export function NewsletterContent({ initialData }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [subscription, setSubscription] = useState(initialData?.subscription);
   const [formData, setFormData] = useState({
-    isSubscribed: initialData?.subscription?.status === "subscribed",
-    gender: initialData?.subscription?.gender || "both",
+    isSubscribed: initialData?.subscription?.status === 'subscribed',
+    gender: initialData?.subscription?.gender || 'both',
   });
 
   const confirmModal = useConfirmModal();
@@ -31,45 +31,45 @@ export function NewsletterContent({ initialData }) {
       try {
         const response = await updateSubscription(
           session?.user?.email,
-          formData.isSubscribed ? "subscribed" : "unsubscribed",
+          formData.isSubscribed ? 'subscribed' : 'unsubscribed',
           formData.gender
         );
 
         if (response.success) {
-          message.success(response.message);
+          toast.success(response.message);
           setSubscription(response.subscription);
         } else {
           throw new Error(response.message);
         }
       } catch (error) {
-        console.error("Error updating subscription:", error);
-        message.error("Failed to update subscription preferences");
+        console.error('Error updating subscription:', error);
+        toast.error('Failed to update subscription preferences');
       }
     });
   }
 
   async function handleUnsubscribe() {
     confirmModal({
-      title: "Unsubscribe from Newsletter",
-      content: "Are you sure you want to unsubscribe from the newsletter?",
+      title: 'Unsubscribe from Newsletter',
+      content: 'Are you sure you want to unsubscribe from the newsletter?',
       async onOk() {
         setIsDeleting(true);
         try {
           const response = await unsubscribeUser(session?.user?.email);
 
           if (response.success) {
-            message.success("Successfully unsubscribed from newsletter");
+            toast.success('Successfully unsubscribed from newsletter');
             setSubscription(null);
             setFormData({
               isSubscribed: false,
-              gender: "both",
+              gender: 'both',
             });
           } else {
             throw new Error(response.message);
           }
         } catch (error) {
-          console.error("Error unsubscribing:", error);
-          message.error("Failed to unsubscribe from newsletter");
+          console.error('Error unsubscribing:', error);
+          toast.error('Failed to unsubscribe from newsletter');
         } finally {
           setIsDeleting(false);
         }
@@ -122,7 +122,7 @@ export function NewsletterContent({ initialData }) {
                   id="women"
                   name="gender"
                   value="women"
-                  checked={formData.gender === "women"}
+                  checked={formData.gender === 'women'}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -139,7 +139,7 @@ export function NewsletterContent({ initialData }) {
                   id="men"
                   name="gender"
                   value="men"
-                  checked={formData.gender === "men"}
+                  checked={formData.gender === 'men'}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -156,7 +156,7 @@ export function NewsletterContent({ initialData }) {
                   id="both"
                   name="gender"
                   value="both"
-                  checked={formData.gender === "both"}
+                  checked={formData.gender === 'both'}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -182,11 +182,11 @@ export function NewsletterContent({ initialData }) {
           {isPending ? (
             <SmallSpinner className="!text-white" />
           ) : (
-            "Save Changes"
+            'Save Changes'
           )}
         </ButtonPrimary>
 
-        {subscription?.status === "subscribed" && (
+        {subscription?.status === 'subscribed' && (
           <ButtonSecondary
             type="button"
             onClick={handleUnsubscribe}
@@ -196,7 +196,7 @@ export function NewsletterContent({ initialData }) {
             {isDeleting ? (
               <SmallSpinner className="!text-white" />
             ) : (
-              "Unsubscribe"
+              'Unsubscribe'
             )}
           </ButtonSecondary>
         )}

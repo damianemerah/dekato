@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { createCartItem } from '@/app/action/cartAction';
 import { mutate } from 'swr';
-import { message } from 'antd';
+import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 
 export default function WishlistPageClient({ initialWishlistProducts }) {
@@ -26,7 +26,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
 
   const addAllToCart = async () => {
     if (!userId) {
-      message.error('Please login to add to cart');
+      toast.error('Please login to add to cart');
       return;
     }
     setIsAddingAll(true);
@@ -47,9 +47,9 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
       await mutate(`/cart/${userId}`);
       // Update local state
       setProducts([]);
-      message.success('All items added to cart');
+      toast.success('All items added to cart');
     } catch (error) {
-      message.error('Failed to add all items to cart');
+      toast.error('Failed to add all items to cart');
     } finally {
       setIsAddingAll(false);
     }

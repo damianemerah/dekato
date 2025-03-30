@@ -1,13 +1,12 @@
 'use client';
 import { useEffect } from 'react';
-import { message } from 'antd';
+import { toast } from 'sonner';
 import { ButtonSecondary } from '@/app/components/button';
 
 export default function Error({ error, reset }) {
   useEffect(() => {
-    message.error({
-      content: `Error: ${error.message}`,
-      duration: 5,
+    toast.error(`Error: ${error.message}`, {
+      duration: 5000,
     });
   }, [error]);
 
