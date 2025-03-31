@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import dbConnect from '@/app/lib/mongoConnection';
 import Payment from '@/models/payment';
 import { omit } from 'lodash';
@@ -56,6 +56,12 @@ export async function deletePaymentMethod(paymentId) {
     }
 
     const res = await Payment.findByIdAndDelete(paymentId).lean();
+
+    // Add revalidation
+    revalidatePath('/account/payment');
+    revalidateTag(`user-${payment.userId}`);
+    revalidateTag('payment-data');
+
     return { id: res._id.toString(), ...omit(res, ['_id', 'userId']) };
   } catch (err) {
     const error = handleAppError(err);

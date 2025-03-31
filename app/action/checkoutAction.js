@@ -249,6 +249,49 @@ export async function createPendingOrder(orderInputData) {
       throw new AppError('Address is required for delivery', 400);
     }
 
+    // START ADDED BLOCK: Stock Verification
+    for (const item of items) {
+      const productId = item.product?.id || item.productId; // Handle potential structure differences
+      if (!productId) {
+        return {
+          success: false,
+          message: `Invalid product data in cart item.`,
+        };
+      }
+
+      const product = await Product.findById(productId).select(
+        'name quantity variant status'
+      ); // Fetch necessary fields
+      if (!product || product.status !== 'active') {
+        return {
+          success: false,
+          message: `Product "${item.product?.name || productId}" is not available.`,
+        };
+      }
+
+      let availableStock = product.quantity;
+      if (item.variantId) {
+        const variant = product.variant.find(
+          (v) => v._id.toString() === item.variantId
+        );
+        if (!variant) {
+          return {
+            success: false,
+            message: `Variant not found for "${product.name}".`,
+          };
+        }
+        availableStock = variant.quantity;
+      }
+
+      if (availableStock < item.quantity) {
+        return {
+          success: false,
+          message: `Insufficient stock for "${product.name}"${item.variantId ? ' (variant)' : ''}. Available: ${availableStock}, Requested: ${item.quantity}`,
+        };
+      }
+    }
+    // END ADDED BLOCK
+
     if (shippingMethod?.toLowerCase() === 'delivery') {
       const userAddress = await Address.findOne({
         userId,

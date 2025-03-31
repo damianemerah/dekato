@@ -202,29 +202,39 @@ export async function getDashboardData() {
   }
 }
 
-export async function createUser(formData) {
-  await dbConnect();
+export async function createUser(prevState, formData) {
+  try {
+    await dbConnect();
 
-  const userData = {
-    firstname: formData.get('firstname'),
-    lastname: formData.get('lastname'),
-    email: formData.get('email'),
-    password: formData.get('password'),
-    passwordConfirm: formData.get('passwordConfirm'),
-  };
+    const userData = {
+      firstname: formData.get('firstname'),
+      lastname: formData.get('lastname'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+      passwordConfirm: formData.get('passwordConfirm'),
+    };
 
-  const createdUser = await User.create(userData);
+    const createdUser = await User.create(userData);
 
-  const user = createdUser.toObject();
+    const user = createdUser.toObject();
 
-  if (user) {
-    await Cart.create({ userId: user._id, items: [] });
+    if (user) {
+      await Cart.create({ userId: user._id, items: [] });
+    }
+
+    const url = `${process.env.NEXTAUTH_URL}/signin`;
+    await new Email(user, url).sendWelcome();
+
+    return { success: true, message: 'User created successfully' };
+  } catch (error) {
+    console.error('User creation error:', error);
+    const errorObj = handleAppError(error);
+    return {
+      success: false,
+      message: errorObj.message || 'Failed to create user',
+      errors: error.errors,
+    };
   }
-
-  const url = `${process.env.NEXTAUTH_URL}/signin`;
-  await new Email(user, url).sendWelcome();
-
-  return { success: true };
 }
 
 export async function getUser(userId) {
@@ -313,6 +323,11 @@ export async function updateUserInfo(formData) {
       ...rest,
     };
 
+    // Add revalidation for paths and tags
+    revalidatePath('/account/settings');
+    revalidatePath('/account');
+    revalidateTag(`user-${userId}`);
+
     return userInfo;
   } catch (err) {
     const error = handleAppError(err);
@@ -334,6 +349,11 @@ export async function addToWishlist(userId, productId) {
     await user.addToWishlist(productId);
 
     const { _id, wishlist, ...rest } = user.toObject();
+
+    // Add proper revalidation
+    revalidatePath('/account/wishlist');
+    revalidatePath('/account');
+    revalidateTag(`user-${userId}`);
 
     return {
       id: _id.toString(),
@@ -357,6 +377,11 @@ export async function removeFromWishlist(userId, productId) {
       { $pull: { wishlist: productId } },
       { new: true }
     );
+
+    // Add proper revalidation
+    revalidatePath('/account/wishlist');
+    revalidatePath('/account');
+    revalidateTag(`user-${userId}`);
 
     return null;
   } catch (err) {
@@ -424,8 +449,12 @@ export async function createUserAddress(formData) {
 
     const newAddress = { id: _id.toString(), ...rest };
 
-    // revalidatePath("/checkout");
-    // revalidateTag("checkout-data");
+    // Add proper revalidation
+    revalidatePath('/account/address');
+    revalidatePath('/checkout');
+    revalidateTag(`user-${userId}`);
+    revalidateTag('checkout-data');
+
     return newAddress;
   } catch (err) {
     const error = handleAppError(err);
@@ -455,8 +484,12 @@ export async function updateUserAddress(formData) {
     if (!address) {
       throw new Error('No address found with that ID');
     }
-    // revalidatePath("/checkout");
-    // revalidateTag("checkout-data");
+
+    // Add proper revalidation
+    revalidatePath('/account/address');
+    revalidatePath('/checkout');
+    revalidateTag(`user-${userId}`);
+    revalidateTag('checkout-data');
 
     const { _id, ...rest } = address.toObject();
     return { id: _id.toString(), ...rest };
@@ -476,6 +509,13 @@ export async function deleteUserAddress(addressId) {
     if (!address) {
       throw new Error('No address found with that ID');
     }
+
+    // Add proper revalidation
+    revalidatePath('/account/address');
+    revalidatePath('/checkout');
+    revalidateTag(`user-${address.userId}`);
+    revalidateTag('checkout-data');
+
     return null;
   } catch (err) {
     const error = handleAppError(err);
@@ -521,15 +561,20 @@ export async function getAllUsers(searchParams) {
   }
 }
 
-export async function sendPasswordResetToken(formData) {
-  await dbConnect();
-
-  const user = await User.findOne({ email: formData.get('email') });
-
-  if (!user) {
-    throw new Error('User with that email not found', 404);
-  }
+export async function sendPasswordResetToken(prevState, formData) {
   try {
+    await dbConnect();
+
+    const user = await User.findOne({ email: formData.get('email') });
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'User with that email not found',
+        errors: { email: ['No account found with this email address'] },
+      };
+    }
+
     const resetToken = await user.createPasswordResetToken();
 
     await user.save({ validateBeforeSave: false });
@@ -541,11 +586,17 @@ export async function sendPasswordResetToken(formData) {
 
     return { success: true, message: 'Reset Token sent to your email' };
   } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
+    if (user) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
     const error = handleAppError(err);
-    throw new Error(error.message);
+    return {
+      success: false,
+      message: error.message || 'Failed to send reset email',
+      errors: err.errors,
+    };
   }
 }
 
@@ -567,6 +618,11 @@ export async function updatePassword(formData) {
     user.passwordConfirm = body.passwordConfirm;
     await user.save();
 
+    // Add revalidation
+    revalidatePath('/account/settings');
+    revalidatePath('/account');
+    revalidateTag(`user-${body.userId}`);
+
     return { success: true, data: user.toObject() };
   } catch (err) {
     const error = handleAppError(err);
@@ -574,9 +630,8 @@ export async function updatePassword(formData) {
   }
 }
 
-export async function forgotPassword(formData) {
+export async function forgotPassword(token, prevState, formData) {
   try {
-    const token = formData.get('token');
     const body = formDataToObject(formData);
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
@@ -589,11 +644,14 @@ export async function forgotPassword(formData) {
     });
 
     if (!user) {
-      throw new Error('Token is invalid or has expired', 400);
+      return {
+        success: false,
+        message: 'Token is invalid or has expired',
+        errors: null,
+      };
     }
 
     // check if password and passwordConfirm are the same
-
     user.password = body.password;
     user.passwordConfirm = body.passwordConfirm;
     user.passwordResetToken = undefined;
@@ -609,9 +667,17 @@ export async function forgotPassword(formData) {
       ...rest,
     };
 
-    return { success: true, data: userObj };
+    return {
+      success: true,
+      message: 'Password reset successful',
+      data: userObj,
+    };
   } catch (error) {
     const errorMessage = handleAppError(error);
-    throw new Error(errorMessage.message);
+    return {
+      success: false,
+      message: errorMessage.message,
+      errors: error.errors,
+    };
   }
 }

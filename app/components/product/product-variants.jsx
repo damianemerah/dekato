@@ -1,26 +1,19 @@
-"use client";
+'use client';
 
-import { memo, useEffect, useState, useCallback } from "react";
-import { Card, CardContent } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Undo2 } from "lucide-react";
-import { generateVariantOptions } from "@/app/utils/getFunc";
-import Image from "next/image";
-import { Check } from "lucide-react";
+import { memo, useEffect, useState, useCallback } from 'react';
+import { Card, CardContent } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { Undo2 } from 'lucide-react';
+import { generateVariantOptions } from '@/app/utils/getFunc';
+import Image from 'next/image';
+import { Check } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/app/components/ui/tooltip";
-import { cn } from "@/app/lib/utils";
-import useSWR from "swr";
-import { getVarOptionById } from "@/app/action/variantAction";
-
-const variantFetcher = async (ids) => {
-  if (!ids || ids.length === 0) return [];
-  return getVarOptionById(ids);
-};
+} from '@/app/components/ui/tooltip';
+import { cn } from '@/app/lib/utils';
 
 const ProductVariants = memo(function ProductVariants({
   product,
@@ -29,25 +22,7 @@ const ProductVariants = memo(function ProductVariants({
   setSelectedVariant,
 }) {
   const [variantOptions, setVariantOptions] = useState([]);
-  const [hasVariationTypes, setHasVariationTypes] = useState([]);
   const [validVariants, setValidVariants] = useState(new Map());
-
-  // Extract unique variation type IDs from product variants
-  useEffect(() => {
-    if (product?.variant?.length > 0) {
-      const uniqueVariationTypeIds = new Set();
-      product.variant.forEach((v) => {
-        if (v.optionType) {
-          v.optionType.forEach((ot) => {
-            if (ot.labelId) {
-              uniqueVariationTypeIds.add(ot.labelId);
-            }
-          });
-        }
-      });
-      setHasVariationTypes(Array.from(uniqueVariationTypeIds));
-    }
-  }, [product?.variant]);
 
   // Generate variant options based on product variants
   useEffect(() => {
@@ -55,8 +30,8 @@ const ProductVariants = memo(function ProductVariants({
       const options = generateVariantOptions(product.variant);
       // Sort variant options so color comes first
       const sortedOptions = [
-        ...options.filter((option) => option.name.toLowerCase() === "color"),
-        ...options.filter((option) => option.name.toLowerCase() !== "color"),
+        ...options.filter((option) => option.name.toLowerCase() === 'color'),
+        ...options.filter((option) => option.name.toLowerCase() !== 'color'),
       ];
       setVariantOptions(sortedOptions);
 
@@ -94,13 +69,6 @@ const ProductVariants = memo(function ProductVariants({
       setValidVariants(newValidVariants);
     }
   }, [product?.variant]);
-
-  // Fetch additional variant options if needed
-  const { data: variationList } = useSWR(
-    hasVariationTypes.length > 0 ? JSON.stringify(hasVariationTypes) : null,
-    () => variantFetcher(hasVariationTypes),
-    { suspense: false }
-  );
 
   // Update selected variant when options change
   useEffect(() => {
@@ -178,21 +146,25 @@ const ProductVariants = memo(function ProductVariants({
         </div>
 
         {variantOptions.map((option) => {
-          const matchingVariation = variationList?.find(
-            (v) => v.name === option.name
-          );
+          // Find populated option type data that matches this option name
+          // We scan through all variants and their optionTypes to find matching data
+          const populatedOptionTypeInfo = product.variant
+            .flatMap((v) => v.optionType || [])
+            .find(
+              (ot) =>
+                ot.label?.toLowerCase() === option.name.toLowerCase() ||
+                ot.labelId?.name?.toLowerCase() === option.name.toLowerCase()
+            )?.labelId;
 
-          // Combine option values from both sources
-          const optionValues = matchingVariation
-            ? [...new Set([...matchingVariation.values, ...option.values])]
-            : option.values;
+          // Use the values already aggregated by generateVariantOptions
+          const optionValues = option.values;
 
           return (
             <div key={option.id} className="mb-4">
               <p className="mb-2 text-sm font-medium text-gray-700">
-                <span className="capitalize">{option.name}</span>:{" "}
+                <span className="capitalize">{option.name}</span>:{' '}
                 <span className="font-bold uppercase">
-                  {selectedVariantOption[option.name] || "Select"}
+                  {selectedVariantOption[option.name] || 'Select'}
                 </span>
               </p>
 
@@ -202,21 +174,29 @@ const ProductVariants = memo(function ProductVariants({
                   const isSelected =
                     selectedVariantOption[option.name] === value;
 
-                  if (option.name.toLowerCase() === "color") {
-                    // Color selector with image preview
+                  if (option.name.toLowerCase() === 'color') {
+                    // Find the specific variant with this color for the image
+                    const variantWithThisColor = product.variant.find(
+                      (v) => v.options.color === value
+                    );
+                    const imageUrl = variantWithThisColor?.image || '';
+
+                    // Use swatchUrl if available from populated data
+                    const swatchUrl = populatedOptionTypeInfo?.swatchUrl;
+
                     return (
                       <TooltipProvider key={value}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
                               className={cn(
-                                "relative h-16 w-16 rounded-full transition-all duration-200",
+                                'relative h-16 w-16 rounded-full transition-all duration-200',
                                 isSelected
-                                  ? "ring-2 ring-primary ring-offset-2"
-                                  : "border border-gray-300",
+                                  ? 'ring-2 ring-primary ring-offset-2'
+                                  : 'border border-gray-300',
                                 !isValid &&
                                   !isSelected &&
-                                  "opacity-40 hover:opacity-60"
+                                  'opacity-40 hover:opacity-60'
                               )}
                               onClick={() =>
                                 handleVariantSelection(
@@ -228,11 +208,7 @@ const ProductVariants = memo(function ProductVariants({
                             >
                               <div className="relative h-full w-full overflow-hidden rounded-full">
                                 <Image
-                                  src={
-                                    product.variant.find(
-                                      (v) => v.options.color === value
-                                    )?.image || ""
-                                  }
+                                  src={imageUrl}
                                   alt={`${value} color`}
                                   fill
                                   sizes="64px"
@@ -248,11 +224,6 @@ const ProductVariants = memo(function ProductVariants({
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="capitalize">{value}</p>
-                            {!isValid && !isSelected && (
-                              <p className="text-xs text-amber-500">
-                                May not be compatible with other selections
-                              </p>
-                            )}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -263,13 +234,13 @@ const ProductVariants = memo(function ProductVariants({
                       <button
                         key={`${option.name}-${value}`}
                         className={cn(
-                          "relative h-10 min-w-[2.5rem] max-w-[4rem] truncate border p-1 text-sm uppercase transition-all duration-200",
+                          'relative h-10 min-w-[2.5rem] max-w-[4rem] truncate border p-1 text-sm uppercase transition-all duration-200',
                           isSelected
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-gray-300 text-gray-700",
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-gray-300 text-gray-700',
                           !isValid &&
                             !isSelected &&
-                            "opacity-40 hover:opacity-60"
+                            'opacity-40 hover:opacity-60'
                         )}
                         onClick={() =>
                           handleVariantSelection(

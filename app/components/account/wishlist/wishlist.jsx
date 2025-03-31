@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { ButtonPrimary } from '@/app/components/button';
 import { removeFromWishlist } from '@/app/action/userAction';
 import { createCartItem } from '@/app/action/cartAction';
-import { mutate } from 'swr';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -40,8 +39,6 @@ export default function Wishlist({ product, onRemove }) {
 
       await createCartItem(userId, newItem);
       await removeFromWishlist(userId, product.id);
-      await mutate(`/api/user/${userId}`);
-      await mutate(`/cart/${userId}`);
 
       // Call onRemove to update parent component state
       if (onRemove) {
@@ -60,7 +57,6 @@ export default function Wishlist({ product, onRemove }) {
     try {
       setIsRemoving(true);
       await removeFromWishlist(user.id, product.id);
-      await mutate(`/api/user/${userId}`);
 
       // Call onRemove to update parent component state
       if (onRemove) {

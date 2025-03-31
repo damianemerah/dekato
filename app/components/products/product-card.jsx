@@ -1,29 +1,28 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { useState, useCallback, useEffect, useTransition } from "react";
-import { useUserStore, useRecommendMutateStore } from "@/app/store/store";
-import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { toast } from "sonner";
-import { formatToNaira } from "@/app/utils/getFunc";
-import { trackClick } from "@/app/utils/tracking";
-import { useMediaQuery } from "@/app/hooks/use-media-query";
-import { useCart } from "@/app/hooks/use-cart";
-import { mutate } from "swr";
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useCallback, useEffect, useTransition } from 'react';
+import { useUserStore, useRecommendMutateStore } from '@/app/store/store';
+import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
+import { toast } from 'sonner';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { trackClick } from '@/app/utils/tracking';
+import { useMediaQuery } from '@/app/hooks/use-media-query';
+import { useCart } from '@/app/hooks/use-cart';
 
 // Shadcn components
-import { Card, CardContent, CardFooter } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
+import { Card, CardContent, CardFooter } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/app/components/ui/tooltip";
+} from '@/app/components/ui/tooltip';
 
 // Icons
-import { Heart, X, Check, ShoppingBag } from "lucide-react";
+import { Heart, X, Check, ShoppingBag } from 'lucide-react';
 
 const ProductCard = ({ product, showDelete = false }) => {
   const [currentImage, setCurrentImage] = useState(product?.image[0]);
@@ -51,8 +50,8 @@ const ProductCard = ({ product, showDelete = false }) => {
   }, [isInWishlist]);
 
   // Use custom hooks for responsive design
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const supportsHover = useMediaQuery("(hover: hover)");
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const supportsHover = useMediaQuery('(hover: hover)');
 
   // Set up product images and variants
   useEffect(() => {
@@ -78,7 +77,7 @@ const ProductCard = ({ product, showDelete = false }) => {
       e.stopPropagation();
 
       if (!userId) {
-        toast.error("Please login to add to cart");
+        toast.error('Please login to add to cart');
         return;
       }
 
@@ -93,7 +92,7 @@ const ProductCard = ({ product, showDelete = false }) => {
         });
       } catch (error) {
         // Error is handled in the hook
-        console.error("Cart operation failed:", error);
+        console.error('Cart operation failed:', error);
       }
     },
     [userId, product, toggleCartItem]
@@ -106,7 +105,7 @@ const ProductCard = ({ product, showDelete = false }) => {
       e.stopPropagation();
 
       if (!userId) {
-        toast.error("Please login to add to wishlist");
+        toast.error('Please login to add to wishlist');
         return;
       }
 
@@ -121,20 +120,19 @@ const ProductCard = ({ product, showDelete = false }) => {
         try {
           if (newWishlistState) {
             await addToWishlist(userId, product.id);
-            toast.success("Added to wishlist");
+            toast.success('Added to wishlist');
           } else {
             await removeFromWishlist(userId, product.id);
-            toast.success("Removed from wishlist");
+            toast.success('Removed from wishlist');
           }
 
-          // Revalidate user data to update UI throughout the app
-          await mutate(`/api/user/${userId}`);
+          // Removed SWR mutate call - server actions now handle revalidation
         } catch (error) {
           // Revert optimistic update on error
           setOptimisticIsFavorite(!newWishlistState);
           toast.error(
             error.message ||
-              `Failed to ${newWishlistState ? "add to" : "remove from"} wishlist`
+              `Failed to ${newWishlistState ? 'add to' : 'remove from'} wishlist`
           );
         }
       });
@@ -150,18 +148,18 @@ const ProductCard = ({ product, showDelete = false }) => {
 
       startTransition(async () => {
         try {
-          const response = await fetch("/api/recommendations", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+          const response = await fetch('/api/recommendations', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ productId: product.id }),
           });
 
           if (response.ok) {
             setShouldMutate(true);
-            toast.success("Product removed from recommendations");
+            toast.success('Product removed from recommendations');
           }
         } catch (error) {
-          toast.error("Failed to remove product");
+          toast.error('Failed to remove product');
           console.error(error);
         }
       });
@@ -220,24 +218,24 @@ const ProductCard = ({ product, showDelete = false }) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={optimisticIsFavorite ? "default" : "ghost"}
+                    variant={optimisticIsFavorite ? 'default' : 'ghost'}
                     size="icon"
                     className={`absolute right-2 top-2 h-7 w-7 ${
                       optimisticIsFavorite
-                        ? "bg-red-500 p-1 text-white hover:bg-red-600"
-                        : "bg-muted text-muted-foreground/60 hover:bg-muted/30"
-                    } ${isPending ? "animate-pulse" : ""}`}
+                        ? 'bg-red-500 p-1 text-white hover:bg-red-600'
+                        : 'bg-muted text-muted-foreground/60 hover:bg-muted/30'
+                    } ${isPending ? 'animate-pulse' : ''}`}
                     onClick={handleFavoriteClick}
                     disabled={isPending}
                     aria-label={
                       optimisticIsFavorite
-                        ? "Remove from wishlist"
-                        : "Add to wishlist"
+                        ? 'Remove from wishlist'
+                        : 'Add to wishlist'
                     }
                   >
                     <Heart
                       className={`h-4 w-4 ${
-                        optimisticIsFavorite ? "fill-white stroke-white" : ""
+                        optimisticIsFavorite ? 'fill-white stroke-white' : ''
                       }`}
                     />
                   </Button>
@@ -245,8 +243,8 @@ const ProductCard = ({ product, showDelete = false }) => {
                 <TooltipContent>
                   <p>
                     {optimisticIsFavorite
-                      ? "Remove from wishlist"
-                      : "Add to wishlist"}
+                      ? 'Remove from wishlist'
+                      : 'Add to wishlist'}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -255,7 +253,7 @@ const ProductCard = ({ product, showDelete = false }) => {
         </div>
 
         <CardContent
-          className={`relative z-10 flex min-h-[4rem] flex-col items-center bg-white p-3 text-sm transition-all duration-300 ${shouldShowVariantsOnHover ? "md:group-hover:-translate-y-9" : ""}`}
+          className={`relative z-10 flex min-h-[4rem] flex-col items-center bg-white p-3 text-sm transition-all duration-300 ${shouldShowVariantsOnHover ? 'md:group-hover:-translate-y-9' : ''}`}
         >
           <h3 className="mb-1 w-full truncate text-center capitalize">
             {product.name}
@@ -289,28 +287,28 @@ const ProductCard = ({ product, showDelete = false }) => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={productInCart ? "default" : "ghost"}
+                      variant={productInCart ? 'default' : 'ghost'}
                       size="icon"
                       className={`h-8 w-8 rounded-full ${
                         productInCart
-                          ? "bg-green-500 hover:bg-green-600"
-                          : "bg-muted text-muted-foreground/60 hover:bg-muted/30"
-                      } p-0 ${isCartLoading ? "animate-pulse" : ""}`}
+                          ? 'bg-green-500 hover:bg-green-600'
+                          : 'bg-muted text-muted-foreground/60 hover:bg-muted/30'
+                      } p-0 ${isCartLoading ? 'animate-pulse' : ''}`}
                       onClick={handleAddToCart}
                       disabled={isCartLoading}
                       aria-label={
-                        productInCart ? "Remove from cart" : "Add to cart"
+                        productInCart ? 'Remove from cart' : 'Add to cart'
                       }
                     >
                       <ShoppingBag
                         className={`h-4 w-4 ${
-                          productInCart ? "stroke-white" : ""
+                          productInCart ? 'stroke-white' : ''
                         }`}
                       />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{productInCart ? "Remove from cart" : "Add to cart"}</p>
+                    <p>{productInCart ? 'Remove from cart' : 'Add to cart'}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -322,7 +320,7 @@ const ProductCard = ({ product, showDelete = false }) => {
       {/* Variant selector */}
       {product?.variant?.length > 0 && (
         <CardFooter
-          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white p-2 transition-all duration-300 ${shouldShowVariantsOnHover ? "absolute bottom-0 left-1/2 -translate-x-1/2" : ""}`}
+          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white p-2 transition-all duration-300 ${shouldShowVariantsOnHover ? 'absolute bottom-0 left-1/2 -translate-x-1/2' : ''}`}
         >
           {product?.variant?.slice(0, 5).map((variant, index) => (
             <Button

@@ -9,7 +9,6 @@ import {
   createUserAddress,
   getUserAddress,
 } from '@/app/action/userAction';
-import { mutate } from 'swr';
 import { SmallSpinner } from '@/app/components/spinner';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import EditIcon from '@/public/assets/icons/edit.svg';
@@ -45,9 +44,6 @@ export default function Address({ initialAddressData }) {
           formData.append('isDefault', isDefault);
           formData.append('userId', userId);
           await updateUserAddress(formData);
-          await mutate('/checkout-data');
-          await mutate(`/api/user/${userId}`);
-          await mutate(`/api/userAddress/${userId}`);
           message.success('Address updated successfully');
 
           // Update local state
@@ -66,9 +62,6 @@ export default function Address({ initialAddressData }) {
         }
         await updateUserAddress(data);
 
-        await mutate('/checkout-data');
-        await mutate(`/api/user/${userId}`);
-        await mutate(`/api/userAddress/${userId}`);
         message.success('Address updated successfully');
 
         // Refresh data by reusing initialAddressData
@@ -95,10 +88,6 @@ export default function Address({ initialAddressData }) {
 
       try {
         await createUserAddress(formData);
-
-        await mutate('/checkout-data');
-        await mutate(`/api/user/${userId}`);
-        await mutate(`/api/userAddress/${userId}`);
 
         message.success('Address added successfully');
 

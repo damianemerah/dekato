@@ -1,18 +1,12 @@
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
 import dbConnect from '@/app/lib/mongoConnection';
-import { LoadingSpinner } from '@/app/components/spinner';
-import { unstable_cache } from 'next/cache';
-import dynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
+import ProductList from '@/app/components/products/products-list';
+import { getAllProducts } from '@/app/action/productAction';
+import { unstable_cache } from 'next/cache';
 
-const CategoryProducts = dynamic(
-  () => import('@/app/components/products/categoried-products'),
-  {
-    loading: () => <LoadingSpinner className="min-h-screen" />,
-    ssr: true,
-  }
-);
+export const dynamic = 'force-dynamic';
 
 async function getAllCategoryPaths() {
   await dbConnect();
@@ -135,5 +129,45 @@ export default async function Product({ params: { cat }, searchParams }) {
     return notFound();
   }
 
-  return <CategoryProducts cat={cat} searchParams={searchParams} />;
+  // Call getAllProducts directly instead of using intermediate component
+  const data = await getAllProducts(cat, searchParams);
+
+  // Only throw notFound for invalid category paths, not for valid categories with no products
+  if (!data && cat[0] !== 'search') {
+    notFound();
+  }
+
+  // Normalize data to ensure ProductList receives consistent props
+  const normalizedData = {
+    data: data?.data || [],
+    banner: data?.banner || null,
+    totalCount: data?.totalCount || 0,
+    currentPage: data?.currentPage || 1,
+    limit: data?.limit || parseInt(searchParams?.limit || '12', 10),
+    description: data?.description || null,
+    isCampaign: data?.isCampaign || false,
+  };
+
+  return (
+    <>
+      <ProductList
+        products={normalizedData.data}
+        cat={cat}
+        searchParams={searchParams}
+        banner={normalizedData.banner}
+        totalCount={normalizedData.totalCount}
+        currentPage={normalizedData.currentPage}
+        limit={normalizedData.limit}
+        isCampaign={normalizedData.isCampaign}
+      />
+      {normalizedData.description && (
+        <div className="bg-grayBg mx-auto px-4 py-12 sm:px-6 lg:px-8">
+          <div
+            className="mx-auto max-w-3xl text-start text-gray-500"
+            dangerouslySetInnerHTML={{ __html: normalizedData.description }}
+          />
+        </div>
+      )}
+    </>
+  );
 }

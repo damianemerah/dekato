@@ -6,7 +6,6 @@ import { SmallSpinner } from '@/app/components/spinner';
 import { CloseOutlined } from '@ant-design/icons';
 import { deletePaymentMethod } from '@/app/action/paymentAction';
 import { message } from 'antd';
-import { mutate } from 'swr';
 
 export default function Payment({ initialPaymentMethods }) {
   const { data: session } = useSession();
@@ -24,7 +23,6 @@ export default function Payment({ initialPaymentMethods }) {
   const handleDelete = async (paymentId) => {
     try {
       await deletePaymentMethod(paymentId);
-      mutate(`/api/payment/${userId}`);
 
       // Update local state
       setPaymentMethods((prev) => prev.filter((item) => item.id !== paymentId));

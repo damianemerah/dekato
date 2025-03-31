@@ -7,7 +7,6 @@ import { getSubCategories } from '@/app/action/categoryAction';
 import { generateVariantOptions } from '@/app/utils/getFunc';
 import FilterContent from './filter-content';
 import { ButtonPrimary } from '../button';
-import { createSearchParams } from '@/app/utils/filterHelpers';
 import MobileFilterContent from './mobile-filter-content';
 
 const sortOptions = [
@@ -31,13 +30,8 @@ export default function Filter({
   products,
 }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [selectedFilters, setSelectedFilters] = useState({
-    price: [],
-    cat: [],
-  });
   const [searchStr, setSearchStr] = useState('');
   const [variantOptions, setVariantOptions] = useState([]);
-  const [sort, setSort] = useState('newest');
 
   const router = useRouter();
   const dropdownRef = useRef(null);
@@ -83,13 +77,6 @@ export default function Filter({
   }, [searchParams.q]);
 
   useEffect(() => {
-    const sortParam = searchParams.sort;
-    if (sortParam) {
-      setSort(sortOptions.find((opt) => opt.value === sortParam)?.label);
-    }
-  }, [searchParams.sort]);
-
-  useEffect(() => {
     if (!varIsLoading && productVariants) {
       const variantOptions = productVariants?.flatMap(
         (product) => product.variant
@@ -99,59 +86,83 @@ export default function Filter({
       setVariantOptions(
         variants.map(({ values, ...rest }) => ({ ...rest, options: values }))
       );
-
-      setSelectedFilters((prev) => {
-        const newFilters = { ...prev };
-        variants.forEach((variant) => {
-          if (!(variant.name in newFilters)) {
-            newFilters[variant.name] = [];
-          }
-        });
-        return newFilters;
-      });
     }
   }, [varIsLoading, productVariants]);
 
-  useEffect(() => {
+  // Derive filter and sort state from searchParams
+  const { currentFilters, currentSortValue, currentSortLabel } = useMemo(() => {
+    // Initialize with mandatory filter types
+    const filters = {
+      price: [],
+      cat: [],
+    };
+
+    // Dynamically add keys from variantOptions
+    variantOptions.forEach((opt) => {
+      filters[opt.name] = [];
+    });
+
+    const derivedSortValue = searchParams?.sort || '+createdAt'; // Default sort
+
     if (searchParams) {
-      const params = { ...searchParams };
+      for (const [key, value] of Object.entries(searchParams)) {
+        // Handle variant keys ending in '-vr'
+        const filterKey = key.endsWith('-vr') ? key.replace('-vr', '') : key;
 
-      for (const [key, value] of Object.entries(params)) {
-        const newKey = key.endsWith('-vr') ? key.split('-vr')[0] : key;
-        const curFilter = variantOptions.find(
-          (filter) => filter.name === newKey
-        );
+        if (filters.hasOwnProperty(filterKey)) {
+          const values = Array.isArray(value) ? value : value.split(',');
 
-        if (newKey === 'price') {
-          const priceValue = value
-            .split(',')
-            .map((price) =>
-              isFinite(price) ? Number.parseInt(price) : 'Above'
-            );
+          // For all filters except price, just copy the values
+          if (filterKey !== 'price') {
+            filters[filterKey] = values;
+          }
+          // Special handling for price filter
+          else if (values.length > 0) {
+            // Map from numeric range to display string
+            const priceDisplayOptions = [
+              '₦0 - ₦10000',
+              '₦10000 - ₦30000',
+              '₦30000 - ₦100000',
+              '₦100000 - Above',
+            ];
 
-          const selectedPriceIndex = priceRanges.findIndex(
-            (range) =>
-              priceValue[0] >= range.min &&
-              (priceValue[1] === 'Above'
-                ? Number.MAX_SAFE_INTEGER
-                : priceValue[1]) <= range.max
-          );
+            // Parse the numeric values
+            const min = parseInt(values[0], 10) || 0;
+            const max =
+              values.length > 1 && values[1] !== 'Above'
+                ? parseInt(values[1], 10)
+                : 'Above';
 
-          setSelectedFilters((prev) => ({
-            ...prev,
-            price: filters[0].options[selectedPriceIndex]
-              ? [filters[0].options[selectedPriceIndex]]
-              : [],
-          }));
-        } else if (curFilter || newKey === 'cat') {
-          setSelectedFilters((prev) => ({
-            ...prev,
-            [newKey]: Array.isArray(value) ? value : value.split(','),
-          }));
+            // Find the correct price range
+            let displayIndex = -1;
+            if (max === 'Above') {
+              // If max is 'Above', it's the last range
+              if (min >= 100000) displayIndex = 3;
+            } else {
+              // Find the matching range based on min,max values
+              displayIndex = priceRanges.findIndex(
+                (range) => min >= range.min && max <= range.max
+              );
+            }
+
+            // Set the display price string
+            filters.price =
+              displayIndex >= 0 ? [priceDisplayOptions[displayIndex]] : [];
+          }
         }
       }
     }
-  }, [searchParams, variantOptions, filters]);
+
+    const sortLabel =
+      sortOptions.find((opt) => opt.value === derivedSortValue)?.label ||
+      'Newest';
+
+    return {
+      currentFilters: filters,
+      currentSortValue: derivedSortValue,
+      currentSortLabel: sortLabel,
+    };
+  }, [searchParams, variantOptions]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -168,84 +179,99 @@ export default function Filter({
     setActiveDropdown((prev) => (prev === name ? null : name));
   };
 
+  // Refactored handleChange to use URL state
   const handleChange = useCallback(
     (e, name) => {
       const { value, checked } = e.target;
 
-      let updatedFilter;
-      if (name === 'price') {
-        updatedFilter = checked ? [value] : [];
-      } else {
-        const currentFilter = selectedFilters[name] || [];
-        updatedFilter = checked
-          ? [...currentFilter, value]
-          : currentFilter.filter((item) => item !== value);
-      }
-
-      const newFilters = { ...selectedFilters, [name]: updatedFilter };
-
-      setSelectedFilters(newFilters);
-
-      // Handle navigation after state update
-      const queryObj = Object.fromEntries(
-        Object.entries(newFilters).filter(
-          ([key, value]) =>
-            value.length > 0 &&
-            value.every((v) => v.length > 0) &&
-            key in newFilters
-        )
+      // Create a new URLSearchParams object from the current searchParams
+      const currentParams = new URLSearchParams(
+        typeof searchParams === 'object'
+          ? Object.entries(searchParams).reduce((acc, [key, value]) => {
+              acc[key] = value;
+              return acc;
+            }, {})
+          : searchParams
       );
 
-      if (Object.keys(queryObj).length === 0) {
-        // Ensure we maintain the /shop prefix in the URL
-        router.push(`/shop/${cat.join('/')}`);
-        return;
-      }
+      // Get existing values from URL params
+      const paramKey = variantOptions.some((opt) => opt.name === name)
+        ? `${name}-vr`
+        : name;
 
-      // Handle variant filters
-      for (const [key, value] of Object.entries(queryObj)) {
-        if (variantOptions.some((opt) => opt.name === key)) {
-          queryObj[key + '-vr'] = value;
-          delete queryObj[key];
+      const existingValues = currentParams.get(paramKey)?.split(',') || [];
+
+      let newValues;
+      if (name === 'price') {
+        // Price is radio-like, only one value at a time
+        newValues = checked ? [value] : [];
+
+        // Convert display price to actual min/max values
+        if (checked && value) {
+          const priceRange = value.replace(/₦|\s/g, '').split('-');
+          const min = priceRange[0];
+          // Handle 'Above' special case
+          const max = priceRange[1] === 'Above' ? 'Above' : priceRange[1];
+
+          // Use numeric min,max format as expected by the API
+          currentParams.set('price', `${min},${max}`);
+
+          // Reset page when filters change
+          currentParams.set('page', '1');
+
+          // Push the new route
+          router.push(`/shop/${cat.join('/')}?${currentParams.toString()}`);
+          return;
         }
+      } else {
+        // For other filters, add or remove the value
+        newValues = checked
+          ? [...existingValues, value]
+          : existingValues.filter((item) => item !== value);
       }
 
-      // Remove redundant category parameter if it's already in the path
-      if (
-        queryObj.cat &&
-        cat.some((segment) =>
-          queryObj.cat.some(
-            (catFilter) => catFilter.toLowerCase() === segment.toLowerCase()
-          )
-        )
-      ) {
-        delete queryObj.cat;
+      // Update the params
+      if (newValues.length > 0) {
+        currentParams.set(paramKey, newValues.join(','));
+      } else {
+        currentParams.delete(paramKey);
       }
 
-      const searchParams = createSearchParams(queryObj);
-      // Ensure we maintain the /shop prefix in the URL
-      router.push(`/shop/${cat.join('/')}?${searchParams}`);
+      // Reset page when filters change
+      currentParams.set('page', '1');
+
+      // Push the new route
+      router.push(`/shop/${cat.join('/')}?${currentParams.toString()}`);
     },
-    [cat, router, variantOptions, selectedFilters]
+    [searchParams, router, cat, variantOptions]
   );
 
+  // Refactored handleSortChange to use URL state
   const handleSortChange = useCallback(
     (value) => {
-      setSort(value);
-
-      // Get current query parameters
-      const currentParams = new URLSearchParams(window.location.search);
+      // Create a new URLSearchParams object from the current searchParams
+      const currentParams = new URLSearchParams(
+        typeof searchParams === 'object'
+          ? Object.entries(searchParams).reduce((acc, [key, value]) => {
+              acc[key] = value;
+              return acc;
+            }, {})
+          : searchParams
+      );
 
       // Update or add the sort parameter
       currentParams.set('sort', value);
 
+      // Reset page when sort changes
+      currentParams.set('page', '1');
+
       // Close dropdown before navigation
       toggleDropdown('sort');
 
-      // Ensure we maintain the /shop prefix in the URL
+      // Push the new route
       router.push(`/shop/${cat.join('/')}?${currentParams.toString()}`);
     },
-    [cat, router]
+    [cat, router, searchParams]
   );
 
   if (products?.length === 0) {
@@ -274,9 +300,8 @@ export default function Filter({
       <FilterContent
         dropdownRef={dropdownRef}
         activeDropdown={activeDropdown}
-        selectedFilters={selectedFilters}
-        setSelectedFilters={setSelectedFilters}
-        sort={sort}
+        selectedFilters={currentFilters}
+        sort={currentSortLabel}
         sortOptions={sortOptions}
         handleChange={handleChange}
         handleSortChange={handleSortChange}
@@ -285,19 +310,20 @@ export default function Filter({
         cat={cat}
         router={router}
         variantOptions={variantOptions}
+        searchParams={searchParams}
       />
       <MobileFilterContent
         showFilter={showFilter}
         setShowFilter={setShowFilter}
-        selectedFilters={selectedFilters}
-        setSelectedFilters={setSelectedFilters}
+        selectedFilters={currentFilters}
         filters={filters}
         handleChange={handleChange}
         cat={cat}
         router={router}
-        sort={sort}
+        sort={currentSortLabel}
         sortOptions={sortOptions}
         handleSortChange={handleSortChange}
+        searchParams={searchParams}
       />
     </div>
   );

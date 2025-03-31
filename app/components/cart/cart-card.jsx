@@ -8,7 +8,6 @@ import {
   updateCartItemChecked,
   selectAllCart,
 } from '@/app/action/cartAction';
-import { mutate } from 'swr';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -18,33 +17,17 @@ import { useSession } from 'next-auth/react';
 import { formatToNaira } from '@/app/utils/getFunc';
 import { Checkbox } from '@/app/components/ui/checkbox';
 
-const CartCard = ({ cartItem, stockStatus }) => {
+const CartCard = ({ cartItem }) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const [quantity, setQuantity] = useState(cartItem.quantity.toString() || '');
   const [isLoading, setIsLoading] = useState(false);
   const previousQuantityRef = useRef(cartItem.quantity.toString());
 
-  // Check stock status of this cart item
-  const isUnavailable = stockStatus?.unavailableItems?.some(
-    (item) => item.id === cartItem.id
-  );
-
-  const isLowStock = stockStatus?.lowStockItems?.some(
-    (item) => item.id === cartItem.id
-  );
-
-  const availableItem = isUnavailable
-    ? stockStatus.unavailableItems.find((item) => item.id === cartItem.id)
-    : isLowStock
-      ? stockStatus.lowStockItems.find((item) => item.id === cartItem.id)
-      : null;
-
   const handleCheckboxChange = async () => {
     setIsLoading(true);
     try {
       await updateCartItemChecked(userId, cartItem.id, !cartItem.checked);
-      await mutate(`/cart/${userId}`);
     } finally {
       setIsLoading(false);
     }
@@ -57,18 +40,6 @@ const CartCard = ({ cartItem, stockStatus }) => {
   const updateQuantity = async (newQuantity) => {
     if (newQuantity === '' || parseInt(newQuantity) < 1) return;
 
-    // Check against available quantity if item is unavailable
-    if (
-      isUnavailable &&
-      availableItem &&
-      parseInt(newQuantity) > availableItem.availableQuantity
-    ) {
-      newQuantity = availableItem.availableQuantity.toString();
-      toast.warning(
-        `Only ${availableItem.availableQuantity} item(s) available in stock.`
-      );
-    }
-
     setIsLoading(true);
     try {
       const updatedCart = await updateCartItemQuantity({
@@ -78,7 +49,6 @@ const CartCard = ({ cartItem, stockStatus }) => {
         variantId: cartItem?.variantId,
         quantity: parseInt(newQuantity),
       });
-      await mutate(`/cart/${userId}`);
       const updatedItem = updatedCart.item.find(
         (item) => item.id === cartItem.id
       );
@@ -109,25 +79,11 @@ const CartCard = ({ cartItem, stockStatus }) => {
         </div>
       )}
       <div className="relative flex w-full flex-nowrap items-start border-b border-b-gray-300 bg-white px-3 py-4 text-sm sm:px-4 sm:py-6">
-        {/* Stock status badges */}
-        {isUnavailable && (
-          <div className="absolute right-2 top-2 z-10 rounded-md bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-            Out of Stock
-          </div>
-        )}
-
-        {isLowStock && !isUnavailable && (
-          <div className="absolute right-2 top-2 z-10 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-            Low Stock
-          </div>
-        )}
-
         <div className="flex items-start">
           <Checkbox
             checked={cartItem.checked}
             onCheckedChange={handleCheckboxChange}
             className="mr-2 h-5 w-5 cursor-pointer self-center"
-            disabled={isUnavailable}
           />
           <div className="w-[80px] sm:w-[120px]">
             <Link
@@ -162,7 +118,6 @@ const CartCard = ({ cartItem, stockStatus }) => {
                 setIsLoading(true);
                 try {
                   await removeFromCart(userId, cartItem?.id);
-                  await mutate(`/cart/${userId}`);
                 } finally {
                   setIsLoading(false);
                 }
@@ -185,22 +140,6 @@ const CartCard = ({ cartItem, stockStatus }) => {
                 </p>
               ))}
           </div>
-
-          {/* Stock warning message */}
-          {isUnavailable && availableItem && (
-            <div className="text-xs text-red-600">
-              <p>
-                Only {availableItem.availableQuantity} available. Please update
-                quantity.
-              </p>
-            </div>
-          )}
-
-          {isLowStock && availableItem && !isUnavailable && (
-            <div className="text-xs text-amber-600">
-              <p>Only {availableItem.availableQuantity} left in stock.</p>
-            </div>
-          )}
 
           <div className="flex items-center justify-between gap-2 sm:flex-row">
             <div className="flex items-center">
@@ -256,24 +195,20 @@ const CartCard = ({ cartItem, stockStatus }) => {
   );
 };
 
-export default function CartCards({ products, stockStatus }) {
+export default function CartCards({ products }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [selectAll, setSelectAll] = useState(false);
+  const [isAllChecked, setIsAllChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setSelectAll(products?.every((product) => product.checked));
+    setIsAllChecked(products?.every((product) => product.checked));
   }, [products]);
 
   const handleSelectAll = async () => {
     setIsLoading(true);
     try {
-      const newSelectAllState = !selectAll;
-      const cart = await selectAllCart(userId, newSelectAllState);
-      await mutate(`/cart/${userId}`);
-    } catch (error) {
-      toast.info(error.message);
+      await selectAllCart(userId, !isAllChecked);
     } finally {
       setIsLoading(false);
     }
@@ -292,7 +227,7 @@ export default function CartCards({ products, stockStatus }) {
         <div className="mt-2 flex items-center px-4 py-3">
           <Checkbox
             id="select-all-cart"
-            checked={selectAll !== undefined ? selectAll : false}
+            checked={isAllChecked}
             onCheckedChange={handleSelectAll}
             className="mr-2 h-5 w-5 cursor-pointer"
           />
@@ -313,11 +248,7 @@ export default function CartCards({ products, stockStatus }) {
           </div>
         </div>
         {memoizedProducts?.map((product) => (
-          <CartCard
-            key={product.id}
-            cartItem={product}
-            stockStatus={stockStatus}
-          />
+          <CartCard key={product.id} cartItem={product} />
         ))}
       </div>
     </div>

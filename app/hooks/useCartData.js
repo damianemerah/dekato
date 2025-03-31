@@ -18,6 +18,8 @@ export default function useCartData(userId, options = {}) {
       suspense: false,
       revalidateIfStale: !skipInitialFetch,
       revalidateOnMount: !skipInitialFetch,
+      dedupingInterval: 5000,
+      errorRetryCount: 3,
     }
   );
 

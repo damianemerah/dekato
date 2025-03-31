@@ -1,12 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cache } from 'react';
 import dbConnect from '@/app/lib/mongoConnection';
 import Blog from '@/models/blog';
 import handleAppError from '@/app/utils/appError';
 import { formDataToObject } from '@/app/utils/filterObj';
 import { uploadFiles } from '@/app/lib/s3Func';
-import { unstable_cache } from 'next/cache';
 import { restrictTo } from '@/app/utils/checkPermission';
 
 const toObject = (data) => {
@@ -49,6 +49,7 @@ export async function createBlog(formData) {
     const blog = await Blog.create(data);
 
     revalidatePath('/blog');
+    revalidatePath('/fashion');
     revalidatePath('/admin/blog');
     return { id: blog._id.toString(), ...blog.toObject() };
   } catch (err) {
@@ -83,6 +84,7 @@ export async function updateBlog(id, formData) {
     }
 
     revalidatePath('/blog');
+    revalidatePath('/fashion');
     revalidatePath('/admin/blog');
     revalidatePath(`/blog/${blog.slug}`);
     return { id: blog._id.toString(), ...blog.toObject() };
@@ -124,7 +126,7 @@ export async function getBlog(id) {
 }
 
 // Cached server action for blog fetching
-export const getAllBlogs = unstable_cache(
+export const getAllBlogs = cache(
   async ({ page = 1, limit = 10, status, category, tag, search } = {}) => {
     await dbConnect();
 
@@ -187,9 +189,7 @@ export const getAllBlogs = unstable_cache(
       console.error('Error fetching blogs:', err);
       throw new Error(err.message || 'Failed to fetch blog posts');
     }
-  },
-  ['blogs'],
-  { revalidate: 60 } // Revalidate every minute
+  }
 );
 
 export async function deleteBlog(id) {
@@ -204,6 +204,7 @@ export async function deleteBlog(id) {
     }
 
     revalidatePath('/blog');
+    revalidatePath('/fashion');
     revalidatePath('/admin/blog');
     return null;
   } catch (err) {

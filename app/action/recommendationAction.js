@@ -1,6 +1,6 @@
 'use server';
 
-import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { auth } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongoConnection';
@@ -10,8 +10,8 @@ import UserActivity from '@/models/userActivity';
 import { recommendationService } from '@/app/lib/recommendationService';
 import { restrictTo } from '@/app/utils/checkPermission';
 
-// Cache recommendations with a 5-minute TTL
-export const getRecommendations = unstable_cache(
+// Cache recommendations using React's cache
+export const getRecommendations = cache(
   async (type, categorySlug, productId, limit = 4) => {
     await dbConnect();
     const session = await auth();
@@ -73,9 +73,7 @@ export const getRecommendations = unstable_cache(
         })),
       };
     });
-  },
-  ['recommendations'],
-  { revalidate: 300 } // 5 minutes
+  }
 );
 
 // Track product interaction (not cached, as it modifies data)
@@ -155,7 +153,7 @@ export async function addToNaughtyList(productId) {
   }
 }
 
-// Get recommended products for the home page
+// Get recommended products for the home page with proper fetch caching
 export async function getHomeRecommendations() {
   // Get selected category from cookie
   const cookieStore = cookies();

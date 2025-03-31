@@ -9,42 +9,21 @@ import Paystack from '@/public/assets/icons/paystack.svg';
 import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
 import { SmallSpinner } from '@/app/components/spinner';
 import { useSession } from 'next-auth/react';
-import useCartData from '@/app/hooks/useCartData';
 import { formatToNaira } from '@/app/utils/getFunc';
-import { useStockVerification } from '@/app/hooks/useStockVerification';
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function CartContents({ initialCartData = null }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  // Use state to track the cart data, initialized with server-rendered data
-  const [cart, setCart] = useState(initialCartData);
-
-  // Still use the hook for post-mutation updates, but skip initial fetch if we have data
-  const {
-    cartData: clientCartData,
-    isLoading: cartIsLoading,
-    error: cartError,
-  } = useCartData(userId, { skipInitialFetch: !!initialCartData });
-
-  // Update cart state when client data changes (e.g., after mutations)
-  useEffect(() => {
-    if (clientCartData) {
-      setCart(clientCartData);
-    }
-  }, [clientCartData]);
-
-  // Show loading state only if we have no initial data and are fetching
-  const isLoading = !initialCartData && cartIsLoading;
+  // Directly use the initialCartData prop
+  const cart = initialCartData;
 
   // Determine if cart is empty
   const isCartEmpty = !cart || cart?.item?.length === 0;
 
-  const stockStatus = useStockVerification(cart);
-
-  if (isLoading) {
+  if (!cart) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <SmallSpinner className="!text-primary" />
@@ -66,73 +45,18 @@ export default function CartContents({ initialCartData = null }) {
     );
   }
 
-  if (cartError) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Error loading cart</p>
-      </div>
-    );
-  }
-
-  const renderStockWarnings = () => {
-    if (
-      stockStatus.unavailableItems.length === 0 &&
-      stockStatus.lowStockItems.length === 0
-    ) {
-      return null;
-    }
-
-    return (
-      <div className="mb-4 space-y-3">
-        {stockStatus.unavailableItems.length > 0 && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-            <div className="mb-1 font-medium">Stock Unavailable</div>
-            <p>
-              Some items in your cart are no longer available in the requested
-              quantity:
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              {stockStatus.unavailableItems.map((item) => (
-                <li key={item.id}>
-                  {item.name} - Requested: {item.requestedQuantity}, Available:{' '}
-                  {item.availableQuantity}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {stockStatus.lowStockItems.length > 0 && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-600">
-            <div className="mb-1 font-medium">Low Stock Warning</div>
-            <p>These items are running low on stock:</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              {stockStatus.lowStockItems.map((item) => (
-                <li key={item.id}>
-                  {item.name} - Only {item.availableQuantity} left
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="bg-grayBg min-h-screen">
       <div className="mx-auto max-w-5xl py-8 md:px-8">
         <CartHeader />
-        {renderStockWarnings()}
         <div className="my-8 flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="md:w-2/3">
-            <CartCards products={cart?.item} stockStatus={stockStatus} />
+            <CartCards products={cart?.item} />
           </div>
           <div className="lg:w-1/3">
             <ProceedToCheckoutBox
               totalPrice={cart?.totalPrice}
               amountSaved={cart?.amountSaved}
-              stockStatus={stockStatus}
             />
             <PaystackSecured />
           </div>
@@ -176,7 +100,7 @@ function PaystackSecured() {
   );
 }
 
-function ProceedToCheckoutBox({ totalPrice, amountSaved, stockStatus }) {
+function ProceedToCheckoutBox({ totalPrice, amountSaved }) {
   return (
     <div className="bg-white px-6 py-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between border-b pb-4 font-semibold text-primary">
@@ -201,35 +125,13 @@ function ProceedToCheckoutBox({ totalPrice, amountSaved, stockStatus }) {
         )}
       </div>
 
-      <Link href={stockStatus.valid ? '/checkout' : '#'}>
-        <ButtonPrimary
-          className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90"
-          disabled={!stockStatus.valid}
-          onClick={(e) => {
-            if (!stockStatus.valid) {
-              e.preventDefault();
-              toast.error(
-                'Please update your cart. Some items are out of stock.'
-              );
-            }
-          }}
-        >
+      <Link href="/checkout">
+        <ButtonPrimary className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
           <span>Proceed to checkout</span>
           <ArrowRight className="ml-2 text-white" />
         </ButtonPrimary>
       </Link>
-      <ButtonPrimary
-        className="mt-4 flex w-full items-center justify-center bg-[#25D366] text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90"
-        disabled={!stockStatus.valid}
-        onClick={(e) => {
-          if (!stockStatus.valid) {
-            e.preventDefault();
-            toast.error(
-              'Please update your cart. Some items are out of stock.'
-            );
-          }
-        }}
-      >
+      <ButtonPrimary className="mt-4 flex w-full items-center justify-center bg-[#25D366] text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90">
         Whatsapp checkout
         <WhatsappIcon className="ml-2.5 h-6 w-6 fill-green-500 text-white" />
       </ButtonPrimary>

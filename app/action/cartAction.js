@@ -134,8 +134,11 @@ export async function createCartItem(userId, newItem) {
       ).lean({ virtuals: true });
     }
 
-    // revalidateTag("checkout-data");
-    // revalidatePath("/checkout");
+    revalidatePath('/cart');
+    revalidatePath('/checkout');
+    revalidatePath('/account/wishlist');
+    revalidateTag(`user-${userId}`);
+    revalidateTag('cart-data');
 
     await session.commitTransaction();
     session.endSession();
@@ -207,9 +210,9 @@ export async function updateCartItemQuantity(updateData) {
       })
       .lean({ virtuals: true });
 
-    // revalidateTag("checkout-data");
-    // revalidatePath("/checkout");
     revalidatePath('/cart');
+    revalidatePath('/checkout');
+
     return formatCartData(updatedCart);
   } catch (error) {
     throw error;
@@ -244,8 +247,8 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
       })
       .lean({ virtuals: true });
 
-    // revalidateTag("checkout-data");
-    // revalidatePath("/checkout");
+    revalidatePath('/cart');
+    revalidatePath('/checkout');
 
     return formatCartData(updatedCart);
   } catch (error) {
@@ -259,19 +262,15 @@ export async function selectAllCart(userId, selectAll) {
   try {
     await dbConnect();
 
-    // Ensure that selectAll is a boolean
-    if (typeof selectAll !== 'boolean') {
-      throw new Error('Invalid value for selectAll');
-    }
-
-    // Find the user's cart
     const cart = await Cart.findOne({ userId });
     if (!cart) {
       throw new Error('Cart not found');
     }
 
-    // Update all cart items' checked status
-    await CartItem.updateMany({ cartId: cart._id }, { checked: selectAll });
+    const cartItems = await CartItem.updateMany(
+      { cartId: cart._id },
+      { checked: selectAll }
+    );
 
     const updatedCart = await Cart.findById(cart._id)
       .populate({
@@ -280,8 +279,8 @@ export async function selectAllCart(userId, selectAll) {
       })
       .lean({ virtuals: true });
 
-    // revalidateTag("checkout-data");
-    // revalidatePath("/checkout");
+    revalidatePath('/cart');
+    revalidatePath('/checkout');
 
     return formatCartData(updatedCart);
   } catch (error) {
@@ -300,7 +299,12 @@ export async function removeFromCart(userId, cartItemId) {
       throw new Error('Cart not found');
     }
 
-    // Remove cart item reference from cart
+    const cartItem = await CartItem.findById(cartItemId);
+    if (!cartItem) {
+      throw new Error('Cart item not found');
+    }
+
+    // Remove from cart items array
     await Cart.findByIdAndUpdate(cart._id, {
       $pull: { item: cartItemId },
     });
@@ -315,8 +319,8 @@ export async function removeFromCart(userId, cartItemId) {
       })
       .lean({ virtuals: true });
 
-    // revalidateTag("checkout-data");
-    // revalidatePath("/checkout");
+    revalidatePath('/cart');
+    revalidatePath('/checkout');
 
     return formatCartData(updatedCart);
   } catch (error) {

@@ -1,6 +1,6 @@
 'use server';
 
-import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import dbConnect from '@/app/lib/mongoConnection';
 import Category from '@/models/category';
 import Product from '@/models/product';
@@ -242,37 +242,33 @@ export async function deleteCategory(id) {
   }
 }
 
-export const getPinnedCategoriesByParent = unstable_cache(
-  async (parentSlug) => {
-    await dbConnect();
+export const getPinnedCategoriesByParent = cache(async (parentSlug) => {
+  await dbConnect();
 
-    try {
-      let parentCategory;
-      if (parentSlug) {
-        parentCategory = await Category.findOne({ slug: parentSlug }).lean();
-        if (!parentCategory) {
-          return [];
-        }
+  try {
+    let parentCategory;
+    if (parentSlug) {
+      parentCategory = await Category.findOne({ slug: parentSlug }).lean();
+      if (!parentCategory) {
+        return [];
       }
-
-      const pinnedCategories = await Category.find({
-        parent: parentCategory?._id,
-        pinned: true,
-      })
-        .sort({ pinOrder: 1 })
-        .limit(5)
-        .lean();
-
-      return pinnedCategories.map((category) => ({
-        ...category,
-        id: category._id.toString(),
-        _id: category._id.toString(),
-      }));
-    } catch (error) {
-      console.error('Error fetching pinned categories:', error);
-      return [];
     }
-  },
-  ['pinned-categories'],
-  { revalidate: 3600 } // Revalidate every hour
-);
+
+    const pinnedCategories = await Category.find({
+      parent: parentCategory?._id,
+      pinned: true,
+    })
+      .sort({ pinOrder: 1 })
+      .limit(5)
+      .lean();
+
+    return pinnedCategories.map((category) => ({
+      ...category,
+      id: category._id.toString(),
+      _id: category._id.toString(),
+    }));
+  } catch (error) {
+    console.error('Error fetching pinned categories:', error);
+    return [];
+  }
+});

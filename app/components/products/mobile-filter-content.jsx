@@ -2,13 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { createSearchParams } from '@/app/utils/filterHelpers';
 
 export default function MobileFilterContent({
   showFilter,
   setShowFilter,
   selectedFilters,
-  setSelectedFilters,
   filters,
   handleChange,
   cat,
@@ -20,52 +18,15 @@ export default function MobileFilterContent({
   const [selectedSection, setSelectedSection] = useState(null);
 
   const handleClearAll = useCallback(() => {
-    // Ensure we maintain the /shop prefix in the URL
+    // Simply navigate to the base path without any query parameters
     router.push(`/shop/${cat.join('/')}`);
+  }, [cat, router]);
 
-    setSelectedFilters((prev) => {
-      const newFilters = Object.keys(prev).reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]: [],
-        }),
-        {}
-      );
-      return newFilters;
-    });
-  }, [cat, router, setSelectedFilters]);
-
-  // Function to apply filters
+  // Function to apply filters and close modal
   const applyFilters = useCallback(() => {
-    // Get all active filters
-    const queryObj = Object.fromEntries(
-      Object.entries(selectedFilters).filter(
-        ([key, value]) => value.length > 0 && value.every((v) => v.length > 0)
-      )
-    );
-
-    if (Object.keys(queryObj).length === 0) {
-      // No filters, just go back to category page
-      router.push(`/shop/${cat.join('/')}`);
-      return;
-    }
-
-    // Remove redundant category parameter if it's already in the path
-    if (
-      queryObj.cat &&
-      cat.some((segment) =>
-        queryObj.cat.some(
-          (catFilter) => catFilter.toLowerCase() === segment.toLowerCase()
-        )
-      )
-    ) {
-      delete queryObj.cat;
-    }
-
-    const searchParams = createSearchParams(queryObj);
-    // Ensure we maintain the /shop prefix in the URL
-    router.push(`/shop/${cat.join('/')}?${searchParams}`);
-  }, [cat, router, selectedFilters]);
+    // Just close the filter modal - all changes are already applied through handleChange
+    setShowFilter(false);
+  }, [setShowFilter]);
 
   // Combine filters with sort options for the main menu
   const allOptions = [

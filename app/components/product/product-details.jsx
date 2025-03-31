@@ -1,20 +1,19 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useTransition, useEffect } from "react";
-import { mutate } from "swr";
-import { useUserStore } from "@/app/store/store";
-import { addToWishlist, removeFromWishlist } from "@/app/action/userAction";
-import { Toaster } from "sonner";
-import { toast } from "sonner";
-import { ErrorBoundary } from "react-error-boundary";
-import { Suspense } from "react";
+import { useState, useCallback, useTransition, useEffect } from 'react';
+import { useUserStore } from '@/app/store/store';
+import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
+import { Toaster } from 'sonner';
+import { toast } from 'sonner';
+import { ErrorBoundary } from 'react-error-boundary';
+import { Suspense } from 'react';
 
-import ProductGallery from "./product-gallery";
-import ProductInfo from "./product-info";
-import ProductVariants from "./product-variants";
-import ProductActions from "./product-actions";
-import ProductDetailsSections from "./product-details-sections";
-import { useCart } from "@/app/hooks/use-cart";
+import ProductGallery from './product-gallery';
+import ProductInfo from './product-info';
+import ProductVariants from './product-variants';
+import ProductActions from './product-actions';
+import ProductDetailsSections from './product-details-sections';
+import { useCart } from '@/app/hooks/use-cart';
 
 function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
   return (
@@ -58,7 +57,7 @@ const ProductDetail = function ProductDetail({ product }) {
 
   const handleAddToWishlist = useCallback(() => {
     if (!userId) {
-      toast.error("Please sign in to add items to your wishlist");
+      toast.error('Please sign in to add items to your wishlist');
       return;
     }
 
@@ -67,22 +66,21 @@ const ProductDetail = function ProductDetail({ product }) {
         if (isInWishlist) {
           await removeFromWishlist(userId, product.id);
           setIsInWishlist(false);
-          toast.success("Removed from wishlist");
+          toast.success('Removed from wishlist');
         } else {
           await addToWishlist(userId, product.id);
           setIsInWishlist(true);
-          toast.success("Added to wishlist");
+          toast.success('Added to wishlist');
         }
-        await mutate(`/api/user/${userId}`);
       } catch (error) {
-        toast.error("Failed to update wishlist");
+        toast.error('Failed to update wishlist');
       }
     });
   }, [userId, product.id, isInWishlist]);
 
   const handleAddToCart = useCallback(async () => {
     if (!userId) {
-      toast.error("Please sign in to add items to your cart");
+      toast.error('Please sign in to add items to your cart');
       return;
     }
 
@@ -99,7 +97,7 @@ const ProductDetail = function ProductDetail({ product }) {
       });
     } catch (error) {
       // Error is already handled in the useCart hook
-      console.error("Error adding to cart:", error);
+      console.error('Error adding to cart:', error);
     }
   }, [
     userId,

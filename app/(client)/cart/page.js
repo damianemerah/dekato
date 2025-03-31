@@ -2,6 +2,8 @@ import { auth } from '@/app/lib/auth';
 import { getCart } from '@/app/action/cartAction';
 import CartContents from '@/app/components/cart/cart-contents';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CartPage() {
   // Fetch user session server-side
   const session = await auth();

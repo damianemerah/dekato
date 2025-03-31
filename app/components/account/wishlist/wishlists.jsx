@@ -6,7 +6,6 @@ import { SmallSpinner } from '@/app/components/spinner';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { createCartItem } from '@/app/action/cartAction';
-import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 
@@ -43,8 +42,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
         await createCartItem(userId, newItem);
         await removeFromWishlist(userId, product.id);
       }
-      await mutate(`/api/user/${userId}`);
-      await mutate(`/cart/${userId}`);
+
       // Update local state
       setProducts([]);
       toast.success('All items added to cart');

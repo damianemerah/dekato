@@ -5,7 +5,6 @@ import { Modal, message } from 'antd';
 import { ButtonPrimary } from '../button';
 import { updateUserAddress, createUserAddress } from '@/app/action/userAction';
 import { useUserStore } from '@/app/store/store';
-import { mutate } from 'swr';
 import EditIcon from '@/public/assets/icons/edit.svg';
 import { SmallSpinner } from '@/app/components/spinner';
 import { Checkbox } from '@/app/components/ui/checkbox';
@@ -32,9 +31,6 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
           formData.append('isDefault', isDefault);
           formData.append('userId', user.id);
           await updateUserAddress(formData);
-          await mutate('/checkout-data');
-          await mutate(`/api/user/${user.id}`);
-          await mutate(`/api/userAddress/${user.id}`);
 
           message.success('Address updated successfully');
 
@@ -46,9 +42,6 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
         }
         await updateUserAddress(data);
 
-        await mutate('/checkout-data');
-        await mutate(`/api/user/${user.id}`);
-        await mutate(`/api/userAddress/${user.id}`);
         message.success('Address updated successfully');
       } catch (error) {
         console.error('Error updating address:', error);
@@ -70,10 +63,6 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
       try {
         const res = await createUserAddress(formData);
-
-        await mutate('/checkout-data');
-        await mutate(`/api/user/${user.id}`);
-        await mutate(`/api/userAddress/${user.id}`);
 
         message.success('Address added successfully');
       } catch (error) {

@@ -3,8 +3,6 @@
 import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
-import { useSWRConfig } from 'swr';
-import useUserData from '@/app/hooks/useUserData';
 import { updateUserInfo, updatePassword } from '@/app/action/userAction';
 import {
   Dialog,
@@ -20,15 +18,13 @@ import { Label } from '@/app/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
-export default function AccountSettings() {
+export default function AccountSettings({ initialUserData }) {
   const { data: session, update: updateSession } = useSession();
   const userId = session?.user?.id;
-  const { userData: user, isLoading: userIsLoading } = useUserData(userId);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const { mutate } = useSWRConfig();
 
   const handleEditClick = useCallback(() => setShowEditModal(true), []);
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
@@ -55,7 +51,6 @@ export default function AccountSettings() {
         formData.append('lastname', e.target.lastname.value);
 
         const updatedUser = await updateUserInfo(formData);
-        mutate(`/api/user/${userId}`, updatedUser, false);
         handleModalClose();
 
         toast.success('Profile updated', {
@@ -71,7 +66,7 @@ export default function AccountSettings() {
         setIsUpdating(false);
       }
     },
-    [userId, mutate, handleModalClose]
+    [userId, handleModalClose]
   );
 
   const handleUpdatePassword = useCallback(
@@ -87,7 +82,6 @@ export default function AccountSettings() {
         formData.append('passwordConfirm', e.target.passwordConfirm.value);
 
         const updatedUser = await updatePassword(formData);
-        mutate(`/api/user/${userId}`, updatedUser, false);
         handleModalClose();
 
         toast.success('Password updated', {
@@ -104,7 +98,7 @@ export default function AccountSettings() {
         setIsUpdating(false);
       }
     },
-    [userId, mutate, handleModalClose, updateSession]
+    [userId, handleModalClose, updateSession]
   );
 
   const handleDeleteAccount = useCallback(async () => {
@@ -117,14 +111,6 @@ export default function AccountSettings() {
   const handleLogout = useCallback(async () => {
     await signOut({ callbackUrl: '/signin' });
   }, []);
-
-  if (userIsLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto py-8">
@@ -149,7 +135,7 @@ export default function AccountSettings() {
                     First Name
                   </Label>
                   <div className="text-gray-900">
-                    {user?.firstname || 'Not set'}
+                    {initialUserData?.firstname || 'Not set'}
                   </div>
                 </div>
                 <div>
@@ -157,7 +143,7 @@ export default function AccountSettings() {
                     Last Name
                   </Label>
                   <div className="text-gray-900">
-                    {user?.lastname || 'Not set'}
+                    {initialUserData?.lastname || 'Not set'}
                   </div>
                 </div>
               </div>
@@ -165,7 +151,7 @@ export default function AccountSettings() {
                 <Label className="mb-1 block text-sm font-medium text-gray-700">
                   Email
                 </Label>
-                <div className="text-gray-900">{user?.email}</div>
+                <div className="text-gray-900">{initialUserData?.email}</div>
               </div>
               <Button
                 variant="outline"
@@ -226,7 +212,7 @@ export default function AccountSettings() {
                 <Input
                   id="firstname"
                   name="firstname"
-                  defaultValue={user?.firstname || ''}
+                  defaultValue={initialUserData?.firstname || ''}
                   required
                 />
               </div>
@@ -235,7 +221,7 @@ export default function AccountSettings() {
                 <Input
                   id="lastname"
                   name="lastname"
-                  defaultValue={user?.lastname || ''}
+                  defaultValue={initialUserData?.lastname || ''}
                   required
                 />
               </div>

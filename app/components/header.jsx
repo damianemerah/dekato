@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Search, ShoppingBag, User, Heart } from 'lucide-react';
-import useUserData from '@/app/hooks/useUserData';
 import useCartData from '@/app/hooks/useCartData';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/app/components/ui/sheet';
@@ -15,8 +14,8 @@ import { Separator } from '@/app/components/ui/separator';
 
 export function Header() {
   const { data: session } = useSession();
-  const userId = session?.user?.id;
-  const { userData: user } = useUserData(userId);
+  const user = session?.user;
+  const userId = user?.id;
   const { cartData: cart } = useCartData(userId);
   const [isShaking, setIsShaking] = React.useState(false);
   const pathname = usePathname();
@@ -89,15 +88,17 @@ export function Header() {
 
           {/* User account */}
           <Link
-            href={user?.id ? '/account' : '/signin'}
+            href={userId ? '/account' : '/signin'}
             className="hidden md:flex md:items-center md:space-x-1"
           >
             <User className="h-5 w-5" />
             <span className="hidden text-sm font-medium md:inline">
-              {user?.id ? user?.firstname : 'LOGIN'}
+              {userId
+                ? user?.firstname || user?.name?.split(' ')[0] || 'Account'
+                : 'LOGIN'}
             </span>
           </Link>
-          <Link href={user?.id ? '/account' : '/signin'} className="md:hidden">
+          <Link href={userId ? '/account' : '/signin'} className="md:hidden">
             <User className="h-5 w-5" />
           </Link>
 

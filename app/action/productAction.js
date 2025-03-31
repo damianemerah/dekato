@@ -1,16 +1,17 @@
 'use server';
 
-import { unstable_cache } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { cache } from 'react';
 import Product from '@/models/product';
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
+import OptionGroup from '@/models/variantsOption';
 import APIFeatures from '@/app/utils/apiFeatures';
 import { handleFormData } from '@/app/utils/handleForm';
 import { restrictTo } from '@/app/utils/checkPermission';
 import dbConnect from '@/app/lib/mongoConnection';
 import { getQueryObj } from '@/app/utils/getFunc';
 import handleAppError from '@/app/utils/appError';
-import { revalidatePath, revalidateTag } from 'next/cache';
 import { deleteFiles } from '@/app/lib/s3Func';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -24,7 +25,22 @@ const formatProduct = (product, isAdmin = false) => {
     ...rest,
     category: category?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
     campaign: campaign?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
-    variant: variant?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v })),
+    variant: variant?.map(({ _id, optionType = [], ...v }) => ({
+      id: _id.toString(),
+      optionType: optionType.map(({ _id, labelId, ...ot }) => ({
+        id: _id?.toString(),
+        labelId: labelId
+          ? {
+              id: labelId._id?.toString(),
+              name: labelId.name,
+              values: labelId.values,
+              swatchUrl: labelId.swatchUrl,
+            }
+          : labelId,
+        ...ot,
+      })),
+      ...v,
+    })),
   };
 
   if (!isAdmin) {
@@ -309,7 +325,7 @@ export async function getVariantsByCategory(catArr, searchStr = '') {
   }
 }
 
-export async function getAllProducts(slugArray, searchParams = {}) {
+export const getAllProducts = cache(async (slugArray, searchParams = {}) => {
   try {
     await dbConnect();
 
@@ -560,22 +576,23 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       limit: 20,
     };
   }
-}
+});
 
-export async function getProductById(id) {
+export const getProductById = cache(async (id) => {
   try {
     await dbConnect();
     const product = await Product.findById(id)
       .populate('category', 'name slug')
       .populate('campaign', 'name slug')
+      .populate('variant.optionType.labelId', 'name values swatchUrl')
       .lean({ virtuals: true });
     if (!product) throw new Error('Product not found');
     return formatProduct(product);
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message);
+    return null;
   }
-}
+});
 
 export async function getAdminProductById(id) {
   try {
@@ -583,6 +600,7 @@ export async function getAdminProductById(id) {
     const product = await Product.findById(id)
       .populate('category', 'name slug')
       .populate('campaign', 'name slug')
+      .populate('variant.optionType.labelId', 'name values swatchUrl')
       .lean({ virtuals: true });
     if (!product) throw new Error('Product not found');
     return formatProduct(product, true);
@@ -698,7 +716,7 @@ function revalidateProduct(id) {
 // setupIndexes();
 
 // Cached server action for recommended products
-export const getRecommendedProducts = unstable_cache(
+export const getRecommendedProducts = cache(
   async (category = null, limit = 8) => {
     await dbConnect();
 
@@ -798,45 +816,52 @@ export const getRecommendedProducts = unstable_cache(
       console.error('Error fetching recommended products:', err);
       return [];
     }
-  },
-  ['recommended-products'],
-  { revalidate: 300 } // Revalidate every 5 minutes
+  }
 );
 
-export const getProductByIdCached = unstable_cache(
-  async (id) => {
-    try {
-      await dbConnect();
-      const product = await Product.findById(id)
-        .populate('category', 'name slug')
-        .populate('campaign', 'name slug')
-        .lean({ virtuals: true });
+export const getProductByIdCached = cache(async (id) => {
+  try {
+    await dbConnect();
+    const product = await Product.findById(id)
+      .populate('category', 'name slug')
+      .populate('campaign', 'name slug')
+      .populate('variant.optionType.labelId', 'name values swatchUrl')
+      .lean({ virtuals: true });
 
-      if (!product) throw new Error('Product not found');
+    if (!product) throw new Error('Product not found');
 
-      const { _id, category, campaign, variant = [], ...rest } = product;
+    const { _id, category, campaign, variant = [], ...rest } = product;
 
-      return {
+    return {
+      id: _id.toString(),
+      ...rest,
+      category: category?.map(({ _id, ...c }) => ({
         id: _id.toString(),
-        ...rest,
-        category: category?.map(({ _id, ...c }) => ({
-          id: _id.toString(),
-          ...c,
+        ...c,
+      })),
+      campaign: campaign?.map(({ _id, ...c }) => ({
+        id: _id.toString(),
+        ...c,
+      })),
+      variant: variant.map(({ _id, optionType = [], ...v }) => ({
+        id: _id.toString(),
+        optionType: optionType.map(({ _id, labelId, ...ot }) => ({
+          id: _id?.toString(),
+          labelId: labelId
+            ? {
+                id: labelId._id?.toString(),
+                name: labelId.name,
+                values: labelId.values,
+                swatchUrl: labelId.swatchUrl,
+              }
+            : labelId,
+          ...ot,
         })),
-        campaign: campaign?.map(({ _id, ...c }) => ({
-          id: _id.toString(),
-          ...c,
-        })),
-        variant: variant.map(({ _id, ...v }) => ({
-          id: _id.toString(),
-          ...v,
-        })),
-      };
-    } catch (err) {
-      console.error('Error fetching product by ID:', err);
-      throw new Error(err.message);
-    }
-  },
-  ['product-by-id'],
-  { revalidate: 60 } // Revalidate every minute
-);
+        ...v,
+      })),
+    };
+  } catch (err) {
+    console.error('Error fetching product by ID:', err);
+    throw new Error(err.message);
+  }
+});

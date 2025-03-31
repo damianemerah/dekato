@@ -1,5 +1,4 @@
 'use client';
-import { createSearchParams } from '@/app/utils/filterHelpers';
 import { ChevronDown, ChevronUp, Check, X } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
@@ -7,7 +6,6 @@ export default function FilterContent({
   dropdownRef,
   activeDropdown,
   selectedFilters,
-  setSelectedFilters,
   sort,
   filters,
   handleChange,
@@ -17,82 +15,47 @@ export default function FilterContent({
   cat,
   router,
   variantOptions,
+  searchParams,
 }) {
   const handleClearAll = useCallback(() => {
-    // Ensure we maintain the /shop prefix in the URL
     router.push(`/shop/${cat.join('/')}`);
-
-    setSelectedFilters((prev) => {
-      const newFilters = Object.keys(prev).reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]: [],
-        }),
-        {}
-      );
-
-      return newFilters;
-    });
-  }, [cat, router, setSelectedFilters]);
+  }, [cat, router]);
 
   const handleRemoveFilter = useCallback(
     (key) => {
-      setSelectedFilters((prev) => {
-        const newFilters = {
-          ...prev,
-          [key]: [],
-        };
+      const currentParams = new URLSearchParams(
+        typeof searchParams === 'object'
+          ? Object.entries(searchParams).reduce((acc, [key, value]) => {
+              acc[key] = value;
+              return acc;
+            }, {})
+          : searchParams
+      );
 
-        // Apply filters immediately when removing
-        const queryObj = Object.fromEntries(
-          Object.entries(newFilters).filter(
-            ([key, value]) =>
-              value.length > 0 &&
-              value.every((v) => v.length > 0) &&
-              key in newFilters
-          )
-        );
+      const paramKey = variantOptions.some((opt) => opt.name === key)
+        ? `${key}-vr`
+        : key;
 
-        if (Object.keys(queryObj).length === 0) {
-          // Ensure we maintain the /shop prefix in the URL
-          router.push(`/shop/${cat.join('/')}`);
-          return newFilters;
-        }
+      currentParams.delete(paramKey);
 
-        // Handle variant filters
-        for (const [key, value] of Object.entries(queryObj)) {
-          if (variantOptions.some((opt) => opt.name === key)) {
-            queryObj[key + '-vr'] = value;
-            delete queryObj[key];
-          }
-        }
+      currentParams.set('page', '1');
 
-        // Remove redundant category parameter if it's already in the path
-        if (
-          queryObj.cat &&
-          cat.some((segment) =>
-            queryObj.cat.some(
-              (catFilter) => catFilter.toLowerCase() === segment.toLowerCase()
-            )
-          )
-        ) {
-          delete queryObj.cat;
-        }
-
-        const searchParams = createSearchParams(queryObj);
-        // Ensure we maintain the /shop prefix in the URL
-        router.push(`/shop/${cat.join('/')}?${searchParams}`);
-
-        return newFilters;
-      });
+      if (
+        Array.from(currentParams.entries()).length === 0 ||
+        (Array.from(currentParams.entries()).length === 1 &&
+          currentParams.has('page'))
+      ) {
+        router.push(`/shop/${cat.join('/')}`);
+      } else {
+        router.push(`/shop/${cat.join('/')}?${currentParams.toString()}`);
+      }
     },
-    [cat, router, setSelectedFilters, variantOptions]
+    [cat, router, variantOptions, searchParams]
   );
 
   const filterButtons = useMemo(() => {
     return filters
       .map((filter) => {
-        // Hide category filter on subcategory pages (when cat array has more than 1 item)
         if (filter.name === 'cat' && cat.length > 1) {
           return null;
         }
@@ -151,7 +114,7 @@ export default function FilterContent({
           </div>
         );
       })
-      .filter(Boolean); // Filter out null values
+      .filter(Boolean);
   }, [
     activeDropdown,
     filters,
@@ -248,10 +211,9 @@ export default function FilterContent({
           {Object.values(selectedFilters).some((arr) => arr.length > 0) && (
             <button
               onClick={handleClearAll}
-              className="flex items-center gap-1 rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-300"
+              className="mt-2 text-xs font-medium text-gray-500 hover:text-gray-700 sm:mt-0"
             >
               Clear All
-              <X className="h-4 w-4" />
             </button>
           )}
         </div>
