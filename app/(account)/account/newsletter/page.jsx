@@ -1,13 +1,20 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/app/lib/auth';
 import { NewsletterContent } from '@/app/components/account/newsletter/newsletter-content';
+import { getSubscriptionStatus } from '@/app/action/subscriptionAction';
 
 export default async function NewsletterPage() {
-  const session = await getServerSession(authOptions);
-  const initialData = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/subscribe?email=${session?.user?.email}`,
-    { next: { revalidate: 3600, tags: ['emailSubscription'] } }
-  ).then((res) => res.json());
+  const session = await auth();
+  const userEmail = session?.user?.email;
+
+  let initialData = null;
+  if (userEmail) {
+    // Call Server Action directly
+    initialData = await getSubscriptionStatus(userEmail);
+  } else {
+    // Handle case where email is not available (though middleware should prevent this)
+    console.warn('NewsletterPage: User email not found in session.');
+    initialData = { success: false, message: 'User not authenticated' };
+  }
 
   return (
     <div className="space-y-6">

@@ -83,6 +83,9 @@ export async function createCollection(formData) {
     });
 
     revalidatePath(`/admin/collections/${leanCollection.slug}`);
+    revalidatePath('/');
+    revalidateTag('collections');
+
     return { ...formatCollections([leanCollection])[0], productCount };
   } catch (err) {
     const error = handleAppError(err);
@@ -118,6 +121,8 @@ export async function updateCollection(formData) {
     revalidatePath(`/admin/collections/${collection.slug}`);
     revalidatePath(`/admin/collections`);
     revalidateTag('products-all');
+    revalidatePath('/');
+    revalidateTag('collections');
 
     return { ...formatCollections([collection])[0], productCount };
   } catch (err) {
@@ -141,6 +146,8 @@ export async function deleteCollection(id) {
 
     revalidatePath('/admin/collections');
     revalidatePath(`/admin/collections/${deletedCollection.slug}`);
+    revalidatePath('/');
+    revalidateTag('collections');
 
     return null;
   } catch (err) {

@@ -212,6 +212,8 @@ export async function updateCartItemQuantity(updateData) {
 
     revalidatePath('/cart');
     revalidatePath('/checkout');
+    revalidateTag('cart-data');
+    revalidateTag(`user-${userId}`);
 
     return formatCartData(updatedCart);
   } catch (error) {
@@ -249,6 +251,8 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
 
     revalidatePath('/cart');
     revalidatePath('/checkout');
+    revalidateTag('cart-data');
+    revalidateTag(`user-${userId}`);
 
     return formatCartData(updatedCart);
   } catch (error) {
@@ -281,6 +285,8 @@ export async function selectAllCart(userId, selectAll) {
 
     revalidatePath('/cart');
     revalidatePath('/checkout');
+    revalidateTag('cart-data');
+    revalidateTag(`user-${userId}`);
 
     return formatCartData(updatedCart);
   } catch (error) {
@@ -321,6 +327,8 @@ export async function removeFromCart(userId, cartItemId) {
 
     revalidatePath('/cart');
     revalidatePath('/checkout');
+    revalidateTag('cart-data');
+    revalidateTag(`user-${userId}`);
 
     return formatCartData(updatedCart);
   } catch (error) {

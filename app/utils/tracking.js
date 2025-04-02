@@ -1,35 +1,21 @@
-import { throttle } from "lodash";
-import Queue from "queue";
-
-export const activityQueue = new Queue({
-  concurrency: 4,
-  autostart: true,
-  timeout: 10000,
-});
+import { throttle } from 'lodash';
+import { trackProductInteractionSA } from '@/app/action/recommendationAction';
 
 export const trackView = async (userId, productId) => {
-  if (!userId) return;
-  await trackInteraction(userId, productId, "view");
+  await trackInteraction(userId, productId, 'view');
 };
 
-// Track clicks (immediate)
+// Track clicks
 export const trackClick = async (userId, productId) => {
-  if (!userId) return;
-  await trackInteraction(userId, productId, "click");
+  await trackInteraction(userId, productId, 'click');
 };
 
 async function trackInteraction(userId, productId, interactionType) {
   try {
-    await fetch("/api/recommendations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        productId,
-        interactionType,
-      }),
-    });
+    const result = await trackProductInteractionSA(productId, interactionType);
+    if (!result.success) {
+      console.warn(`Failed to track ${interactionType}:`, result.message);
+    }
   } catch (error) {
     console.error(`Error tracking product ${interactionType}:`, error);
   }

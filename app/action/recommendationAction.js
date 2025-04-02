@@ -9,6 +9,7 @@ import Category from '@/models/category';
 import UserActivity from '@/models/userActivity';
 import { recommendationService } from '@/app/lib/recommendationService';
 import { restrictTo } from '@/app/utils/checkPermission';
+import { revalidateTag } from 'next/cache';
 
 // Cache recommendations using React's cache
 export const getRecommendations = cache(
@@ -76,20 +77,24 @@ export const getRecommendations = cache(
   }
 );
 
-// Track product interaction (not cached, as it modifies data)
-export async function trackProductInteraction(
+// Server Action for tracking product interactions
+export async function trackProductInteractionSA(
   productId,
   interactionType = 'view'
 ) {
-  await restrictTo('user', 'admin');
-
+  // No restrictTo to allow anonymous tracking if desired
   try {
     await dbConnect();
+    // Get session if needed
     const session = await auth();
 
     if (!session?.user) {
-      throw new Error('Authentication required');
+      // Skip tracking for anonymous users but don't error
+      console.log('Anonymous user interaction, skipping tracking.');
+      return { success: true, message: 'Anonymous interaction skipped.' };
     }
+
+    const userId = session.user.id;
 
     if (!productId) {
       throw new Error('Product ID is required');
@@ -107,31 +112,62 @@ export async function trackProductInteraction(
       throw new Error('Product not found');
     }
 
-    // Track the interaction
-    await recommendationService.trackProductInteraction(
-      session.user.id,
-      productId,
-      interactionType
-    );
+    // Update view count if applicable
+    const updates = {};
+    if (interactionType === 'view') updates.$inc = { viewCount: 1 };
 
-    return { success: true };
+    await Product.findByIdAndUpdate(productId, updates);
+
+    const now = new Date();
+    if (interactionType === 'view' || interactionType === 'click') {
+      // Remove product from recentlyViewed if it exists (to avoid duplicates)
+      await UserActivity.findOneAndUpdate(
+        { userId },
+        { $pull: { recentlyViewed: { productId: productId } } }
+      );
+
+      // Add to recentlyViewed with updated info
+      const updateData = {
+        $push: {
+          recentlyViewed: {
+            $each: [
+              {
+                productId,
+                viewedAt: now,
+                clickCount: interactionType === 'click' ? 1 : 0,
+                lastClicked: interactionType === 'click' ? now : null,
+              },
+            ],
+            $slice: -20, // Keep only the last 20 items
+          },
+        },
+        $set: { lastInteraction: now },
+      };
+
+      await UserActivity.findOneAndUpdate({ userId }, updateData, {
+        upsert: true,
+      });
+    }
+
+    return {
+      success: true,
+      message: `Interaction '${interactionType}' tracked.`,
+    };
   } catch (error) {
-    console.error(`Error tracking product interaction:`, error);
-    throw error;
+    console.error(`Error tracking interaction (SA):`, error);
+    // Don't necessarily throw; tracking failure shouldn't break UI
+    return { success: false, message: error.message || 'Tracking failed.' };
   }
 }
 
-// Add product to naughty list (not cached, as it modifies data)
-export async function addToNaughtyList(productId) {
+// Server Action for adding product to naughty list
+export async function addToNaughtyListSA(productId) {
   await restrictTo('user', 'admin');
 
   try {
     await dbConnect();
     const session = await auth();
-
-    if (!session?.user) {
-      throw new Error('Authentication required');
-    }
+    const userId = session.user.id;
 
     if (!productId) {
       throw new Error('Product ID is required');
@@ -144,12 +180,18 @@ export async function addToNaughtyList(productId) {
     }
 
     // Add to naughty list
-    await recommendationService.addToNaughtyList(session.user.id, productId);
+    await recommendationService.addToNaughtyList(userId, productId);
 
-    return { success: true };
+    // Revalidate recommendations if needed
+    revalidateTag(`recommendations-${userId}`);
+
+    return { success: true, message: 'Product hidden from recommendations.' };
   } catch (error) {
-    console.error(`Error adding to naughty list:`, error);
-    throw error;
+    console.error(`Error adding to naughty list (SA):`, error);
+    return {
+      success: false,
+      message: error.message || 'Failed to hide product.',
+    };
   }
 }
 

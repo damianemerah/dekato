@@ -1,5 +1,0 @@
-when items are added to cart, if the user is not logged in save it in some form of cookie or local storage and associated it with the user when the user logs in.
-
-complete the sidebar ui
-
-remove sub is user is already subscribed

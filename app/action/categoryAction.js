@@ -8,7 +8,7 @@ import { handleFormData } from '@/app/utils/handleForm';
 import { restrictTo } from '@/app/utils/checkPermission';
 import handleAppError from '@/app/utils/appError';
 import APIFeatures from '@/app/utils/apiFeatures';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { formatCategories } from '@/app/utils/filterHelpers';
 
 export async function getAllCategories(params) {
@@ -128,6 +128,8 @@ export async function createCategory(formData) {
     });
 
     revalidatePath(`/admin/categories/${category.slug}`);
+    revalidatePath('/');
+    revalidateTag('categories');
     return { id: _id.toString(), productCount, ...rest };
   } catch (err) {
     const error = handleAppError(err);
@@ -171,6 +173,10 @@ export async function updateCategory(formData) {
 
     // Return category with id instead of _id
     const { _id, parent, ...rest } = category;
+
+    revalidatePath(`/admin/categories/${category.slug}`);
+    revalidatePath('/');
+    revalidateTag('categories');
 
     return {
       id: _id.toString(),
@@ -235,6 +241,9 @@ export async function deleteCategory(id) {
     }
 
     revalidatePath('/admin/categories');
+    revalidatePath('/');
+    revalidateTag('categories');
+
     return null;
   } catch (err) {
     const error = handleAppError(err);
@@ -270,5 +279,20 @@ export const getPinnedCategoriesByParent = cache(async (parentSlug) => {
   } catch (error) {
     console.error('Error fetching pinned categories:', error);
     return [];
+  }
+});
+
+export const getAllFormattedCategories = cache(async () => {
+  await dbConnect();
+
+  try {
+    const categories = await Category.find({ parent: null })
+      .populate('children', 'name _id slug path')
+      .lean({ virtuals: true });
+
+    return formatCategories(categories);
+  } catch (err) {
+    console.error('Error fetching categories for sidebar:', err);
+    return []; // Return empty array to prevent UI errors
   }
 });

@@ -10,6 +10,7 @@ import { formatToNaira } from '@/app/utils/getFunc';
 import { trackClick } from '@/app/utils/tracking';
 import { useMediaQuery } from '@/app/hooks/use-media-query';
 import { useCart } from '@/app/hooks/use-cart';
+import { addToNaughtyListSA } from '@/app/action/recommendationAction';
 
 // Shadcn components
 import { Card, CardContent, CardFooter } from '@/app/components/ui/card';
@@ -28,6 +29,7 @@ const ProductCard = ({ product, showDelete = false }) => {
   const [currentImage, setCurrentImage] = useState(product?.image[0]);
   const [variantImages, setVariantImages] = useState([]);
   const [isPending, startTransition] = useTransition();
+  const [isCartActionPending, startCartTransition] = useTransition();
   const [optimisticIsFavorite, setOptimisticIsFavorite] = useState(false);
 
   // Get user data from store
@@ -35,7 +37,7 @@ const ProductCard = ({ product, showDelete = false }) => {
   const userId = user?.id;
 
   // Use the cart hook
-  const { toggleCartItem, isInCart, isCartLoading } = useCart();
+  const { toggleCartItem, isInCart } = useCart();
 
   const setShouldMutate = useRecommendMutateStore(
     (state) => state.setShouldMutate
@@ -81,21 +83,23 @@ const ProductCard = ({ product, showDelete = false }) => {
         return;
       }
 
-      try {
-        await toggleCartItem({
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          image: product.image[0],
-          userId,
-        });
-      } catch (error) {
-        // Error is handled in the hook
-        console.error('Cart operation failed:', error);
-      }
+      startCartTransition(async () => {
+        try {
+          await toggleCartItem({
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            image: product.image[0],
+            userId,
+          });
+        } catch (error) {
+          // Error is handled in the hook
+          console.error('Cart operation failed:', error);
+        }
+      });
     },
-    [userId, product, toggleCartItem]
+    [userId, product, toggleCartItem, startCartTransition]
   );
 
   // Handle wishlist toggling with optimistic update
@@ -148,15 +152,12 @@ const ProductCard = ({ product, showDelete = false }) => {
 
       startTransition(async () => {
         try {
-          const response = await fetch('/api/recommendations', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: product.id }),
-          });
-
-          if (response.ok) {
+          const result = await addToNaughtyListSA(product.id);
+          if (result.success) {
             setShouldMutate(true);
             toast.success('Product removed from recommendations');
+          } else {
+            throw new Error(result.message || 'Failed to hide product');
           }
         } catch (error) {
           toast.error('Failed to remove product');
@@ -250,107 +251,104 @@ const ProductCard = ({ product, showDelete = false }) => {
               </Tooltip>
             </TooltipProvider>
           )}
+
+          {/* Show variant images on hover (desktop only) */}
+          {shouldShowVariantsOnHover &&
+            variantImages &&
+            variantImages.length > 0 && (
+              <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                {[product.image[0], ...variantImages].map(
+                  (image, index) =>
+                    image && (
+                      <button
+                        key={index}
+                        className={`h-6 w-6 rounded-full border ${
+                          currentImage === image
+                            ? 'border-primary'
+                            : 'border-border'
+                        } overflow-hidden`}
+                        onMouseEnter={() => setCurrentImage(image)}
+                        aria-label={`View ${product.name} variant ${index + 1}`}
+                      >
+                        <Image
+                          src={image}
+                          alt={`${product.name} variant ${index + 1}`}
+                          width={24}
+                          height={24}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    )
+                )}
+              </div>
+            )}
         </div>
-
-        <CardContent
-          className={`relative z-10 flex min-h-[4rem] flex-col items-center bg-white p-3 text-sm transition-all duration-300 ${shouldShowVariantsOnHover ? 'md:group-hover:-translate-y-9' : ''}`}
-        >
-          <h3 className="mb-1 w-full truncate text-center capitalize">
-            {product.name}
-          </h3>
-
-          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center">
-            {/* Empty left column for balance */}
-            <div className="col-start-1"></div>
-
-            {/* Center column with price */}
-            <div className="col-start-2 flex flex-col items-center justify-center text-center">
-              {product.isDiscounted ? (
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-xs text-muted-foreground line-through">
-                    {formatToNaira(product.price)}
-                  </span>
-                  <span className="font-medium text-primary">
-                    {formatToNaira(discountedPrice)}
-                  </span>
-                </div>
-              ) : (
-                <span className="font-medium text-primary">
-                  {formatToNaira(product.price)}
-                </span>
-              )}
-            </div>
-
-            {/* Right column with cart button */}
-            <div className="col-start-3 flex justify-end">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={productInCart ? 'default' : 'ghost'}
-                      size="icon"
-                      className={`h-8 w-8 rounded-full ${
-                        productInCart
-                          ? 'bg-green-500 hover:bg-green-600'
-                          : 'bg-muted text-muted-foreground/60 hover:bg-muted/30'
-                      } p-0 ${isCartLoading ? 'animate-pulse' : ''}`}
-                      onClick={handleAddToCart}
-                      disabled={isCartLoading}
-                      aria-label={
-                        productInCart ? 'Remove from cart' : 'Add to cart'
-                      }
-                    >
-                      <ShoppingBag
-                        className={`h-4 w-4 ${
-                          productInCart ? 'stroke-white' : ''
-                        }`}
-                      />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{productInCart ? 'Remove from cart' : 'Add to cart'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-        </CardContent>
       </Link>
 
-      {/* Variant selector */}
-      {product?.variant?.length > 0 && (
-        <CardFooter
-          className={`no-scrollbar flex items-center justify-center gap-2 overflow-x-auto bg-white p-2 transition-all duration-300 ${shouldShowVariantsOnHover ? 'absolute bottom-0 left-1/2 -translate-x-1/2' : ''}`}
-        >
-          {product?.variant?.slice(0, 5).map((variant, index) => (
-            <Button
-              key={`${variant._id}-${index}`}
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-full p-0 md:h-7 md:w-7"
-              onMouseEnter={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setCurrentImage(variantImages[index]);
-              }}
-            >
-              <Image
-                src={variantImages[index]}
-                alt={`${product.name} variant ${index + 1}`}
-                width={28}
-                height={28}
-                className="h-full w-full rounded-full object-cover object-center"
-              />
-            </Button>
-          ))}
+      <CardContent className="space-y-2 p-3">
+        <h3 className="text-md line-clamp-2 font-medium leading-tight">
+          <Link
+            href={`/product/${product.slug}-${product.id}`}
+            onClick={handleProductClick}
+            className="text-primary hover:text-primary/90"
+          >
+            {product.name}
+          </Link>
+        </h3>
 
-          {product?.variant?.length > 5 && (
-            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground md:h-7 md:w-7">
-              +{product.variant.length - 5}
-            </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <p
+            className={`text-sm font-semibold ${
+              product.isDiscounted ? 'text-destructive' : 'text-primary'
+            }`}
+          >
+            {formatToNaira(discountedPrice)}
+          </p>
+          {product.isDiscounted && (
+            <p className="text-xs text-muted-foreground line-through">
+              {formatToNaira(product.price)}
+            </p>
           )}
-        </CardFooter>
-      )}
+        </div>
+      </CardContent>
+
+      <CardFooter className="border-t p-3">
+        <div className="flex w-full justify-between gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleAddToCart}
+                  size="sm"
+                  variant={productInCart ? 'default' : 'outline'}
+                  className={`flex-1 ${
+                    productInCart ? 'bg-primary text-primary-foreground' : ''
+                  }`}
+                  disabled={isCartActionPending}
+                  aria-label={
+                    productInCart ? 'Remove from cart' : 'Add to cart'
+                  }
+                >
+                  {isCartActionPending ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  ) : productInCart ? (
+                    <>
+                      <Check className="mr-1 h-4 w-4" /> In Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="mr-1 h-4 w-4" /> Add to Cart
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{productInCart ? 'Remove from cart' : 'Add to cart'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

@@ -1,51 +1,72 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
-import { Label } from "@/app/components/ui/label";
+import { useState, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import { Label } from '@/app/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/app/components/ui/card";
-import { Check } from "lucide-react";
+} from '@/app/components/ui/card';
+import { Check, Loader2 } from 'lucide-react';
+import { subscribeUser } from '@/app/action/subscriptionAction';
+import { useSession } from 'next-auth/react';
+import useSWR from 'swr';
+import { getSubscriptionStatus } from '@/app/action/subscriptionAction';
+import { toast } from 'sonner';
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      disabled={pending}
+      className="bg-primary font-oswald text-white hover:bg-primary/90"
+    >
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subscribing...
+        </>
+      ) : (
+        'SUBSCRIBE'
+      )}
+    </Button>
+  );
+}
 
 export default function NewsletterSection() {
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [preference, setPreference] = useState("");
+  const [preference, setPreference] = useState('');
+  const [state, formAction] = useFormState(subscribeUser, {
+    success: false,
+    message: null,
+  });
 
-  async function subscribeToNewsletter(formData) {
-    setFormError("");
-    const email = formData.get("newsletter");
-    const gender = formData.get("gender");
+  const { data: session } = useSession();
+  const userEmail = session?.user?.email;
 
-    if (!email || !gender) {
-      setFormError("Please fill in all required fields");
-      return;
+  // Fetch subscription status using SWR to determine initial visibility
+  const { data: subscriptionData, isLoading: isLoadingStatus } = useSWR(
+    userEmail ? ['subscriptionStatus', userEmail] : null, // Key includes email
+    () => getSubscriptionStatus(userEmail),
+    { revalidateOnFocus: false } // Avoid unnecessary refetches
+  );
+
+  const isAlreadySubscribed =
+    subscriptionData?.subscription?.status === 'subscribed';
+
+  // Handle form submission result
+  useEffect(() => {
+    if (state.success) {
+      // Success is handled by UI changes
+    } else if (state.message && !state.success) {
+      toast.error(state.message || 'Subscription failed.');
     }
-
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        body: JSON.stringify({ email, gender }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setIsSubscribed(true);
-      } else {
-        setFormError(data.message || "Something went wrong");
-      }
-    } catch (error) {
-      setFormError("Failed to subscribe. Please try again.");
-    }
-  }
+  }, [state]);
 
   return (
     <section className="bg-muted/50 py-16">
@@ -61,8 +82,28 @@ export default function NewsletterSection() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!isSubscribed ? (
-              <form action={subscribeToNewsletter} className="space-y-6">
+            {isLoadingStatus ? (
+              <div className="flex justify-center p-6">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : isAlreadySubscribed ? (
+              <div className="rounded-lg bg-primary/10 p-6 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="rounded-full bg-primary/20 p-2">
+                    <Check className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <h3 className="mb-2 text-lg font-semibold">
+                  Thank you for subscribing!
+                </h3>
+                <p className="text-muted-foreground">
+                  You&apos;ve been added to our mailing list. You&apos;ll now
+                  receive updates on new releases, exclusive offers, and a 20%
+                  discount code will be sent to your email shortly.
+                </p>
+              </div>
+            ) : (
+              <form action={formAction} className="space-y-6">
                 <div className="space-y-4">
                   <div>
                     <Label className="text-base font-semibold">
@@ -106,37 +147,11 @@ export default function NewsletterSection() {
                         className="flex-1"
                         required
                       />
-                      <Button
-                        type="submit"
-                        className="bg-primary font-oswald text-white hover:bg-primary/90"
-                      >
-                        SUBSCRIBE
-                      </Button>
+                      <SubmitButton />
                     </div>
-                    {formError && (
-                      <p className="text-sm text-destructive" role="alert">
-                        {formError}
-                      </p>
-                    )}
                   </div>
                 </div>
               </form>
-            ) : (
-              <div className="rounded-lg bg-primary/10 p-6 text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="rounded-full bg-primary/20 p-2">
-                    <Check className="h-6 w-6 text-primary" />
-                  </div>
-                </div>
-                <h3 className="mb-2 text-lg font-semibold">
-                  Thank you for subscribing!
-                </h3>
-                <p className="text-muted-foreground">
-                  You&apos;ve been added to our mailing list. You&apos;ll now
-                  receive updates on new releases, exclusive offers, and a 20%
-                  discount code will be sent to your email shortly.
-                </p>
-              </div>
             )}
           </CardContent>
         </Card>

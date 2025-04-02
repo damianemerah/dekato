@@ -1,6 +1,7 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import React from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -43,41 +44,106 @@ export default function AppSidebar({ categories, collections, ...props }) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  // Define sidebarItems here using the props
-  const sidebarItems = [
-    {
-      label: 'NEW ARRIVALS',
-      children:
-        collections
-          ?.filter((items) => items.slug.startsWith('new-arrival'))
-          .map((collection) => ({
-            label: categories?.find((cat) => cat.id === collection.category)
-              ?.name,
-            href: `/shop/${collection.path[0]}`,
-          })) || [], // Add fallback empty array
-    },
-    ...(categories
-      ?.filter((cat) => !cat.parent)
-      .map((topCat) => ({
-        label: topCat.name.toUpperCase(),
-        href: `/shop/${topCat.path[0]}`,
+  // Add debugging console log in development mode
+  if (process.env.NODE_ENV === 'development') {
+    console.log(
+      '[Sidebar] New Arrivals Collections:',
+      collections
+        ?.filter((c) => c.slug.startsWith('new-arrival'))
+        .map((c) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          category: c.category,
+          categoryName:
+            typeof c.category === 'object'
+              ? c.category.name
+              : categories?.find((cat) => cat.id === c.category)?.name,
+        }))
+    );
+  }
+
+  // Use React.useMemo to memoize sidebarItems calculation
+  const sidebarItems = React.useMemo(
+    () => [
+      {
+        label: 'NEW ARRIVALS',
         children:
-          topCat?.children?.map((subCat) => ({
-            label: subCat.name,
-            href: `/shop/${subCat.path[0]}`,
-          })) || [], // Add fallback empty array
-      })) || []),
-    {
-      label: 'COLLECTIONS',
-      children:
-        collections
-          ?.filter((item) => !item.slug.startsWith('new-arrival'))
-          .map((collection) => ({
-            label: collection.name,
-            href: `/shop/${collection.path[0]}`,
-          })) || [], // Add fallback empty array
-    },
-  ];
+          collections
+            ?.filter((items) => items.slug.startsWith('new-arrival'))
+            .map((collection) => {
+              // Handle both cases: when category is an object or when it's an ID
+              let categoryName;
+              let categorySlug;
+
+              if (
+                typeof collection.category === 'object' &&
+                collection.category !== null
+              ) {
+                // Category is already an object with name property
+                categoryName = collection.category.name;
+                categorySlug = collection.category.slug;
+              } else {
+                // Category is an ID, need to look it up
+                const category = categories?.find(
+                  (cat) => cat.id === collection.category
+                );
+                categoryName = category?.name;
+                categorySlug = category?.slug;
+              }
+
+              // Fallback to collection name or generic label if category name not found
+              categoryName = categoryName || collection.name || 'New Item';
+
+              // Build the correct URL format: /shop/{category-slug}/new-arrivals
+              const href = categorySlug
+                ? `/shop/${categorySlug}/new-arrivals`
+                : `/shop/${collection.slug}`; // Fallback if category slug not found
+
+              return {
+                label: categoryName,
+                href: href,
+              };
+            }) || [],
+      },
+      ...(categories
+        ?.filter((cat) => !cat.parent)
+        .map((topCat) => ({
+          label: topCat.name.toUpperCase(),
+          href: `/shop/${topCat.path?.[0] || topCat.slug}`,
+          children:
+            topCat?.children?.map((subCat) => ({
+              label: subCat.name,
+              href: `/shop/${subCat.path?.[0] || subCat.slug}`,
+            })) || [],
+        })) || []),
+      {
+        label: 'COLLECTIONS',
+        children:
+          collections
+            ?.filter((item) => !item.slug.startsWith('new-arrival'))
+            .map((collection) => {
+              // Get the collection name - either directly or from the category object
+              let displayName = collection.name;
+
+              // If no name but we have a category object, use that
+              if (
+                !displayName &&
+                typeof collection.category === 'object' &&
+                collection.category?.name
+              ) {
+                displayName = collection.category.name;
+              }
+
+              return {
+                label: displayName || 'Collection Item',
+                href: `/shop/${collection.path?.[0] || collection.slug}`,
+              };
+            }) || [],
+      },
+    ],
+    [categories, collections]
+  );
 
   return (
     <Sidebar {...props} className="sidebar-with-header">
@@ -184,13 +250,13 @@ export default function AppSidebar({ categories, collections, ...props }) {
           {session ? (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link
-                  href="/api/auth/signout"
-                  className="flex items-center space-x-2 text-red-500"
+                <button
+                  onClick={() => signOut({ callbackUrl: '/signin' })}
+                  className="flex w-full items-center space-x-2 text-left text-red-500"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
-                </Link>
+                </button>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ) : (

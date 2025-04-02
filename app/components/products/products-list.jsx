@@ -7,7 +7,7 @@ import HeaderOne from '@/app/components/heading1';
 import Image from 'next/image';
 import { Suspense, useMemo, useState, useCallback, useEffect } from 'react';
 import { useUserStore } from '@/app/store/store';
-import { trackView, activityQueue } from '@/app/utils/tracking';
+import { trackView } from '@/app/utils/tracking';
 import { ChevronLeft, ChevronRight, PackageSearch } from 'lucide-react';
 
 const MAX_TRACK_TIME = 5000;
@@ -95,24 +95,24 @@ const ProductList = ({
           }
         });
 
-        // Track all products that meet criteria in one batch
+        // Directly call trackView for each product, handle async without queue
         if (productsToTrack.size > 0) {
-          [...productsToTrack].forEach((productId) => {
-            activityQueue.push((cb) => {
+          const trackingPromises = [...productsToTrack].map(
+            async (productId) => {
               try {
-                trackView(userId, productId)
-                  .then(() => {
-                    setTrackedProducts((prev) => new Set([...prev, productId]));
-                    cb();
-                  })
-                  .catch((err) => {
-                    cb(err);
-                  });
+                await trackView(userId, productId);
+                // Update state immediately after successful tracking for this product
+                setTrackedProducts((prev) => new Set(prev).add(productId));
               } catch (error) {
-                cb(error);
+                console.error(
+                  `Error tracking view for product ${productId}:`,
+                  error
+                );
               }
-            });
-          });
+            }
+          );
+          // Optional: Wait for all tracking calls to settle if needed, though usually not necessary
+          // await Promise.allSettled(trackingPromises);
         }
       },
       {

@@ -13,6 +13,9 @@ import SidebarContent from '@/app/components/sidebar/sidebar-content';
 import Header from '@/app/components/header';
 import { Toaster } from '@/app/components/ui/sonner';
 
+// Add revalidation for the layout
+export const revalidate = 3600; // Revalidate sidebar data every hour
+
 const roboto = localFont({
   src: [
     {
