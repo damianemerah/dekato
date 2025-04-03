@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import ProductCardSkeleton from '@/app/components/products/product-card-skeleton';
 import ProductCard from '@/app/components/products/product-card';
 
 const RecommendedProductsClient = ({ initialProducts = [], category }) => {

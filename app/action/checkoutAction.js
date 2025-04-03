@@ -14,7 +14,8 @@ import { omit } from 'lodash';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Notification from '@/models/notification';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
 import { recommendationService } from '@/app/lib/recommendationService';
 import mongoose from 'mongoose';
@@ -377,10 +378,7 @@ export async function verifyAndCompleteOrder(paystackReference) {
 
   if (!userId) {
     console.error('[ERROR verifyAndCompleteOrder] No userId found in session');
-    return {
-      success: false,
-      message: 'Authentication required',
-    };
+    redirect('/signin?callbackUrl=/cart');
   }
 
   console.log(`[DEBUG verifyAndCompleteOrder] Authenticated user: ${userId}`);
@@ -404,11 +402,9 @@ export async function verifyAndCompleteOrder(paystackReference) {
       console.warn(
         `[WARN verifyAndCompleteOrder] Too many verification attempts for ${paystackReference}`
       );
-      return {
-        success: false,
-        message: 'Too many verification attempts. Please try again later.',
-        status: 'rate_limited',
-      };
+      redirect(
+        `/checkout/failed?reason=rate_limited&reference=${paystackReference}`
+      );
     }
 
     // Check if the order is already being processed (lock mechanism)
@@ -422,11 +418,9 @@ export async function verifyAndCompleteOrder(paystackReference) {
       console.warn(
         `[WARN verifyAndCompleteOrder] Order ${paystackReference} is already being processed`
       );
-      return {
-        success: true,
-        message: 'Your payment is already being processed',
-        status: 'processing',
-      };
+      redirect(
+        `/checkout/success?reference=${paystackReference}&status=processing`
+      );
     }
 
     // Set a processing lock on the order
@@ -456,7 +450,9 @@ export async function verifyAndCompleteOrder(paystackReference) {
         { paymentRef: paystackReference },
         { processingLock: false }
       );
-      return { success: false, message: 'Payment verification failed' };
+      redirect(
+        `/checkout/failed?reason=verification_failed&reference=${paystackReference}`
+      );
     }
 
     // Find the order by payment reference
@@ -469,7 +465,9 @@ export async function verifyAndCompleteOrder(paystackReference) {
       console.error(
         `[ERROR verifyAndCompleteOrder] Order not found for ref: ${paystackReference}`
       );
-      return { success: false, message: 'Order not found' };
+      redirect(
+        `/checkout/failed?reason=not_found&reference=${paystackReference}`
+      );
     }
 
     console.log(
@@ -486,7 +484,9 @@ export async function verifyAndCompleteOrder(paystackReference) {
         { paymentRef: paystackReference },
         { processingLock: false }
       );
-      return { success: false, message: 'Unauthorized' };
+      redirect(
+        `/checkout/failed?reason=unauthorized&reference=${paystackReference}`
+      );
     }
 
     // Check if order is already processed to prevent double processing
@@ -499,11 +499,9 @@ export async function verifyAndCompleteOrder(paystackReference) {
         { paymentRef: paystackReference },
         { processingLock: false }
       );
-      return {
-        success: true,
-        message: 'Order has already been processed',
-        status: 'success',
-      };
+      redirect(
+        `/checkout/success?reference=${paystackReference}&status=success`
+      );
     }
 
     // Process the payment based on Paystack verification status
@@ -667,26 +665,28 @@ export async function verifyAndCompleteOrder(paystackReference) {
       `[DEBUG verifyAndCompleteOrder] Order ${order._id} saved successfully.`
     );
 
-    // Revalidate paths
+    // Revalidate related pages
     console.log(
       `[DEBUG verifyAndCompleteOrder] Revalidating paths: /cart, /checkout`
     );
     revalidatePath('/cart');
     revalidatePath('/checkout');
+    revalidateTag('cart');
+    revalidateTag('orders');
 
-    const returnValue = {
-      success: verification.data.status === 'success',
-      message:
-        verification.data.status === 'success'
-          ? 'Payment verified and order completed successfully'
-          : `Payment ${verification.data.status}`,
-      status: verification.data.status,
-    };
-    console.log(
-      '[DEBUG verifyAndCompleteOrder] Returning:',
-      JSON.stringify(returnValue)
+    // Release processing lock
+    await Order.findOneAndUpdate(
+      { paymentRef: paystackReference },
+      { processingLock: false }
     );
-    return returnValue;
+
+    // Redirect to success page with status
+    console.log(
+      `[DEBUG verifyAndCompleteOrder] Redirecting to success page for ref: ${paystackReference}`
+    );
+    redirect(
+      `/checkout/success?reference=${paystackReference}&status=${verification.data.status}`
+    );
   } catch (error) {
     console.error(
       '[ERROR verifyAndCompleteOrder] Caught error:',
@@ -694,28 +694,8 @@ export async function verifyAndCompleteOrder(paystackReference) {
       error.stack
     );
 
-    // Release the processing lock in case of error
-    try {
-      await Order.findOneAndUpdate(
-        { paymentRef: paystackReference },
-        { processingLock: false }
-      );
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Released processing lock after error`
-      );
-    } catch (lockError) {
-      console.error(
-        '[ERROR verifyAndCompleteOrder] Failed to release lock:',
-        lockError
-      );
-    }
-
-    return {
-      success: false,
-      message:
-        'Payment verification failed: ' + (error.message || 'Unknown error'),
-      error: error.message,
-    };
+    // In the error case, redirect to failed page
+    redirect(`/checkout/failed?reason=error&reference=${paystackReference}`);
   }
 }
 

@@ -1,7 +1,13 @@
 import Hero from '@/app/components/home/hero';
 import SelectedCategories from '@/app/components/home/selected-categories';
-import RecommendProductServerWrapper from '@/app/components/home/recommend-product-server';
 import BelowFold from '@/app/components/home/below-fold';
+import Campaign from '@/app/components/home/Campaign';
+import { Suspense } from 'react';
+import { cookies } from 'next/headers';
+import { auth } from '@/app/lib/auth';
+import { getRecommendations } from '@/app/action/recommendationAction';
+import RecommendedProductsClient from '@/app/components/recommended-products-client';
+import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
 
 export const metadata = {
   title: 'Dekato Outfit | Fashion & Lifestyle',
@@ -23,6 +29,24 @@ export const metadata = {
 };
 
 export default async function Home() {
+  // Get user session
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  // Get selected category from cookie
+  const cookieStore = cookies();
+  const selectedCategory =
+    cookieStore.get('selected-category')?.value || 'women';
+
+  // Determine recommendation type based on user authentication
+  const recommendationType = userId ? 'personalized' : 'general';
+
+  // Get the recommended products from the server
+  const recommendedProducts = await getRecommendations(
+    recommendationType,
+    selectedCategory
+  );
+
   return (
     <div className="bg-gray-100 font-oswald">
       {/* Hero is statically rendered */}
@@ -31,8 +55,16 @@ export default async function Home() {
       {/* Categories rendered directly from server component */}
       <SelectedCategories />
 
-      {/* Recommended products handled by server component wrapper */}
-      <RecommendProductServerWrapper />
+      {/* Home recommended products */}
+      <Suspense fallback={<RecommendedProductsSkeleton />}>
+        <RecommendedProductsClient
+          initialProducts={recommendedProducts}
+          category={selectedCategory}
+        />
+      </Suspense>
+
+      {/* Campaign section */}
+      <Campaign />
 
       {/* Below fold content rendered directly */}
       <BelowFold />

@@ -1,5 +1,5 @@
-import Link from "next/link";
-import Image from "next/image";
+import Link from 'next/link';
+import Image from 'next/image';
 
 const CampaignSection = ({ image, title, priority = false }) => {
   return (
@@ -8,7 +8,7 @@ const CampaignSection = ({ image, title, priority = false }) => {
         src={image}
         alt={`${title} for Men and Women`}
         fill
-        style={{ objectFit: "cover" }}
+        style={{ objectFit: 'cover' }}
         priority={priority}
       />
       <div className="absolute inset-0 bg-black bg-opacity-30" />
@@ -45,6 +45,7 @@ export default function Campaign() {
         title="New Arrivals"
         priority={true}
       />
+
       <CampaignSection
         image="/assets/image5.webp"
         title="Featured Collection"

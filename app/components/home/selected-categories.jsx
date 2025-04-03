@@ -1,6 +1,5 @@
 import { getPinnedCategoriesByParent } from '@/app/action/categoryAction';
 import CategoryLink from './category-link';
-import Campaign from './Campaign';
 import { cookies } from 'next/headers';
 import { CategorySelector } from './category-selector';
 
@@ -16,7 +15,7 @@ export default async function SelectedCategories() {
   return (
     <>
       <div
-        className="font-oswald min-h-[300px] px-4 py-6 sm:px-6 lg:px-8"
+        className="min-h-[300px] px-4 py-6 font-oswald sm:px-6 lg:px-8"
         id="selected-category"
       >
         <div className="flex flex-col sm:ml-4 md:ml-8">
@@ -48,7 +47,6 @@ export default async function SelectedCategories() {
           </div>
         )}
       </div>
-      <Campaign />
     </>
   );
 }

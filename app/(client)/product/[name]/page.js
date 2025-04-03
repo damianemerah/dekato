@@ -3,7 +3,7 @@ import { getProductById } from '@/app/action/productAction';
 import ProductDetail from '@/app/components/product/product-details';
 import { Suspense } from 'react';
 import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
-import RecommendProductServerWrapper from '@/app/components/home/recommend-product-server.jsx';
+import SimilarProductsServer from '@/app/components/product/similar-products';
 import ProductStructuredData from '@/app/components/products/product-structured-data';
 
 export async function generateMetadata({ params }, parent) {
@@ -59,7 +59,7 @@ export default async function ProductInfoPage({ params: { name } }) {
         <ProductStructuredData product={product} />
         <ProductDetail product={product} />
         <Suspense fallback={<RecommendedProductsSkeleton />}>
-          <RecommendProductServerWrapper productId={id} />
+          <SimilarProductsServer productId={id} category={product.category} />
         </Suspense>
       </div>
     );
