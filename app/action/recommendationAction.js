@@ -212,3 +212,30 @@ export async function getHomeRecommendations() {
   // Get recommendations
   return getRecommendations(type, selectedCategory);
 }
+
+// Cache trending recommendations using React's cache
+export const getTrendingProductsAction = cache(async (limit = 8) => {
+  await dbConnect();
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  // Get trending products from the recommendation service
+  const products = await recommendationService.getTrendingProducts(
+    userId,
+    Number.parseInt(limit, 10)
+  );
+
+  // Format the response data
+  return products.map((product) => {
+    const { _id, ...rest } = product;
+    return {
+      id: _id.toString(),
+      ...rest,
+      category: product.category?.map((cat) => ({
+        id: cat._id.toString(),
+        name: cat.name,
+        slug: cat.slug,
+      })),
+    };
+  });
+});

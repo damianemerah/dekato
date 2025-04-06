@@ -5,7 +5,10 @@ import Campaign from '@/app/components/home/Campaign';
 import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { auth } from '@/app/lib/auth';
-import { getRecommendations } from '@/app/action/recommendationAction';
+import {
+  getRecommendations,
+  getTrendingProductsAction,
+} from '@/app/action/recommendationAction';
 import RecommendedProductsClient from '@/app/components/recommended-products-client';
 import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
 import Gallery from '@/app/components/home/gallery';
@@ -42,11 +45,11 @@ export default async function Home() {
   // Determine recommendation type based on user authentication
   const recommendationType = userId ? 'personalized' : 'general';
 
-  // Get the recommended products from the server
-  const recommendedProducts = await getRecommendations(
-    recommendationType,
-    selectedCategory
-  );
+  // Get recommended and trending products concurrently
+  const [recommendedProducts, trendingProducts] = await Promise.all([
+    getRecommendations(recommendationType, selectedCategory),
+    getTrendingProductsAction(8), // Fetch 8 trending products
+  ]);
 
   return (
     <div className="bg-background font-oswald">
@@ -61,11 +64,22 @@ export default async function Home() {
         <RecommendedProductsClient
           initialProducts={recommendedProducts}
           category={selectedCategory}
+          name="You May Also Like"
         />
       </Suspense>
 
       {/* Campaign section */}
       <Campaign />
+
+      {/* Trending products */}
+      {trendingProducts && trendingProducts.length > 0 && (
+        <Suspense fallback={<RecommendedProductsSkeleton />}>
+          <RecommendedProductsClient
+            initialProducts={trendingProducts}
+            name="Trending Products"
+          />
+        </Suspense>
+      )}
 
       {/* Below fold content rendered directly */}
       <Blog />

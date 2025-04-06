@@ -1,30 +1,30 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const slides = [
   {
     background: `/assets/herobg.avif`,
-    title: "UP TO 40% OFF",
-    subTitle: "BLACK FRIDAY",
-    description: "EARLY ACCESS",
-    link: "#",
+    title: 'UP TO 40% OFF',
+    subTitle: 'BLACK FRIDAY',
+    description: 'EARLY ACCESS',
+    link: '#',
     linkText: "MEN'S DEALS",
-    secondaryLink: "#",
+    secondaryLink: '#',
     secondaryLinkText: "WOMEN'S DEALS",
   },
   {
     background: `/assets/hero_img1.jpg`,
-    title: "NEW COLLECTION",
-    subTitle: "WINTER 2023",
-    description: "DISCOVER THE LATEST STYLES",
-    link: "#",
-    linkText: "SHOP MEN",
-    secondaryLink: "#",
-    secondaryLinkText: "SHOP WOMEN",
+    title: 'NEW COLLECTION',
+    subTitle: 'WINTER 2023',
+    description: 'DISCOVER THE LATEST STYLES',
+    link: '#',
+    linkText: 'SHOP MEN',
+    secondaryLink: '#',
+    secondaryLinkText: 'SHOP WOMEN',
   },
 ];
 
@@ -52,8 +52,8 @@ export default function Hero() {
             key={index}
             className={`absolute inset-0 duration-700 ${
               index === currentSlide
-                ? "opacity-100"
-                : "pointer-events-none opacity-0"
+                ? 'opacity-100'
+                : 'pointer-events-none opacity-0'
             }`}
           >
             <Image
@@ -100,7 +100,7 @@ export default function Hero() {
         ))}
       </div>
 
-      <div className="absolute bottom-8 right-4 z-10 flex gap-3 sm:right-8 sm:gap-6">
+      {/* <div className="absolute bottom-8 right-4 z-10 flex gap-3 sm:right-8 sm:gap-6">
         <button
           onClick={prevSlide}
           className="flex h-8 w-8 items-center justify-center bg-white transition-colors hover:bg-white/90 sm:h-12 sm:w-12"
@@ -115,7 +115,7 @@ export default function Hero() {
         >
           <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
         </button>
-      </div>
+      </div> */}
 
       <div className="absolute bottom-8 left-4 z-10 flex gap-2 sm:left-8">
         {slides.map((_, index) => (
@@ -124,8 +124,8 @@ export default function Hero() {
             onClick={() => setCurrentSlide(index)}
             className={`h-1.5 transition-all sm:h-2 ${
               index === currentSlide
-                ? "w-6 bg-white sm:w-8"
-                : "w-1.5 bg-white/50 sm:w-2"
+                ? 'w-6 bg-white sm:w-8'
+                : 'w-1.5 bg-white/50 sm:w-2'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

@@ -49,7 +49,9 @@ const RecommendedProductsClient = ({
 
   return (
     <div className="px-4 py-12 sm:px-6 lg:px-8">
-      <h2 className={`mb-6 text-left font-oswald`}>YOU MAY ALSO LIKE</h2>
+      <h2 className="mb-6 text-left font-oswald uppercase">
+        {name || 'Recommended Products'}
+      </h2>
       <Carousel className="w-full" setApi={setApi}>
         <CarouselContent className="-ml-0 gap-4 md:-ml-0">
           {products.map((product) => (

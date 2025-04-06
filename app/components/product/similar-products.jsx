@@ -36,5 +36,10 @@ export default async function SimilarProductsServer({
   );
 
   // Pass data to the client component responsible for display
-  return <RecommendedProductsClient initialProducts={similarProducts} />;
+  return (
+    <RecommendedProductsClient
+      initialProducts={similarProducts}
+      name="Similar Products"
+    />
+  );
 }
