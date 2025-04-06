@@ -6,69 +6,83 @@ import { createCartItem } from '@/app/action/cartAction';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { SmallSpinner } from '@/app/components/spinner';
 import { CloseOutlined } from '@ant-design/icons';
 import { formatToNaira } from '@/app/utils/getFunc';
 
 export default function Wishlist({ product, onRemove }) {
   const { data: session } = useSession();
-  const user = session?.user;
-  const userId = user?.id;
-  const [isRemoving, setIsRemoving] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
+  const userId = session?.user?.id;
+  const [isRemoving, startRemovingTransition] = useTransition();
+  const [isAdding, startAddingTransition] = useTransition();
 
   const discountedPrice =
     product.price - (product.price * product.discount) / 100;
 
-  const addToCart = async () => {
-    try {
-      if (!userId) {
-        toast.error('Please login to add to cart');
-        return;
-      }
-      setIsAdding(true);
-      const newItem = {
-        product: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        image: product.image[0],
-        userId,
-      };
-
-      await createCartItem(userId, newItem);
-      await removeFromWishlist(userId, product.id);
-
-      // Call onRemove to update parent component state
-      if (onRemove) {
-        onRemove(product.id);
-      }
-
-      toast.success('Item added to cart');
-    } catch (error) {
-      toast.info(error.message, { duration: 4000 });
-    } finally {
-      setIsAdding(false);
+  const handleMoveToCart = async () => {
+    if (!userId) {
+      toast.error('Please login to add to cart');
+      return;
     }
+
+    startAddingTransition(async () => {
+      try {
+        const newItem = {
+          product: product.id,
+          quantity: 1,
+        };
+
+        const result = await createCartItem(userId, newItem);
+
+        if (!result) {
+          throw new Error('Failed to add item to cart');
+        }
+
+        try {
+          await removeFromWishlist(userId, product.id);
+
+          if (onRemove) {
+            onRemove(product.id);
+          }
+
+          toast.success('Item moved to cart');
+        } catch (wishlistError) {
+          console.error(
+            'Failed to remove from wishlist after adding to cart:',
+            wishlistError
+          );
+          toast.info(
+            'Item added to cart, but could not be removed from wishlist'
+          );
+        }
+      } catch (cartError) {
+        console.error('Failed to add to cart from wishlist:', cartError);
+        toast.error(cartError.message || 'Failed to add item to cart');
+      }
+    });
   };
 
-  const removeItem = async () => {
-    try {
-      setIsRemoving(true);
-      await removeFromWishlist(user.id, product.id);
-
-      // Call onRemove to update parent component state
-      if (onRemove) {
-        onRemove(product.id);
-      }
-
-      toast.success('Product removed from wishlist');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsRemoving(false);
+  const handleRemoveItem = () => {
+    if (!userId) {
+      toast.error('Login required');
+      return;
     }
+
+    startRemovingTransition(async () => {
+      try {
+        await removeFromWishlist(userId, product.id);
+
+        if (onRemove) {
+          onRemove(product.id);
+        }
+
+        toast.success('Product removed from wishlist');
+      } catch (error) {
+        console.error('Failed to remove from wishlist:', error);
+        toast.error('Failed to remove item from wishlist');
+      }
+    });
   };
 
   return (
@@ -112,14 +126,14 @@ export default function Wishlist({ product, onRemove }) {
         </Link>
         <ButtonPrimary
           className="relative w-full bg-primary py-2 font-oswald text-sm uppercase tracking-wider transition-colors duration-300 hover:bg-opacity-70"
-          onClick={addToCart}
+          onClick={handleMoveToCart}
           disabled={isAdding}
         >
           {isAdding ? <SmallSpinner className="!text-white" /> : 'Add to Cart'}
         </ButtonPrimary>
         <button
           className="absolute right-2 top-2 flex-shrink-0 rounded-full transition-colors duration-300"
-          onClick={removeItem}
+          onClick={handleRemoveItem}
           disabled={isRemoving}
         >
           {isRemoving ? (

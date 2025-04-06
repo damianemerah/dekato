@@ -25,7 +25,7 @@ const features = [
 
 export default function FeatureGrid() {
   return (
-    <section className="bg-muted py-10">
+    <section className="bg-secondary pb-10 pt-14">
       <div className="container px-4 md:px-6">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, index) => (
@@ -33,10 +33,10 @@ export default function FeatureGrid() {
               key={feature.title}
               className="flex flex-col items-center rounded-lg bg-background p-6 text-center shadow-sm transition-all hover:shadow-md"
             >
-              <div className="mb-4 rounded-full bg-primary/10 p-3">
+              <div className="mb-4 rounded-full bg-primary-foreground p-3">
                 <feature.icon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-oswald mb-2 text-lg font-medium">
+              <h3 className="mb-2 font-oswald text-lg font-medium">
                 {feature.title}
               </h3>
               <p className="text-sm text-muted-foreground">

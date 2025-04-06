@@ -1,6 +1,6 @@
 import Hero from '@/app/components/home/hero';
 import SelectedCategories from '@/app/components/home/selected-categories';
-import BelowFold from '@/app/components/home/below-fold';
+import Blog from '@/app/components/home/blog';
 import Campaign from '@/app/components/home/Campaign';
 import { Suspense } from 'react';
 import { cookies } from 'next/headers';
@@ -8,6 +8,7 @@ import { auth } from '@/app/lib/auth';
 import { getRecommendations } from '@/app/action/recommendationAction';
 import RecommendedProductsClient from '@/app/components/recommended-products-client';
 import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
+import Gallery from '@/app/components/home/gallery';
 
 export const metadata = {
   title: 'Dekato Outfit | Fashion & Lifestyle',
@@ -48,7 +49,7 @@ export default async function Home() {
   );
 
   return (
-    <div className="bg-gray-100 font-oswald">
+    <div className="bg-background font-oswald">
       {/* Hero is statically rendered */}
       <Hero />
 
@@ -67,7 +68,8 @@ export default async function Home() {
       <Campaign />
 
       {/* Below fold content rendered directly */}
-      <BelowFold />
+      <Blog />
+      <Gallery />
     </div>
   );
 }

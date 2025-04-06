@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 const createPersistedStore = (initialState, name, partialize) =>
   create(
@@ -15,10 +15,10 @@ export const useUserStore = createPersistedStore(
     address: [],
     setUser: (user) => set({ user }),
     setAddress: (address) => set({ address }),
-    deliveryMethod: "pickup",
+    deliveryMethod: 'pickup',
     setDeliveryMethod: (deliveryMethod) => set({ deliveryMethod }),
   }),
-  "user-storage",
+  'user-storage',
   (state) => ({
     deliveryMethod: state.deliveryMethod,
     user: {
@@ -31,38 +31,12 @@ export const useUserStore = createPersistedStore(
   })
 );
 
-export const useAddressStore = createPersistedStore(
-  (set) => ({
-    address: [],
-    setAddress: (address) => set({ address }),
-  }),
-  "address-storage"
-);
-
-export const useCartStore = createPersistedStore(
-  (set) => ({
-    cart: null,
-    setCart: (cart) => set({ cart }),
-    cartIsLoading: false,
-    setCartIsLoading: (cartIsLoading) => set({ cartIsLoading }),
-  }),
-  "cart-storage"
-);
-
-export const useCategoryStore = createPersistedStore(
-  (set) => ({
-    selectedCategory: "women",
-    setSelectedCategory: (category) => set({ selectedCategory: category }),
-  }),
-  "selected-category"
-);
-
 export const useSidebarStore = createPersistedStore(
   (set) => ({
     isSidebarOpen:
-      typeof window !== "undefined"
+      typeof window !== 'undefined'
         ? window.innerWidth <= 1024
-          ? JSON.parse(localStorage.getItem("isSidebarOpen")) || true
+          ? JSON.parse(localStorage.getItem('isSidebarOpen')) || true
           : false
         : false,
 
@@ -77,17 +51,10 @@ export const useSidebarStore = createPersistedStore(
     isMobile: false,
     setIsMobile: (isMobile) => set({ isMobile }),
   }),
-  "sidebar-storage"
+  'sidebar-storage'
 );
 
 export const useRecommendMutateStore = create((set) => ({
   shouldMutate: false,
   setShouldMutate: (shouldMutate) => set({ shouldMutate }),
-}));
-
-export const useSearchStore = create((set) => ({
-  searchString: "",
-  setSearchString: (searchString) => set({ searchString }),
-  activeDropdown: false,
-  setActiveDropdown: (activeDropdown) => set({ activeDropdown }),
 }));

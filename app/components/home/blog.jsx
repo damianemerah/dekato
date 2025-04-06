@@ -4,7 +4,7 @@ import Gallery from '@/app/components/home/gallery';
 import { getAllBlogs } from '@/app/action/blogAction';
 import BlogCarousel from './blog-carousel';
 
-export default async function BelowFold() {
+export default async function Blog() {
   // Server-side data fetching
   const blogs = await getAllBlogs({
     limit: 3,
@@ -16,7 +16,7 @@ export default async function BelowFold() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {blogs?.data && blogs.data.length > 0 && (
           <div className="py-12">
-            <h2 className="font-oswald mb-6 text-center font-bold">
+            <h2 className="mb-6 text-center font-oswald font-bold">
               LATEST FASHION
             </h2>
 
@@ -36,9 +36,6 @@ export default async function BelowFold() {
             </div>
           </div>
         )}
-
-        {/* Gallery component */}
-        <Gallery />
       </div>
     </div>
   );

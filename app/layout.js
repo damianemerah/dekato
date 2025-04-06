@@ -4,14 +4,11 @@ import Provider from '@/app/components/Provider';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import '@/app/styles/globals.css';
 import LayoutWrapper from '@/app/components/layout-wrapper';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarInset,
-} from '@/app/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/app/components/ui/sidebar';
 import SidebarContent from '@/app/components/sidebar/sidebar-content';
 import Header from '@/app/components/header';
 import { Toaster } from '@/app/components/ui/sonner';
+import AuthSync from '@/app/components/auth-sync';
 
 // Add revalidation for the layout
 export const revalidate = 3600; // Revalidate sidebar data every hour
@@ -173,6 +170,7 @@ export default async function RootLayout({ children }) {
       <AntdRegistry>
         <Provider>
           <body className="font-roboto antialiased">
+            <AuthSync />
             <SidebarProvider defaultOpen={defaultOpen}>
               <div className="flex min-h-screen w-full flex-col bg-background">
                 <Header />

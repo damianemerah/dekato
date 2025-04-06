@@ -8,6 +8,9 @@ import { restrictTo } from '@/app/utils/checkPermission';
 import mongoose from 'mongoose';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
+// Maximum quantity allowed per item in cart
+const MAX_QUANTITY_PER_ITEM = 10;
+
 // Helper function to format cart data
 function formatCartData(cart) {
   const { _id, item, totalPrice, totalItems, amountSaved } = cart;
@@ -72,11 +75,13 @@ async function createNewCart(userId, session) {
 }
 
 export async function createCartItem(userId, newItem) {
+  // Ensure user has appropriate permissions
   await restrictTo('admin', 'user');
 
+  let session;
   try {
     await dbConnect();
-    const session = await mongoose.startSession();
+    session = await mongoose.startSession();
     session.startTransaction();
 
     if (!newItem.quantity || !newItem.product) {
@@ -101,6 +106,7 @@ export async function createCartItem(userId, newItem) {
       cart = await createNewCart(userId, session);
     }
 
+    // Create a query to find an existing cart item with the same product and variant
     const query = {
       product: newItem.product,
       cartId: cart._id,
@@ -112,15 +118,37 @@ export async function createCartItem(userId, newItem) {
     const existingItemCart = await CartItem.findOne(query).session(session);
 
     if (existingItemCart) {
-      existingItemCart.quantity += correctQuantity;
+      // Item exists, update quantity with limit enforcement
+      const newQuantity = Math.min(
+        existingItemCart.quantity + correctQuantity,
+        MAX_QUANTITY_PER_ITEM
+      );
+
+      // If the new quantity would exceed the maximum, show a different message
+      const wasLimited =
+        newQuantity < existingItemCart.quantity + correctQuantity;
+
+      existingItemCart.quantity = newQuantity;
       await existingItemCart.save({ session });
+
+      // Get updated cart data
+      cart = await Cart.findById(cart._id)
+        .session(session)
+        .lean({ virtuals: true });
+
+      // Add transaction result info
+      cart.wasLimited = wasLimited;
     } else {
+      // Item does not exist, create new with quantity limit
+      const limitedQuantity = Math.min(correctQuantity, MAX_QUANTITY_PER_ITEM);
+      const wasLimited = limitedQuantity < correctQuantity;
+
       const cartItem = await CartItem.create(
         [
           {
             ...newItem,
             cartId: cart._id,
-            quantity: correctQuantity,
+            quantity: limitedQuantity,
             product: newItem.product,
           },
         ],
@@ -132,8 +160,12 @@ export async function createCartItem(userId, newItem) {
         { $push: { item: cartItem[0]._id } },
         { session, new: true }
       ).lean({ virtuals: true });
+
+      // Add transaction result info
+      cart.wasLimited = wasLimited;
     }
 
+    // Revalidate all relevant paths and tags
     revalidatePath('/cart');
     revalidatePath('/checkout');
     revalidatePath('/account/wishlist');
@@ -142,12 +174,15 @@ export async function createCartItem(userId, newItem) {
 
     await session.commitTransaction();
     session.endSession();
-    return formatCartData(cart);
+
+    const formattedCart = formatCartData(cart);
+    return formattedCart;
   } catch (error) {
     if (session) {
       await session.abortTransaction();
       session.endSession();
     }
+    console.error('Cart operation error:', error);
     throw error;
   }
 }

@@ -3,10 +3,12 @@
 import { useState, useCallback, useTransition, useEffect } from 'react';
 import { useUserStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
+import { createCartItem } from '@/app/action/cartAction';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Suspense } from 'react';
+import { useSession } from 'next-auth/react';
 
 import ProductGallery from './product-gallery';
 import ProductInfo from './product-info';
@@ -32,16 +34,21 @@ function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
 
 const ProductDetail = function ProductDetail({ product }) {
   const [isPending, startTransition] = useTransition();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
   const user = useUserStore((state) => state.user);
-  const userId = user?.id;
-  const { addToCart, isAddingToCart } = useCart();
+
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  const { isInCart } = useCart();
 
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [optimisticInCart, setOptimisticInCart] = useState(false);
 
-  // Initialize isInWishlist based on user data
   useEffect(() => {
     if (user?.wishlist) {
       setIsInWishlist(user.wishlist.includes(product.id));
@@ -76,7 +83,7 @@ const ProductDetail = function ProductDetail({ product }) {
         toast.error('Failed to update wishlist');
       }
     });
-  }, [userId, product.id, isInWishlist]);
+  }, [userId, product.id, isInWishlist, startTransition]);
 
   const handleAddToCart = useCallback(async () => {
     if (!userId) {
@@ -84,28 +91,40 @@ const ProductDetail = function ProductDetail({ product }) {
       return;
     }
 
-    try {
-      await addToCart({
-        productId: product.id,
-        name: product.name,
-        price: selectedVariant?.price || product.price,
-        quantity,
-        image: selectedVariant?.image || product.image[0],
-        userId,
-        option: selectedVariantOption,
-        variantId: selectedVariant?._id,
-      });
-    } catch (error) {
-      // Error is already handled in the useCart hook
-      console.error('Error adding to cart:', error);
-    }
+    setIsAddingToCart(true);
+    setOptimisticInCart(true);
+
+    startTransition(async () => {
+      try {
+        const newItem = {
+          product: product.id,
+          quantity: quantity,
+          variantId: selectedVariant?._id,
+          option: selectedVariantOption,
+        };
+
+        const result = await createCartItem(userId, newItem);
+
+        if (!result) {
+          throw new Error('Failed to add item to cart');
+        }
+
+        toast.success('Added to cart');
+      } catch (error) {
+        setOptimisticInCart(false);
+        console.error('Error adding to cart:', error);
+        toast.error(error.message || 'Failed to add to cart');
+      } finally {
+        setIsAddingToCart(false);
+      }
+    });
   }, [
     userId,
-    product,
-    selectedVariant,
+    product.id,
     quantity,
+    selectedVariant,
     selectedVariantOption,
-    addToCart,
+    startTransition,
   ]);
 
   if (!product) {

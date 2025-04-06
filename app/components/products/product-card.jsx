@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useCallback, useEffect, useTransition } from 'react';
+import { useState, useCallback, useEffect, useTransition, useRef } from 'react';
 import { useUserStore, useRecommendMutateStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
 import { toast } from 'sonner';
@@ -11,9 +11,10 @@ import { trackClick } from '@/app/utils/tracking';
 import { useMediaQuery } from '@/app/hooks/use-media-query';
 import { useCart } from '@/app/hooks/use-cart';
 import { addToNaughtyListSA } from '@/app/action/recommendationAction';
+import { useSession } from 'next-auth/react';
 
 // Shadcn components
-import { Card, CardContent, CardFooter } from '@/app/components/ui/card';
+import { Card, CardContent } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import {
   Tooltip,
@@ -23,21 +24,25 @@ import {
 } from '@/app/components/ui/tooltip';
 
 // Icons
-import { Heart, X, Check, ShoppingBag } from 'lucide-react';
+import { Heart, X } from 'lucide-react';
 
 const ProductCard = ({ product, showDelete = false }) => {
   const [currentImage, setCurrentImage] = useState(product?.image[0]);
   const [variantImages, setVariantImages] = useState([]);
   const [isPending, startTransition] = useTransition();
-  const [isCartActionPending, startCartTransition] = useTransition();
   const [optimisticIsFavorite, setOptimisticIsFavorite] = useState(false);
+  const [isHeartAnimating, setIsHeartAnimating] = useState(false);
 
-  // Get user data from store
+  // Use a ref to track if we've performed a wishlist action
+  const wishlistActionPerformedRef = useRef(false);
+
+  // Get user data and setter from store for wishlist
   const user = useUserStore((state) => state.user);
-  const userId = user?.id;
+  const setUser = useUserStore((state) => state.setUser);
 
-  // Use the cart hook
-  const { toggleCartItem, isInCart } = useCart();
+  // Get session data directly for authentication
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
   const setShouldMutate = useRecommendMutateStore(
     (state) => state.setShouldMutate
@@ -46,9 +51,11 @@ const ProductCard = ({ product, showDelete = false }) => {
   // Check if product is in wishlist
   const isInWishlist = user?.wishlist?.includes(product.id);
 
-  // Set initial states based on user data
+  // Set initial states based on user data, but only if we haven't performed a wishlist action
   useEffect(() => {
-    setOptimisticIsFavorite(isInWishlist);
+    if (!wishlistActionPerformedRef.current) {
+      setOptimisticIsFavorite(isInWishlist);
+    }
   }, [isInWishlist]);
 
   // Use custom hooks for responsive design
@@ -72,36 +79,6 @@ const ProductCard = ({ product, showDelete = false }) => {
     await trackClick(userId, product.id);
   }, [userId, product.id]);
 
-  // Handle add to cart action using the cart hook
-  const handleAddToCart = useCallback(
-    async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (!userId) {
-        toast.error('Please login to add to cart');
-        return;
-      }
-
-      startCartTransition(async () => {
-        try {
-          await toggleCartItem({
-            productId: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: 1,
-            image: product.image[0],
-            userId,
-          });
-        } catch (error) {
-          // Error is handled in the hook
-          console.error('Cart operation failed:', error);
-        }
-      });
-    },
-    [userId, product, toggleCartItem, startCartTransition]
-  );
-
   // Handle wishlist toggling with optimistic update
   const handleFavoriteClick = useCallback(
     async (e) => {
@@ -113,27 +90,45 @@ const ProductCard = ({ product, showDelete = false }) => {
         return;
       }
 
+      // Set flag to prevent external updates from overriding our state
+      wishlistActionPerformedRef.current = true;
+
       // Toggle wishlist state
       const newWishlistState = !optimisticIsFavorite;
 
       // Optimistic update for immediate UI feedback
       setOptimisticIsFavorite(newWishlistState);
 
+      // Trigger animation
+      setIsHeartAnimating(true);
+      setTimeout(() => setIsHeartAnimating(false), 500);
+
       // Server action with transition
       startTransition(async () => {
         try {
           if (newWishlistState) {
-            await addToWishlist(userId, product.id);
+            const updatedUser = await addToWishlist(userId, product.id);
+            // Update the store directly to ensure consistency
+            if (updatedUser) {
+              setUser(updatedUser);
+            }
             toast.success('Added to wishlist');
           } else {
             await removeFromWishlist(userId, product.id);
+            // Update the store directly to ensure consistency
+            if (user && user.wishlist) {
+              setUser({
+                ...user,
+                wishlist: user.wishlist.filter((id) => id !== product.id),
+              });
+            }
             toast.success('Removed from wishlist');
           }
-
-          // Removed SWR mutate call - server actions now handle revalidation
+          // Keep our optimistic state as is since the operation succeeded
         } catch (error) {
           // Revert optimistic update on error
           setOptimisticIsFavorite(!newWishlistState);
+          wishlistActionPerformedRef.current = false; // Reset flag on error
           toast.error(
             error.message ||
               `Failed to ${newWishlistState ? 'add to' : 'remove from'} wishlist`
@@ -141,7 +136,7 @@ const ProductCard = ({ product, showDelete = false }) => {
         }
       });
     },
-    [optimisticIsFavorite, userId, product.id]
+    [optimisticIsFavorite, userId, product.id, startTransition, user, setUser]
   );
 
   // Handle removing from recommendations
@@ -165,17 +160,14 @@ const ProductCard = ({ product, showDelete = false }) => {
         }
       });
     },
-    [product.id, setShouldMutate]
+    [product.id, setShouldMutate, startTransition]
   );
 
   // Control whether to show variants on hover
   const shouldShowVariantsOnHover = supportsHover && isDesktop;
 
-  // Check if the product is in the cart
-  const productInCart = isInCart(product.id);
-
   return (
-    <Card className="group relative h-full overflow-hidden rounded-none border-none transition-all duration-300 hover:border hover:shadow-sm">
+    <Card className="group relative h-full overflow-hidden rounded-none border-none bg-transparent shadow-none transition-all duration-300 hover:border hover:shadow-sm">
       <Link
         href={`/product/${product.slug}-${product.id}`}
         onClick={handleProductClick}
@@ -207,7 +199,7 @@ const ProductCard = ({ product, showDelete = false }) => {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-2 h-7 w-7 bg-white/80 p-1 text-primary hover:bg-white/90"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 p-1 text-primary hover:bg-white/90"
               onClick={handleDelete}
               disabled={isPending}
               aria-label="Remove product"
@@ -219,13 +211,15 @@ const ProductCard = ({ product, showDelete = false }) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={optimisticIsFavorite ? 'default' : 'ghost'}
+                    variant="ghost"
                     size="icon"
-                    className={`absolute right-2 top-2 h-7 w-7 ${
+                    className={`absolute right-2 top-2 h-8 w-8 rounded-full transition-all duration-300 ${
                       optimisticIsFavorite
-                        ? 'bg-red-500 p-1 text-white hover:bg-red-600'
-                        : 'bg-muted text-muted-foreground/60 hover:bg-muted/30'
-                    } ${isPending ? 'animate-pulse' : ''}`}
+                        ? 'bg-white shadow-sm hover:bg-white/90'
+                        : 'bg-white/80 hover:bg-white'
+                    } ${isPending ? 'animate-pulse' : ''} ${
+                      isHeartAnimating ? 'scale-125' : ''
+                    }`}
                     onClick={handleFavoriteClick}
                     disabled={isPending}
                     aria-label={
@@ -235,8 +229,10 @@ const ProductCard = ({ product, showDelete = false }) => {
                     }
                   >
                     <Heart
-                      className={`h-4 w-4 ${
-                        optimisticIsFavorite ? 'fill-white stroke-white' : ''
+                      className={`h-4 w-4 transition-colors ${
+                        optimisticIsFavorite
+                          ? 'fill-primary stroke-primary'
+                          : 'stroke-primary/70 hover:stroke-primary'
                       }`}
                     />
                   </Button>
@@ -285,8 +281,8 @@ const ProductCard = ({ product, showDelete = false }) => {
         </div>
       </Link>
 
-      <CardContent className="space-y-2 p-3">
-        <h3 className="text-md line-clamp-2 font-medium leading-tight">
+      <CardContent className="space-y-2 px-0 py-4">
+        <h3 className="line-clamp-2 font-light leading-tight">
           <Link
             href={`/product/${product.slug}-${product.id}`}
             onClick={handleProductClick}
@@ -297,58 +293,16 @@ const ProductCard = ({ product, showDelete = false }) => {
         </h3>
 
         <div className="flex flex-wrap items-center gap-2">
-          <p
-            className={`text-sm font-semibold ${
-              product.isDiscounted ? 'text-destructive' : 'text-primary'
-            }`}
-          >
+          <p className={`text-base font-semibold text-primary`}>
             {formatToNaira(discountedPrice)}
           </p>
           {product.isDiscounted && (
-            <p className="text-xs text-muted-foreground line-through">
+            <p className="text-sm text-muted-foreground line-through">
               {formatToNaira(product.price)}
             </p>
           )}
         </div>
       </CardContent>
-
-      <CardFooter className="border-t p-3">
-        <div className="flex w-full justify-between gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleAddToCart}
-                  size="sm"
-                  variant={productInCart ? 'default' : 'outline'}
-                  className={`flex-1 ${
-                    productInCart ? 'bg-primary text-primary-foreground' : ''
-                  }`}
-                  disabled={isCartActionPending}
-                  aria-label={
-                    productInCart ? 'Remove from cart' : 'Add to cart'
-                  }
-                >
-                  {isCartActionPending ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  ) : productInCart ? (
-                    <>
-                      <Check className="mr-1 h-4 w-4" /> In Cart
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="mr-1 h-4 w-4" /> Add to Cart
-                    </>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{productInCart ? 'Remove from cart' : 'Add to cart'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </CardFooter>
     </Card>
   );
 };

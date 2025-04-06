@@ -7,7 +7,7 @@ import { productSearch } from '@/app/action/productAction';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function SearchBox() {
+export default function SearchBox({ className }) {
   const [searchString, setSearchString] = useState('');
   const [searchResults, setSearchResults] = useState({
     products: [],
@@ -63,7 +63,7 @@ export default function SearchBox() {
   };
 
   return (
-    <div className="relative w-full max-w-md" ref={searchRef}>
+    <div className={`relative w-full ${className}`} ref={searchRef}>
       <form onSubmit={handleSubmit} className="relative">
         <input
           type="text"

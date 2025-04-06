@@ -6,7 +6,7 @@ import RecommendedProductsClient from '@/app/components/recommended-products-cli
 export default async function SimilarProductsServer({
   productId,
   category,
-  limit = 4,
+  limit = 8,
 }) {
   if (!productId) {
     return null; // Or handle error appropriately

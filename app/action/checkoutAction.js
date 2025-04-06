@@ -378,21 +378,23 @@ export async function verifyAndCompleteOrder(paystackReference) {
 
   if (!userId) {
     console.error('[ERROR verifyAndCompleteOrder] No userId found in session');
-    redirect('/signin?callbackUrl=/cart');
+    redirect('/signin?callbackUrl=/cart'); // Redirect early if not authenticated
   }
 
   console.log(`[DEBUG verifyAndCompleteOrder] Authenticated user: ${userId}`);
   await dbConnect();
 
+  let verificationStatus = null; // Variable to hold status after try block
+  let finalOrderStatus = 'pending'; // Default in case something goes wrong before status update
+
   try {
-    // Record verification attempt for rate limiting
+    // --- Start of the operational logic ---
     await VerificationAttempt.create({
       reference: paystackReference,
       userId,
       timestamp: new Date(),
     });
 
-    // Check for too many verification attempts (potential abuse)
     const recentAttempts = await VerificationAttempt.countDocuments({
       reference: paystackReference,
       timestamp: { $gt: new Date(Date.now() - 60000) }, // Last minute
@@ -404,7 +406,7 @@ export async function verifyAndCompleteOrder(paystackReference) {
       );
       redirect(
         `/checkout/failed?reason=rate_limited&reference=${paystackReference}`
-      );
+      ); // Early exit redirect
     }
 
     // Check if the order is already being processed (lock mechanism)
@@ -437,25 +439,22 @@ export async function verifyAndCompleteOrder(paystackReference) {
       `[DEBUG verifyAndCompleteOrder] Calling Paystack.transaction.verify for ref: ${paystackReference}`
     );
     const verification = await Paystack.transaction.verify(paystackReference);
+    verificationStatus = verification?.data?.status; // Store Paystack status
     console.log(
-      `[DEBUG verifyAndCompleteOrder] Paystack verification status: ${verification?.data?.status}, Reference: ${verification?.data?.reference}`
+      `[DEBUG verifyAndCompleteOrder] Paystack verification status: ${verificationStatus}, Reference: ${verification?.data?.reference}`
     );
 
     if (!verification.data) {
       console.error(
         '[ERROR verifyAndCompleteOrder] Paystack verification returned no data.'
       );
-      // Release the lock
       await Order.findOneAndUpdate(
         { paymentRef: paystackReference },
         { processingLock: false }
       );
-      redirect(
-        `/checkout/failed?reason=verification_failed&reference=${paystackReference}`
-      );
+      throw new Error('Paystack verification failed'); // Throw operational error
     }
 
-    // Find the order by payment reference
     console.log(
       `[DEBUG verifyAndCompleteOrder] Finding order with paymentRef: ${paystackReference}`
     );
@@ -465,28 +464,22 @@ export async function verifyAndCompleteOrder(paystackReference) {
       console.error(
         `[ERROR verifyAndCompleteOrder] Order not found for ref: ${paystackReference}`
       );
-      redirect(
-        `/checkout/failed?reason=not_found&reference=${paystackReference}`
-      );
+      throw new Error('Order not found'); // Throw operational error
     }
 
     console.log(
       `[DEBUG verifyAndCompleteOrder] Found order ID: ${order._id}, Current status: ${order.status}, UserID: ${order.userId}`
     );
 
-    // Security check: ensure the user owns this order
     if (order.userId.toString() !== userId) {
       console.error(
         `[ERROR verifyAndCompleteOrder] User mismatch: Order User ${order.userId}, Session User ${userId}`
       );
-      // Release the lock
       await Order.findOneAndUpdate(
         { paymentRef: paystackReference },
         { processingLock: false }
       );
-      redirect(
-        `/checkout/failed?reason=unauthorized&reference=${paystackReference}`
-      );
+      throw new Error('Unauthorized'); // Throw operational error
     }
 
     // Check if order is already processed to prevent double processing
@@ -524,114 +517,60 @@ export async function verifyAndCompleteOrder(paystackReference) {
       await updateProductQuantity(order);
       console.log('[DEBUG verifyAndCompleteOrder] Product quantities updated.');
 
-      // Update user stats
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Updating user stats for user ${order.userId}`
-      );
-      const userUpdateResult = await User.findByIdAndUpdate(order.userId, {
-        $inc: {
-          amountSpent: order.total,
-          orderCount: 1,
-        },
+      await User.findByIdAndUpdate(order.userId, {
+        $inc: { amountSpent: order.total, orderCount: 1 },
       });
       console.log('[DEBUG verifyAndCompleteOrder] User stats updated.');
 
-      // Create notification for admin
-      console.log('[DEBUG verifyAndCompleteOrder] Creating admin notification');
-      const notification = await Notification.create({
+      await Notification.create({
         title: 'New Order',
         message: `A new order #${order.paymentRef} has been placed for ₦${order.total}`,
         type: 'info',
         orderId: order._id,
         userId: order.userId,
       });
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Admin notification created: ${notification._id}`
-      );
+      console.log(`[DEBUG verifyAndCompleteOrder] Admin notification created.`);
 
-      // Clear the cart items
+      // Cart clearing logic (with its own transaction)
       if (order.cartItems && order.cartItems.length > 0) {
         const cartItemIds = order.cartItems.map((item) => item.toString());
         console.log(
           `[DEBUG verifyAndCompleteOrder] Clearing ${cartItemIds.length} cart items`
         );
-
-        try {
-          // Use a transaction for cart operations
-          const cartSession = await mongoose.startSession();
-          cartSession.startTransaction();
-
-          try {
-            // Delete cart items and update cart in one atomic operation
+        const cartSession = await mongoose.startSession();
+        await cartSession
+          .withTransaction(async () => {
             const deleteResult = await CartItem.deleteMany(
               { _id: { $in: cartItemIds } },
               { session: cartSession }
             );
-            console.log(
-              `[DEBUG verifyAndCompleteOrder] Cart items deleted: ${deleteResult.deletedCount} items`
-            );
-
-            // Update cart document to remove references to deleted items
-            const cartUpdateResult = await Cart.findOneAndUpdate(
+            await Cart.findOneAndUpdate(
               { userId: order.userId },
-              {
-                $pull: { item: { $in: cartItemIds } },
-                recalculateTotals: true,
-              },
-              {
-                session: cartSession,
-                new: true,
-              }
+              { $pull: { item: { $in: cartItemIds } } },
+              { session: cartSession }
             );
-
-            if (cartUpdateResult) {
-              console.log(
-                `[DEBUG verifyAndCompleteOrder] Cart updated: ${cartUpdateResult._id}`
-              );
-            } else {
-              console.log(
-                '[DEBUG verifyAndCompleteOrder] No cart found for user'
-              );
-            }
-
-            // Commit the transaction
-            await cartSession.commitTransaction();
             console.log(
-              '[DEBUG verifyAndCompleteOrder] Cart transaction committed successfully'
+              `[DEBUG verifyAndCompleteOrder] Cart items deleted: ${deleteResult.deletedCount}, Cart updated.`
             );
-          } catch (cartError) {
-            // Abort the transaction on error
-            await cartSession.abortTransaction();
+          })
+          .catch((err) => {
             console.error(
-              '[ERROR verifyAndCompleteOrder] Cart operation failed:',
-              cartError
+              '[ERROR verifyAndCompleteOrder] Cart cleanup transaction failed:',
+              err
             );
-            throw cartError;
-          } finally {
-            // End the session
-            cartSession.endSession();
-          }
-        } catch (error) {
-          console.error(
-            '[ERROR verifyAndCompleteOrder] Cart cleanup error:',
-            error
-          );
-          // Continue with order processing even if cart cleanup fails
-          // We'll log the error but not fail the whole order process
-        }
+            // Decide if this is critical enough to throw, or just log
+          })
+          .finally(() => cartSession.endSession());
       } else {
         console.log('[DEBUG verifyAndCompleteOrder] No cart items to clear');
       }
 
-      // Track product purchases for recommendations
+      // Recommendation tracking
       console.log(
-        '[DEBUG verifyAndCompleteOrder] Tracking product interactions for recommendations'
+        '[DEBUG verifyAndCompleteOrder] Tracking product interactions'
       );
       for (const item of order.product) {
         if (item.productId) {
-          console.log(
-            `[DEBUG verifyAndCompleteOrder] Tracking purchase for product ${item.productId}`
-          );
           await recommendationService.trackProductInteraction(
             order.userId.toString(),
             item.productId.toString(),
@@ -642,8 +581,11 @@ export async function verifyAndCompleteOrder(paystackReference) {
       console.log(
         '[DEBUG verifyAndCompleteOrder] Product interactions tracked'
       );
+      console.log(
+        '[DEBUG verifyAndCompleteOrder] Successful processing steps completed.'
+      );
     } else {
-      // Payment failed or was abandoned
+      // Handle non-success Paystack statuses
       const status =
         verification.data.status === 'failed' ? 'failed' : 'abandoned';
       console.log(
@@ -652,20 +594,18 @@ export async function verifyAndCompleteOrder(paystackReference) {
       order.status = status;
     }
 
-    // Save the updated order
+    // Save final order state
+    finalOrderStatus = order.status; // Update final status
     console.log(
-      `[DEBUG verifyAndCompleteOrder] Attempting to save order ${order._id} with status: ${order.status}`
+      `[DEBUG verifyAndCompleteOrder] Attempting to save order ${order._id} with status: ${finalOrderStatus}`
     );
-
-    // Include removing the processing lock
-    order.processingLock = false;
+    order.processingLock = false; // Release lock before final save
     await order.save();
-
     console.log(
       `[DEBUG verifyAndCompleteOrder] Order ${order._id} saved successfully.`
     );
 
-    // Revalidate related pages
+    // Revalidate paths after successful save
     console.log(
       `[DEBUG verifyAndCompleteOrder] Revalidating paths: /cart, /checkout`
     );
@@ -673,29 +613,55 @@ export async function verifyAndCompleteOrder(paystackReference) {
     revalidatePath('/checkout');
     revalidateTag('cart');
     revalidateTag('orders');
+    revalidateTag('products');
+    revalidateTag('recommendations');
+    revalidateTag('recommendations-bestsellers');
 
-    // Release processing lock
-    await Order.findOneAndUpdate(
-      { paymentRef: paystackReference },
-      { processingLock: false }
-    );
-
-    // Redirect to success page with status
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Redirecting to success page for ref: ${paystackReference}`
-    );
-    redirect(
-      `/checkout/success?reference=${paystackReference}&status=${verification.data.status}`
-    );
+    // --- End of the operational logic ---
   } catch (error) {
+    // Catch ONLY operational errors from the try block
     console.error(
-      '[ERROR verifyAndCompleteOrder] Caught error:',
+      '[ERROR verifyAndCompleteOrder] Caught operational error:',
       error.message,
       error.stack
     );
+    // Attempt to release lock even on error
+    await Order.findOneAndUpdate(
+      { paymentRef: paystackReference },
+      { processingLock: false }
+    ).catch((lockError) =>
+      console.error(
+        '[ERROR verifyAndCompleteOrder] Failed to release lock on error:',
+        lockError
+      )
+    );
+    // Redirect to failure page for operational errors
+    redirect(`/checkout/failed?reason=error&reference=${paystackReference}`); // This redirect WILL be caught by Next.js
+  }
 
-    // In the error case, redirect to failed page
-    redirect(`/checkout/failed?reason=error&reference=${paystackReference}`);
+  // --- Redirect logic AFTER the try...catch block ---
+
+  // Redirect based on the final status determined within the try block
+  if (verificationStatus === 'success' && finalOrderStatus === 'success') {
+    console.log(
+      `[DEBUG verifyAndCompleteOrder] Redirecting to success page (status: success) for ref: ${paystackReference}`
+    );
+    redirect(`/checkout/success?reference=${paystackReference}&status=success`);
+  } else if (verificationStatus) {
+    // Handle non-success statuses that weren't operational errors (e.g., abandoned, failed payment)
+    // Redirect to the success page, but pass the *actual* final status
+    console.log(
+      `[DEBUG verifyAndCompleteOrder] Redirecting to success page (status: ${finalOrderStatus}) for ref: ${paystackReference}`
+    );
+    redirect(
+      `/checkout/success?reference=${paystackReference}&status=${finalOrderStatus}`
+    );
+  } else {
+    // Should ideally not be reached if logic is sound, but as a fallback:
+    console.error(
+      `[ERROR verifyAndCompleteOrder] Reached end without definite status for ref: ${paystackReference}. Redirecting to failed.`
+    );
+    redirect(`/checkout/failed?reason=unknown&reference=${paystackReference}`);
   }
 }
 

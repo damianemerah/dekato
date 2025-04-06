@@ -13,7 +13,7 @@ import { revalidateTag } from 'next/cache';
 
 // Cache recommendations using React's cache
 export const getRecommendations = cache(
-  async (type, categorySlug, productId, limit = 4) => {
+  async (type, categorySlug, productId, limit = 8) => {
     await dbConnect();
     const session = await auth();
     const userId = session?.user?.id;

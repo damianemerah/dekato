@@ -91,34 +91,28 @@ export default function CheckoutButton({
 
           try {
             // Verify and complete the order
-            const result = await verifyAndCompleteOrder(reference.reference);
-            console.log(
-              '[DEBUG CheckoutButton] Order verification result:',
-              result
-            );
-
-            if (result.success) {
-              toast.success(
-                'Order confirmed! Redirecting to confirmation page...'
-              );
-              // Use window.location for direct navigation
-              window.location.href = `/checkout/success?reference=${reference.reference}`;
+            // Note: This server action will redirect us to the success page
+            // We don't need to manually navigate
+            await verifyAndCompleteOrder(reference.reference);
+            // The server action will handle the redirect, so we won't reach here
+            // But just in case there's no redirect, show a fallback message
+            toast.success('Payment confirmed! Please wait...');
+          } catch (error) {
+            // If we get a NEXT_REDIRECT error, that's expected - the server action is handling navigation
+            if (error.message && error.message.includes('NEXT_REDIRECT')) {
+              console.log('[DEBUG CheckoutButton] Server handling redirect');
+              // Let the server handle it - don't do anything
             } else {
+              // This is an actual error
+              console.error(
+                '[ERROR CheckoutButton] Order verification error:',
+                error
+              );
               toast.error(
-                result.message ||
-                  'Payment verification failed. Please contact support.'
+                'An error occurred processing your order. Please contact support.'
               );
               setIsPreparing(false);
             }
-          } catch (error) {
-            console.error(
-              '[ERROR CheckoutButton] Order verification error:',
-              error
-            );
-            toast.error(
-              'An error occurred processing your order. Please contact support.'
-            );
-            setIsPreparing(false);
           }
         },
         onClose: () => {

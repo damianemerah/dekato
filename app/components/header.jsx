@@ -3,14 +3,30 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { Search, ShoppingBag, User, Heart } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import {
+  Search,
+  ShoppingBag,
+  User,
+  Heart,
+  LogOut,
+  Settings,
+  Package,
+} from 'lucide-react';
 import useCartData from '@/app/hooks/useCartData';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/app/components/ui/sheet';
 import SearchBox from './search-box';
 import { SidebarTrigger } from '@/app/components/ui/sidebar';
 import { Separator } from '@/app/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/app/components/ui/dropdown-menu';
 
 export function Header() {
   const { data: session } = useSession();
@@ -82,25 +98,68 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="top" className="h-auto bg-white py-4">
-              <SearchBox className="w-full" />
+              <SearchBox className="right-4" />
             </SheetContent>
           </Sheet>
 
-          {/* User account */}
-          <Link
-            href={userId ? '/account' : '/signin'}
-            className="hidden md:flex md:items-center md:space-x-1"
-          >
-            <User className="h-5 w-5" />
-            <span className="hidden text-sm font-medium md:inline">
-              {userId
-                ? user?.firstname || user?.name?.split(' ')[0] || 'Account'
-                : 'LOGIN'}
-            </span>
-          </Link>
-          <Link href={userId ? '/account' : '/signin'} className="md:hidden">
-            <User className="h-5 w-5" />
-          </Link>
+          {/* User account dropdown */}
+          {userId ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="cursor-pointer">
+                <User className="h-5 w-5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span className="font-medium">
+                      {user?.firstname || user?.name?.split(' ')[0] || 'User'}
+                    </span>
+                    {user?.email && (
+                      <span className="text-xs text-muted-foreground">
+                        {user.email}
+                      </span>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/account"
+                    className={pathname === '/account' ? 'text-primary' : ''}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>My Account</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/account/orders"
+                    className={
+                      pathname === '/account/orders' ? 'text-primary' : ''
+                    }
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    <span>Order History</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: '/signin' })}
+                  className="text-red-500 focus:text-red-500"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/signin" className="flex items-center space-x-1">
+              <User className="h-5 w-5" />
+              <span className="hidden text-sm font-medium md:inline">
+                LOGIN
+              </span>
+            </Link>
+          )}
 
           {/* Wishlist */}
           <Link href="/account/wishlist" className="hidden md:block">

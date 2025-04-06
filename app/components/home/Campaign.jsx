@@ -12,24 +12,24 @@ const CampaignSection = ({ image, title, priority = false }) => {
         priority={priority}
       />
       <div className="absolute inset-0 bg-black bg-opacity-30" />
-      <div className="relative flex h-full flex-col items-center justify-end gap-6 pb-8">
+      <div className="relative flex h-full flex-col items-end justify-end gap-6 pb-8 pr-8">
         <h2 className="text-3xl font-medium leading-none text-white">
           {title}
         </h2>
-        <div className="flex w-full items-center justify-center gap-4 font-oswald">
+        <div className="flex items-end gap-4 font-oswald">
           <Link
             href="#"
             className="bg-white px-6 py-1.5 text-sm font-semibold capitalize text-primary transition-colors hover:bg-primary hover:text-white"
             aria-label={`Shop Men's ${title}`}
           >
-            Shop Men
+            New Arrivals
           </Link>
           <Link
             href="#"
             className="bg-white px-6 py-1.5 text-sm font-semibold capitalize text-primary transition-colors hover:bg-primary hover:text-white"
             aria-label={`Shop Women's ${title}`}
           >
-            Shop Women
+            Best Sellers
           </Link>
         </div>
       </div>
@@ -41,14 +41,14 @@ export default function Campaign() {
   return (
     <div className={`mt-0.5 flex flex-col font-oswald md:flex-row`}>
       <CampaignSection
-        image="/assets/image4.png"
-        title="New Arrivals"
+        image="/assets/mens_collection.png"
+        title="Shop Men"
         priority={true}
       />
 
       <CampaignSection
-        image="/assets/image5.webp"
-        title="Featured Collection"
+        image="/assets/womens_collection.png"
+        title="Shop Women"
       />
     </div>
   );
