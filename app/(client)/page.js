@@ -1,7 +1,9 @@
 import Hero from '@/app/components/home/hero';
+import OurStory from '@/app/components/home/our-story';
 import SelectedCategories from '@/app/components/home/selected-categories';
 import Blog from '@/app/components/home/blog';
 import Campaign from '@/app/components/home/Campaign';
+import FeaturedProduct from '@/app/components/home/featured-product';
 import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { auth } from '@/app/lib/auth';
@@ -81,8 +83,13 @@ export default async function Home() {
         </Suspense>
       )}
 
-      {/* Below fold content rendered directly */}
-      <Blog />
+      {/* Featured Product section */}
+      <FeaturedProduct />
+
+      {/* Our Story section */}
+      <OurStory />
+
+      {/* <Blog /> */}
       <Gallery />
     </div>
   );
