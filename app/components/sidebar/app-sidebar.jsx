@@ -29,6 +29,7 @@ import { upperFirstLetter } from '@/app/lib/utils';
 
 export default function AppSidebar({ categories, collections, ...props }) {
   const pathname = usePathname();
+  const [openMenuIndex, setOpenMenuIndex] = React.useState(1);
 
   // Add debugging console log in development mode
   if (process.env.NODE_ENV === 'development') {
@@ -140,7 +141,10 @@ export default function AppSidebar({ categories, collections, ...props }) {
             {sidebarItems.map((item, index) => (
               <Collapsible
                 key={item.label}
-                defaultOpen={index === 1}
+                open={openMenuIndex === index}
+                onOpenChange={(isOpen) => {
+                  setOpenMenuIndex(isOpen ? index : null);
+                }}
                 className="group/collapsible"
               >
                 <SidebarMenuItem className="py-3">

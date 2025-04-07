@@ -126,7 +126,7 @@ const ProductActions = memo(function ProductActions({
                     }
                     onClick={onWishlistToggle}
                     disabled={isWishlistPending}
-                    className="h-12 w-12 border-background"
+                    className="h-12 w-12 border-2 border-primary"
                   >
                     {isWishlistPending ? (
                       <SmallSpinner className="h-5 w-5 text-primary" />
