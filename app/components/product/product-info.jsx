@@ -1,30 +1,27 @@
-"use client";
+'use client';
 
-import { Card, CardContent } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { formatToNaira } from "@/app/utils/getFunc";
-import { upperFirstLetter } from "@/app/lib/utils";
-import { Button } from "@/app/components/ui/button";
-import { Heart, Share2 } from "lucide-react";
-import HeartFilledIcon from "@/public/assets/icons/heart-filled.svg";
+import { Card, CardContent } from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
+import { formatToNaira } from '@/app/utils/getFunc';
+import { upperFirstLetter } from '@/app/lib/utils';
+import { Button } from '@/app/components/ui/button';
+import { Share2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/app/components/ui/tooltip";
-import { SmallSpinner } from "@/app/components/spinner";
-import { memo, useState, useCallback, useEffect } from "react";
-import dynamic from "next/dynamic";
+} from '@/app/components/ui/tooltip';
+import { memo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 
-const SocialSharePanel = dynamic(() => import("../social-panal"), {
+const SocialSharePanel = dynamic(() => import('../social-panal'), {
   ssr: false,
 });
 
 const ProductInfo = memo(function ProductInfo({
   product,
   selectedVariant,
-  isInWishlist,
   onWishlistToggle,
   isPending,
 }) {
@@ -54,19 +51,19 @@ const ProductInfo = memo(function ProductInfo({
       navigator
         .share({
           title: upperFirstLetter(product.name),
-          text: product.description?.slice(0, 150) || "Check out this product",
+          text: product.description?.slice(0, 150) || 'Check out this product',
           url: window.location.href,
         })
         .catch((error) => {
           // If native sharing fails or is cancelled, fallback to custom share panel
-          const customEvent = new CustomEvent("toggleSharePanel", {
+          const customEvent = new CustomEvent('toggleSharePanel', {
             detail: { position: { x: window.innerWidth - 150, y: 100 } },
           });
           window.dispatchEvent(customEvent);
         });
     } else {
       // For browsers without Web Share API, use custom share panel
-      const customEvent = new CustomEvent("toggleSharePanel", {
+      const customEvent = new CustomEvent('toggleSharePanel', {
         detail: { position: { x: window.innerWidth - 150, y: 100 } },
       });
       window.dispatchEvent(customEvent);
@@ -76,42 +73,13 @@ const ProductInfo = memo(function ProductInfo({
   return (
     <Card className="border-0 shadow-none">
       <CardContent className="p-0">
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Title and sharing section */}
           <div className="flex items-start justify-between">
-            <h1 className="font-oswald text-xl font-[900] uppercase text-gray-800 md:text-2xl">
+            <h1 className="font-oswald text-lg uppercase text-primary md:text-xl">
               {upperFirstLetter(product.name)}
             </h1>
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={
-                        isInWishlist
-                          ? "Remove from wishlist"
-                          : "Add to wishlist"
-                      }
-                      onClick={onWishlistToggle}
-                      disabled={isPending}
-                    >
-                      {isPending ? (
-                        <SmallSpinner className="h-5 w-5 text-primary" />
-                      ) : isInWishlist ? (
-                        <HeartFilledIcon className="h-5 w-5 text-red-500" />
-                      ) : (
-                        <Heart className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
+            <div className="flex items-center">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -138,10 +106,10 @@ const ProductInfo = memo(function ProductInfo({
             <div className="flex items-center gap-2">
               {hasDiscount ? (
                 <>
-                  <span className="font-oswald text-xl font-medium text-green-600 md:text-2xl">
+                  <span className="font-oswald text-2xl font-medium text-primary">
                     {formatToNaira(discountedPrice)}
                   </span>
-                  <span className="text-lg text-gray-500 line-through">
+                  <span className="text-base text-gray-500 line-through">
                     {formatToNaira(price)}
                   </span>
                   <Badge
@@ -152,7 +120,7 @@ const ProductInfo = memo(function ProductInfo({
                   </Badge>
                 </>
               ) : (
-                <span className="font-oswald text-xl font-medium md:text-2xl">
+                <span className="font-oswald text-xl font-medium">
                   {formatToNaira(price)}
                 </span>
               )}
@@ -160,21 +128,16 @@ const ProductInfo = memo(function ProductInfo({
 
             {product.discountDuration && (
               <p className="text-sm text-red-500">
-                Sale ends on{" "}
+                Sale ends on{' '}
                 {new Date(product.discountDuration).toLocaleDateString()}
               </p>
             )}
           </div>
 
-          {/* Product brief description */}
-          <div className="prose prose-sm max-w-none text-gray-600">
-            <p>{product.description?.slice(0, 150)}...</p>
-          </div>
-
           {/* Stock status */}
           <div className="flex items-center gap-2">
-            <Badge variant={product.quantity > 0 ? "default" : "destructive"}>
-              {product.quantity > 0 ? "In Stock" : "Out of Stock"}
+            <Badge variant={product.quantity > 0 ? 'default' : 'destructive'}>
+              {product.quantity > 0 ? 'In Stock' : 'Out of Stock'}
             </Badge>
 
             {product.quantity > 0 && product.quantity < 10 && (

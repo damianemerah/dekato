@@ -129,14 +129,14 @@ const ProductVariants = memo(function ProductVariants({
 
   return (
     <Card className="mt-4 border-0 shadow-none">
-      <CardContent className="space-y-4 p-0">
+      <CardContent className="space-y-3 p-0">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-700">Options</p>
+          <p className="text-sm font-medium uppercase text-primary">Options</p>
           {Object.keys(selectedVariantOption).length > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 text-gray-500"
+              className="h-8 px-2 text-muted-foreground"
               onClick={handleResetSelections}
             >
               <Undo2 className="mr-1 h-3.5 w-3.5" />
@@ -160,15 +160,15 @@ const ProductVariants = memo(function ProductVariants({
           const optionValues = option.values;
 
           return (
-            <div key={option.id} className="mb-4">
+            <div key={option.id} className="mb-3">
               <p className="mb-2 text-sm font-medium text-gray-700">
-                <span className="capitalize">{option.name}</span>:{' '}
-                <span className="font-bold uppercase">
+                <span className="uppercase">{option.name}</span>:{' '}
+                <span className="font-semibold uppercase">
                   {selectedVariantOption[option.name] || 'Select'}
                 </span>
               </p>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {optionValues.map((value, index) => {
                   const isValid = getValidValuesForOption(option.name, value);
                   const isSelected =
@@ -190,9 +190,9 @@ const ProductVariants = memo(function ProductVariants({
                           <TooltipTrigger asChild>
                             <button
                               className={cn(
-                                'relative h-16 w-16 rounded-full transition-all duration-200',
+                                'relative overflow-hidden transition-all duration-200',
                                 isSelected
-                                  ? 'ring-2 ring-primary ring-offset-2'
+                                  ? 'ring-2 ring-primary ring-offset-1'
                                   : 'border border-gray-300',
                                 !isValid &&
                                   !isSelected &&
@@ -206,18 +206,18 @@ const ProductVariants = memo(function ProductVariants({
                               }
                               aria-label={`Select color: ${value}`}
                             >
-                              <div className="relative h-full w-full overflow-hidden rounded-full">
+                              <div className="relative h-14 w-10 overflow-hidden">
                                 <Image
                                   src={imageUrl}
                                   alt={`${value} color`}
                                   fill
-                                  sizes="64px"
+                                  sizes="56px"
                                   className="object-cover"
                                 />
                               </div>
                               {isSelected && (
-                                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20">
-                                  <Check className="h-5 w-5 text-white" />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                  <Check className="h-4 w-4 text-white" />
                                 </div>
                               )}
                             </button>
@@ -234,9 +234,9 @@ const ProductVariants = memo(function ProductVariants({
                       <button
                         key={`${option.name}-${value}`}
                         className={cn(
-                          'relative h-10 min-w-[2.5rem] max-w-[4rem] truncate border p-1 text-sm uppercase transition-all duration-200',
+                          'relative h-9 min-w-[2.5rem] border px-3 text-sm uppercase transition-all duration-200',
                           isSelected
-                            ? 'border-primary bg-primary/10 text-primary'
+                            ? 'border-primary bg-primary/5 font-semibold text-primary'
                             : 'border-gray-300 text-gray-700',
                           !isValid &&
                             !isSelected &&

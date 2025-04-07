@@ -14,6 +14,7 @@ import {
   Package,
 } from 'lucide-react';
 import useCartData from '@/app/hooks/useCartData';
+import useWishlistData from '@/app/hooks/useWishlistData';
 import { Button } from '@/app/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/app/components/ui/sheet';
 import SearchBox from './search-box';
@@ -33,6 +34,7 @@ export function Header() {
   const user = session?.user;
   const userId = user?.id;
   const { cartData: cart } = useCartData(userId);
+  const { wishlistData } = useWishlistData(userId);
   const [isShaking, setIsShaking] = React.useState(false);
   const pathname = usePathname();
 
@@ -83,27 +85,44 @@ export function Header() {
         </div>
 
         {/* Center section - Search on desktop */}
-        <div className="hidden lg:block lg:flex-1 lg:px-16">
-          <SearchBox className="mx-auto max-w-md" />
-        </div>
-
-        {/* Right section - Icons */}
-        <div className="flex items-center space-x-6">
-          {/* Mobile search trigger */}
+        <div className="hidden flex-1 items-center justify-center px-8 lg:flex">
           <Sheet>
-            <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="icon" className="text-white">
-                <Search className="h-5 w-5" />
-                <span className="sr-only">Search</span>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="relative h-9 w-full justify-start border-0 bg-white/10 px-3 text-sm font-normal text-muted hover:bg-white/20"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                Search products...
               </Button>
             </SheetTrigger>
-            <SheetContent side="top" className="h-auto bg-white py-4">
-              <SearchBox className="right-4" />
+            <SheetContent side="top" className="h-screen w-full">
+              <SearchBox />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Right section - User actions */}
+        <div className="flex items-center gap-6">
+          {/* Search on mobile */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="top" className="h-screen w-full">
+              <SearchBox />
             </SheetContent>
           </Sheet>
 
-          {/* User account dropdown */}
-          {userId ? (
+          {/* User menu */}
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <User className="h-5 w-5" />
@@ -162,8 +181,13 @@ export function Header() {
           )}
 
           {/* Wishlist */}
-          <Link href="/account/wishlist" className="hidden md:block">
+          <Link href="/account/wishlist" className="relative hidden md:block">
             <Heart className="h-5 w-5" />
+            {wishlistData?.count > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {wishlistData.count}
+              </span>
+            )}
           </Link>
 
           {/* Shopping bag */}

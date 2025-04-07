@@ -8,6 +8,8 @@ import {
   CarouselItem,
 } from '@/app/components/ui/carousel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSidebar } from '@/app/components/ui/sidebar';
+import { cn } from '@/app/lib/utils';
 
 const RecommendedProductsClient = ({
   initialProducts = [],
@@ -21,6 +23,7 @@ const RecommendedProductsClient = ({
   const [api, setApi] = useState(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const { open, isMobile } = useSidebar();
 
   // Track scroll capabilities when api changes
   useEffect(() => {
@@ -44,8 +47,32 @@ const RecommendedProductsClient = ({
     };
   }, [api]);
 
+  // Calculate the component width based on sidebar state
+  const sidebarWidth = '16rem'; // Using the SIDEBAR_WIDTH constant value
+  const contentStyle =
+    !isMobile && open ? { maxWidth: `calc(100% - ${sidebarWidth})` } : {};
+
   // Return null if no products available
   if (products.length === 0) return null;
+
+  // Determine carousel item class based on sidebar state
+  const getCarouselItemClass = (product) => {
+    const baseClass = 'pl-0 basis-1/2 sm:basis-1/2';
+
+    if (!isMobile && open) {
+      // When sidebar is open, adjust the lg and xl breakpoints
+      return cn(
+        baseClass,
+        'md:basis-1/3 lg:basis-1/3 xl:basis-1/4 xl:max-w-[316.5px]'
+      );
+    } else {
+      // When sidebar is closed, use original sizes
+      return cn(
+        baseClass,
+        'md:basis-1/3 lg:basis-1/4 xl:basis-1/5 xl:max-w-[316.5px]'
+      );
+    }
+  };
 
   return (
     <div className="px-4 py-12 sm:px-6 lg:px-8">
@@ -57,7 +84,7 @@ const RecommendedProductsClient = ({
           {products.map((product) => (
             <CarouselItem
               key={product.id}
-              className="basis-1/2 pl-0 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:w-[316.5px] xl:basis-auto"
+              className={getCarouselItemClass(product)}
             >
               <ProductCard product={product} />
             </CarouselItem>

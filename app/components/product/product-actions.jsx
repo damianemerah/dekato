@@ -1,13 +1,20 @@
-"use client";
+'use client';
 
-import { memo, useCallback } from "react";
-import { Card, CardContent } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { MinusCircle, PlusCircle, ShoppingBag } from "lucide-react";
-import WhatsappIcon from "@/public/assets/icons/whatsapp.svg";
-import { SmallSpinner } from "@/app/components/spinner";
-import { cn } from "@/app/lib/utils";
-import { ButtonPrimary } from "../button";
+import { memo, useCallback } from 'react';
+import { Card, CardContent } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { MinusCircle, PlusCircle, Heart } from 'lucide-react';
+import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
+import { SmallSpinner } from '@/app/components/spinner';
+import HeartFilledIcon from '@/public/assets/icons/heart-filled.svg';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/app/components/ui/tooltip';
+import { cn } from '@/app/lib/utils';
+import { ButtonPrimary } from '../button';
 
 const ProductActions = memo(function ProductActions({
   product,
@@ -15,7 +22,10 @@ const ProductActions = memo(function ProductActions({
   quantity,
   setQuantity,
   onAddToCart,
+  isInWishlist,
+  onWishlistToggle,
   isPending,
+  isWishlistPending,
 }) {
   // Calculate max available quantity
   const maxQuantity = selectedVariant?.quantity || product.quantity || 0;
@@ -35,12 +45,12 @@ const ProductActions = memo(function ProductActions({
   const variantInfo = selectedVariant
     ? Object.entries(selectedVariant.options || {})
         .map(([key, value]) => `${key}: ${value}`)
-        .join(", ")
-    : "";
+        .join(', ')
+    : '';
 
   const whatsappMessage = encodeURIComponent(
     `Hi, I'm interested in purchasing "${productName}" from Dekato Outfit. ${
-      variantInfo ? `Variant: ${variantInfo}. ` : ""
+      variantInfo ? `Variant: ${variantInfo}. ` : ''
     }Please provide more information.`
   );
 
@@ -51,7 +61,9 @@ const ProductActions = memo(function ProductActions({
       <CardContent className="space-y-4 p-0">
         {/* Quantity selector */}
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-700">Quantity:</span>
+          <span className="text-sm font-medium uppercase text-gray-700">
+            Quantity:
+          </span>
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -85,46 +97,64 @@ const ProductActions = memo(function ProductActions({
           )}
         </div>
 
-        {/* Stock status */}
-        <p
-          className={cn(
-            "text-sm",
-            isOutOfStock ? "text-red-600" : "text-green-600"
-          )}
-        >
-          {isOutOfStock ? "Out of stock" : "Product is available"}
-        </p>
-
         {/* Action buttons */}
-        <div className="mt-4 space-y-3">
-          <Button
-            variant="outline"
-            className="group flex h-12 w-full items-center justify-center border-2 border-green-500 px-6 text-green-500 transition-colors duration-200 hover:bg-green-500 hover:text-white"
-            asChild
-          >
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-              <WhatsappIcon className="mr-2 h-5 w-5 group-hover:text-white" />
-              <span className="text-lg group-hover:text-white sm:text-base md:text-lg">
-                Order on WhatsApp
-              </span>
-            </a>
-          </Button>
+        <div className="mt-6 space-y-3">
+          <div className="flex gap-3">
+            <ButtonPrimary
+              variant="default"
+              className="flex h-12 w-full items-center justify-center text-base font-semibold uppercase transition-all duration-200 hover:brightness-95"
+              onClick={onAddToCart}
+              disabled={isPending || isOutOfStock}
+            >
+              {isPending ? (
+                <SmallSpinner className="!text-white" />
+              ) : (
+                <>
+                  <span>Add to Bag</span>
+                </>
+              )}
+            </ButtonPrimary>
 
-          <ButtonPrimary
-            variant="default"
-            className="flex w-full items-center justify-center text-sm font-bold normal-case tracking-wide transition-all duration-200 hover:bg-opacity-90"
-            onClick={onAddToCart}
-            disabled={isPending || isOutOfStock}
-          >
-            {isPending ? (
-              <SmallSpinner className="!text-white" />
-            ) : (
-              <>
-                <ShoppingBag className="mr-2.5 h-5 w-5 sm:h-6 sm:w-6" />
-                <span>Add to Bag</span>
-              </>
-            )}
-          </ButtonPrimary>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label={
+                      isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'
+                    }
+                    onClick={onWishlistToggle}
+                    disabled={isWishlistPending}
+                    className="h-12 w-12 border-background"
+                  >
+                    {isWishlistPending ? (
+                      <SmallSpinner className="h-5 w-5 text-primary" />
+                    ) : isInWishlist ? (
+                      <HeartFilledIcon className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Heart className="h-5 w-5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <div className="text-left">
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-green-600 underline hover:text-green-700"
+            >
+              <WhatsappIcon className="h-4 w-4" />
+              <span>Order on WhatsApp</span>
+            </a>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -58,9 +58,9 @@ export default async function ProductInfoPage({ params: { name } }) {
       <div>
         <ProductStructuredData product={product} />
         <ProductDetail product={product} />
-        <Suspense fallback={<RecommendedProductsSkeleton />}>
+        <div className="mt-16 md:mt-24">
           <SimilarProductsServer productId={id} category={product.category} />
-        </Suspense>
+        </div>
       </div>
     );
   } catch (error) {

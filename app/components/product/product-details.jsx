@@ -4,11 +4,11 @@ import { useState, useCallback, useTransition, useEffect } from 'react';
 import { useUserStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
 import { createCartItem } from '@/app/action/cartAction';
-import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Suspense } from 'react';
 import { useSession } from 'next-auth/react';
+import useWishlistData from '@/app/hooks/useWishlistData';
 
 import ProductGallery from './product-gallery';
 import ProductInfo from './product-info';
@@ -35,25 +35,19 @@ function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
 const ProductDetail = function ProductDetail({ product }) {
   const [isPending, startTransition] = useTransition();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-
-  const user = useUserStore((state) => state.user);
+  const [isWishlistPending, setIsWishlistPending] = useState(false);
 
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  const { isInCart } = useCart();
+  const { wishlistData, mutate: mutateWishlist } = useWishlistData(userId);
 
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [isInWishlist, setIsInWishlist] = useState(false);
   const [optimisticInCart, setOptimisticInCart] = useState(false);
 
-  useEffect(() => {
-    if (user?.wishlist) {
-      setIsInWishlist(user.wishlist.includes(product.id));
-    }
-  }, [user?.wishlist, product.id]);
+  const isInWishlist = wishlistData?.items?.includes(product.id);
 
   const handleVariantSelection = useCallback((name, value) => {
     setSelectedVariantOption((prev) => ({
@@ -68,22 +62,41 @@ const ProductDetail = function ProductDetail({ product }) {
       return;
     }
 
+    setIsWishlistPending(true);
     startTransition(async () => {
       try {
         if (isInWishlist) {
           await removeFromWishlist(userId, product.id);
-          setIsInWishlist(false);
+          // Optimistically update the wishlist data
+          mutateWishlist(
+            (current) => ({
+              count: (current?.count || 0) - 1,
+              items: current?.items?.filter((id) => id !== product.id) || [],
+            }),
+            { revalidate: true }
+          );
           toast.success('Removed from wishlist');
         } else {
           await addToWishlist(userId, product.id);
-          setIsInWishlist(true);
+          // Optimistically update the wishlist data
+          mutateWishlist(
+            (current) => ({
+              count: (current?.count || 0) + 1,
+              items: [...(current?.items || []), product.id],
+            }),
+            { revalidate: true }
+          );
           toast.success('Added to wishlist');
         }
       } catch (error) {
+        // Revalidate on error to ensure correct state
+        mutateWishlist();
         toast.error('Failed to update wishlist');
+      } finally {
+        setIsWishlistPending(false);
       }
     });
-  }, [userId, product.id, isInWishlist, startTransition]);
+  }, [userId, product.id, isInWishlist, mutateWishlist, startTransition]);
 
   const handleAddToCart = useCallback(async () => {
     if (!userId) {
@@ -136,10 +149,10 @@ const ProductDetail = function ProductDetail({ product }) {
   }
 
   return (
-    <div className="mx-auto w-full">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-        <ErrorBoundary FallbackComponent={ProductDetailsErrorFallback}>
-          <div className="lg:col-span-3">
+    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12 lg:gap-16">
+        <div className="md:col-span-7">
+          <ErrorBoundary FallbackComponent={ProductDetailsErrorFallback}>
             <Suspense
               fallback={
                 <div className="h-[450px] w-full animate-pulse bg-gray-100" />
@@ -147,43 +160,49 @@ const ProductDetail = function ProductDetail({ product }) {
             >
               <ProductGallery product={product} />
             </Suspense>
-          </div>
+          </ErrorBoundary>
+        </div>
 
-          <div className="no-scrollbar lg:col-span-2 lg:max-h-screen lg:overflow-y-auto">
-            <div className="px-2 sm:px-4 lg:p-5">
-              <ProductInfo
-                product={product}
-                selectedVariant={selectedVariant}
-                isInWishlist={isInWishlist}
-                onWishlistToggle={handleAddToWishlist}
-                isPending={isPending}
-              />
-
-              {product.variant && product.variant.length > 0 && (
-                <ProductVariants
+        <div className="md:col-span-5">
+          <ErrorBoundary FallbackComponent={ProductDetailsErrorFallback}>
+            <div className="max-w-md space-y-6">
+              <div className="px-0 sm:px-0">
+                <ProductInfo
                   product={product}
-                  selectedVariantOption={selectedVariantOption}
-                  handleVariantSelection={handleVariantSelection}
-                  setSelectedVariant={setSelectedVariant}
+                  selectedVariant={selectedVariant}
+                  isInWishlist={isInWishlist}
+                  onWishlistToggle={handleAddToWishlist}
+                  isPending={isWishlistPending}
                 />
-              )}
 
-              <ProductActions
-                product={product}
-                selectedVariant={selectedVariant}
-                quantity={quantity}
-                setQuantity={setQuantity}
-                onAddToCart={handleAddToCart}
-                isPending={isPending || isAddingToCart}
-              />
+                {product.variant && product.variant.length > 0 && (
+                  <ProductVariants
+                    product={product}
+                    selectedVariantOption={selectedVariantOption}
+                    handleVariantSelection={handleVariantSelection}
+                    setSelectedVariant={setSelectedVariant}
+                  />
+                )}
+
+                <ProductActions
+                  product={product}
+                  selectedVariant={selectedVariant}
+                  quantity={quantity}
+                  setQuantity={setQuantity}
+                  onAddToCart={handleAddToCart}
+                  isInWishlist={isInWishlist}
+                  onWishlistToggle={handleAddToWishlist}
+                  isPending={isAddingToCart}
+                  isWishlistPending={isWishlistPending}
+                />
+              </div>
+
+              <ProductDetailsSections product={product} />
             </div>
-
-            <ProductDetailsSections product={product} />
-          </div>
-        </ErrorBoundary>
+          </ErrorBoundary>
+        </div>
       </div>
-      <Toaster position="top-center" />
-    </div>
+    </section>
   );
 };
 
