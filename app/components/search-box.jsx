@@ -86,7 +86,7 @@ export default function SearchBox({ className }) {
           <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
             {searchResults.categories.length > 0 && (
               <div className="border-b p-2">
-                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-gray-500">
+                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
                   Categories
                 </h3>
                 <ul>
@@ -103,7 +103,7 @@ export default function SearchBox({ className }) {
                       <li key={category.id || category._id}>
                         <Link
                           href={`/shop/${urlPath}`}
-                          className="block px-4 py-2 hover:bg-gray-100"
+                          className="block px-4 py-2 text-primary hover:bg-secondary"
                           onClick={() => setShowResults(false)}
                         >
                           {displayName}
@@ -117,7 +117,7 @@ export default function SearchBox({ className }) {
 
             {searchResults.products.length > 0 && (
               <div className="p-2">
-                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-gray-500">
+                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
                   Products
                 </h3>
                 <ul>
@@ -125,7 +125,7 @@ export default function SearchBox({ className }) {
                     <li key={product.id}>
                       <Link
                         href={`/product/${product.slug}-${product.id}`}
-                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2 text-primary hover:bg-secondary"
                         onClick={() => setShowResults(false)}
                       >
                         {product.image && product.image[0] && (

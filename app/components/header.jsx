@@ -85,21 +85,8 @@ export function Header() {
         </div>
 
         {/* Center section - Search on desktop */}
-        <div className="hidden flex-1 items-center justify-center px-8 lg:flex">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                className="relative h-9 w-full justify-start border-0 bg-white/10 px-3 text-sm font-normal text-muted hover:bg-white/20"
-              >
-                <Search className="mr-2 h-4 w-4" />
-                Search products...
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="top" className="h-screen w-full">
-              <SearchBox />
-            </SheetContent>
-          </Sheet>
+        <div className="hidden lg:block lg:flex-1 lg:px-16">
+          <SearchBox className="mx-auto max-w-md" />
         </div>
 
         {/* Right section - User actions */}
