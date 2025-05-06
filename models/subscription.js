@@ -50,7 +50,7 @@ const emailSubscriptionSchema = new mongoose.Schema(
 );
 
 // Indexes
-emailSubscriptionSchema.index({ email: 1 });
+// emailSubscriptionSchema.index({ email: 1 });
 emailSubscriptionSchema.index({ status: 1 });
 emailSubscriptionSchema.index({ "preferences.gender": 1 });
 

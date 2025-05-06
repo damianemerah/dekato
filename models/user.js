@@ -36,16 +36,8 @@ const userSchema = new mongoose.Schema(
       default: "user",
       required: true,
     },
-    wishlist: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
-    password: {
-      type: String,
-      select: false,
-    },
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    password: { type: String, select: false },
     orderCount: { type: Number, default: 0 },
     amountSpent: {
       type: Number,
@@ -78,7 +70,7 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.index({ email: 1 });
+// userSchema.index({ email: 1 });
 
 userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });

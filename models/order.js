@@ -6,7 +6,7 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true,
+      // index: true,
     },
     product: [
       {
@@ -63,9 +63,7 @@ const orderSchema = new mongoose.Schema(
     verificationAttempts: { type: Number, default: 0 },
     lastVerificationAttempt: { type: Date },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 orderSchema.index({ paymentRef: 1, userId: 1 });
