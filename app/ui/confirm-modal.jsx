@@ -1,5 +1,4 @@
 import { Modal } from "antd";
-import { oswald } from "@/style/font";
 
 const useConfirmModal = () => {
   const showConfirmModal = ({ title, content, onOk }) => {
@@ -24,12 +23,12 @@ const useConfirmModal = () => {
           backgroundColor: "rgba(0, 0, 0, 0.6)",
         },
         body: {
-          fontFamily: oswald.style.fontFamily,
+          fontFamily: "var(--font-oswald)",
           fontSize: "16px",
           color: "#333",
         },
         title: {
-          fontFamily: oswald.style.fontFamily,
+          fontFamily: "var(--font-oswald)",
           fontSize: "24px",
           fontWeight: "bold",
           color: "#000",

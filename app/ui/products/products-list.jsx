@@ -1,5 +1,4 @@
 "use client";
-import { oswald } from "@/style/font";
 import { Pagination as AntdPagination } from "antd";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -107,11 +106,9 @@ const ProductList = ({
                     cb();
                   })
                   .catch((err) => {
-                    console.error(`Failed to track product ${productId}:`, err);
                     cb(err);
                   });
               } catch (error) {
-                console.error(`Error queuing product ${productId}:`, error);
                 cb(error);
               }
             });
@@ -170,57 +167,59 @@ const ProductList = ({
   return (
     <>
       {banner && banner.length > 0 ? (
-        <header className="relative h-[25vw] max-h-[378px] min-h-[255px] w-full overflow-hidden">
+        <header className="relative w-full overflow-hidden">
           <div
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
             {banner.map((image, index) => (
-              <div key={index} className="min-w-full">
-                <div className="relative h-[25vw] max-h-[378px] min-h-[255px] w-full">
-                  <Image
-                    src={image}
-                    alt={`Banner ${index + 1}`}
-                    layout="fill"
-                    objectFit="cover"
-                    className="h-full w-full"
-                  />
-                </div>
+              <div
+                key={index}
+                className="relative h-[20vw] max-h-[378px] min-h-[210px] w-full"
+              >
+                <Image
+                  src={image}
+                  alt={`Banner ${index + 1}`}
+                  fill
+                  priority={index === 0}
+                  sizes="100vw"
+                  quality={90}
+                  className="h-full w-full object-cover object-center"
+                />
               </div>
             ))}
           </div>
 
-          {banner.length > 0 && (
+          {banner.length > 1 && (
             <>
               <button
                 onClick={prevSlide}
-                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
+                className="absolute left-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-primary/30 text-base text-white hover:bg-primary/50"
                 aria-label="Previous slide"
               >
-                <ChevronLeft className="h-6 w-6" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={nextSlide}
-                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white hover:bg-black/50"
+                className="absolute right-4 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-primary/30 text-base text-white hover:bg-primary/50"
                 aria-label="Next slide"
               >
-                <ChevronRight className="h-6 w-6" />
+                <ChevronRight className="h-4 w-4" />
               </button>
+              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+                {banner.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`h-2 w-2 rounded-full ${
+                      currentSlide === index ? "bg-white" : "bg-white/50"
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
             </>
           )}
-
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-            {banner.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`h-2 w-2 rounded-full ${
-                  currentSlide === index ? "bg-white" : "bg-white/50"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </header>
       ) : (
         <header className="flex w-full items-center justify-center bg-gray-100 px-20 py-8 uppercase">
@@ -242,20 +241,14 @@ const ProductList = ({
         />
       </div>
 
-      <div className="px-2">
-        <h4
-          className={`${oswald.className} text-priamry pl-2 text-center text-[13px] font-bold leading-[58px] tracking-widest md:text-left`}
-        >
+      <div className="px-2 md:px-6 lg:px-8">
+        <h4 className="text-priamry text-center font-oswald text-[13px] font-bold leading-[58px] tracking-widest md:text-left">
           {totalCount} ITEMS
         </h4>
         <div className="grid grid-cols-2 gap-2 bg-white md:grid-cols-3 md:gap-3 lg:grid-cols-4">
           {products &&
             products.map((product, index) => (
-              <ProductCard
-                key={index}
-                product={product}
-                data-product-id={product.id}
-              />
+              <ProductCard key={index} product={product} />
             ))}
         </div>
         {/* page footer */}

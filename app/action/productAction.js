@@ -398,6 +398,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       const matchedCampaign = await Campaign.findOne({ path: exactPath })
         .select("banner description")
         .lean();
+
       if (matchedCampaign) {
         description = matchedCampaign.description;
         if (matchedCampaign.banner) {

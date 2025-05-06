@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { OPTIONS } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import dbConnect from "@/lib/mongoConnection";
 import User from "@/models/user";
@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 
 //isLoggedin middleware
 export const protect = async () => {
-  const session = await getServerSession(OPTIONS);
+  const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/signin");
     return null;

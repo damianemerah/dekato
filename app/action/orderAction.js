@@ -55,7 +55,7 @@ export async function getOrderById(id) {
       .lean({ virtuals: true });
 
     if (!order) {
-      throw new Error("Order not found");
+      return null;
     }
 
     const renamedOrder = mapKeys(order, (value, key) =>
@@ -118,8 +118,6 @@ export async function fulfillOrder(
 ) {
   await dbConnect();
   await restrictTo("admin");
-
-  console.log(quantities, "r📁📁");
 
   try {
     const order = await Order.findById(id)

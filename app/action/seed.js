@@ -134,8 +134,6 @@ export const seedProducts = async () => {
       products.push(product);
     }
 
-    console.log("Done Seeding products🔥🔥🔥");
-
     // Insert fake products into the database
     await Product.insertMany(products);
     console.log("Database seeded with 40 fake products and categories!");

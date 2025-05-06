@@ -64,7 +64,7 @@ export default function Wishlist({ product }) {
   };
 
   return (
-    <div className="mb-0.5 ml-2">
+    <div className="mb-0.5">
       <div className="relative flex h-full flex-col bg-white text-center transition-all duration-300 hover:shadow-md">
         <Link href={`/product/${product.slug}-${product.id}`}>
           <div className="relative w-full overflow-hidden pb-[133.33%]">
@@ -117,7 +117,7 @@ export default function Wishlist({ product }) {
           {isRemoving ? (
             <SmallSpinner className="!text-primary !text-opacity-50" />
           ) : (
-            <CloseOutlined className="rounded-full bg-slate-100 p-1 text-gray-600" />
+            <CloseOutlined className="rounded-full bg-secondary/10 p-1 text-red-500" />
           )}
         </button>
       </div>
