@@ -1,22 +1,26 @@
 import { NextResponse } from "next/server";
 import { EmailSubscription } from "@/models/subscription";
-import dbConnect from "@/lib/mongoConnection";
-import Email from "@/lib/email";
+import dbConnect from "@/app/lib/mongoConnection";
+import Email from "@/app/lib/email";
 import { revalidateTag, revalidatePath } from "next/cache";
 
+// These handlers have been migrated to Server Actions in app/action/subscriptionAction.js
+// They are preserved here for reference, but should be considered deprecated.
+
+/*
 export async function POST(req) {
   try {
     await dbConnect();
-    const { email, gender = "both" } = await req.json();
+    const { email, gender = 'both' } = await req.json();
 
     // Input validation
     if (!email) {
       return NextResponse.json(
         {
           success: false,
-          message: "Please provide a valid email address",
+          message: 'Please provide a valid email address',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -25,7 +29,7 @@ export async function POST(req) {
 
     if (existingSubscription) {
       // Reactivate subscription
-      existingSubscription.status = "subscribed";
+      existingSubscription.status = 'subscribed';
       existingSubscription.confirmedAt = new Date();
       existingSubscription.gender = gender;
       await existingSubscription.save();
@@ -34,7 +38,7 @@ export async function POST(req) {
       const subscription = new EmailSubscription({
         email,
         gender,
-        status: "subscribed",
+        status: 'subscribed',
       });
 
       await subscription.save();
@@ -44,29 +48,31 @@ export async function POST(req) {
       const emailObj = new Email({ email }, url);
       await emailObj.emailSubscription();
     } catch (error) {
-      console.error("Error sending confirmation email:", error);
+      console.error('Error sending confirmation email:', error);
       // Don't fail the subscription if email fails
     }
-    revalidateTag("emailSubscription");
+    revalidateTag('emailSubscription');
     return NextResponse.json(
       {
         success: true,
-        message: "Subscription successful",
+        message: 'Subscription successful',
       },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Subscription error:", error);
+    console.error('Subscription error:', error);
     return NextResponse.json(
       {
         success: false,
-        message: "Error processing subscription",
+        message: 'Error processing subscription',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
+*/
 
+// The GET handler is kept active as it's used for data retrieval, not state changes
 export async function GET(req) {
   const { searchParams } = req.nextUrl;
   const email = searchParams.get("email");
@@ -85,7 +91,7 @@ export async function GET(req) {
             gender: subscription.gender,
           },
         },
-        { status: 200 },
+        { status: 200 }
       );
     }
 
@@ -93,11 +99,12 @@ export async function GET(req) {
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Error processing request" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
+/*
 export async function PATCH(req) {
   try {
     await dbConnect();
@@ -107,9 +114,9 @@ export async function PATCH(req) {
       return NextResponse.json(
         {
           success: false,
-          message: "Email is required",
+          message: 'Email is required',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -132,18 +139,18 @@ export async function PATCH(req) {
       const emailObj = new Email({ email }, url);
       await emailObj.emailSubscription();
     } catch (error) {
-      console.error("Error sending confirmation email:", error);
+      console.error('Error sending confirmation email:', error);
       // Don't fail the subscription if email fails
     }
 
-    revalidateTag("emailSubscription");
+    revalidateTag('emailSubscription');
 
     return NextResponse.json({
       success: true,
       message:
-        status === "subscribed"
-          ? "Successfully updated newsletter preferences"
-          : "Successfully unsubscribed from newsletter",
+        status === 'subscribed'
+          ? 'Successfully updated newsletter preferences'
+          : 'Successfully unsubscribed from newsletter',
       subscription: {
         email: subscription.email,
         status: subscription.status,
@@ -151,13 +158,13 @@ export async function PATCH(req) {
       },
     });
   } catch (error) {
-    console.error("Subscription update error:", error);
+    console.error('Subscription update error:', error);
     return NextResponse.json(
       {
         success: false,
-        message: "Error updating subscription",
+        message: 'Error updating subscription',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -171,7 +178,7 @@ export async function DELETE(req) {
 
     if (subscription) {
       subscription.unsubscribedAt = new Date();
-      subscription.status = "unsubscribed";
+      subscription.status = 'unsubscribed';
 
       await subscription.save();
     }
@@ -181,17 +188,18 @@ export async function DELETE(req) {
       const emailObj = new Email({ email }, url);
       await emailObj.unsubscribeEmail();
     } catch (error) {
-      console.error("Error sending confirmation email:", error);
+      console.error('Error sending confirmation email:', error);
       // Don't fail the subscription if email fails
     }
 
-    revalidateTag("emailSubscription");
+    revalidateTag('emailSubscription');
 
     return NextResponse.json({
       success: true,
-      message: "Subscription deleted",
+      message: 'Subscription deleted',
     });
   } catch (error) {
-    console.error("Error deleting subscription:", error);
+    console.error('Error deleting subscription:', error);
   }
 }
+*/

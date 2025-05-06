@@ -1,5 +1,5 @@
-"use client";
-import React, { useState, useEffect } from "react";
+'use client';
+import React, { useState, useEffect } from 'react';
 import {
   Layout,
   Typography,
@@ -20,27 +20,27 @@ import {
   Divider,
   Alert,
   message,
-} from "antd";
+} from 'antd';
 import {
   LeftOutlined,
   EditOutlined,
   MoreOutlined,
   CarOutlined,
-} from "@ant-design/icons";
-import Link from "next/link";
-import useSWR from "swr";
-import { getOrderById, fulfillOrder } from "@/app/action/orderAction";
-import { ModalSpinner, SmallSpinner } from "@/app/ui/spinner";
-import { formatToNaira } from "@/utils/getFunc";
+} from '@ant-design/icons';
+import Link from 'next/link';
+import useSWR from 'swr';
+import { getOrderById, fulfillOrder } from '@/app/action/orderAction';
+import { ModalSpinner, SmallSpinner } from '@/app/components/spinner';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
 
 function Fulfillment({ id }) {
   const [quantities, setQuantities] = useState([]);
-  const [tracking, setTracking] = useState("");
-  const [trackingLink, setTrackingLink] = useState("");
-  const [carrier, setCarrier] = useState("");
+  const [tracking, setTracking] = useState('');
+  const [trackingLink, setTrackingLink] = useState('');
+  const [carrier, setCarrier] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const {
     data: order,
@@ -71,13 +71,13 @@ function Fulfillment({ id }) {
         tracking,
         trackingLink,
         carrier,
-        order?.shippingMethod,
+        order?.shippingMethod
       );
       mutate(`/admin/orders/${id}`);
-      message.success("Order fulfilled");
+      message.success('Order fulfilled');
     } catch (error) {
-      console.error("Error fulfilling order:", error);
-      alert("Failed to fulfill order.");
+      console.error('Error fulfilling order:', error);
+      alert('Failed to fulfill order.');
     }
   };
 
@@ -105,7 +105,7 @@ function Fulfillment({ id }) {
   return (
     <Layout>
       {isValidating && ModalSpinner}
-      <Header style={{ background: "#fff", padding: "0 16px" }}>
+      <Header style={{ background: '#fff', padding: '0 16px' }}>
         <Row justify="space-between" align="middle">
           <Col>
             <Link href="/admin/orders">
@@ -115,13 +115,13 @@ function Fulfillment({ id }) {
             </Link>
             <Title
               level={4}
-              style={{ display: "inline-block", margin: "0 16px" }}
+              style={{ display: 'inline-block', margin: '0 16px' }}
             >
               Fulfill item
             </Title>
           </Col>
           <Col>
-            <Button onClick={() => alert("print packing slip")}>
+            <Button onClick={() => alert('print packing slip')}>
               Print packing slip
             </Button>
           </Col>
@@ -134,10 +134,10 @@ function Fulfillment({ id }) {
               title={
                 <Space>
                   <Badge
-                    status={order?.isFulfilled ? "success" : "warning"}
-                    text={order?.isFulfilled ? "Fulfilled" : "Fulfill"}
+                    status={order?.isFulfilled ? 'success' : 'warning'}
+                    text={order?.isFulfilled ? 'Fulfilled' : 'Fulfill'}
                   />
-                  <CarOutlined style={{ color: "#52c41a" }} />
+                  <CarOutlined style={{ color: '#52c41a' }} />
                 </Space>
               }
               extra={
@@ -177,7 +177,7 @@ function Fulfillment({ id }) {
                           <Space direction="vertical">
                             {item.option && (
                               <Tag className="uppercase" color="blue">
-                                {Object.values(item.option).join(" / ")}
+                                {Object.values(item.option).join(' / ')}
                               </Tag>
                             )}
                             <Text type="secondary">
@@ -192,7 +192,7 @@ function Fulfillment({ id }) {
                             <Input
                               addonBefore="Qty"
                               defaultValue={item.quantity}
-                              style={{ width: "100px" }}
+                              style={{ width: '100px' }}
                               onChange={(e) =>
                                 handleQuantityChange(index, e.target.value)
                               }
@@ -209,7 +209,7 @@ function Fulfillment({ id }) {
                       <Input
                         addonBefore="Qty"
                         defaultValue={item.quantity}
-                        style={{ width: "100px" }}
+                        style={{ width: '100px' }}
                         onChange={(e) =>
                           handleQuantityChange(index, e.target.value)
                         }
@@ -225,7 +225,7 @@ function Fulfillment({ id }) {
                   message="Add tracking to improve customer satisfaction. Orders with tracking let customers receive delivery updates and reduce support requests."
                   type="info"
                   showIcon
-                  style={{ marginBottom: "16px" }}
+                  style={{ marginBottom: '16px' }}
                 />
                 <Row gutter={16}>
                   <Col span={12}>
@@ -275,13 +275,13 @@ function Fulfillment({ id }) {
               title="Shipping address"
               extra={<Button icon={<EditOutlined />} type="text" />}
             >
-              {order?.shippingMethod === "delivery" ? (
+              {order?.shippingMethod === 'delivery' ? (
                 <Text>
                   {order?.address?.firstname} {order?.address?.lastname}
                   <br />
                   {order?.address?.address}
                   <br />
-                  {order?.address?.city}, {order?.address?.state}{" "}
+                  {order?.address?.city}, {order?.address?.state}{' '}
                   {order?.address?.postalCode}
                   <br />
                   {order?.address?.phone}
@@ -290,14 +290,14 @@ function Fulfillment({ id }) {
                 <p>(Store pickup)</p>
               )}
             </Card>
-            <Card style={{ marginTop: "24px" }} title="Summary">
+            <Card style={{ marginTop: '24px' }} title="Summary">
               <Text type="secondary">
                 Fulfilling from Dekato Shop
                 <br />
                 {order?.product?.reduce(
                   (acc, cur) => acc + (cur.fulfilledItems || 0),
-                  0,
-                )}{" "}
+                  0
+                )}{' '}
                 of {order?.totalItems} items
               </Text>
               <Divider />

@@ -1,30 +1,30 @@
-"use client";
+'use client';
 
-import { useState, useRef, memo, useEffect } from "react";
+import { useState, useRef, memo, useEffect } from 'react';
 import {
   createCollection,
   updateCollection,
   getAllCollections,
-} from "@/app/action/collectionAction";
-import { ButtonPrimary } from "@/app/ui/button";
-import { message } from "antd";
-import { getFiles } from "@/app/admin/utils/utils";
-import useSWR, { mutate } from "swr";
-import { SmallSpinner } from "@/app/ui/spinner";
-import Link from "next/link";
-import { getAllCategories } from "@/app/action/categoryAction";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+} from '@/app/action/collectionAction';
+import { ButtonPrimary } from '@/app/components/button';
+import { message } from 'antd';
+import { getFiles } from '@/app/admin/utils/utils';
+import useSWR, { mutate } from 'swr';
+import { SmallSpinner } from '@/app/components/spinner';
+import Link from 'next/link';
+import { getAllCategories } from '@/app/action/categoryAction';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 
-const DropDown = dynamic(() => import("@/app/admin/ui/DropDown"), {
+const DropDown = dynamic(() => import('@/app/admin/ui/DropDown'), {
   ssr: false,
 });
 
-const MediaUpload = dynamic(() => import("@/app/admin/ui/MediaUpload"), {
+const MediaUpload = dynamic(() => import('@/app/admin/ui/MediaUpload'), {
   ssr: false,
 });
 
-const Checkbox = dynamic(() => import("antd").then((mod) => mod.Checkbox), {
+const Checkbox = dynamic(() => import('antd').then((mod) => mod.Checkbox), {
   ssr: false,
 });
 
@@ -32,7 +32,7 @@ export default memo(function CollectionContent({ collectionId, collection }) {
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [bannerFileList, setBannerFileList] = useState([]);
-  const [actionType, setActionType] = useState("");
+  const [actionType, setActionType] = useState('');
   const [defaultFileList, setDefaultFileList] = useState([]);
   const [defaultBannerFileList, setDefaultBannerFileList] = useState([]);
   const [catList, setCatList] = useState([]);
@@ -45,18 +45,18 @@ export default memo(function CollectionContent({ collectionId, collection }) {
   const router = useRouter();
 
   const { data: allCollections, isLoading } = useSWR(
-    "/api/allCollections",
+    '/api/allCollections',
     getAllCollections,
     {
       revalidateOnFocus: false,
       fallbackData: collection,
-    },
+    }
   );
 
   const { data: allCategories, isLoading: catIsLoading } = useSWR(
-    "/api/allCategories",
+    '/api/allCategories',
     () => getAllCategories({ limit: 100 }),
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   useEffect(() => {
@@ -72,38 +72,38 @@ export default memo(function CollectionContent({ collectionId, collection }) {
             value: cat.id,
             label: (
               <p>
-                {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{" "}
+                {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}{' '}
                 {cat.parent?.name
                   ? `(${cat.parent.name.charAt(0).toUpperCase() + cat.parent.name.slice(1)})`
-                  : ""}
+                  : ''}
               </p>
             ),
             parent: cat.parent,
             disabled: cat.parent !== null,
-          })),
+          }))
       );
     }
   }, [allCategories?.data, catIsLoading]);
 
   useEffect(() => {
     if (isLoading) return;
-    if (collectionId !== "new" && allCollections?.data?.length) {
+    if (collectionId !== 'new' && allCollections?.data?.length) {
       const selectedCollection = allCollections?.data.find(
-        (collection) => collection.id === collectionId,
+        (collection) => collection.id === collectionId
       );
 
       if (selectedCollection) {
-        setActionType("edit");
+        setActionType('edit');
         setSelectedCollection(selectedCollection);
         setSelectedCatKeys(
-          selectedCollection.category ? [selectedCollection.category.id] : [],
+          selectedCollection.category ? [selectedCollection.category.id] : []
         );
         setIsSale(selectedCollection.isSale || false);
       } else {
-        window.location.href = "/admin/collections";
+        window.location.href = '/admin/collections';
       }
-    } else if (collectionId === "new") {
-      setActionType("create");
+    } else if (collectionId === 'new') {
+      setActionType('create');
     }
   }, [allCollections, isLoading, collectionId]);
 
@@ -111,8 +111,8 @@ export default memo(function CollectionContent({ collectionId, collection }) {
     if (selectedCollection) {
       const selectedImgs = selectedCollection.image.map((img, index) => ({
         uid: index,
-        name: "image.png",
-        status: "done",
+        name: 'image.png',
+        status: 'done',
         url: img,
       }));
       setDefaultFileList(selectedImgs);
@@ -120,15 +120,15 @@ export default memo(function CollectionContent({ collectionId, collection }) {
       const selectedBanners =
         selectedCollection.banner?.map((banner, index) => ({
           uid: index,
-          name: "banner.png",
-          status: "done",
+          name: 'banner.png',
+          status: 'done',
           url: banner,
         })) || [];
       setDefaultBannerFileList(selectedBanners);
 
       if (titleRef.current) titleRef.current.value = selectedCollection?.name;
       if (descriptionRef.current)
-        descriptionRef.current.value = selectedCollection?.description || "";
+        descriptionRef.current.value = selectedCollection?.description || '';
     }
   }, [selectedCollection]);
 
@@ -137,41 +137,41 @@ export default memo(function CollectionContent({ collectionId, collection }) {
     try {
       const medias = getFiles(fileList);
       medias.images.forEach((file) => {
-        formData.append("image", file);
+        formData.append('image', file);
       });
 
       const bannerMedias = getFiles(bannerFileList);
       bannerMedias.images.forEach((file) => {
-        formData.append("banner", file);
+        formData.append('banner', file);
       });
 
       if (selectedCatKeys.length > 0) {
-        formData.append("category", selectedCatKeys[0]);
+        formData.append('category', selectedCatKeys[0]);
       }
 
-      formData.append("isSale", isSale);
+      formData.append('isSale', isSale);
 
-      if (type === "edit") {
+      if (type === 'edit') {
         const id = allCollections?.data.find(
-          (collection) => collection.id === collectionId,
+          (collection) => collection.id === collectionId
         ).id;
-        formData.append("id", id);
+        formData.append('id', id);
 
         await updateCollection(formData);
 
-        message.success("Collection updated");
-        titleRef.current.value = "";
-        descriptionRef.current.value = "";
+        message.success('Collection updated');
+        titleRef.current.value = '';
+        descriptionRef.current.value = '';
         return;
       }
 
       const newCollection = await createCollection(formData);
       router.push(`/admin/collections/${newCollection.id}`);
 
-      mutate("/api/allCollections");
-      message.success("Collection created");
-      titleRef.current.value = "";
-      descriptionRef.current.value = "";
+      mutate('/api/allCollections');
+      message.success('Collection created');
+      titleRef.current.value = '';
+      descriptionRef.current.value = '';
       setFileList([]);
       setBannerFileList([]);
       setSelectedCatKeys([]);
@@ -195,7 +195,7 @@ export default memo(function CollectionContent({ collectionId, collection }) {
       className="px-3 py-12 md:px-8"
     >
       <div className="mb-4 flex justify-between">
-        {actionType !== "create" && (
+        {actionType !== 'create' && (
           <Link href="/admin/collections/new" passHref>
             <ButtonPrimary className="!rounded-md bg-secondary px-2 text-base font-bold tracking-wide text-white">
               New Collection
@@ -292,10 +292,10 @@ export default memo(function CollectionContent({ collectionId, collection }) {
             type="submit"
             loading={isLoading}
             className={`flex w-full items-center justify-center !rounded-md !bg-blue-500 px-2 text-right text-base font-bold tracking-wide text-white ${
-              actionType === "create" ? "ml-auto" : ""
+              actionType === 'create' ? 'ml-auto' : ''
             }`}
           >
-            {actionType === "edit" ? "Update collection" : "Create collection"}
+            {actionType === 'edit' ? 'Update collection' : 'Create collection'}
           </ButtonPrimary>
         </div>
       </div>

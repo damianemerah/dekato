@@ -1,23 +1,6 @@
-"use client";
+import React from 'react';
 
-import React, { useEffect } from "react";
-
-const PrivacyPolicy = () => {
-  useEffect(() => {
-    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-      anchor.addEventListener("click", function (e) {
-        e.preventDefault();
-        const targetId = this.getAttribute("href").slice(1);
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-          targetElement.scrollIntoView({
-            behavior: "smooth",
-          });
-        }
-      });
-    });
-  }, []);
-
+export default function PrivacyPolicy() {
   return (
     <div className="prose prose-slate mx-auto max-w-3xl px-4 py-6">
       <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900">
@@ -35,7 +18,7 @@ const PrivacyPolicy = () => {
       </p>
       <ul className="mb-4 list-disc pl-6 text-gray-700">
         <li>
-          Visit our website at{" "}
+          Visit our website at{' '}
           <a
             href="http://www.dekato.ng"
             className="text-blue-600 underline transition-colors hover:text-blue-800"
@@ -59,7 +42,7 @@ const PrivacyPolicy = () => {
         <strong>Questions or concerns?</strong> Reading this Privacy Notice will
         help you understand your privacy rights and choices. If you do not agree
         with our policies and practices, please do not use our Services. If you
-        still have any questions or concerns, please contact us at{" "}
+        still have any questions or concerns, please contact us at{' '}
         <a
           href="mailto:dekatooutfits@gmail.com"
           className="text-blue-600 underline transition-colors hover:text-blue-800"
@@ -215,7 +198,7 @@ const PrivacyPolicy = () => {
 
         <h3 className="mb-2 text-xl font-medium text-gray-800">Google API</h3>
         <p className="mb-4 text-gray-700">
-          Our use of Information received from Google APIs will adhere to{" "}
+          Our use of Information received from Google APIs will adhere to{' '}
           <a
             href="https://developers.google.com/terms/api-services-user-data-policy"
             className="text-blue-600 underline transition-colors hover:text-blue-800"
@@ -224,7 +207,7 @@ const PrivacyPolicy = () => {
           >
             Google API Services User Data Policy
           </a>
-          , including the{" "}
+          , including the{' '}
           <a
             href="https://developers.google.com/terms/api-services-user-data-policy#limited-use"
             className="text-blue-600 underline transition-colors hover:text-blue-800"
@@ -262,7 +245,7 @@ const PrivacyPolicy = () => {
             <span className="font-medium">
               To facilitate account creation and authentication and otherwise
               manage user accounts.
-            </span>{" "}
+            </span>{' '}
             We may process your information so you can create and log in to your
             account, as well as keep your account in working order.
           </li>
@@ -270,7 +253,7 @@ const PrivacyPolicy = () => {
           <li className="mb-2">
             <span className="font-medium">
               To deliver and facilitate delivery of services to the user.
-            </span>{" "}
+            </span>{' '}
             We may process your information to provide you with the requested
             service.
           </li>
@@ -278,7 +261,7 @@ const PrivacyPolicy = () => {
           <li className="mb-2">
             <span className="font-medium">
               To respond to user inquiries/offer support to users.
-            </span>{" "}
+            </span>{' '}
             We may process your information to respond to your inquiries and
             solve any potential issues you might have with the requested
             service.
@@ -287,7 +270,7 @@ const PrivacyPolicy = () => {
           <li className="mb-2">
             <span className="font-medium">
               To send administrative information to you.
-            </span>{" "}
+            </span>{' '}
             We may process your information to send you details about our
             products and services, changes to our terms and policies, and other
             similar information.
@@ -296,7 +279,7 @@ const PrivacyPolicy = () => {
           <li className="mb-2">
             <span className="font-medium">
               To fulfil and manage your orders.
-            </span>{" "}
+            </span>{' '}
             We may process your information to fulfil and manage your orders,
             payments, returns, and exchanges made through the Services.
           </li>
@@ -310,7 +293,7 @@ const PrivacyPolicy = () => {
           <li className="mb-2">
             <span className="font-medium">
               To send you marketing and promotional communications.
-            </span>{" "}
+            </span>{' '}
             We may process the personal information you send to us for our
             marketing purposes, if this is in accordance with your marketing
             preferences. You can opt out of our marketing emails at any time.
@@ -512,6 +495,4 @@ const PrivacyPolicy = () => {
       </section>
     </div>
   );
-};
-
-export default PrivacyPolicy;
+}

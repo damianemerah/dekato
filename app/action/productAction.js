@@ -1,16 +1,21 @@
-"use server";
+'use server';
 
-import Product from "@/models/product";
-import Category from "@/models/category";
-import Campaign from "@/models/collection";
-import APIFeatures from "@/utils/apiFeatures";
-import { handleFormData } from "@/utils/handleForm";
-import { restrictTo } from "@/utils/checkPermission";
-import dbConnect from "@/lib/mongoConnection";
-import { getQueryObj } from "@/utils/getFunc";
-import handleAppError from "@/utils/appError";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { deleteFiles } from "@/lib/s3Func";
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { cache } from 'react';
+import Product from '@/models/product';
+import Category from '@/models/category';
+import Campaign from '@/models/collection';
+import OptionGroup from '@/models/variantsOption';
+import APIFeatures from '@/app/utils/apiFeatures';
+import { handleFormData } from '@/app/utils/handleForm';
+import { restrictTo } from '@/app/utils/checkPermission';
+import dbConnect from '@/app/lib/mongoConnection';
+import { getQueryObj } from '@/app/utils/getFunc';
+import handleAppError from '@/app/utils/appError';
+import { deleteFiles } from '@/app/lib/s3Func';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import UserActivity from '@/models/userActivity';
 
 const formatProduct = (product, isAdmin = false) => {
   const { _id, category, campaign, variant = [], ...rest } = product;
@@ -20,12 +25,27 @@ const formatProduct = (product, isAdmin = false) => {
     ...rest,
     category: category?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
     campaign: campaign?.map(({ _id, ...c }) => ({ id: _id.toString(), ...c })),
-    variant: variant?.map(({ _id, ...v }) => ({ id: _id.toString(), ...v })),
+    variant: variant?.map(({ _id, optionType = [], ...v }) => ({
+      id: _id.toString(),
+      optionType: optionType.map(({ _id, labelId, ...ot }) => ({
+        id: _id?.toString(),
+        labelId: labelId
+          ? {
+              id: labelId._id?.toString(),
+              name: labelId.name,
+              values: labelId.values,
+              swatchUrl: labelId.swatchUrl,
+            }
+          : labelId,
+        ...ot,
+      })),
+      ...v,
+    })),
   };
 
   if (!isAdmin) {
     formattedProduct.variant = formattedProduct.variant.filter(
-      (v) => v.quantity > 0,
+      (v) => v.quantity > 0
     );
   }
 
@@ -34,7 +54,7 @@ const formatProduct = (product, isAdmin = false) => {
 
 const setupIndexes = async () => {
   try {
-    console.log("Setting up indexes...");
+    console.log('Setting up indexes...');
     await dbConnect();
     // await Promise.all([
     //   Product.collection.createIndex({
@@ -47,16 +67,18 @@ const setupIndexes = async () => {
     //   Product.collection.createIndex({ slug: 1 }),
     // ]);
     Product.collection.createIndex({
-      name: "text",
-      description: "text",
-      tag: "text",
+      name: 'text',
+      description: 'text',
+      tag: 'text',
     });
   } catch (error) {
-    console.error("Error setting up indexes:", error);
+    console.error('Error setting up indexes:', error);
   }
 };
 
 export async function setProductStatus(id, status) {
+  await restrictTo('admin');
+
   await dbConnect();
   try {
     const product = await Product.findByIdAndUpdate(id, { status }).lean({
@@ -72,18 +94,18 @@ export async function setProductStatus(id, status) {
 export async function updateProductDiscount(
   productId,
   discountData,
-  campaignId = null,
+  campaignId = null
 ) {
-  await restrictTo("admin");
-  await dbConnect();
+  await restrictTo('admin');
 
   try {
+    await dbConnect();
     const { discount, discountDuration } = discountData;
 
     const product = await Product.findById(productId);
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new Error('Product not found');
     }
 
     product.discount = discount;
@@ -94,7 +116,7 @@ export async function updateProductDiscount(
       await Product.findByIdAndUpdate(
         productId,
         { $addToSet: { campaign: campaignId } },
-        { new: true },
+        { new: true }
       );
     }
 
@@ -127,15 +149,17 @@ const handleProductQuery = async (query, searchParams = {}) => {
 };
 
 export async function getAdminProduct(params) {
+  await restrictTo('admin');
+
   try {
     await dbConnect();
 
     const query = Product.find()
-      .populate("category", "name")
-      .populate("campaign", "name")
+      .populate('category', 'name')
+      .populate('campaign', 'name')
       .lean();
     const searchParams = {
-      sort: "-createdAt",
+      sort: '-createdAt',
       page: params.page || 1,
       limit: params.limit || 20,
     };
@@ -150,50 +174,100 @@ export async function getAdminProduct(params) {
 }
 
 export async function productSearch(searchQuery) {
+  // No authorization check needed as this is a public endpoint
+
   try {
     await dbConnect();
-    const productData = await handleProductQuery(
-      Product.find({ status: "active", quantity: { $gt: 0 } })
-        .select("name slug image status")
-        .lean(),
-      { ...searchQuery, limit: 9 },
-    );
+
+    // Create a base query for products
+    let productQuery = Product.find({
+      status: 'active',
+      quantity: { $gt: 0 },
+    })
+      .select('name slug image status price discount')
+      .lean();
+
+    // Add text search if q parameter exists
+    if (searchQuery.q) {
+      const searchRegex = new RegExp(searchQuery.q, 'i');
+      productQuery = productQuery.find({
+        $or: [
+          { name: searchRegex },
+          { description: searchRegex },
+          { tag: searchRegex },
+        ],
+      });
+    }
+
+    // If category is specified and is a string (not ObjectId), find by slug
+    if (searchQuery.category && typeof searchQuery.category === 'string') {
+      // Find the category by slug first
+      const category = await Category.findOne({
+        slug: searchQuery.category.toLowerCase(),
+      }).lean();
+
+      if (category) {
+        // Use the category ObjectId in the product query
+        productQuery = productQuery.find({ category: category._id });
+      }
+      // If category not found, we'll just continue with other filters
+    }
+
+    // Execute the query with limit
+    const productData = await productQuery.limit(9);
 
     const products = productData.map(({ _id, ...rest }) => ({
       id: _id.toString(),
       ...rest,
     }));
 
-    const categories = await handleProductQuery(
-      Category.find().select("name slug").lean(),
-      { ...searchQuery, limit: 6 },
-    );
+    if (!products || products.length === 0) {
+      return {
+        products: [],
+        totalCount: 0,
+        currentPage: page,
+        limit,
+      };
+    }
+
+    // Get categories related to the search
+    const categories = await Category.find({
+      $or: [
+        { name: { $regex: searchQuery.q || '', $options: 'i' } },
+        { description: { $regex: searchQuery.q || '', $options: 'i' } },
+      ],
+    })
+      .populate('parent', 'name slug')
+      .select('name slug path parent')
+      .limit(6)
+      .lean();
 
     return { products, categories };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    console.error('Product search error:', err);
+    // Return empty results instead of throwing
+    return { products: [], categories: [] };
   }
 }
 
-export async function getVariantsByCategory(catArr, searchStr = "") {
+export async function getVariantsByCategory(catArr, searchStr = '') {
   try {
     await dbConnect();
     let matchCondition = {};
 
-    if (searchStr && catArr[0].toLowerCase() === "search") {
+    if (searchStr && catArr[0].toLowerCase() === 'search') {
       const regexPattern = searchStr
-        .split(" ")
+        .split(' ')
         .map((word) => `\\b${word.trim()}`)
-        .join(".*");
+        .join('.*');
       matchCondition = {
         $or: [
-          { name: { $regex: regexPattern, $options: "i" } },
-          { description: { $regex: regexPattern, $options: "i" } },
-          { tag: { $elemMatch: { $regex: regexPattern, $options: "i" } } },
+          { name: { $regex: regexPattern, $options: 'i' } },
+          { description: { $regex: regexPattern, $options: 'i' } },
+          { tag: { $elemMatch: { $regex: regexPattern, $options: 'i' } } },
         ],
       };
-    } else if (Array.isArray(catArr) && catArr[0].toLowerCase() !== "search") {
+    } else if (Array.isArray(catArr) && catArr[0].toLowerCase() !== 'search') {
       let category;
       let campaign;
 
@@ -238,7 +312,7 @@ export async function getVariantsByCategory(catArr, searchStr = "") {
 
     const variantData = await Product.aggregate([
       { $match: matchCondition },
-      { $unwind: "$variant" },
+      { $unwind: '$variant' },
       { $project: { _id: 0, variant: 1 } },
     ]);
 
@@ -246,23 +320,89 @@ export async function getVariantsByCategory(catArr, searchStr = "") {
       variant: { id: variant._id.toString(), ...variant },
     }));
   } catch (err) {
-    console.error("Error in getVariantsByCategory:", err);
+    console.error('Error in getVariantsByCategory:', err);
     return []; // Return empty array on error
   }
 }
 
-export async function getAllProducts(slugArray, searchParams = {}) {
+export const getAllProducts = cache(async (slugArray, searchParams = {}) => {
   try {
     await dbConnect();
 
     let categories = [];
     let campaigns = [];
-    let baseQuery = Product.find({ quantity: { $gt: 0 }, status: "active" });
+    let baseQuery = Product.find({ quantity: { $gt: 0 }, status: 'active' });
     let isFallback = false;
     searchParams.limit = 20;
+
+    // Handle the case when slugArray is empty or invalid
+    if (!Array.isArray(slugArray) || slugArray.length === 0) {
+      // Return a default query for all products
+      const populatedQuery = baseQuery
+        .select(
+          'name slug _id image price discount status quantity discountPrice discountDuration variant'
+        )
+        .populate('category', 'name slug path')
+        .populate('campaign', 'name slug path')
+        .lean({ virtuals: true });
+
+      const newSearchParams = getQueryObj(searchParams);
+      const feature = new APIFeatures(populatedQuery, newSearchParams)
+        .filter()
+        .search()
+        .sort()
+        .paginate();
+      const productData = await feature.query;
+
+      if (!productData?.length) return [];
+
+      const data = productData.map(formatProduct);
+      const limit = Number.parseInt(newSearchParams.limit) || 20;
+      const page = Number.parseInt(newSearchParams.page) || 1;
+      const totalCount = await Product.countDocuments(
+        feature.query.getFilter()
+      );
+
+      return {
+        isCampaign: false,
+        data,
+        totalCount,
+        currentPage: page,
+        limit,
+      };
+    }
+
     const lastSlug = slugArray[slugArray.length - 1].toLowerCase();
 
-    if (lastSlug !== "search") {
+    // Special handling for search queries
+    if (lastSlug === 'search' && searchParams.q) {
+      const searchStr = searchParams.q;
+      const regexPattern = searchStr
+        .split(' ')
+        .map((word) => `\\b${word.trim()}`)
+        .join('.*');
+
+      baseQuery = Product.find({
+        $and: [
+          { quantity: { $gt: 0 }, status: 'active' },
+          {
+            $or: [
+              { name: { $regex: regexPattern, $options: 'i' } },
+              { description: { $regex: regexPattern, $options: 'i' } },
+              { tag: { $elemMatch: { $regex: regexPattern, $options: 'i' } } },
+            ],
+          },
+        ],
+      })
+        .select(
+          'name slug _id image price discount status quantity discountPrice discountDuration variant'
+        )
+        .populate('category', 'name slug path')
+        .populate('campaign', 'name slug path');
+    } else if (lastSlug !== 'search') {
+      // Existing category logic remains the same
+      // (keeping the existing code here)
+
       if (slugArray.length === 1) {
         // Case 1: Single slug (e.g., [men] or [jeans])
         const topLevelCategory = await Category.findOne({
@@ -289,7 +429,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
         }).lean();
       } else if (slugArray.length > 1) {
         // Case 2: Multiple slugs (e.g., [men, jeans])
-        const exactPath = slugArray.join("/");
+        const exactPath = slugArray.join('/');
         categories = await Category.find({ path: exactPath }).lean();
         campaigns = await Campaign.find({ path: exactPath }).lean();
 
@@ -321,15 +461,16 @@ export async function getAllProducts(slugArray, searchParams = {}) {
           { category: { $in: categoryIds } },
           { campaign: { $in: campaignIds } },
         ],
-        status: "active",
+        status: 'active',
       })
         .select(
-          "name slug _id image price discount status quantity discountPrice discountDuration variant",
+          'name slug _id image price discount status quantity discountPrice discountDuration variant'
         )
-        .populate("category", "name slug path")
-        .populate("campaign", "name slug path");
+        .populate('category', 'name slug path')
+        .populate('campaign', 'name slug path');
     }
 
+    // Rest of the function remains the same
     const populatedQuery = baseQuery.lean({ virtuals: true });
     const newSearchParams = getQueryObj(searchParams);
 
@@ -343,8 +484,8 @@ export async function getAllProducts(slugArray, searchParams = {}) {
 
     if (!productData?.length) return [];
 
-    if (searchParams["color-vr"]) {
-      const colorVariants = searchParams["color-vr"].split(",");
+    if (searchParams['color-vr']) {
+      const colorVariants = searchParams['color-vr'].split(',');
 
       // Expand products with matching color variants
       const expandedProducts = productData.flatMap((product) => {
@@ -378,11 +519,11 @@ export async function getAllProducts(slugArray, searchParams = {}) {
 
     const isCampaign = campaigns.length > 0 && !isFallback;
 
-    const limit = parseInt(newSearchParams.limit) || 20;
-    const page = parseInt(newSearchParams.page) || 1;
+    const limit = Number.parseInt(newSearchParams.limit) || 20;
+    const page = Number.parseInt(newSearchParams.page) || 1;
     const totalCount = await Product.countDocuments(feature.query.getFilter());
 
-    let result = {
+    const result = {
       isCampaign,
       data,
       totalCount,
@@ -391,12 +532,12 @@ export async function getAllProducts(slugArray, searchParams = {}) {
     };
 
     // Get description based on exact path match
-    const exactPath = slugArray.join("/");
+    const exactPath = slugArray.join('/');
     let description;
 
     if (isCampaign) {
       const matchedCampaign = await Campaign.findOne({ path: exactPath })
-        .select("banner description")
+        .select('banner description')
         .lean();
 
       if (matchedCampaign) {
@@ -407,7 +548,7 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       }
     } else {
       const matchedCategory = await Category.findOne({ path: exactPath })
-        .select("description")
+        .select('description')
         .lean();
       if (matchedCategory) {
         description = matchedCategory.description;
@@ -418,36 +559,50 @@ export async function getAllProducts(slugArray, searchParams = {}) {
       result.description = description;
     }
 
+    // For search results, add a custom description
+    if (lastSlug === 'search' && searchParams.q) {
+      result.description = `Search results for "${searchParams.q}"`;
+    }
+
     return result;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    console.error('Error in getAllProducts:', err);
+    // Return empty result instead of throwing
+    return {
+      isCampaign: false,
+      data: [],
+      totalCount: 0,
+      currentPage: 1,
+      limit: 20,
+    };
   }
-}
+});
 
-export async function getProductById(id) {
+export const getProductById = cache(async (id) => {
   try {
     await dbConnect();
     const product = await Product.findById(id)
-      .populate("category", "name slug")
-      .populate("campaign", "name slug")
+      .populate('category', 'name slug')
+      .populate('campaign', 'name slug')
+      .populate('variant.optionType.labelId', 'name values swatchUrl')
       .lean({ virtuals: true });
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error('Product not found');
     return formatProduct(product);
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message);
+    return null;
   }
-}
+});
 
 export async function getAdminProductById(id) {
   try {
     await dbConnect();
     const product = await Product.findById(id)
-      .populate("category", "name slug")
-      .populate("campaign", "name slug")
+      .populate('category', 'name slug')
+      .populate('campaign', 'name slug')
+      .populate('variant.optionType.labelId', 'name values swatchUrl')
       .lean({ virtuals: true });
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error('Product not found');
     return formatProduct(product, true);
   } catch (err) {
     const error = handleAppError(err);
@@ -456,14 +611,14 @@ export async function getAdminProductById(id) {
 }
 
 export async function createProduct(formData) {
-  try {
-    await restrictTo("admin");
-    await dbConnect();
+  await restrictTo('admin');
 
+  try {
+    await dbConnect();
     const obj = await handleFormData(formData);
 
     const createdProduct = await Product.create(obj);
-    if (!createdProduct) throw new Error("Product not created");
+    if (!createdProduct) throw new Error('Product not created');
 
     const productDoc = createdProduct.toObject();
 
@@ -477,12 +632,12 @@ export async function createProduct(formData) {
 }
 
 export async function updateProduct(formData) {
-  try {
-    await restrictTo("admin");
-    await dbConnect();
+  await restrictTo('admin');
 
-    const id = formData.get("id");
-    if (!id) throw new Error("Product not found");
+  try {
+    await dbConnect();
+    const id = formData.get('id');
+    if (!id) throw new Error('Product not found');
 
     const data = await handleFormData(formData);
 
@@ -502,12 +657,12 @@ export async function updateProduct(formData) {
 }
 
 export const deleteProduct = async (id) => {
-  try {
-    await restrictTo("admin");
-    await dbConnect();
+  await restrictTo('admin');
 
+  try {
+    await dbConnect();
     const product = await Product.findByIdAndDelete(id).lean();
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new Error('Product not found');
 
     const imagesToDelete = [
       ...product.image,
@@ -529,14 +684,14 @@ export const deleteProduct = async (id) => {
 export async function getProductsByCategory(cat) {
   await dbConnect();
   const products = await Product.find({ cat })
-    .populate("category", "name slug")
-    .populate("campaign", "name slug")
+    .populate('category', 'name slug')
+    .populate('campaign', 'name slug')
     .lean();
   return products.map((product) => {
     const formattedProduct = formatProduct(product);
     if (formattedProduct.category) {
       formattedProduct.category = formattedProduct.category.map(
-        ({ id, ...rest }) => ({ id, ...rest }),
+        ({ id, ...rest }) => ({ id, ...rest })
       );
     }
     return formattedProduct;
@@ -551,11 +706,162 @@ export async function getProductByCollection(slug) {
 
 function revalidateProduct(id) {
   revalidatePath(`/admin/products/${id}`);
-  revalidateTag("single-product-data");
-  revalidateTag("products-all");
-  revalidatePath("/admin/products");
+  revalidateTag('single-product-data');
+  revalidateTag('products-all');
+  revalidatePath('/admin/products');
   // revalidateTag("checkout-data");
 }
 
 // Call setupIndexes when the module is first loaded
 // setupIndexes();
+
+// Cached server action for recommended products
+export const getRecommendedProducts = cache(
+  async (category = null, limit = 8) => {
+    await dbConnect();
+
+    try {
+      // Get user session for personalized recommendations
+      const session = await getServerSession(authOptions);
+      const userId = session?.user?.id;
+
+      const query = {
+        status: 'active',
+        quantity: { $gt: 0 },
+      };
+
+      // Add category filter if provided
+      if (category) {
+        const categoryDoc = await Category.findOne({ slug: category }).select(
+          '_id'
+        );
+        if (categoryDoc) {
+          query.category = categoryDoc._id;
+        }
+      }
+
+      // Get user activity for personalized recommendations
+      let userActivity = null;
+      if (userId) {
+        userActivity = await UserActivity.findOne({ userId })
+          .select('recentlyViewed naughtyList')
+          .lean();
+
+        // Exclude products in naughty list
+        if (userActivity?.naughtyList?.length > 0) {
+          query._id = { $nin: userActivity.naughtyList };
+        }
+
+        // Prioritize categories from recently viewed products
+        if (userActivity?.recentlyViewed?.length > 0) {
+          const recentProductIds = userActivity.recentlyViewed
+            .slice(0, 5)
+            .map((item) => item.productId);
+
+          const recentProducts = await Product.find({
+            _id: { $in: recentProductIds },
+          })
+            .select('category')
+            .lean();
+
+          const categoryIds = new Set();
+          recentProducts.forEach((product) => {
+            product.category?.forEach((catId) =>
+              categoryIds.add(catId.toString())
+            );
+          });
+
+          if (categoryIds.size > 0) {
+            query.category = { $in: Array.from(categoryIds) };
+          }
+        }
+      }
+
+      // Find products based on query
+      const products = await Product.find(query)
+        .sort({
+          discount: -1,
+          viewCount: -1,
+          purchaseCount: -1,
+          createdAt: -1,
+        })
+        .limit(limit)
+        .populate('category', 'name slug')
+        .lean({ virtuals: true });
+
+      // Format products for client
+      return products.map((product) => {
+        const { _id, category, campaign, variant = [], ...rest } = product;
+
+        return {
+          id: _id.toString(),
+          ...rest,
+          category: category?.map(({ _id, ...c }) => ({
+            id: _id.toString(),
+            ...c,
+          })),
+          campaign: campaign?.map(({ _id, ...c }) => ({
+            id: _id.toString(),
+            ...c,
+          })),
+          variant: variant
+            .filter((v) => v.quantity > 0)
+            .map(({ _id, ...v }) => ({
+              id: _id.toString(),
+              ...v,
+            })),
+        };
+      });
+    } catch (err) {
+      console.error('Error fetching recommended products:', err);
+      return [];
+    }
+  }
+);
+
+export const getProductByIdCached = cache(async (id) => {
+  try {
+    await dbConnect();
+    const product = await Product.findById(id)
+      .populate('category', 'name slug')
+      .populate('campaign', 'name slug')
+      .populate('variant.optionType.labelId', 'name values swatchUrl')
+      .lean({ virtuals: true });
+
+    if (!product) throw new Error('Product not found');
+
+    const { _id, category, campaign, variant = [], ...rest } = product;
+
+    return {
+      id: _id.toString(),
+      ...rest,
+      category: category?.map(({ _id, ...c }) => ({
+        id: _id.toString(),
+        ...c,
+      })),
+      campaign: campaign?.map(({ _id, ...c }) => ({
+        id: _id.toString(),
+        ...c,
+      })),
+      variant: variant.map(({ _id, optionType = [], ...v }) => ({
+        id: _id.toString(),
+        optionType: optionType.map(({ _id, labelId, ...ot }) => ({
+          id: _id?.toString(),
+          labelId: labelId
+            ? {
+                id: labelId._id?.toString(),
+                name: labelId.name,
+                values: labelId.values,
+                swatchUrl: labelId.swatchUrl,
+              }
+            : labelId,
+          ...ot,
+        })),
+        ...v,
+      })),
+    };
+  } catch (err) {
+    console.error('Error fetching product by ID:', err);
+    throw new Error(err.message);
+  }
+});

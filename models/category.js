@@ -40,11 +40,7 @@ const categorySchema = new mongoose.Schema(
         message: "Invalid URL in image array",
       },
     },
-    slug: {
-      type: String,
-      lowercase: true,
-      index: true,
-    },
+    slug: { type: String, lowercase: true, index: true },
     path: {
       type: [String],
       required: [true, "Path is required"],
@@ -54,7 +50,7 @@ const categorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       default: null,
-      index: true,
+      // index: true,
       validate: {
         validator: async function (parentId) {
           if (!parentId) return true;
@@ -65,14 +61,8 @@ const categorySchema = new mongoose.Schema(
         message: "Categories can only be one level deep",
       },
     },
-    pinned: {
-      type: Boolean,
-      default: false,
-    },
-    pinOrder: {
-      type: Number,
-      default: 0,
-    },
+    pinned: { type: Boolean, default: false },
+    pinOrder: { type: Number, default: 0 },
     children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     metaTitle: String,
     metaDescription: String,

@@ -1,6 +1,6 @@
-import Product from "@/models/product";
-import dbConnect from "@/lib/mongoConnection";
-import { NextResponse } from "next/server";
+import Product from '@/models/product';
+import dbConnect from '@/app/lib/mongoConnection';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
@@ -25,14 +25,14 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { message: "Discounts reset successfully" },
-      { status: 200 },
+      { message: 'Discounts reset successfully' },
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Error resetting expired discounts:", error);
+    console.error('Error resetting expired discounts:', error);
     return NextResponse.json(
-      { error: "Error resetting expired discounts" },
-      { status: 500 },
+      { error: 'Error resetting expired discounts' },
+      { status: 500 }
     );
   }
 }

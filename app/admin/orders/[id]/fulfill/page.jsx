@@ -1,12 +1,12 @@
-import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import dynamic from 'next/dynamic';
+import { SmallSpinner } from '@/app/components/spinner';
 
 const FullfillOrder = dynamic(
-  () => import("@/app/admin/ui/orders/order-fulfill"),
+  () => import('@/app/admin/ui/orders/order-fulfill'),
   {
     loading: () => <LoadingSpinner />,
     ssr: false,
-  },
+  }
 );
 
 function LoadingSpinner() {

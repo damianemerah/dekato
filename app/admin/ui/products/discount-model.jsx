@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
-import { memo, useCallback } from "react";
-import { Form, InputNumber, DatePicker, Select, message } from "antd";
-import dynamic from "next/dynamic";
-import { updateProductDiscount } from "@/app/action/productAction";
+import { memo, useCallback } from 'react';
+import { Form, InputNumber, DatePicker, Select } from 'antd';
+import { toast } from 'sonner';
+import dynamic from 'next/dynamic';
+import { updateProductDiscount } from '@/app/action/productAction';
 
-const Modal = dynamic(() => import("antd/lib/modal"), { ssr: false });
+const Modal = dynamic(() => import('antd/lib/modal'), { ssr: false });
 
 const DiscountModal = memo(function DiscountModal({
   isOpen,
@@ -18,7 +19,7 @@ const DiscountModal = memo(function DiscountModal({
 }) {
   const [form] = Form.useForm();
 
-  console.log(saleCollections, "12333");
+  console.log(saleCollections, '12333');
 
   const handleOk = useCallback(async () => {
     try {
@@ -32,16 +33,16 @@ const DiscountModal = memo(function DiscountModal({
             discount: values.discount,
             discountDuration: values.discountDuration.toISOString(),
           },
-          values.campaign,
+          values.campaign
         );
       }
 
-      message.success("Products added to sales successfully");
+      toast.success('Products added to sales successfully');
       onSuccess();
       onClose();
       form.resetFields();
     } catch (error) {
-      message.error("Failed to add products to sales");
+      toast.error('Failed to add products to sales');
     } finally {
       setLoading(false);
     }
@@ -67,7 +68,7 @@ const DiscountModal = memo(function DiscountModal({
           rules={[
             {
               required: true,
-              message: "Please input the discount percentage!",
+              message: 'Please input the discount percentage!',
             },
           ]}
         >
@@ -79,7 +80,7 @@ const DiscountModal = memo(function DiscountModal({
           rules={[
             {
               required: true,
-              message: "Please select the discount duration!",
+              message: 'Please select the discount duration!',
             },
           ]}
         >
@@ -91,7 +92,7 @@ const DiscountModal = memo(function DiscountModal({
           rules={[
             {
               required: false,
-              message: "Please select a sale collection!",
+              message: 'Please select a sale collection!',
             },
           ]}
         >

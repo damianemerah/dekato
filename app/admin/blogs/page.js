@@ -1,7 +1,7 @@
-import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import dynamic from 'next/dynamic';
+import { SmallSpinner } from '@/app/components/spinner';
 
-const BlogList = dynamic(() => import("@/app/admin/ui/blog/blog-list"), {
+const BlogList = dynamic(() => import('@/app/admin/ui/blog/blog-list'), {
   ssr: false,
   loading: () => <LoadingSpinner />,
 });

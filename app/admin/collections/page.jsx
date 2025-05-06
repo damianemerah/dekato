@@ -1,9 +1,9 @@
-import dynamic from "next/dynamic";
-import { SmallSpinner } from "@/app/ui/spinner";
+import dynamic from 'next/dynamic';
+import { SmallSpinner } from '@/app/components/spinner';
 
 const CollectionList = dynamic(
-  () => import("@/app/admin/ui/collection/collection-list"),
-  { ssr: false, loading: () => <LoadingSpinner /> },
+  () => import('@/app/admin/ui/collection/collection-list'),
+  { ssr: false, loading: () => <LoadingSpinner /> }
 );
 
 function LoadingSpinner() {

@@ -1,7 +1,10 @@
-import { getAllBlogs } from "@/app/action/blogAction";
-import BlogCard from "@/app/ui/blog-card";
-import { LoadingSpinner } from "@/app/ui/spinner";
-import { Suspense } from "react";
+import { getAllBlogs } from '@/app/action/blogAction';
+import BlogCard from '@/app/components/blog-card';
+import { LoadingSpinner } from '@/app/components/spinner';
+import { Suspense } from 'react';
+
+// Add ISR revalidation - refresh content every hour
+export const revalidate = 3600;
 
 function BlogSkeleton() {
   return (
@@ -28,7 +31,7 @@ async function BlogList({ searchParams }) {
   const blogs = await getAllBlogs({
     page: searchParams?.page || 1,
     limit: 12,
-    status: "published",
+    status: 'published',
   });
 
   return (
@@ -61,20 +64,20 @@ export default function FashionPage({ searchParams }) {
 }
 
 export const metadata = {
-  title: "Fashion Blog | Latest Style Trends & Tips",
+  title: 'Fashion Blog | Latest Style Trends & Tips',
   description:
-    "Explore our fashion blog for the latest style trends, tips, and fashion inspiration. Stay updated with the newest collections and fashion insights.",
+    'Explore our fashion blog for the latest style trends, tips, and fashion inspiration. Stay updated with the newest collections and fashion insights.',
   openGraph: {
-    title: "Fashion Blog | Latest Style Trends & Tips",
+    title: 'Fashion Blog | Latest Style Trends & Tips',
     description:
-      "Explore our fashion blog for the latest style trends, tips, and fashion inspiration.",
-    type: "website",
+      'Explore our fashion blog for the latest style trends, tips, and fashion inspiration.',
+    type: 'website',
     images: [
       {
-        url: "/assests/image5.png",
+        url: '/assests/image5.png',
         width: 1200,
         height: 630,
-        alt: "Fashion Blog",
+        alt: 'Fashion Blog',
       },
     ],
   },

@@ -1,35 +1,35 @@
-import Category from "@/models/category";
-import Product from "@/models/product";
-import Blog from "@/models/blog";
-import Campaign from "@/models/collection";
-import dbConnect from "@/lib/mongoConnection";
+import Category from '@/models/category';
+import Product from '@/models/product';
+import Blog from '@/models/blog';
+import Campaign from '@/models/collection';
+import dbConnect from '@/app/lib/mongoConnection';
 
 const getAllProducts = async () => {
   await dbConnect();
-  return await Product.find({ status: "active" })
-    .select("slug updatedAt")
+  return await Product.find({ status: 'active' })
+    .select('slug updatedAt')
     .lean();
 };
 
 const getAllCategories = async () => {
   await dbConnect();
-  return await Category.find().select("slug path updatedAt").lean();
+  return await Category.find().select('slug path updatedAt').lean();
 };
 
 const getAllCollections = async () => {
   await dbConnect();
-  return await Campaign.find().select("slug path updatedAt").lean();
+  return await Campaign.find().select('slug path updatedAt').lean();
 };
 
 const getAllBlogs = async () => {
   await dbConnect();
-  return await Blog.find({ status: "published" })
-    .select("slug updatedAt")
+  return await Blog.find({ status: 'published' })
+    .select('slug updatedAt')
     .lean();
 };
 
 export default async function sitemap() {
-  const siteUrl = process.env.NEXTAUTH_URL || "https://www.dekato.ng";
+  const siteUrl = process.env.NEXTAUTH_URL || 'https://www.dekato.ng';
 
   try {
     // Establish DB connection first
@@ -52,16 +52,16 @@ export default async function sitemap() {
           JSON.stringify({
             url: `${siteUrl}/shop/${category.path[0]}`,
             lastModified: category.updatedAt.toISOString(),
-          }),
+          })
         );
       }
       // Add full path URL if it exists
-      if (category.path[0] && category.path[0].includes("/")) {
+      if (category.path[0] && category.path[0].includes('/')) {
         urls.add(
           JSON.stringify({
-            url: `${siteUrl}/shop/${category.path[0].split("/")[1]}`,
+            url: `${siteUrl}/shop/${category.path[0].split('/')[1]}`,
             lastModified: category.updatedAt.toISOString(),
-          }),
+          })
         );
       }
 
@@ -77,16 +77,16 @@ export default async function sitemap() {
           JSON.stringify({
             url: `${siteUrl}/shop/${collection.path[0]}`,
             lastModified: collection.updatedAt.toISOString(),
-          }),
+          })
         );
       }
       // Add full path URL if it exists
-      if (collection.path[0] && collection.path[0].includes("/")) {
+      if (collection.path[0] && collection.path[0].includes('/')) {
         urls.add(
           JSON.stringify({
-            url: `${siteUrl}/shop/${collection.path[0].split("/")[1]}`,
+            url: `${siteUrl}/shop/${collection.path[0].split('/')[1]}`,
             lastModified: collection.updatedAt.toISOString(),
-          }),
+          })
         );
       }
 
@@ -98,7 +98,7 @@ export default async function sitemap() {
     const uniqueUrls = combinedUrls.reduce(
       (unique, item) =>
         unique.includes(item.url) ? unique : [...unique, item],
-      [],
+      []
     );
 
     // Generate product URLs
@@ -141,7 +141,7 @@ export default async function sitemap() {
     ];
     return urlList;
   } catch (error) {
-    console.error("Error generating sitemap:", error);
+    console.error('Error generating sitemap:', error);
     // Return at least static pages on error
     return [
       {

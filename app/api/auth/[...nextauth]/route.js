@@ -1,13 +1,13 @@
-import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 // import FacebookProvider from "next-auth/providers/facebook";
-import dbConnect from "@/lib/mongoConnection";
-import User from "@/models/user";
-import NextAuth from "next-auth";
+import dbConnect from '@/app/lib/mongoConnection';
+import User from '@/models/user';
+import NextAuth from 'next-auth';
 
 export const authOptions = {
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
@@ -23,47 +23,47 @@ export const authOptions = {
     //   allowDangerousEmailAccountLinking: true,
     // }),
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {},
       async authorize(credentials) {
         try {
           const { email, password } = credentials;
 
           if (!email || !password) {
-            throw new Error("Please provide email and password");
+            throw new Error('Please provide email and password');
           }
 
           await dbConnect();
 
           const user = await User.findOne({ email })
-            .select("+password +passwordChangedAt")
+            .select('+password +passwordChangedAt')
             .lean();
 
           if (!user) {
-            throw new Error("User with that email not found");
+            throw new Error('User with that email not found');
           }
 
           const isValidPassword =
             await User.schema.methods.correctPassword.call(
               user,
               password,
-              user.password,
+              user.password
             );
 
           if (!isValidPassword) {
-            throw new Error("Invalid credentials");
+            throw new Error('Invalid credentials');
           }
 
           return user;
         } catch (error) {
-          throw new Error("Authentication failed");
+          throw new Error('Authentication failed');
         }
       },
     }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account.provider === "google" || account.provider === "facebook") {
+      if (account.provider === 'google' || account.provider === 'facebook') {
         try {
           await dbConnect();
 
@@ -72,17 +72,17 @@ export const authOptions = {
             {
               $setOnInsert: {
                 email: user.email,
-                firstname: profile.given_name || user.name?.split(" ")[0] || "",
-                lastname: profile.family_name || user.name?.split(" ")[1] || "",
+                firstname: profile.given_name || user.name?.split(' ')[0] || '',
+                lastname: profile.family_name || user.name?.split(' ')[1] || '',
                 emailVerified: true,
-                role: "user",
+                role: 'user',
               },
             },
             {
               upsert: true,
               new: true,
               lean: true,
-            },
+            }
           );
 
           Object.assign(user, {
@@ -94,7 +94,7 @@ export const authOptions = {
 
           return true;
         } catch (error) {
-          console.error("Error during OAuth sign in:", error);
+          console.error('Error during OAuth sign in:', error);
           return false;
         }
       }
@@ -111,7 +111,7 @@ export const authOptions = {
         });
       }
 
-      if (trigger === "update" && session?.passwordChanged) {
+      if (trigger === 'update' && session?.passwordChanged) {
         token.passwordChangedAt = Date.now();
       }
 
@@ -140,7 +140,7 @@ export const authOptions = {
     },
   },
   pages: {
-    signIn: "/signin",
+    signIn: '/signin',
   },
 };
 

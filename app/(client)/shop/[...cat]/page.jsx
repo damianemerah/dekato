@@ -1,24 +1,19 @@
-import Category from "@/models/category";
-import Campaign from "@/models/collection";
-import dbConnect from "@/lib/mongoConnection";
-import { LoadingSpinner } from "@/app/ui/spinner";
-import { unstable_cache } from "next/cache";
-import dynamic from "next/dynamic";
+import Category from '@/models/category';
+import Campaign from '@/models/collection';
+import dbConnect from '@/app/lib/mongoConnection';
+import { notFound } from 'next/navigation';
+import ProductList from '@/app/components/products/products-list';
+import { getAllProducts } from '@/app/action/productAction';
+import { unstable_cache } from 'next/cache';
 
-const CategoryProducts = dynamic(
-  () => import("@/app/ui/products/categoried-products"),
-  {
-    loading: () => <LoadingSpinner className="min-h-screen" />,
-    ssr: true,
-  },
-);
+export const dynamic = 'force-dynamic';
 
 async function getAllCategoryPaths() {
   await dbConnect();
 
   const [categories, collections] = await Promise.all([
-    Category.find().select("slug path").lean(),
-    Campaign.find().select("slug path").lean(),
+    Category.find().select('slug path').lean(),
+    Campaign.find().select('slug path').lean(),
   ]);
 
   const categoryPaths = categories.map((category) => category.path);
@@ -28,12 +23,12 @@ async function getAllCategoryPaths() {
 }
 
 export async function generateStaticParams() {
-  const paths = await unstable_cache(getAllCategoryPaths, ["categoryPaths"], {
+  const paths = await unstable_cache(getAllCategoryPaths, ['categoryPaths'], {
     revalidate: 1800,
   })();
 
   const filteredPaths = paths.map((path) => ({
-    cat: path.map((p) => (p.includes("/") ? p.split("/")[1] : p)),
+    cat: path.map((p) => (p.includes('/') ? p.split('/')[1] : p)),
   }));
 
   return filteredPaths;
@@ -43,12 +38,12 @@ export async function generateStaticParams() {
 async function getCategoryData(cat) {
   await dbConnect();
 
-  const path = cat.join("/").toLowerCase();
+  const path = cat.join('/').toLowerCase();
   // Try to find as category first
   let data = await Category.findOne({
     path: { $all: path },
   })
-    .select("name description metaTitle metaDescription")
+    .select('name description metaTitle metaDescription')
     .lean();
 
   // If not found, try as collection
@@ -56,7 +51,7 @@ async function getCategoryData(cat) {
     data = await Campaign.findOne({
       path: { $all: path },
     })
-      .select("name description metaTitle metaDescription")
+      .select('name description metaTitle metaDescription')
       .lean();
   }
 
@@ -67,16 +62,26 @@ export async function generateMetadata({ params: { cat } }, parent) {
   const parentMetadata = await parent;
   const previousImages = parentMetadata?.openGraph?.images || [];
 
+  // Handle search path
+  if (cat[0] === 'search') {
+    return {
+      title: 'Search Results | Dekato Outfit',
+      description: 'Browse our products based on your search criteria.',
+    };
+  }
+
   const data = await unstable_cache(
     () => getCategoryData(cat),
-    [`category-meta-${cat.join("-")}`],
-    { revalidate: 1800 },
+    [`category-meta-${cat.join('-')}`],
+    {
+      revalidate: 1800,
+    }
   )();
 
   if (!data) {
     return {
-      title: "Products | Dekato Outfit",
-      description: "Browse our curated collection of products.",
+      title: 'Products | Dekato Outfit',
+      description: 'Browse our curated collection of products.',
       robots: {
         index: false,
       },
@@ -96,10 +101,10 @@ export async function generateMetadata({ params: { cat } }, parent) {
         data.description ||
         `Browse our ${data.name} collection`,
       images: [...previousImages],
-      type: "website",
+      type: 'website',
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: data.metaTitle || data.name,
       description:
         data.metaDescription ||
@@ -107,11 +112,62 @@ export async function generateMetadata({ params: { cat } }, parent) {
         `Browse our ${data.name} collection`,
     },
     alternates: {
-      canonical: `/products/${cat.join("/")}`,
+      canonical: `/shop/${cat.join('/')}`,
     },
   };
 }
 
-export default function Product({ params: { cat }, searchParams }) {
-  return <CategoryProducts cat={cat} searchParams={searchParams} />;
+export default async function Product({ params: { cat }, searchParams }) {
+  // Validate that cat is an array
+  if (!Array.isArray(cat) || cat.length === 0) {
+    notFound();
+  }
+
+  // Special handling for search path
+  if (cat[0] === 'search' && !searchParams.q) {
+    // Redirect to home if search with no query
+    return notFound();
+  }
+
+  // Call getAllProducts directly instead of using intermediate component
+  const data = await getAllProducts(cat, searchParams);
+
+  // Only throw notFound for invalid category paths, not for valid categories with no products
+  if (!data && cat[0] !== 'search') {
+    notFound();
+  }
+
+  // Normalize data to ensure ProductList receives consistent props
+  const normalizedData = {
+    data: data?.data || [],
+    banner: data?.banner || null,
+    totalCount: data?.totalCount || 0,
+    currentPage: data?.currentPage || 1,
+    limit: data?.limit || parseInt(searchParams?.limit || '12', 10),
+    description: data?.description || null,
+    isCampaign: data?.isCampaign || false,
+  };
+
+  return (
+    <>
+      <ProductList
+        products={normalizedData.data}
+        cat={cat}
+        searchParams={searchParams}
+        banner={normalizedData.banner}
+        totalCount={normalizedData.totalCount}
+        currentPage={normalizedData.currentPage}
+        limit={normalizedData.limit}
+        isCampaign={normalizedData.isCampaign}
+      />
+      {normalizedData.description && (
+        <div className="bg-grayBg mx-auto px-4 py-12 sm:px-6 lg:px-8">
+          <div
+            className="mx-auto max-w-3xl text-start text-gray-500"
+            dangerouslySetInnerHTML={{ __html: normalizedData.description }}
+          />
+        </div>
+      )}
+    </>
+  );
 }

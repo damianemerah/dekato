@@ -9,15 +9,8 @@ const blogSchema = new mongoose.Schema(
       trim: true,
       maxLength: [200, "Title cannot exceed 200 characters"],
     },
-    slug: {
-      type: String,
-      unique: true,
-      lowercase: true,
-    },
-    content: {
-      type: String,
-      required: [true, "Content is required"],
-    },
+    slug: { type: String, unique: true, lowercase: true },
+    content: { type: String, required: [true, "Content is required"] },
     excerpt: {
       type: String,
       required: [true, "Excerpt is required"],
@@ -35,20 +28,9 @@ const blogSchema = new mongoose.Schema(
         required: false,
       },
     ],
-    tags: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-    status: {
-      type: String,
-      enum: ["draft", "published"],
-      default: "draft",
-    },
-    publishedAt: {
-      type: Date,
-    },
+    tags: [{ type: String, trim: true }],
+    status: { type: String, enum: ["draft", "published"], default: "draft" },
+    publishedAt: { type: Date },
     metaTitle: {
       type: String,
       maxLength: [60, "Meta title cannot exceed 60 characters"],
@@ -58,23 +40,18 @@ const blogSchema = new mongoose.Schema(
       maxLength: [160, "Meta description cannot exceed 160 characters"],
     },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 // Create indexes for better query performance
-blogSchema.index({ slug: 1 });
+// blogSchema.index({ slug: 1 });
 blogSchema.index({ author: 1 });
 blogSchema.index({ status: 1, publishedAt: -1 });
 
 // Add pre-validate middleware to ensure slug is generated before validation
 blogSchema.pre("validate", function (next) {
   if (this.title) {
-    this.slug = slugify(this.title, {
-      lower: true,
-      strict: true,
-    });
+    this.slug = slugify(this.title, { lower: true, strict: true });
   }
   next();
 });

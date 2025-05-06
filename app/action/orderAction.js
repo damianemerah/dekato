@@ -1,20 +1,21 @@
-"use server";
+'use server';
 
-import dbConnect from "@/lib/mongoConnection";
-import Order from "@/models/order";
-import { restrictTo } from "@/utils/checkPermission";
-import handleAppError from "@/utils/appError";
-import { omit, mapKeys } from "lodash";
-import APIFeatures from "@/utils/apiFeatures";
-import { revalidatePath } from "next/cache";
-import Email from "@/lib/email";
+import dbConnect from '@/app/lib/mongoConnection';
+import Order from '@/models/order';
+import { restrictTo } from '@/app/utils/checkPermission';
+import handleAppError from '@/app/utils/appError';
+import { omit, mapKeys } from 'lodash';
+import APIFeatures from '@/app/utils/apiFeatures';
+import { revalidatePath } from 'next/cache';
+import Email from '@/app/lib/email';
+import { auth } from '@/app/lib/auth';
 
 export async function getAllOrders(query) {
   await dbConnect();
   query.limit = 20;
 
   try {
-    const features = new APIFeatures(Order.find().populate("userId"), query)
+    const features = new APIFeatures(Order.find().populate('userId'), query)
       .filter()
       .sort()
       .limitFields()
@@ -24,10 +25,10 @@ export async function getAllOrders(query) {
 
     const renamedOrders = orders.map((order) => {
       const renamedOrder = mapKeys(order, (value, key) =>
-        key === "userId" ? "user" : key,
+        key === 'userId' ? 'user' : key
       );
       renamedOrder.id = renamedOrder._id.toString();
-      return omit(renamedOrder, "_id");
+      return omit(renamedOrder, '_id');
     });
 
     const totalCount = await Order.countDocuments();
@@ -45,13 +46,13 @@ export async function getAllOrders(query) {
 }
 
 export async function getOrderById(id) {
+  await restrictTo('admin');
+
   try {
     await dbConnect();
-    await restrictTo("admin");
-
     const order = await Order.findById(id)
-      .populate("userId")
-      .populate("address")
+      .populate('userId')
+      .populate('address')
       .lean({ virtuals: true });
 
     if (!order) {
@@ -59,10 +60,10 @@ export async function getOrderById(id) {
     }
 
     const renamedOrder = mapKeys(order, (value, key) =>
-      key === "userId" ? "user" : key,
+      key === 'userId' ? 'user' : key
     );
     renamedOrder.id = renamedOrder._id.toString();
-    return omit(renamedOrder, "_id");
+    return omit(renamedOrder, '_id');
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
@@ -70,13 +71,18 @@ export async function getOrderById(id) {
 }
 
 export async function deleteOrder(id) {
-  await dbConnect();
-  await restrictTo("admin");
+  await restrictTo('admin');
 
-  await Order.findByIdAndDelete(id);
-  revalidatePath("/account/orders");
-
-  revalidatePath("/admin/orders");
+  try {
+    await dbConnect();
+    await Order.findByIdAndDelete(id);
+    revalidatePath('/account/orders');
+    revalidatePath('/admin/orders');
+    return { success: true };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function checkOrderPayment(userId, paymentRef) {
@@ -114,18 +120,18 @@ export async function fulfillOrder(
   tracking,
   trackingLink,
   carrier,
-  shippingMethod,
+  shippingMethod
 ) {
-  await dbConnect();
-  await restrictTo("admin");
+  await restrictTo('admin');
 
   try {
+    await dbConnect();
     const order = await Order.findById(id)
-      .populate("userId", "email firstname lastName")
+      .populate('userId', 'email firstname lastName')
       .lean();
 
     if (!order) {
-      throw new Error("Order not found");
+      throw new Error('Order not found');
     }
 
     // Update each product's fulfilledItems based on the provided quantities
@@ -144,27 +150,76 @@ export async function fulfillOrder(
         tracking,
         carrier,
         isFulfilled: true,
-        deliveryStatus: shippingMethod === "pickup" ? "delivered" : "shipped",
+        deliveryStatus: shippingMethod === 'pickup' ? 'delivered' : 'shipped',
         trackingLink,
       },
-      { new: true },
+      { new: true }
     );
 
     // Send order email
     const email = new Email(
       order.userId,
-      `${process.env.NEXTAUTH_URL}/account/orders/${id}`,
+      `${process.env.NEXTAUTH_URL}/account/orders/${id}`
     );
     await email.sendEmail(
-      "orderFulfill",
-      "Your order has been fulfilled",
-      updatedOrder,
+      'orderFulfill',
+      'Your order has been fulfilled',
+      updatedOrder
     );
 
-    revalidatePath("/admin/orders");
-    return { success: true, message: "Order fulfilled successfully" };
+    revalidatePath('/admin/orders');
+    return { success: true, message: 'Order fulfilled successfully' };
   } catch (err) {
     const error = handleAppError(err);
     throw new Error(error.message);
+  }
+}
+
+/**
+ * Gets the status of an order by payment reference
+ * @param {string} reference - The payment reference
+ * @returns {Promise<Object>} The order status information
+ */
+export async function getOrderStatus(reference) {
+  // Authorization check
+  await restrictTo('user', 'admin');
+
+  // Get the authenticated user id
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId || !reference) {
+    return { success: false, message: 'Invalid parameters' };
+  }
+
+  try {
+    await dbConnect();
+
+    // Find the order with limited field selection for security
+    const order = await Order.findOne(
+      { paymentRef: reference },
+      { status: 1, paymentRef: 1, userId: 1 }
+    ).lean();
+
+    if (!order) {
+      return { success: false, message: 'Order not found' };
+    }
+
+    // Security check: ensure the user owns this order
+    if (order.userId.toString() !== userId) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    return {
+      success: true,
+      status: order.status,
+      reference: order.paymentRef,
+    };
+  } catch (error) {
+    console.error('Error getting order status:', error);
+    return {
+      success: false,
+      message: 'Failed to get order status',
+    };
   }
 }

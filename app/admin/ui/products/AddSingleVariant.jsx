@@ -1,15 +1,15 @@
-import { memo, useCallback, useState, useEffect, useRef } from "react";
-import MediaUpload from "@/app/admin/ui/MediaUpload";
-import { getBase64 } from "../../utils/utils";
-import { useAdminStore } from "@/app/admin/store/adminStore";
-import DeleteIcon from "@/public/assets/icons/remove.svg";
-import { ButtonPrimary } from "@/app/ui/button";
-import { v4 as uuidv4 } from "uuid";
-import ModalWrapper from "./ModalWrapper";
-import { message, Modal } from "antd";
-import DropDown from "../DropDown";
-import { omit, endsWith, filter, keys } from "lodash";
-import Image from "next/image";
+import { memo, useCallback, useState, useEffect, useRef } from 'react';
+import MediaUpload from '@/app/admin/ui/MediaUpload';
+import { getBase64 } from '../../utils/utils';
+import { useAdminStore } from '@/app/admin/store/adminStore';
+import DeleteIcon from '@/public/assets/icons/remove.svg';
+import { ButtonPrimary } from '@/app/components/button';
+import { v4 as uuidv4 } from 'uuid';
+import ModalWrapper from './ModalWrapper';
+import { message, Modal } from 'antd';
+import DropDown from '../DropDown';
+import { omit, endsWith, filter, keys } from 'lodash';
+import Image from 'next/image';
 
 export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -17,7 +17,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
   const [groupList, setGroupList] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [quantity, setQuantity] = useState(0);
-  const [price, setPrice] = useState("");
+  const [price, setPrice] = useState('');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const variantOptions = useAdminStore((state) => state.variantOptions);
@@ -25,7 +25,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
   const editVariantWithId = useAdminStore((state) => state.editVariantWithId);
   const variants = useAdminStore((state) => state.variants || []);
   const setEditVariantWithId = useAdminStore(
-    (state) => state.setEditVariantWithId,
+    (state) => state.setEditVariantWithId
   );
 
   const updateVariant = useAdminStore((state) => state.updateVariant);
@@ -37,7 +37,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     if (!openSlider) {
       setEditVariantWithId(null);
       setQuantity(0);
-      setPrice("");
+      setPrice('');
       setSelectedVariant(null);
       setFileList([]);
       setDefaultFileList([]);
@@ -64,7 +64,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
           })?.value;
           return {
             ...item,
-            selected: selectedId || "",
+            selected: selectedId || '',
           };
         });
 
@@ -76,7 +76,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
 
       if (variant) {
         setQuantity(variant.quantity || 0);
-        setPrice(variant.price || "");
+        setPrice(variant.price || '');
         variant.image
           ? setDefaultFileList(variant.image)
           : setDefaultFileList([]);
@@ -94,20 +94,20 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     //set selected option when editing a variant
     if (variants && editVariantWithId) {
       const selectedOpt = variants.find(
-        (variant) => variant.id === editVariantWithId,
+        (variant) => variant.id === editVariantWithId
       );
 
       const selectedVariantImg =
-        selectedOpt?.image && typeof selectedOpt?.image === "string"
+        selectedOpt?.image && typeof selectedOpt?.image === 'string'
           ? [
               {
                 uid: 1,
-                name: "image.png",
-                status: "done",
+                name: 'image.png',
+                status: 'done',
                 url: selectedOpt.image,
               },
             ]
-          : typeof selectedOpt?.image === "object"
+          : typeof selectedOpt?.image === 'object'
             ? [selectedOpt.image]
             : [];
 
@@ -128,19 +128,19 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     }, {});
 
     const optionsWithoutLabels = omit(options, [
-      ...filter(keys(options), (key) => endsWith(key, "_label")),
-      "labelName",
+      ...filter(keys(options), (key) => endsWith(key, '_label')),
+      'labelName',
     ]);
 
     const optionIds = omit(
       options,
-      filter(keys(options), (key) => !endsWith(key, "_label")),
+      filter(keys(options), (key) => !endsWith(key, '_label'))
     );
 
     const isDuplicate = variants.some(
       (variant) =>
         JSON.stringify(variant.options)?.toLowerCase() ===
-        JSON.stringify(optionsWithoutLabels)?.toLowerCase(),
+        JSON.stringify(optionsWithoutLabels)?.toLowerCase()
     );
 
     const imageURL = fileList[0]?.originFileObj
@@ -154,7 +154,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
         quantity,
         price,
         image:
-          fileList?.length && typeof fileList[0]?.url === "string"
+          fileList?.length && typeof fileList[0]?.url === 'string'
             ? fileList[0].url
             : fileList[0]?.originFileObj instanceof Blob
               ? fileList[0]
@@ -164,7 +164,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     } else {
       if (isDuplicate) {
         setOpenSlider(false);
-        message.info("Variant already exists.");
+        message.info('Variant already exists.');
         return;
       }
 
@@ -201,27 +201,27 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
   const handleInputChange = useCallback(
     (val, field) => {
       if (isNaN(val) || val < 0) {
-        message.info("Please enter a valid number.");
+        message.info('Please enter a valid number.');
         return;
       }
-      if (field === "quantity") {
+      if (field === 'quantity') {
         setQuantity(val);
-      } else if (field === "price") {
+      } else if (field === 'price') {
         setPrice(val);
       }
       if (editVariantWithId) {
         updateVariant(editVariantWithId, { [field]: val });
       }
     },
-    [updateVariant, editVariantWithId],
+    [updateVariant, editVariantWithId]
   );
 
   const handleSelectExistingImage = (imageUrl) => {
     setFileList([
       {
         uid: uuidv4(),
-        name: "image.png",
-        status: "done",
+        name: 'image.png',
+        status: 'done',
         url: imageUrl,
       },
     ]);
@@ -297,7 +297,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
               placeholder="Enter quantity"
               value={quantity}
               className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
-              onChange={(e) => handleInputChange(e.target.value, "quantity")}
+              onChange={(e) => handleInputChange(e.target.value, 'quantity')}
             />
           </div>
           <div className="flex w-full flex-col items-start gap-1.5">
@@ -310,7 +310,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
               placeholder="Enter price"
               value={price}
               className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
-              onChange={(e) => handleInputChange(e.target.value, "price")}
+              onChange={(e) => handleInputChange(e.target.value, 'price')}
             />
           </div>
         </div>

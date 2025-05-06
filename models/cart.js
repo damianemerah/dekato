@@ -22,7 +22,7 @@ const cartItemSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  },
+  }
 );
 
 cartItemSchema.virtual("currentPrice").get(function () {
@@ -33,7 +33,7 @@ cartItemSchema.virtual("currentPrice").get(function () {
 
   if (this.variantId && this.product.variant) {
     const variant = this.product.variant.find(
-      (v) => v._id.toString() === this.variantId,
+      (v) => v._id.toString() === this.variantId
     );
     if (variant) {
       price = variant.price;
@@ -64,7 +64,7 @@ const cartSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  },
+  }
 );
 
 cartSchema.pre(/^find/, function (next) {
@@ -92,7 +92,7 @@ cartSchema.virtual("totalPrice").get(function () {
         return total + item.currentPrice * item.quantity;
       }
       return total;
-    }, 0),
+    }, 0)
   );
 });
 
@@ -103,7 +103,7 @@ cartSchema.virtual("amountSaved").get(function () {
         let regularPrice = item.product.price;
         if (item.variantId && item.product.variant) {
           const variant = item.product.variant.find(
-            (v) => v._id.toString() === item.variantId.toString(),
+            (v) => v._id.toString() === item.variantId.toString()
           );
           if (variant) {
             regularPrice = variant.price;
@@ -112,7 +112,7 @@ cartSchema.virtual("amountSaved").get(function () {
         return total + (regularPrice - item.currentPrice) * item.quantity;
       }
       return total;
-    }, 0),
+    }, 0)
   );
 });
 

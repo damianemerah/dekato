@@ -1,21 +1,21 @@
-"use server";
+'use server';
 
-import { faker } from "@faker-js/faker";
-import Product from "../../models/product";
-import Category from "../../models/category";
-import slugify from "slugify";
-import dbConnect from "@/lib/mongoConnection";
+import { faker } from '@faker-js/faker';
+import Product from '../../models/product';
+import Category from '../../models/category';
+import slugify from 'slugify';
+import dbConnect from '@/app/lib/mongoConnection';
 
 export const seedProducts = async () => {
   try {
     await dbConnect();
-    console.log("Clearing database...");
+    console.log('Clearing database...');
 
     // Clear existing data
     await Promise.all([Product.deleteMany({}), Category.deleteMany({})]);
 
     // Create main categories with proper validation
-    const mainCategories = ["Men", "Women"];
+    const mainCategories = ['Men', 'Women'];
     const mainCategoryDocs = await Promise.all(
       mainCategories.map(async (name) =>
         Category.create({
@@ -23,12 +23,12 @@ export const seedProducts = async () => {
           description: `${name}'s Fashion Collection`,
           path: [slugify(name, { lower: true, strict: true })], // Ensure proper slugify
           image: [faker.image.url()],
-        }),
-      ),
+        })
+      )
     );
 
     // Create subcategories with proper validation
-    const subcategories = ["Clothing", "Shoes", "Accessories"];
+    const subcategories = ['Clothing', 'Shoes', 'Accessories'];
     const allCategories = [];
 
     for (const mainCategory of mainCategoryDocs) {
@@ -46,8 +46,8 @@ export const seedProducts = async () => {
             image: [faker.image.url()],
             pinned: false,
             pinOrder: 1,
-          }),
-        ),
+          })
+        )
       );
       allCategories.push(...subCategoryDocs);
 
@@ -66,18 +66,18 @@ export const seedProducts = async () => {
     const getRandomImage = () => faker.image.url();
 
     // Generate fake clothing products
-    console.log("Seeding products🔥📁🔥");
+    console.log('Seeding products🔥📁🔥');
     const products = [];
     for (let i = 0; i < 60; i++) {
       const mainCategory = faker.helpers.arrayElement(mainCategoryDocs);
       const subCategory = faker.helpers.arrayElement(
         allCategories.filter(
-          (cat) => cat.parent && cat.parent.equals(mainCategory._id),
-        ),
+          (cat) => cat.parent && cat.parent.equals(mainCategory._id)
+        )
       );
 
       const price = parseFloat(
-        faker.commerce.price({ min: 10000, max: 200000 }),
+        faker.commerce.price({ min: 10000, max: 200000 })
       );
       const discount = faker.number.int({ min: 0, max: 50 });
       const discountDuration = discount > 0 ? faker.date.future() : null;
@@ -104,11 +104,11 @@ export const seedProducts = async () => {
         variant: [
           {
             options: {
-              size: faker.helpers.arrayElement(["S", "M", "L", "XL"]),
+              size: faker.helpers.arrayElement(['S', 'M', 'L', 'XL']),
               color: faker.color.human(),
             },
             price: parseFloat(
-              faker.commerce.price({ min: 10000, max: 200000 }),
+              faker.commerce.price({ min: 10000, max: 200000 })
             ),
             quantity: faker.number.int({ min: 1, max: 100 }),
             image: getRandomImage(),
@@ -116,11 +116,11 @@ export const seedProducts = async () => {
           // Add a second variant to ensure validation passes
           {
             options: {
-              size: faker.helpers.arrayElement(["S", "M", "L", "XL"]),
+              size: faker.helpers.arrayElement(['S', 'M', 'L', 'XL']),
               color: faker.color.human(),
             },
             price: parseFloat(
-              faker.commerce.price({ min: 10000, max: 200000 }),
+              faker.commerce.price({ min: 10000, max: 200000 })
             ),
             quantity: faker.number.int({ min: 1, max: 100 }),
             image: getRandomImage(),
@@ -128,7 +128,7 @@ export const seedProducts = async () => {
         ],
         quantity: faker.number.int({ min: 10, max: 1000 }),
         sold: faker.number.int({ min: 0, max: 500 }),
-        status: "active", // Set to active to ensure it's valid
+        status: 'active', // Set to active to ensure it's valid
       });
 
       products.push(product);
@@ -136,9 +136,9 @@ export const seedProducts = async () => {
 
     // Insert fake products into the database
     await Product.insertMany(products);
-    console.log("Database seeded with 40 fake products and categories!");
+    console.log('Database seeded with 40 fake products and categories!');
   } catch (error) {
-    console.error("Error seeding database:", error);
+    console.error('Error seeding database:', error);
     throw error; // Re-throw to ensure errors are properly handled
   }
 };

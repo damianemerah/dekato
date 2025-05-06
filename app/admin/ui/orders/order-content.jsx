@@ -1,12 +1,12 @@
-"use client";
-import React, { useMemo } from "react";
-import { Layout, Row, Col } from "antd";
-import useSWR from "swr";
-import { getOrderById } from "@/app/action/orderAction";
-import { SmallSpinner } from "@/app/ui/spinner";
-import dynamic from "next/dynamic";
+'use client';
+import React, { useMemo } from 'react';
+import { Layout, Row, Col } from 'antd';
+import useSWR from 'swr';
+import { getOrderById } from '@/app/action/orderAction';
+import { SmallSpinner } from '@/app/components/spinner';
+import dynamic from 'next/dynamic';
 
-const OrderHeader = dynamic(() => import("./components/order-header"), {
+const OrderHeader = dynamic(() => import('./components/order-header'), {
   loading: () => (
     <div className="flex h-16 w-full animate-pulse items-center justify-between bg-gray-100 px-4">
       <div className="h-6 w-48 rounded bg-gray-200" />
@@ -16,7 +16,7 @@ const OrderHeader = dynamic(() => import("./components/order-header"), {
   ssr: false,
 });
 
-const OrderProducts = dynamic(() => import("./components/order-products"), {
+const OrderProducts = dynamic(() => import('./components/order-products'), {
   loading: () => (
     <div className="animate-pulse rounded-lg border p-4">
       <div className="mb-4 flex items-center justify-between">
@@ -38,7 +38,7 @@ const OrderProducts = dynamic(() => import("./components/order-products"), {
   ssr: false,
 });
 
-const OrderPayment = dynamic(() => import("./components/order-payment"), {
+const OrderPayment = dynamic(() => import('./components/order-payment'), {
   loading: () => (
     <div className="mt-6 animate-pulse rounded-lg border p-4">
       <div className="mb-4 flex items-center space-x-2">
@@ -56,7 +56,7 @@ const OrderPayment = dynamic(() => import("./components/order-payment"), {
   ssr: false,
 });
 
-const CustomerInfo = dynamic(() => import("./components/customer-info"), {
+const CustomerInfo = dynamic(() => import('./components/customer-info'), {
   loading: () => (
     <div className="animate-pulse space-y-6">
       <div className="rounded-lg border p-4">
@@ -87,24 +87,24 @@ const OrderDetails = React.memo(function OrderDetails({ params }) {
     () => getOrderById(id),
     {
       revalidateOnFocus: false,
-    },
+    }
   );
 
   const menu = useMemo(
     () => ({
       items: [
         {
-          key: "1",
-          label: "Print packing slip",
+          key: '1',
+          label: 'Print packing slip',
         },
         {
-          key: "2",
-          label: "Cancel fulfillment",
+          key: '2',
+          label: 'Cancel fulfillment',
           danger: true,
         },
       ],
     }),
-    [],
+    []
   );
 
   if (isLoading) {
@@ -121,7 +121,7 @@ const OrderDetails = React.memo(function OrderDetails({ params }) {
 
   return (
     <>
-      <Header style={{ background: "#fff", padding: "0 16px" }}>
+      <Header style={{ background: '#fff', padding: '0 16px' }}>
         <OrderHeader order={order} menu={menu} />
       </Header>
       <Content className="px-3 py-12 sm:px-4">

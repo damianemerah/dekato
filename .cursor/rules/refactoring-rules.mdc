@@ -1,0 +1,6 @@
+---
+description: A comprehensive guide for refactoring the Dekato e-commerce codebase using shadcn components.
+globs: 
+alwaysApply: false
+---
+Refactor the Dekato e-commerce codebase to integrate Shadcn UI components, prioritizing maintainability, performance, and design consistency. The existing project is written in JavaScript and should remain in that language. Implement Shadcn components to create a consistent and accessible user interface, utilizing the zinc theme for styling. The refactoring process should be conducted incrementally to mitigate the risk of introducing breaking changes, with comprehensive testing performed after each stage of modification. The objective is to modernize the existing codebase while preserving its core functionality and maintaining the current visual style of the e-commerce platform. Ensure that all components are responsive and adhere to best practices for accessibility.

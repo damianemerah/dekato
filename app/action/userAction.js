@@ -1,33 +1,33 @@
-"use server";
+'use server';
 
-import dbConnect from "@/lib/mongoConnection";
-import User from "@/models/user";
-import { Cart } from "@/models/cart";
-import { restrictTo } from "@/utils/checkPermission";
-import Email from "@/lib/email";
-import Address from "@/models/address";
-import { filterObj, formDataToObject } from "@/utils/filterObj";
-import handleAppError from "@/utils/appError";
-import { revalidatePath, revalidateTag } from "next/cache";
-import crypto from "crypto";
-import { omit } from "lodash";
-import Order from "@/models/order";
-import Product from "@/models/product";
-import Collection from "@/models/collection";
-import Notification from "@/models/notification";
-import { EmailSubscription } from "@/models/subscription";
+import dbConnect from '@/app/lib/mongoConnection';
+import User from '@/models/user';
+import { Cart } from '@/models/cart';
+import { restrictTo } from '@/app/utils/checkPermission';
+import Email from '@/app/lib/email';
+import Address from '@/models/address';
+import { filterObj, formDataToObject } from '@/app/utils/filterObj';
+import handleAppError from '@/app/utils/appError';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import crypto from 'crypto';
+import { omit } from 'lodash';
+import Order from '@/models/order';
+import Product from '@/models/product';
+import Collection from '@/models/collection';
+import Notification from '@/models/notification';
+import { EmailSubscription } from '@/models/subscription';
 
 export async function createProductNotification(productName, adminName) {
   await dbConnect();
   try {
     await Notification.create({
       userId: null, // Admin notification
-      title: "New Product Added",
+      title: 'New Product Added',
       message: `Admin ${adminName} added new product "${productName}" to inventory`,
-      type: "info",
+      type: 'info',
     });
   } catch (error) {
-    console.error("Error creating product notification:", error);
+    console.error('Error creating product notification:', error);
     throw error;
   }
 }
@@ -49,36 +49,36 @@ export async function getDashboardData() {
         {
           $group: {
             _id: null,
-            totalSales: { $sum: "$total" },
+            totalSales: { $sum: '$total' },
             totalOrders: { $sum: 1 },
             pendingOrders: {
-              $sum: { $cond: [{ $eq: ["$deliveryStatus", "pending"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$deliveryStatus', 'pending'] }, 1, 0] },
             },
             shippedOrders: {
-              $sum: { $cond: [{ $eq: ["$deliveryStatus", "shipped"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$deliveryStatus', 'shipped'] }, 1, 0] },
             },
             deliveredOrders: {
               $sum: {
-                $cond: [{ $eq: ["$deliveryStatus", "delivered"] }, 1, 0],
+                $cond: [{ $eq: ['$deliveryStatus', 'delivered'] }, 1, 0],
               },
             },
           },
         },
       ]),
-      User.countDocuments({ role: "user" }),
+      User.countDocuments({ role: 'user' }),
       Order.aggregate([
         { $sort: { createdAt: -1 } },
         { $limit: 5 },
         {
           $lookup: {
-            from: "users",
-            localField: "userId",
-            foreignField: "_id",
-            as: "user",
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
           },
         },
         {
-          $unwind: "$user",
+          $unwind: '$user',
         },
         {
           $project: {
@@ -87,8 +87,8 @@ export async function getDashboardData() {
             total: 1,
             deliveryStatus: 1,
             createdAt: 1,
-            "user.firstname": 1,
-            "user.lastname": 1,
+            'user.firstname': 1,
+            'user.lastname': 1,
           },
         },
       ]),
@@ -98,13 +98,13 @@ export async function getDashboardData() {
             _id: null,
             totalProducts: { $sum: 1 },
             activeProducts: {
-              $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] },
             },
             outOfStock: {
-              $sum: { $cond: [{ $eq: ["$status", "outofstock"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'outofstock'] }, 1, 0] },
             },
             discountedProducts: {
-              $sum: { $cond: [{ $gt: ["$discount", 0] }, 1, 0] },
+              $sum: { $cond: [{ $gt: ['$discount', 0] }, 1, 0] },
             },
           },
         },
@@ -115,7 +115,7 @@ export async function getDashboardData() {
             _id: null,
             totalCollections: { $sum: 1 },
             saleCollections: {
-              $sum: { $cond: [{ $eq: ["$isSale", true] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$isSale', true] }, 1, 0] },
             },
           },
         },
@@ -139,16 +139,16 @@ export async function getDashboardData() {
             _id: null,
             totalSubscribers: { $sum: 1 },
             activeSubscribers: {
-              $sum: { $cond: [{ $eq: ["$status", "subscribed"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'subscribed'] }, 1, 0] },
             },
             menPreference: {
-              $sum: { $cond: [{ $eq: ["$gender", "men"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$gender', 'men'] }, 1, 0] },
             },
             womenPreference: {
-              $sum: { $cond: [{ $eq: ["$gender", "women"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$gender', 'women'] }, 1, 0] },
             },
             bothPreference: {
-              $sum: { $cond: [{ $eq: ["$gender", "both"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$gender', 'both'] }, 1, 0] },
             },
           },
         },
@@ -197,232 +197,330 @@ export async function getDashboardData() {
       newsletter,
     };
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    throw new Error("Failed to fetch dashboard data");
+    console.error('Error fetching dashboard data:', error);
+    throw new Error('Failed to fetch dashboard data');
   }
 }
 
-export async function createUser(formData) {
-  await dbConnect();
+export async function createUser(prevState, formData) {
+  try {
+    await dbConnect();
 
-  const userData = {
-    firstname: formData.get("firstname"),
-    lastname: formData.get("lastname"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    passwordConfirm: formData.get("passwordConfirm"),
-  };
+    const userData = {
+      firstname: formData.get('firstname'),
+      lastname: formData.get('lastname'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+      passwordConfirm: formData.get('passwordConfirm'),
+    };
 
-  const createdUser = await User.create(userData);
+    const createdUser = await User.create(userData);
 
-  const user = createdUser.toObject();
+    const user = createdUser.toObject();
 
-  if (user) {
-    await Cart.create({ userId: user._id, items: [] });
+    if (user) {
+      await Cart.create({ userId: user._id, items: [] });
+    }
+
+    const url = `${process.env.NEXTAUTH_URL}/signin`;
+    await new Email(user, url).sendWelcome();
+
+    return { success: true, message: 'User created successfully' };
+  } catch (error) {
+    console.error('User creation error:', error);
+    const errorObj = handleAppError(error);
+    return {
+      success: false,
+      message: errorObj.message || 'Failed to create user',
+      errors: error.errors,
+    };
   }
-
-  const url = `${process.env.NEXTAUTH_URL}/signin`;
-  await new Email(user, url).sendWelcome();
-
-  return { success: true };
 }
 
 export async function getUser(userId) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  if (!userId) {
-    return null;
+  try {
+    await dbConnect();
+
+    if (!userId) {
+      return null;
+    }
+
+    const userData = await User.findById(userId)
+      .where('active', true)
+      .lean({ virtuals: true });
+
+    if (!userData) {
+      throw new Error('No active user found with that ID');
+    }
+
+    const { _id, wishlist, ...rest } = userData;
+
+    const userObj = {
+      id: _id.toString(),
+      wishlist: wishlist?.map((item) => item.toString()),
+      ...rest,
+    };
+
+    return userObj;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const userData = await User.findById(userId)
-    .where("active", true)
-    .lean({ virtuals: true });
-
-  if (!userData) {
-    throw new Error("No active user found with that ID");
-  }
-
-  const { _id, wishlist, ...rest } = userData;
-
-  const userObj = {
-    id: _id.toString(),
-    wishlist: wishlist?.map((item) => item.toString()),
-    ...rest,
-  };
-
-  return userObj;
 }
 
 export async function getWishlist(userId) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const { wishlist } = await User.findById(userId)
-    .select("wishlist")
-    .populate("wishlist", "name price image variant slug")
-    .lean();
+  try {
+    await dbConnect();
 
-  return wishlist.map(({ _id, variant, ...rest }) => ({
-    id: _id.toString(),
-    variant: variant.map(({ _id, ...variantRest }) => ({
+    const { wishlist } = await User.findById(userId)
+      .select('wishlist')
+      .populate('wishlist', 'name price image variant slug')
+      .lean();
+
+    return wishlist.map(({ _id, variant, ...rest }) => ({
       id: _id.toString(),
-      ...variantRest,
-    })),
-    ...rest,
-  }));
+      variant: variant.map(({ _id, ...variantRest }) => ({
+        id: _id.toString(),
+        ...variantRest,
+      })),
+      ...rest,
+    }));
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function updateUserInfo(formData) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const userId = formData.get("userId");
+  try {
+    await dbConnect();
 
-  const userObj = formDataToObject(formData);
-  const userData = filterObj(userObj, "firstname", "lastname");
+    const userId = formData.get('userId');
 
-  const user = await User.findByIdAndUpdate(userId, userData, {
-    new: true,
-    runValidators: true,
-  }).lean({ virtuals: true });
+    const userObj = formDataToObject(formData);
+    const userData = filterObj(userObj, 'firstname', 'lastname');
 
-  if (!user) {
-    throw new Error("User not found");
+    const user = await User.findByIdAndUpdate(userId, userData, {
+      new: true,
+      runValidators: true,
+    }).lean({ virtuals: true });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const { _id, wishlist, ...rest } = user;
+
+    const userInfo = {
+      id: _id.toString(),
+      wishlist: wishlist?.map((item) => item.toString()),
+      ...rest,
+    };
+
+    // Add revalidation for paths and tags
+    revalidatePath('/account/settings');
+    revalidatePath('/account');
+    revalidateTag(`user-${userId}`);
+
+    return userInfo;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const { _id, wishlist, ...rest } = user;
-
-  const userInfo = {
-    id: _id.toString(),
-    wishlist: wishlist?.map((item) => item.toString()),
-    ...rest,
-  };
-
-  return userInfo;
 }
 
 export async function addToWishlist(userId, productId) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error("User not found");
+  try {
+    await dbConnect();
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await user.addToWishlist(productId);
+
+    const { _id, wishlist, ...rest } = user.toObject();
+
+    // Add proper revalidation
+    revalidatePath('/account/wishlist');
+    revalidatePath('/account');
+    revalidateTag(`user-${userId}`);
+
+    return {
+      id: _id.toString(),
+      wishlist: wishlist.map((item) => item.toString()),
+      ...rest,
+    };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  await user.addToWishlist(productId);
-
-  const { _id, wishlist, ...rest } = user.toObject();
-
-  return {
-    id: _id.toString(),
-    wishlist: wishlist.map((item) => item.toString()),
-    ...rest,
-  };
 }
 
 export async function removeFromWishlist(userId, productId) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  await User.findByIdAndUpdate(
-    userId,
-    { $pull: { wishlist: productId } },
-    { new: true },
-  );
+  try {
+    await dbConnect();
 
-  return null;
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { wishlist: productId } },
+      { new: true }
+    );
+
+    // Add proper revalidation
+    revalidatePath('/account/wishlist');
+    revalidatePath('/account');
+    revalidateTag(`user-${userId}`);
+
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
+  }
 }
 
 export async function deleteUser(userId) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const user = await User.findByIdAndUpdate(userId, { active: false });
+  try {
+    await dbConnect();
 
-  if (!user) {
-    throw new Error("User not found");
+    const user = await User.findByIdAndUpdate(userId, { active: false });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    revalidatePath('/admin/customers');
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-  revalidatePath("/admin/customers");
-  return null;
 }
 
 export async function getUserAddress(userId) {
-  await dbConnect();
-  // await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const address = await Address.find({ userId }).lean();
+  try {
+    await dbConnect();
 
-  if (!address.length) {
-    return [];
+    const address = await Address.find({ userId }).lean();
+
+    if (!address.length) {
+      return [];
+    }
+    return address.map(({ _id, userId, ...rest }) => ({
+      id: _id.toString(),
+      ...omit(rest, ['_id', 'userId']),
+    }));
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-  return address.map(({ _id, userId, ...rest }) => ({
-    id: _id.toString(),
-    ...omit(rest, ["_id", "userId"]),
-  }));
 }
 
 export async function createUserAddress(formData) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const addressData = formDataToObject(formData);
-  const userId = formData.get("userId");
+  try {
+    await dbConnect();
 
-  if (addressData.isDefault) {
-    await Address.updateMany({ userId }, { isDefault: false });
+    const addressData = formDataToObject(formData);
+    const userId = formData.get('userId');
+
+    if (addressData.isDefault) {
+      await Address.updateMany({ userId }, { isDefault: false });
+    }
+
+    const address = await Address.create({ ...addressData, userId });
+
+    const { _id, userId: id, ...rest } = address.toObject();
+
+    const newAddress = { id: _id.toString(), ...rest };
+
+    // Add proper revalidation
+    revalidatePath('/account/address');
+    revalidatePath('/checkout');
+    revalidateTag(`user-${userId}`);
+    revalidateTag('checkout-data');
+
+    return newAddress;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const address = await Address.create({ ...addressData, userId });
-
-  const { _id, userId: id, ...rest } = address.toObject();
-
-  const newAddress = { id: _id.toString(), ...rest };
-
-  // revalidatePath("/checkout");
-  // revalidateTag("checkout-data");
-  return newAddress;
 }
 
 export async function updateUserAddress(formData) {
-  await dbConnect();
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
 
-  const addressData = formDataToObject(formData);
-  const userId = formData.get("userId");
-  const addressId = formData.get("addressId");
+  try {
+    await dbConnect();
 
-  if (addressData.isDefault) {
-    await Address.updateMany({ userId }, { isDefault: false });
+    const addressData = formDataToObject(formData);
+    const userId = formData.get('userId');
+    const addressId = formData.get('addressId');
+
+    if (addressData.isDefault) {
+      await Address.updateMany({ userId }, { isDefault: false });
+    }
+
+    const address = await Address.findByIdAndUpdate(addressId, addressData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!address) {
+      throw new Error('No address found with that ID');
+    }
+
+    // Add proper revalidation
+    revalidatePath('/account/address');
+    revalidatePath('/checkout');
+    revalidateTag(`user-${userId}`);
+    revalidateTag('checkout-data');
+
+    const { _id, ...rest } = address.toObject();
+    return { id: _id.toString(), ...rest };
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  const address = await Address.findByIdAndUpdate(addressId, addressData, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!address) {
-    throw new Error("No address found with that ID");
-  }
-  // revalidatePath("/checkout");
-  // revalidateTag("checkout-data");
-
-  const { _id, ...rest } = address.toObject();
-  return { id: _id.toString(), ...rest };
 }
 
 export async function deleteUserAddress(addressId) {
-  await restrictTo("admin", "user");
-  await dbConnect();
+  await restrictTo('admin', 'user');
 
-  const address = await Address.findByIdAndDelete(addressId);
+  try {
+    await dbConnect();
 
-  if (!address) {
-    throw new Error("Address not found");
+    const address = await Address.findByIdAndDelete(addressId);
+    if (!address) {
+      throw new Error('No address found with that ID');
+    }
+
+    // Add proper revalidation
+    revalidatePath('/account/address');
+    revalidatePath('/checkout');
+    revalidateTag(`user-${address.userId}`);
+    revalidateTag('checkout-data');
+
+    return null;
+  } catch (err) {
+    const error = handleAppError(err);
+    throw new Error(error.message);
   }
-
-  return null;
 }
 
 export async function getAllUsers(searchParams) {
@@ -438,7 +536,7 @@ export async function getAllUsers(searchParams) {
     const usersDoc = await User.find()
       .skip(skip)
       .limit(limit)
-      .select("+active")
+      .select('+active')
       .lean({ virtuals: true });
 
     const users = usersDoc.map((user) => {
@@ -459,19 +557,24 @@ export async function getAllUsers(searchParams) {
     };
   } catch (err) {
     const error = handleAppError(err);
-    throw new Error(error.message || "An error occurred");
+    throw new Error(error.message || 'An error occurred');
   }
 }
 
-export async function sendPasswordResetToken(formData) {
-  await dbConnect();
-
-  const user = await User.findOne({ email: formData.get("email") });
-
-  if (!user) {
-    throw new Error("User with that email not found", 404);
-  }
+export async function sendPasswordResetToken(prevState, formData) {
   try {
+    await dbConnect();
+
+    const user = await User.findOne({ email: formData.get('email') });
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'User with that email not found',
+        errors: { email: ['No account found with this email address'] },
+      };
+    }
+
     const resetToken = await user.createPasswordResetToken();
 
     await user.save({ validateBeforeSave: false });
@@ -481,33 +584,44 @@ export async function sendPasswordResetToken(formData) {
 
     await new Email(user, resetURL).sendPasswordReset();
 
-    return { success: true, message: "Reset Token sent to your email" };
+    return { success: true, message: 'Reset Token sent to your email' };
   } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
+    if (user) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
     const error = handleAppError(err);
-    throw new Error(error.message);
+    return {
+      success: false,
+      message: error.message || 'Failed to send reset email',
+      errors: err.errors,
+    };
   }
 }
 
 export async function updatePassword(formData) {
-  await restrictTo("admin", "user");
+  await restrictTo('admin', 'user');
   try {
     const body = formDataToObject(formData);
 
-    const user = await User.findById(body.userId).select("+password");
+    const user = await User.findById(body.userId).select('+password');
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     if (!(await user.correctPassword(body.currentPassword, user.password)))
-      throw new Error("Incorrect current password");
+      throw new Error('Incorrect current password');
 
     user.password = body.password;
     user.passwordConfirm = body.passwordConfirm;
     await user.save();
+
+    // Add revalidation
+    revalidatePath('/account/settings');
+    revalidatePath('/account');
+    revalidateTag(`user-${body.userId}`);
 
     return { success: true, data: user.toObject() };
   } catch (err) {
@@ -516,12 +630,11 @@ export async function updatePassword(formData) {
   }
 }
 
-export async function forgotPassword(formData) {
+export async function forgotPassword(token, prevState, formData) {
   try {
-    const token = formData.get("token");
     const body = formDataToObject(formData);
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     await dbConnect();
 
@@ -531,11 +644,14 @@ export async function forgotPassword(formData) {
     });
 
     if (!user) {
-      throw new Error("Token is invalid or has expired", 400);
+      return {
+        success: false,
+        message: 'Token is invalid or has expired',
+        errors: null,
+      };
     }
 
     // check if password and passwordConfirm are the same
-
     user.password = body.password;
     user.passwordConfirm = body.passwordConfirm;
     user.passwordResetToken = undefined;
@@ -551,9 +667,17 @@ export async function forgotPassword(formData) {
       ...rest,
     };
 
-    return { success: true, data: userObj };
+    return {
+      success: true,
+      message: 'Password reset successful',
+      data: userObj,
+    };
   } catch (error) {
     const errorMessage = handleAppError(error);
-    throw new Error(errorMessage.message);
+    return {
+      success: false,
+      message: errorMessage.message,
+      errors: error.errors,
+    };
   }
 }

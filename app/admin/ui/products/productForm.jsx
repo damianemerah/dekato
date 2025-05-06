@@ -1,18 +1,18 @@
-import AddSingleVariant from "@/app/admin/ui/products/AddSingleVariant";
-import VariantsSection from "@/app/admin/ui/products/ProductVariantForm";
-import EditVariant from "@/app/admin/ui/products/EditVariant";
-import { useAdminStore } from "@/app/admin/store/adminStore";
-import Link from "next/link";
-import BackIcon from "@/public/assets/icons/arrow_back.svg";
-import MediaUpload from "@/app/admin/ui/MediaUpload";
-import { Switch, Space, DatePicker, Select } from "antd";
-import DropDown from "@/app/admin/ui/DropDown";
-import { SmallSpinner } from "@/app/ui/spinner";
-import dayjs from "dayjs";
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import AddSingleVariant from '@/app/admin/ui/products/AddSingleVariant';
+import VariantsSection from '@/app/admin/ui/products/ProductVariantForm';
+import EditVariant from '@/app/admin/ui/products/EditVariant';
+import { useAdminStore } from '@/app/admin/store/adminStore';
+import Link from 'next/link';
+import BackIcon from '@/public/assets/icons/arrow_back.svg';
+import MediaUpload from '@/app/admin/ui/MediaUpload';
+import { Switch, Space, DatePicker, Select } from 'antd';
+import DropDown from '@/app/admin/ui/DropDown';
+import { SmallSpinner } from '@/app/components/spinner';
+import dayjs from 'dayjs';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 
-const TiptapEditor = dynamic(() => import("@/app/ui/text-editor"), {
+const TiptapEditor = dynamic(() => import('@/app/components/text-editor'), {
   ssr: false,
   loading: () => (
     <div className="min-h-[120px] rounded-md border p-4">Loading editor...</div>
@@ -52,7 +52,7 @@ const ProductForm = ({
   selectedCollectionKeys,
   setSelectedCollectionKeys,
 }) => {
-  const isCreateMode = actionType === "create";
+  const isCreateMode = actionType === 'create';
   const [discountDuration, setDiscountDuration] = useState(null);
   const setProductImages = useAdminStore((state) => state.setProductImages);
 
@@ -87,7 +87,7 @@ const ProductForm = ({
           )}
         </div>
         <h2 className="mb-4 text-xl font-medium tracking-wide sm:mb-6 sm:text-2xl md:mb-8">
-          {isCreateMode ? "Add Product" : "Edit Product"}
+          {isCreateMode ? 'Add Product' : 'Edit Product'}
         </h2>
         <form
           action={handleFormSubmit}
@@ -117,7 +117,7 @@ const ProductForm = ({
               <Select
                 mode="tags"
                 name="tags"
-                style={{ width: "100%" }}
+                style={{ width: '100%' }}
                 placeholder="Add tags"
                 className="w-full"
                 value={tags}
@@ -182,7 +182,7 @@ const ProductDetails = ({
         inputRef={nameRef}
         placeholder="Short sleeve t-shirt"
         required
-        defaultValue={selectedProduct?.name || ""}
+        defaultValue={selectedProduct?.name || ''}
       />
       <FormField
         label="DESCRIPTION"
@@ -230,7 +230,7 @@ const ProductDetails = ({
           className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
           title="Not editable"
         >
-          {selectedProduct?.discountPrice || "N/A"}
+          {selectedProduct?.discountPrice || 'N/A'}
         </div>
       </div>
       <div>
@@ -266,7 +266,7 @@ const ProductDetails = ({
           className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
           title="Not editable"
         >
-          {selectedProduct?.sold || "N/A"}
+          {selectedProduct?.sold || 'N/A'}
         </div>
       </div>
     </FormSection>
@@ -313,7 +313,7 @@ const ProductActions = ({
           <Switch
             loading={switchState}
             onClick={showConfirm}
-            checked={selectedProduct?.status === "active" || false}
+            checked={selectedProduct?.status === 'active' || false}
             disabled={isSwitchDisabled}
           />
           {selectedProduct?.status && (
@@ -347,7 +347,7 @@ const ProductActions = ({
   );
 };
 
-const FormSection = ({ children, className = "" }) => (
+const FormSection = ({ children, className = '' }) => (
   <div className={`mb-4 rounded-lg bg-white p-4 shadow-shadowSm ${className}`}>
     {children}
   </div>
@@ -356,7 +356,7 @@ const FormSection = ({ children, className = "" }) => (
 const FormField = ({
   label,
   name,
-  as: Component = "input",
+  as: Component = 'input',
   inputRef,
   ...props
 }) => (

@@ -1,12 +1,12 @@
-import { LoadingSpinner } from "@/app/ui/spinner";
-import dynamic from "next/dynamic";
+import { LoadingSpinner } from '@/app/components/spinner';
+import dynamic from 'next/dynamic';
 
 const CategoryForm = dynamic(
-  () => import("@/app/admin/ui/category/category-form"),
+  () => import('@/app/admin/ui/category/category-form'),
   {
     ssr: false,
     loading: () => <LoadingSpinner className="min-h-screen" />,
-  },
+  }
 );
 
 export default function CategoryPage({ params }) {

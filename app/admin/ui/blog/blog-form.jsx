@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Form,
   Input,
@@ -11,20 +11,20 @@ import {
   message,
   Typography,
   Space,
-} from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
-import Link from "next/link";
-import dynamic from "next/dynamic";
-import { createBlog, updateBlog } from "@/app/action/blogAction";
-import { getAllCategories } from "@/app/action/categoryAction";
-import useSWR from "swr";
-import MediaUpload from "@/app/admin/ui/MediaUpload";
+} from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { createBlog, updateBlog } from '@/app/action/blogAction';
+import { getAllCategories } from '@/app/action/categoryAction';
+import useSWR from 'swr';
+import MediaUpload from '@/app/admin/ui/MediaUpload';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 
 // Dynamically import the text editor to avoid SSR issues
-const TextEditor = dynamic(() => import("@/app/ui/text-editor"), {
+const TextEditor = dynamic(() => import('@/app/components/text-editor'), {
   ssr: false,
   loading: () => (
     <div className="h-[300px] animate-pulse rounded-md bg-gray-100"></div>
@@ -45,23 +45,23 @@ export default function BlogForm({ initialData }) {
   const router = useRouter();
   const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [content, setContent] = useState(initialData?.content || "");
+  const [content, setContent] = useState(initialData?.content || '');
   const [fileList, setFileList] = useState([]);
   const [defaultFileList, setDefaultFileList] = useState([]);
   const [defaultCategoriesList, setDefaultCategoriesList] = useState([]);
-  const [activeTab, setActiveTab] = useState("edit");
+  const [activeTab, setActiveTab] = useState('edit');
 
-  const { data: categories } = useSWR("/api/categories", () =>
-    getAllCategories({ limit: 100 }),
+  const { data: categories } = useSWR('/api/categories', () =>
+    getAllCategories({ limit: 100 })
   );
 
   useEffect(() => {
     if (initialData?.featuredImage) {
       setDefaultFileList([
         {
-          uid: "-1",
-          name: "Featured Image",
-          status: "done",
+          uid: '-1',
+          name: 'Featured Image',
+          status: 'done',
           url: initialData.featuredImage,
         },
       ]);
@@ -71,7 +71,7 @@ export default function BlogForm({ initialData }) {
         initialData.categories.map((cat) => ({
           value: cat._id || cat.id,
           label: cat.name,
-        })),
+        }))
       );
     }
   }, [initialData]);
@@ -83,7 +83,7 @@ export default function BlogForm({ initialData }) {
       const formData = new FormData();
       Object.keys(values).forEach((key) => {
         if (values[key] !== undefined && values[key] !== null) {
-          if (key === "categories" || key === "tags") {
+          if (key === 'categories' || key === 'tags') {
             formData.append(key, JSON.stringify(values[key]));
           } else {
             formData.append(key, values[key]);
@@ -92,34 +92,34 @@ export default function BlogForm({ initialData }) {
       });
 
       // Append content from rich text editor
-      formData.append("content", content);
+      formData.append('content', content);
 
       // Handle featured image
       if (fileList.length > 0) {
         if (fileList[0].originFileObj) {
-          formData.append("featuredImage", fileList[0].originFileObj);
+          formData.append('featuredImage', fileList[0].originFileObj);
         } else {
-          formData.append("featuredImage", fileList[0].url);
+          formData.append('featuredImage', fileList[0].url);
         }
       }
 
-      if (!initialData || initialData.status === "draft") {
-        if (formData.get("status") === "published") {
-          formData.append("publishedAt", new Date());
+      if (!initialData || initialData.status === 'draft') {
+        if (formData.get('status') === 'published') {
+          formData.append('publishedAt', new Date());
         }
       }
 
       if (initialData) {
         const id = initialData.id;
         await updateBlog(id, formData);
-        message.success("Blog updated successfully");
+        message.success('Blog updated successfully');
       } else {
         const data = await createBlog(formData);
-        message.success("Blog created successfully");
+        message.success('Blog created successfully');
         router.push(`/admin/blogs/${data.id}`);
       }
     } catch (error) {
-      message.error(error.message || "Something went wrong");
+      message.error(error.message || 'Something went wrong');
     } finally {
       setIsSubmitting(false);
     }
@@ -137,17 +137,17 @@ export default function BlogForm({ initialData }) {
               />
             </Link>
             <Title level={2} className="!mb-0 text-xl sm:text-2xl">
-              {initialData ? "Edit Blog" : "Create New Blog"}
+              {initialData ? 'Edit Blog' : 'Create New Blog'}
             </Title>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Button
               onClick={() =>
-                setActiveTab(activeTab === "edit" ? "preview" : "edit")
+                setActiveTab(activeTab === 'edit' ? 'preview' : 'edit')
               }
               className="w-full sm:w-auto"
             >
-              {activeTab === "edit" ? "Preview" : "Edit"}
+              {activeTab === 'edit' ? 'Preview' : 'Edit'}
             </Button>
             <Button
               type="primary"
@@ -155,16 +155,16 @@ export default function BlogForm({ initialData }) {
               loading={isSubmitting}
               className="w-full sm:w-auto"
             >
-              {initialData ? "Update" : "Publish"}
+              {initialData ? 'Update' : 'Publish'}
             </Button>
           </div>
         </div>
 
-        {activeTab === "preview" ? (
+        {activeTab === 'preview' ? (
           <PreviewTab
             content={content}
-            title={form.getFieldValue("title")}
-            excerpt={form.getFieldValue("excerpt")}
+            title={form.getFieldValue('title')}
+            excerpt={form.getFieldValue('excerpt')}
           />
         ) : (
           <Form
@@ -174,7 +174,7 @@ export default function BlogForm({ initialData }) {
             initialValues={{
               ...initialData,
               categories: initialData?.categories?.map(
-                (cat) => cat._id || cat.id,
+                (cat) => cat._id || cat.id
               ),
             }}
           >
@@ -183,7 +183,7 @@ export default function BlogForm({ initialData }) {
                 <Form.Item
                   name="title"
                   label="Title"
-                  rules={[{ required: true, message: "Please enter a title" }]}
+                  rules={[{ required: true, message: 'Please enter a title' }]}
                 >
                   <Input placeholder="Enter blog title" />
                 </Form.Item>
@@ -192,7 +192,7 @@ export default function BlogForm({ initialData }) {
                   name="excerpt"
                   label="Excerpt"
                   rules={[
-                    { required: true, message: "Please enter an excerpt" },
+                    { required: true, message: 'Please enter an excerpt' },
                   ]}
                 >
                   <TextArea
@@ -213,8 +213,8 @@ export default function BlogForm({ initialData }) {
                   <Form.Item name="status" label="Status">
                     <Select
                       options={[
-                        { value: "draft", label: "Draft" },
-                        { value: "published", label: "Published" },
+                        { value: 'draft', label: 'Draft' },
+                        { value: 'published', label: 'Published' },
                       ]}
                     />
                   </Form.Item>
@@ -244,7 +244,7 @@ export default function BlogForm({ initialData }) {
                         label: cat.name,
                       }))}
                       defaultValue={defaultCategoriesList?.map(
-                        (item) => item.value,
+                        (item) => item.value
                       )}
                     />
                   </Form.Item>
@@ -253,7 +253,7 @@ export default function BlogForm({ initialData }) {
                     <Select
                       mode="tags"
                       placeholder="Add tags"
-                      style={{ width: "100%" }}
+                      style={{ width: '100%' }}
                     />
                   </Form.Item>
                 </Card>

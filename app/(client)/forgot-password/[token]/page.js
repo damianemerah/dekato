@@ -1,52 +1,54 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { ButtonPrimary } from "@/app/ui/button";
-import { SmallSpinner } from "@/app/ui/spinner";
-import { InputType } from "@/app/ui/inputType";
-import { forgotPassword } from "@/app/action/userAction";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { ButtonPrimary } from '@/app/components/button';
+import { SmallSpinner } from '@/app/components/spinner';
+import { InputType } from '@/app/components/inputType';
+import { forgotPassword } from '@/app/action/userAction';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <ButtonPrimary
+      type="submit"
+      className="w-full bg-primary"
+      disabled={pending}
+    >
+      {pending ? <SmallSpinner className="!text-white" /> : 'Reset Password'}
+    </ButtonPrimary>
+  );
+}
 
 export default function ResetPassword({ params: { token } }) {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [viewPassword, setViewPassword] = useState(false);
   const router = useRouter();
   const { update: updateSession } = useSession();
 
+  const resetPasswordWithToken = forgotPassword.bind(null, token);
+  const [state, formAction] = useFormState(resetPasswordWithToken, {
+    success: false,
+    message: null,
+    errors: null,
+  });
+
   useEffect(() => {
-    if (error) {
+    if (state.success) {
+      toast.success('Password reset successful! Redirecting to sign in...');
+      // Optional: updateSession({ passwordChanged: true });
       const timer = setTimeout(() => {
-        setError("");
-      }, 10000);
-      return () => clearTimeout(timer);
+        router.push('/signin');
+      }, 3000); // Redirect after 3 seconds
+      return () => clearTimeout(timer); // Cleanup timer on unmount
+    } else if (state.message && !state.success) {
+      const errorPath =
+        state.errors?.passwordConfirm?.[0] || state.errors?.password?.[0];
+      toast.error(errorPath || state.message || 'Password reset failed.');
     }
-  }, [error]);
-
-  const handleResetPassword = useCallback(
-    async (formData) => {
-      setIsUpdating(true);
-      setError("");
-      try {
-        formData.set("token", token);
-        const res = await forgotPassword(formData);
-
-        if (res.success) {
-          await updateSession({ passwordChanged: true });
-          setSuccess(true);
-          setTimeout(() => {
-            router.push("/signin");
-          }, 4000);
-        }
-      } catch (error) {
-        setError(error.message || "Something went wrong. Please try again.");
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [token, router, updateSession],
-  );
+  }, [state, router]); // Add updateSession to deps if used
 
   return (
     <div className="flex min-h-screen items-center justify-center px-8">
@@ -54,23 +56,7 @@ export default function ResetPassword({ params: { token } }) {
         <h2 className="mb-6 text-center text-2xl font-semibold text-primary">
           Reset Password
         </h2>
-        {error && (
-          <p
-            className="mb-4 rounded-md bg-red-50 p-4 text-center text-red-700"
-            role="alert"
-          >
-            {error}
-          </p>
-        )}
-        {success && (
-          <p
-            className="mb-4 rounded-md bg-green-50 p-4 text-center text-green-700"
-            role="alert"
-          >
-            Password reset successful! Redirecting to login...
-          </p>
-        )}
-        <form action={handleResetPassword} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           <InputType
             name="password"
             label="New Password"
@@ -81,19 +67,9 @@ export default function ResetPassword({ params: { token } }) {
             name="passwordConfirm"
             label="Confirm Password"
             type="password"
-            // required={true}
+            required={true}
           />
-          <ButtonPrimary
-            type="submit"
-            className="w-full bg-primary"
-            disabled={isUpdating}
-          >
-            {isUpdating ? (
-              <SmallSpinner className="!text-white" />
-            ) : (
-              "Reset Password"
-            )}
-          </ButtonPrimary>
+          <SubmitButton />
         </form>
       </div>
     </div>
