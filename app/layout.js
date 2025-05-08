@@ -157,7 +157,7 @@ export const metadata = {
   },
   verification: {
     google: 'UrjQPJjp2T2sssYtTtmOfdsJg36OaSX9gnoFLvfrSfQ',
-    //   yandex: "your-yandex-verification-code",
+    yandex: '73aec00878be9a11',
   },
 };
 
