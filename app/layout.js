@@ -88,7 +88,7 @@ const oswald = localFont({
 });
 
 export const viewport = {
-  themeColor: '#ff6600',
+  themeColor: '#212529',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -155,10 +155,10 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
-  // verification: {
-  //   google: "your-google-verification-code",
-  //   yandex: "your-yandex-verification-code",
-  // },
+  verification: {
+    google: 'UrjQPJjp2T2sssYtTtmOfdsJg36OaSX9gnoFLvfrSfQ',
+    //   yandex: "your-yandex-verification-code",
+  },
 };
 
 export default async function RootLayout({ children }) {

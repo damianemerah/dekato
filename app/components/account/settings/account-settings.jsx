@@ -113,7 +113,7 @@ export default function AccountSettings({ initialUserData }) {
   }, []);
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="mx-auto py-8">
       <div className="space-y-8">
         <section className="rounded-lg border bg-white p-8 shadow-sm">
           <h2 className="mb-6 font-oswald text-2xl font-medium">

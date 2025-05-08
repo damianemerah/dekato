@@ -96,7 +96,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="mx-auto py-8">
       <div className="my-6 flex items-center justify-between">
         <h1 className="font-oswald text-xl font-medium uppercase text-gray-700">
           My Wishlist
