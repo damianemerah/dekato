@@ -9,6 +9,9 @@ export async function generateMetadata({ params }) {
     return {
       title: 'Blog Not Found',
       description: 'The requested blog post could not be found',
+      robots: {
+        index: false,
+      },
     };
   }
 
@@ -30,6 +33,9 @@ export async function generateMetadata({ params }) {
       title: blog.metaTitle || blog.title,
       description: blog.metaDescription || blog.excerpt,
       images: [blog.featuredImage],
+    },
+    alternates: {
+      canonical: `/fashion/${params.slug}`,
     },
   };
 }

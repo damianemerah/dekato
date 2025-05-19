@@ -14,6 +14,9 @@ export async function generateMetadata({ params }, parent) {
     return {
       title: 'Product Not Found',
       description: 'The requested product could not be found.',
+      robots: {
+        index: false,
+      },
     };
   }
 
@@ -38,6 +41,9 @@ export async function generateMetadata({ params }, parent) {
       title: product.name,
       description: product.description.slice(0, 160),
       images: [product.image[0]],
+    },
+    alternates: {
+      canonical: `/product/${params.name}`,
     },
   };
 }

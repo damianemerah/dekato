@@ -10,8 +10,7 @@ import Header from '@/app/components/header';
 import { Toaster } from '@/app/components/ui/sonner';
 import AuthSync from '@/app/components/auth-sync';
 
-// Add revalidation for the layout
-export const revalidate = 3600; // Revalidate sidebar data every hour
+export const revalidate = 3600;
 
 const roboto = localFont({
   src: [
@@ -96,6 +95,9 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://www.dekato.ng'),
+  alternates: {
+    canonical: 'https://www.dekato.ng',
+  },
   title: {
     default: 'Dekato Outfit | Fashion & Lifestyle',
     template: '%s | Dekato Outfit',
