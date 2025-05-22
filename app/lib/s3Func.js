@@ -93,6 +93,7 @@ export const uploadFiles = async (
       const data = await s3.send(command);
 
       const url = `${process.env.NEXT_PUBLIC_IMAGE_BASE}/${fileName}`;
+      console.log('url🔥🔥', url);
 
       return url;
     });

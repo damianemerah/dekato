@@ -6,34 +6,32 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'dekato-store.s3.eu-north-1.amazonaws.com',
+        hostname: '*.dekato.ng',
         port: '',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'www.dekato.ng',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'loremflickr.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'source.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
+      ...(process.env.NODE_ENV === 'development'
+        ? [
+            {
+              protocol: 'https',
+              hostname: 'loremflickr.com',
+              port: '',
+              pathname: '/**',
+            },
+            {
+              protocol: 'https',
+              hostname: 'picsum.photos',
+              port: '',
+              pathname: '/**',
+            },
+            {
+              protocol: 'https',
+              hostname: 'source.unsplash.com',
+              port: '',
+              pathname: '/**',
+            },
+          ]
+        : {}),
     ],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96],

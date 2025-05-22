@@ -82,6 +82,7 @@ export default function NewCategory({ categoryId }) {
 
   useEffect(() => {
     if (selectedCategory) {
+      console.log('selectedCategory🔥🔥', selectedCategory);
       selectedCategory.parent && setCParent(selectedCategory?.parent.id);
       const selectedImgs = selectedCategory.image.map((img, index) => ({
         uid: index,
@@ -191,11 +192,11 @@ export default function NewCategory({ categoryId }) {
       }}
     >
       <div className="mx-auto grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm lg:col-span-2">
+        <div className="shadow-shadowSm mb-4 rounded-lg bg-white p-4 lg:col-span-2">
           <div className="mb-4">
             <label
               htmlFor="title"
-              className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
+              className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary"
             >
               TITLE
             </label>
@@ -207,13 +208,13 @@ export default function NewCategory({ categoryId }) {
               id="title"
               autoComplete="off"
               placeholder="Short sleeve t-shirt"
-              className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              className="shadow-shadowSm hover:border-grayOutline block w-full rounded-md px-3 py-3 text-sm hover:border"
             />
           </div>
           <div className="mb-4">
             <label
               htmlFor="description"
-              className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
+              className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary"
             >
               DESCRIPTION
             </label>
@@ -225,7 +226,7 @@ export default function NewCategory({ categoryId }) {
           </div>
         </div>
         <div>
-          <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
+          <div className="shadow-shadowSm mb-6 rounded-lg bg-white p-6">
             <MediaUpload
               multiple={false}
               fileList={fileList}
@@ -235,12 +236,12 @@ export default function NewCategory({ categoryId }) {
             />
           </div>
 
-          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
+          <div className="shadow-shadowSm mb-4 rounded-lg bg-white p-4">
             <div
               className={`${!cParent ? 'hidden' : ''} mb-4 flex items-center gap-2`}
             >
               <h4
-                className="block text-xxs font-bold leading-none tracking-[0.12em] text-primary"
+                className="text-xxs block font-bold leading-none tracking-[0.12em] text-primary"
                 title="Pinned categories can be featured on the homepage"
               >
                 PINNED
@@ -254,7 +255,7 @@ export default function NewCategory({ categoryId }) {
                 onChange={() => setIsPinned(!isPinned)}
               />
             </div>
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+            <h4 className="text-xxs mb-1 block font-bold uppercase tracking-[0.12em] text-primary">
               Parent Category
             </h4>
             <DropDown
