@@ -1,14 +1,14 @@
-"use client";
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+'use client';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
-import AdminSidebar from "@/app/admin/ui/sidebar";
-import Layout from "antd/lib/layout";
+import AdminSidebar from '@/app/admin/ui/sidebar';
+import Layout from 'antd/lib/layout';
 
 function AdminLayout({ children }) {
   const pathname = usePathname();
-  const paths = pathname.split("/").filter(Boolean);
-  const selected = paths.length > 0 ? paths[paths.length - 1] : "admin";
+  const paths = pathname.split('/').filter(Boolean);
+  const selected = paths.length > 0 ? paths[paths.length - 1] : 'admin';
   const [selectedNavItem, setSelectedNavItem] = useState(selected);
   const [isLoading, setIsLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
@@ -23,14 +23,17 @@ function AdminLayout({ children }) {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: '100vh' }}>
       <AdminSidebar
         selectedNavItem={selectedNavItem}
         onNavItemClick={handleNavItemClick}
         collapsed={collapsed}
         setCollapsed={setCollapsed}
       />
-      <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
+      <Layout
+        style={{ marginLeft: collapsed ? 80 : 200 }}
+        className="-mt-[--nav-height]"
+      >
         <div style={{ minHeight: 360 }} className="p-0 sm:p-6">
           {isLoading ? (
             <div className="min-h-screen">Loading...</div>

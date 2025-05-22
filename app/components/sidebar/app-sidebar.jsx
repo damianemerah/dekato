@@ -32,28 +32,30 @@ export default function AppSidebar({ categories, collections, ...props }) {
   const [openMenuIndex, setOpenMenuIndex] = React.useState(1);
 
   // Add debugging console log in development mode
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      '[Sidebar] New Arrivals Collections:',
-      collections
-        ?.filter((c) => c.slug.startsWith('new-arrival'))
-        .map((c) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          category: c.category,
-          categoryName:
-            typeof c.category === 'object'
-              ? c.category.name
-              : categories?.find((cat) => cat.id === c.category)?.name,
-        }))
-    );
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.log(
+  //     '[Sidebar] New Arrivals Collections:',
+  //     collections
+  //       ?.filter((c) => c.slug.startsWith('new-arrival'))
+  //       .map((c) => ({
+  //         id: c.id,
+  //         name: c.name,
+  //         slug: c.slug,
+  //         category: c.category,
+  //         categoryName:
+  //           typeof c.category === 'object'
+  //             ? c.category.name
+  //             : categories?.find((cat) => cat.id === c.category)?.name,
+  //       }))
+  //   );
+  // }
 
   // Use React.useMemo to memoize sidebarItems calculation
+
   const sidebarItems = React.useMemo(
     () => [
       {
+        // Route example: /shop/new-arrivals
         label: 'NEW ARRIVALS',
         children:
           collections
@@ -104,6 +106,36 @@ export default function AppSidebar({ categories, collections, ...props }) {
               href: `/shop/${subCat.path?.[0] || subCat.slug}`,
             })) || [],
         })) || []),
+      //hot code jeans
+      {
+        label: 'JEANS',
+        href: '/shop/jeans',
+        children: [
+          {
+            label: "Men's Jeans",
+            href: '/shop/men/jeans',
+          },
+          {
+            label: "Women's Jeans",
+            href: '/shop/women/jeans',
+          },
+        ],
+      },
+      {
+        //hot code bag
+        label: 'BAGS',
+        href: '/shop/bags',
+        children: [
+          {
+            label: "Men's Bags",
+            href: '/shop/men/bags',
+          },
+          {
+            label: "Women's Bags",
+            href: '/shop/women/bags',
+          },
+        ],
+      },
       {
         label: 'COLLECTIONS',
         children:
@@ -131,6 +163,10 @@ export default function AppSidebar({ categories, collections, ...props }) {
     ],
     [categories, collections]
   );
+
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <Sidebar {...props} className="sidebar-with-header">
@@ -163,7 +199,7 @@ export default function AppSidebar({ categories, collections, ...props }) {
                             <SidebarMenuSubButton
                               asChild
                               isActive={pathname === item.href}
-                              className="font-bold tracking-wider text-primary"
+                              className="font-bold tracking-wider text-primary/60"
                             >
                               <Link href={item.href}>
                                 {upperFirstLetter(item.label)}

@@ -11,6 +11,7 @@ import { SmallSpinner } from '@/app/components/spinner';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { toast } from 'sonner';
 
 const TiptapEditor = dynamic(() => import('@/app/components/text-editor'), {
   ssr: false,
@@ -47,6 +48,7 @@ const ProductForm = ({
   setDefaultFileList,
   priceRef,
   discountRef,
+  discountPriceRef,
   quantityRef,
   collectionList,
   selectedCollectionKeys,
@@ -80,7 +82,7 @@ const ProductForm = ({
           </div>
           {!isCreateMode && (
             <Link href="/admin/products/new">
-              <button className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+              <button className="rounded bg-primary px-4 py-2 text-white hover:bg-primary/80">
                 Add New Product
               </button>
             </Link>
@@ -104,6 +106,7 @@ const ProductForm = ({
               setDefaultFileList={setDefaultFileList}
               priceRef={priceRef}
               discountRef={discountRef}
+              discountPriceRef={discountPriceRef}
               quantityRef={quantityRef}
               selectedProduct={selectedProduct}
               discountDuration={discountDuration}
@@ -111,7 +114,7 @@ const ProductForm = ({
             />
             <VariantsSection handleOpenSlider={() => setOpenSlider1(true)} />
             <FormSection>
-              <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+              <h3 className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary">
                 TAGS
               </h3>
               <Select
@@ -168,110 +171,160 @@ const ProductDetails = ({
   setDefaultFileList,
   priceRef,
   discountRef,
+  discountPriceRef,
   quantityRef,
   discountDuration,
   setDiscountDuration,
   selectedProduct,
-}) => (
-  <>
-    <FormSection>
-      <FormField
-        label="TITLE"
-        name="name"
-        type="text"
-        inputRef={nameRef}
-        placeholder="Short sleeve t-shirt"
-        required
-        defaultValue={selectedProduct?.name || ''}
-      />
-      <FormField
-        label="DESCRIPTION"
-        name="description"
-        as={TiptapEditor}
-        value={description}
-        onChange={setDescription}
-      />
-    </FormSection>
-    <FormSection className="mb-6 sm:p-6">
-      <MediaUpload
-        multiple={true}
-        fileList={fileList}
-        setFileList={setFileList}
-        defaultFileList={defaultFileList}
-        setDefaultFileList={setDefaultFileList}
-        draggable={true}
-      />
-    </FormSection>
-    <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-      <FormField
-        label="PRICE"
-        name="price"
-        type="number"
-        inputRef={priceRef}
-        placeholder="100"
-        required
-        defaultValue={selectedProduct?.price || undefined}
-      />
-      <FormField
-        label="DISCOUNT (%)"
-        name="discount"
-        type="number"
-        inputRef={discountRef}
-        placeholder="0"
-        min="0"
-        max="100"
-        defaultValue={selectedProduct?.discount || undefined}
-      />
-      <div>
-        <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-          DISCOUNTED PRICE
-        </label>
-        <div
-          className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
-          title="Not editable"
-        >
-          {selectedProduct?.discountPrice || 'N/A'}
-        </div>
-      </div>
-      <div>
-        <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-          DISCOUNT DURATION
-        </label>
-        <DatePicker
-          className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm"
-          name="discountDuration"
-          value={discountDuration}
-          onChange={(value) => {
-            setDiscountDuration(value);
-          }}
-          size="large"
+}) => {
+  const calculateDiscountFromPrice = (price, discountPrice) => {
+    if (!price || !discountPrice) return 0;
+    return Math.round(((price - discountPrice) / price) * 100);
+  };
+
+  const calculateDiscountPrice = (price, discount) => {
+    if (!price || !discount) return undefined;
+    return Math.round(price * (1 - discount / 100));
+  };
+
+  const handleDiscountBlur = () => {
+    const price = parseFloat(priceRef.current?.value);
+    const discount = parseFloat(discountRef.current?.value);
+    console.log(price, discount, !isFinite(price));
+
+    if (!isFinite(price)) {
+      console.log('Price is required');
+      discountRef.current.value = '';
+      toast.error('Price is required');
+      return;
+    }
+
+    if (price && discount) {
+      const calculatedDiscountPrice = calculateDiscountPrice(price, discount);
+      discountPriceRef.current.value = calculatedDiscountPrice;
+    }
+  };
+
+  const handleDiscountPriceBlur = () => {
+    const price = parseFloat(priceRef.current?.value);
+    const discountPrice = parseFloat(discountPriceRef.current?.value);
+
+    if (!isFinite(price)) {
+      console.log('Price is required');
+      discountPriceRef.current.value = '';
+      toast.error('Price is required');
+      return;
+    }
+
+    if (price && discountPrice) {
+      const calculatedDiscount = calculateDiscountFromPrice(
+        price,
+        discountPrice
+      );
+      discountRef.current.value = calculatedDiscount;
+    }
+  };
+
+  return (
+    <>
+      <FormSection>
+        <FormField
+          label="TITLE"
+          name="name"
+          type="text"
+          inputRef={nameRef}
+          placeholder="Short sleeve t-shirt"
+          required
+          defaultValue={selectedProduct?.name || ''}
         />
-      </div>
-    </FormSection>
-    <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-      <FormField
-        label="INVENTORY"
-        name="quantity"
-        type="number"
-        inputRef={quantityRef}
-        placeholder="100"
-        required
-        defaultValue={selectedProduct?.quantity || undefined}
-      />
-      <div>
-        <label className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
-          SOLD
-        </label>
-        <div
-          className="block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm shadow-shadowSm"
-          title="Not editable"
-        >
-          {selectedProduct?.sold || 'N/A'}
+        <FormField
+          label="DESCRIPTION"
+          name="description"
+          as={TiptapEditor}
+          value={description}
+          onChange={setDescription}
+        />
+      </FormSection>
+      <FormSection className="mb-6 sm:p-6">
+        <MediaUpload
+          multiple={true}
+          fileList={fileList}
+          setFileList={setFileList}
+          defaultFileList={defaultFileList}
+          setDefaultFileList={setDefaultFileList}
+          draggable={true}
+        />
+      </FormSection>
+      <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <FormField
+          label="PRICE"
+          name="price"
+          type="number"
+          inputRef={priceRef}
+          placeholder="100"
+          required
+          defaultValue={selectedProduct?.price || undefined}
+        />
+        <FormField
+          label="DISCOUNT (%)"
+          name="discount"
+          type="number"
+          inputRef={discountRef}
+          placeholder="0"
+          min="0"
+          max="100"
+          defaultValue={selectedProduct?.discount || undefined}
+          onBlur={handleDiscountBlur}
+        />
+        <FormField
+          label="DISCOUNTED PRICE"
+          name="discountPrice"
+          type="number"
+          inputRef={discountPriceRef}
+          placeholder="0"
+          defaultValue={selectedProduct?.discountPrice || undefined}
+          onBlur={handleDiscountPriceBlur}
+        />
+        <div>
+          <label className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary">
+            DISCOUNT DURATION
+          </label>
+          <DatePicker
+            className="shadow-shadowSm block w-full rounded-md px-3 py-3 text-sm"
+            name="discountDuration"
+            value={discountDuration}
+            onChange={(value) => {
+              setDiscountDuration(value);
+            }}
+            size="large"
+          />
         </div>
-      </div>
-    </FormSection>
-  </>
-);
+      </FormSection>
+      <FormSection className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <FormField
+          label="INVENTORY"
+          name="quantity"
+          type="number"
+          inputRef={quantityRef}
+          placeholder="100"
+          required
+          defaultValue={selectedProduct?.quantity || undefined}
+        />
+        <div>
+          <label className="text-xxs mb-1 block font-bold tracking-[0.12em] text-blue-500">
+            SOLD
+          </label>
+          <div
+            className="shadow-shadowSm block w-full cursor-not-allowed rounded-md px-3 py-3 text-sm"
+            title="Not editable"
+          >
+            {selectedProduct?.sold || 'N/A'}
+          </div>
+        </div>
+      </FormSection>
+    </>
+  );
+};
 
 const ProductActions = ({
   isSwitchDisabled,
@@ -293,7 +346,7 @@ const ProductActions = ({
         <div className="flex w-full items-center justify-center">
           <button
             type="submit"
-            className="grow-1 mr-4 flex-1 rounded-md bg-blue-500 px-4 py-2.5 text-white sm:px-8 md:px-16"
+            className="grow-1 mr-4 flex-1 rounded-md bg-primary px-4 py-2.5 text-white hover:bg-primary/80 sm:px-8 md:px-16"
             ref={submitBtnRef}
           >
             <Space>
@@ -322,7 +375,7 @@ const ProductActions = ({
         </div>
       </FormSection>
       <FormSection>
-        <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+        <h3 className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary">
           CATEGORY
         </h3>
         <DropDown
@@ -333,7 +386,7 @@ const ProductActions = ({
         />
       </FormSection>
       <FormSection>
-        <h3 className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary">
+        <h3 className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary">
           COLLECTION
         </h3>
         <DropDown
@@ -348,7 +401,7 @@ const ProductActions = ({
 };
 
 const FormSection = ({ children, className = '' }) => (
-  <div className={`mb-4 rounded-lg bg-white p-4 shadow-shadowSm ${className}`}>
+  <div className={`shadow-shadowSm mb-4 rounded-lg bg-white p-4 ${className}`}>
     {children}
   </div>
 );
@@ -363,7 +416,7 @@ const FormField = ({
   <div className="mb-4">
     <label
       htmlFor={name}
-      className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
+      className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary"
     >
       {label}
     </label>
@@ -372,7 +425,7 @@ const FormField = ({
       name={name}
       ref={inputRef}
       autoComplete="off"
-      className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+      className="shadow-shadowSm hover:border-grayOutline block w-full rounded-md px-3 py-3 text-sm hover:border"
       {...props}
     />
   </div>

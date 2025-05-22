@@ -8,7 +8,7 @@ const BlogList = dynamic(() => import('@/app/admin/ui/blog/blog-list'), {
 
 function LoadingSpinner() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center">
+    <div className="flex min-h-[calc(100vh-6rem)] w-full items-center justify-center">
       <SmallSpinner className="!text-primary" />
     </div>
   );

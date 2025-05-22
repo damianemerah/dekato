@@ -11,7 +11,7 @@ export default function Error({ error, reset }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-8">
+    <div className="flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center p-8">
       <h2 className="mb-4 text-2xl">Something went wrong</h2>
       <ButtonSecondary type="primary" onClick={() => reset()}>
         Try again

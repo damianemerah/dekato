@@ -9,6 +9,9 @@ import { forgotPassword } from '@/app/action/userAction';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import ViewIcon from '@/public/assets/icons/view.svg';
+import ViewOff from '@/public/assets/icons/view-off.svg';
+import { useUserStore } from '@/app/store/store';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -34,6 +37,14 @@ export default function ResetPassword({ params: { token } }) {
     message: null,
     errors: null,
   });
+  const user = useUserStore((state) => state.user);
+
+  //if user is logged in, redirect to home page
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     if (state.success) {
@@ -51,7 +62,7 @@ export default function ResetPassword({ params: { token } }) {
   }, [state, router]); // Add updateSession to deps if used
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-8">
+    <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center px-8">
       <div className="w-full max-w-md">
         <h2 className="mb-6 text-center text-2xl font-semibold text-primary">
           Reset Password
@@ -60,14 +71,18 @@ export default function ResetPassword({ params: { token } }) {
           <InputType
             name="password"
             label="New Password"
-            type="password"
+            type={viewPassword ? 'text' : 'password'}
             required={true}
+            icon={viewPassword ? ViewIcon : ViewOff}
+            onIconClick={() => setViewPassword(!viewPassword)}
           />
           <InputType
             name="passwordConfirm"
             label="Confirm Password"
-            type="password"
+            type={viewPassword ? 'text' : 'password'}
             required={true}
+            icon={viewPassword ? ViewIcon : ViewOff}
+            onIconClick={() => setViewPassword(!viewPassword)}
           />
           <SubmitButton />
         </form>

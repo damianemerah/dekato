@@ -130,6 +130,17 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link
+                    href="/admin"
+                    className={
+                      pathname.startsWith('/admin') ? 'text-primary' : ''
+                    }
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Admin Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
                     href="/account"
                     className={pathname === '/account' ? 'text-primary' : ''}
                   >

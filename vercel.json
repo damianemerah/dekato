@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/image/:path*",
+      "destination": "https://cdn.dekato.ng/image/:path*"
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "https://cdn.dekato.ng/blog/:path*"
+    },
+    {
+      "source": "/blog-images/:path*",
+      "destination": "https://cdn.dekato.ng/blog-images/:path*"
+    },
+    {
+      "source": "/variant/:path*",
+      "destination": "https://cdn.dekato.ng/variant/:path*"
+    }
+  ]
+}

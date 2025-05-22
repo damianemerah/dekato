@@ -562,11 +562,9 @@ export async function getAllUsers(searchParams) {
 }
 
 export async function sendPasswordResetToken(prevState, formData) {
+  await dbConnect();
+  const user = await User.findOne({ email: formData.get('email') });
   try {
-    await dbConnect();
-
-    const user = await User.findOne({ email: formData.get('email') });
-
     if (!user) {
       return {
         success: false,
@@ -581,6 +579,8 @@ export async function sendPasswordResetToken(prevState, formData) {
 
     //send it to user's email
     const resetURL = `${process.env.NEXTAUTH_URL}/forgot-password/${resetToken}`;
+
+    console.log(resetURL, 'resetURL');
 
     await new Email(user, resetURL).sendPasswordReset();
 

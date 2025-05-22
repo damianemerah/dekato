@@ -98,7 +98,7 @@ function SignInContent({ searchParams }) {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center">
         <SmallSpinner className="!text-primary" />
       </div>
     );

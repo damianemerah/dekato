@@ -3,7 +3,7 @@ import { ButtonSecondary } from '@/app/components/button';
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-grayBg px-4 text-center">
+    <div className="bg-grayBg flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center px-4 text-center">
       <div className="mx-auto max-w-lg">
         <h1 className={`mb-4 text-4xl font-bold text-primary`}>
           404 - Page Not Found

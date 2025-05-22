@@ -101,6 +101,7 @@ export async function createCategory(formData) {
   try {
     await dbConnect();
     const body = await handleFormData(formData);
+    console.log(body, 'CreateData');
 
     const categoryDoc = await Category.create(body);
     const category = categoryDoc.toObject();
@@ -145,12 +146,20 @@ export async function updateCategory(formData) {
     const id = formData.get('id');
     const data = await handleFormData(formData, Category, id);
 
+    console.log(data, 'UpdateData');
+
     const body = {};
 
     for (const [key, _] of Object.entries(data)) {
       if (formData.get(key)) {
         body[key] = data[key];
       }
+    }
+
+    // Get the current category before update
+    const currentCategory = await Category.findById(id);
+    if (!currentCategory) {
+      throw new Error('Category not found');
     }
 
     const categoryDoc = await Category.findByIdAndUpdate(id, body, {
@@ -165,6 +174,40 @@ export async function updateCategory(formData) {
     }
 
     const category = categoryDoc.toObject();
+
+    // Handle parent change and update children arrays
+    if (
+      body.parent !== undefined ||
+      body.parent !== null ||
+      body.parent !== ''
+    ) {
+      const newParentId = body.parent;
+      const oldParentId = currentCategory.parent;
+
+      // Remove from old parent's children array if parent changed
+      if (
+        oldParentId &&
+        (!newParentId || oldParentId.toString() !== newParentId.toString())
+      ) {
+        await Category.findByIdAndUpdate(
+          oldParentId,
+          { $pull: { children: id } }, // Mongoose will convert 'id' to ObjectId
+          { new: true }
+        );
+      }
+
+      // Add to new parent's children array if parent is provided and changed
+      if (
+        newParentId &&
+        (!oldParentId || oldParentId.toString() !== newParentId.toString())
+      ) {
+        await Category.findByIdAndUpdate(
+          newParentId,
+          { $addToSet: { children: id } }, // Mongoose will convert 'id' to ObjectId
+          { new: true }
+        );
+      }
+    }
 
     // Get products count
     const productCount = await Product.countDocuments({

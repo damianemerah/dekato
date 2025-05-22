@@ -73,6 +73,8 @@ export async function createCollection(formData) {
     await dbConnect();
     const body = await handleFormData(formData);
 
+    console.log(body, 'bpdy🔥🔥');
+
     const collection = await Campaign.create(body);
     const leanCollection = await Campaign.findById(collection._id).lean({
       virtuals: true,

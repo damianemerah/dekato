@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getProductById } from '@/app/action/productAction';
 import ProductDetail from '@/app/components/product/product-details';
-import { Suspense } from 'react';
-import RecommendedProductsSkeleton from '@/app/components/recommended-products-skeleton';
 import SimilarProductsServer from '@/app/components/product/similar-products';
 import ProductStructuredData from '@/app/components/products/product-structured-data';
 

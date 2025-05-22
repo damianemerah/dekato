@@ -1,7 +1,6 @@
 import AppError from '@/app/utils/errorClass';
 import { uploadFiles, deleteFiles } from '@/app/lib/s3Func';
 import Category from '@/models/category';
-import { partition, endsWith, fromPairs, keys } from 'lodash';
 
 export const handleFormData = async (formData, Model, id) => {
   const productName = formData.get('name') || 'untitled';
@@ -61,12 +60,14 @@ export const handleFormData = async (formData, Model, id) => {
   updateObjWithUploadedFiles(obj, uploadedVideoNames, 'video');
   updateObjWithUploadedFiles(obj, uploadedBannerNames, 'banner');
 
+  console.log('obj🔥🔥', obj);
+
   await handleVariantImages(obj, variantsFilesToUpload);
 
   if (Model === Category) {
     obj.parent = obj.parent || null;
   }
-
+  delete obj.file;
   return obj;
 };
 
@@ -198,6 +199,8 @@ async function uploadNewFiles(filesToUpload, fileType, productName) {
 }
 
 function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
+  console.log('uploadedFileNames🔥🔥', uploadedFileNames);
+  console.log('fileType🔥🔥', fileType);
   obj[fileType].push(...uploadedFileNames);
 }
 

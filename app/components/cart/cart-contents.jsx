@@ -10,8 +10,6 @@ import WhatsappIcon from '@/public/assets/icons/whatsapp.svg';
 import { SmallSpinner } from '@/app/components/spinner';
 import { useSession } from 'next-auth/react';
 import { formatToNaira } from '@/app/utils/getFunc';
-import { toast } from 'sonner';
-import { useState } from 'react';
 
 export default function CartContents({ initialCartData = null }) {
   const { data: session } = useSession();
@@ -25,7 +23,7 @@ export default function CartContents({ initialCartData = null }) {
 
   if (!cart) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <div className="flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center gap-4">
         <SmallSpinner className="!text-primary" />
         <p>Loading...</p>
       </div>

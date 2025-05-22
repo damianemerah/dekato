@@ -44,6 +44,7 @@ const Page = memo(function Page({ slug }) {
   const priceRef = useRef(null);
   const quantityRef = useRef(null);
   const discountRef = useRef(null);
+  const discountPriceRef = useRef(null);
   const submitBtnRef = useRef(null);
 
   const showConfirmModal = useConfirmModal();
@@ -98,6 +99,7 @@ const Page = memo(function Page({ slug }) {
       priceRef.current.value = product.price || '';
       quantityRef.current.value = product.quantity || '';
       discountRef.current.value = product?.discount || '';
+      discountPriceRef.current.value = product?.discountPrice || '';
       setStatus(product.status || 'inactive');
       setTags(product.tag || []);
     },
@@ -293,6 +295,7 @@ const Page = memo(function Page({ slug }) {
       priceRef={priceRef}
       discountRef={discountRef}
       quantityRef={quantityRef}
+      discountPriceRef={discountPriceRef}
     />
   );
 });

@@ -16,7 +16,13 @@ class Email {
 
   async sendEmail(template, subject, order) {
     const html = pug.renderFile(
-      path.join(process.cwd(), 'utils', 'emailTemplate', `${template}.pug`),
+      path.join(
+        process.cwd(),
+        'app',
+        'utils',
+        'emailTemplate',
+        `${template}.pug`
+      ),
       {
         firstName: this.firstName,
         url: this.url,
