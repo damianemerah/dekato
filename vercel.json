@@ -1,12 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "redirects": [
-    {
-      "source": "/:path*",
-      "destination": "https://www.dekato.ng/:path*",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
       "source": "/image/:path*",

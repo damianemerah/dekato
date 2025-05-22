@@ -39,33 +39,12 @@ const nextConfig = {
 
   async headers() {
     return [
-      // Next.js build assets: immutable for 1 year
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      // Public assets (icons, images): immutable for 1 year
       {
         source: '/assets/(.*)',
         headers: [
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      // Home page (SSG): cache 30 sec, stale 60 sec
-      {
-        source: '/',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=30, stale-while-revalidate=60',
           },
         ],
       },
