@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ButtonSecondary } from '@/app/components/button';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CheckoutPageServer() {
   const session = await auth();
   const userId = session?.user?.id;

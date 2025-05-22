@@ -10,36 +10,42 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const galleryImages = [
-  { src: '/assets/image5.webp', alt: 'Fashion model in urban setting' },
-  { src: '/assets/image5.webp', alt: 'Close-up of stylish accessories' },
+  { src: '/assets/images/image5.webp', alt: 'Fashion model in urban setting' },
+  { src: '/assets/images/image5.webp', alt: 'Close-up of stylish accessories' },
   {
-    src: '/assets/image5.webp',
+    src: '/assets/images/image5.webp',
     alt: 'Group shot of models in latest collection',
   },
   {
-    src: '/assets/image5.webp',
+    src: '/assets/images/image5.webp',
     alt: 'Behind the scenes at fashion photoshoot',
   },
   {
-    src: '/assets/image5.webp',
+    src: '/assets/images/image5.webp',
     alt: 'Runway model showcasing designer outfit',
   },
   {
-    src: '/assets/image5.webp',
+    src: '/assets/images/image5.webp',
     alt: 'Streetwear fashion in city environment',
   },
-  { src: '/assets/image5.webp', alt: 'Detail shot of haute couture dress' },
-  { src: '/assets/image5.webp', alt: 'Detail shot of haute couture' },
   {
-    src: '/assets/image5.webp',
+    src: '/assets/images/image5.webp',
+    alt: 'Detail shot of haute couture dress',
+  },
+  { src: '/assets/images/image5.webp', alt: 'Detail shot of haute couture' },
+  {
+    src: '/assets/images/image5.webp',
     alt: 'Runway model showcasing designer outfit',
   },
   {
-    src: '/assets/image5.webp',
+    src: '/assets/images/image5.webp',
     alt: 'Streetwear fashion in city environment',
   },
-  { src: '/assets/image5.webp', alt: 'Detail shot of haute couture dress' },
-  { src: '/assets/image5.webp', alt: 'Detail shot of haute couture' },
+  {
+    src: '/assets/images/image5.webp',
+    alt: 'Detail shot of haute couture dress',
+  },
+  { src: '/assets/images/image5.webp', alt: 'Detail shot of haute couture' },
 ];
 
 // Custom hook for dot button functionality

@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const slides = [
   {
-    background: `/assets/herobg.avif`,
+    background: `/assets/images/herobg.avif`,
     title: 'UP TO 40% OFF',
     subTitle: 'BLACK FRIDAY',
     description: 'EARLY ACCESS',
@@ -17,7 +17,7 @@ const slides = [
     secondaryLinkText: "WOMEN'S DEALS",
   },
   {
-    background: `/assets/hero_img1.jpg`,
+    background: `/assets/images/hero_img1.jpg`,
     title: 'NEW COLLECTION',
     subTitle: 'WINTER 2023',
     description: 'DISCOVER THE LATEST STYLES',

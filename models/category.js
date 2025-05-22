@@ -35,7 +35,6 @@ const categorySchema = new mongoose.Schema(
       maxLength: [15, 'Image array cannot exceed 5 elements'],
       validate: {
         validator: function (v) {
-          console.log('v🔥🔥', v);
           return v.every((url) => validator.isURL(url));
         },
         message: 'Invalid URL in image array',
@@ -45,13 +44,13 @@ const categorySchema = new mongoose.Schema(
     path: {
       type: [String],
       required: [true, 'Path is required'],
+      index: true,
       validate: [(val) => val.length <= 2, 'Path can have at most 2 elements'],
     },
     parent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
       default: null,
-      // index: true,
       validate: {
         validator: async function (parentId) {
           if (!parentId) return true;
@@ -74,9 +73,6 @@ const categorySchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-
-// Index for path-based queries (used in getAllProducts, getVariantsByCategory)
-categorySchema.index({ path: 1 });
 
 // Index for parent/slug combo queries (used in createCategory, updateCategory)
 categorySchema.index({ parent: 1, slug: 1 }, { unique: true, sparse: true });

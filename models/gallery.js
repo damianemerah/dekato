@@ -33,14 +33,14 @@ const gallerySchema = new mongoose.Schema(
       ref: "Product", // Assuming there's a Product model
       required: true,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
+    // createdAt: {
+    //   type: Date,
+    //   default: Date.now,
+    // },
+    // updatedAt: {
+    //   type: Date,
+    //   default: Date.now,
+    // },
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt`

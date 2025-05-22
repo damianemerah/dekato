@@ -133,7 +133,7 @@ export const metadata = {
       'Discover the latest fashion trends and lifestyle products at Dekato Outfit.',
     images: [
       {
-        url: `${process.env.NEXTAUTH_URL || 'https://www.dekato.ng'}/assets/image5.webp`,
+        url: `${process.env.NEXTAUTH_URL || 'https://www.dekato.ng'}/assets/images/image5.webp`,
         width: 1200,
         height: 630,
         alt: 'Dekato Outfit',
@@ -144,7 +144,7 @@ export const metadata = {
     card: 'summary_large_image',
     site: '',
     creator: '',
-    images: ['/assets/image5.webp'],
+    images: ['/assets/images/image5.webp'],
   },
   robots: {
     index: true,

@@ -6,6 +6,8 @@ import { LoadingSpinner } from '@/app/components/spinner';
 import ProductCard from '@/app/components/products/product-card';
 import { Search, ShoppingBag } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ searchParams }) {
   const { q } = searchParams;
   return {

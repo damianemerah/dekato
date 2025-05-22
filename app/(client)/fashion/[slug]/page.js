@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getBlogBySlug } from '@/app/action/blogAction';
 
+export const revalidate = 3600; // 1 hour
+
 export async function generateMetadata({ params }) {
   const blog = await getBlogBySlug(params.slug);
 

@@ -7,7 +7,7 @@ export default function FeaturedProduct() {
       {/* Full-width background image */}
       <div className="relative min-h-72 w-full md:min-h-80 lg:min-h-96">
         <Image
-          src="/assets/featured-tee.webp"
+          src="/assets/images/featured-tee.webp"
           alt="Model wearing premium t-shirt"
           fill
           className="object-cover"

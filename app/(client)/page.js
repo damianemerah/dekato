@@ -25,7 +25,7 @@ export const metadata = {
       'Discover the latest fashion trends and lifestyle products at Dekato Outfit.',
     images: [
       {
-        url: '/assets/image5.webp',
+        url: '/assets/images/image5.webp',
         width: 1200,
         height: 630,
         alt: 'Dekato Outfit',
@@ -89,7 +89,7 @@ export default async function Home() {
       {/* Our Story section */}
       <OurStory />
 
-      {/* <Blog /> */}
+      <Blog />
       <Gallery />
     </div>
   );
