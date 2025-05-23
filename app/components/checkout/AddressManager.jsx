@@ -40,7 +40,12 @@ export default function AddressManager({
             formData.append('addressId', data);
             formData.append('isDefault', isDefault);
             formData.append('userId', userId);
-            await updateUserAddress(formData);
+            const result = await updateUserAddress(formData);
+            if (result?.error) {
+              setIsUpdating(false);
+              message.error(result.message || 'Failed to update address');
+              return;
+            }
 
             // Fetch updated address data and pass it to parent
             const updatedData = await getUserAddress(userId);
@@ -54,8 +59,11 @@ export default function AddressManager({
           if (data.get('isDefault') === 'on') {
             data.set('isDefault', 'true');
           }
-          await updateUserAddress(data);
-
+          const result = await updateUserAddress(data);
+          if (result?.error) {
+            message.error(result.message || 'Failed to update address');
+            return;
+          }
           // Fetch updated address data and pass it to parent
           const updatedData = await getUserAddress(userId);
           onAddressUpdate(updatedData);
@@ -84,7 +92,12 @@ export default function AddressManager({
             formData.set('isDefault', true);
           }
 
-          await createUserAddress(formData);
+          const result = await createUserAddress(formData);
+          if (result?.error) {
+            setIsUpdating(false);
+            message.error(result.message || 'Failed to add address');
+            return;
+          }
 
           // Fetch updated address data and pass it to parent
           const updatedData = await getUserAddress(userId);

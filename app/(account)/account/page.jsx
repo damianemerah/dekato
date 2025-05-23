@@ -12,7 +12,7 @@ export default async function AccountPage() {
   }
 
   // Fetch data concurrently
-  const [userData, addressData, ordersData] = await Promise.all([
+  const [userData = {}, addressData = [], ordersData] = await Promise.all([
     getUser(userId),
     getUserAddress(userId),
     getUserOrders(userId),

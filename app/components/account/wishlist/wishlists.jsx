@@ -39,8 +39,11 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
           image: product.image[0],
           userId,
         };
-        await createCartItem(userId, newItem);
-        await removeFromWishlist(userId, product.id);
+        const result = await createCartItem(userId, newItem);
+        if (result?.error) {
+          toast.error(result.message || 'Failed to add item to cart');
+          throw new Error('Failed to add item to cart');
+        } else await removeFromWishlist(userId, product.id);
       }
 
       // Update local state

@@ -19,6 +19,7 @@ import { generateVariantOptions } from '@/app/utils/getFunc';
 import useConfirmModal from '@/app/components/confirm-modal';
 import { useUserStore } from '@/app/store/store';
 import ProductForm from '@/app/admin/ui/products/productForm';
+import { toast } from 'sonner';
 
 const Page = memo(function Page({ slug }) {
   const router = useRouter();
@@ -207,17 +208,20 @@ const Page = memo(function Page({ slug }) {
       const action = actionType === 'create' ? createProduct : updateProduct;
       if (actionType === 'edit') formData.append('id', slug);
 
-      const product = await action(formData);
-      if (product.status === 'error') throw new Error(product.message);
+      const result = await action(formData);
+      if (result?.error) {
+        toast.error(result.error.message);
+        return;
+      }
 
-      mutate(`/admin/products/${product.id}`);
+      mutate(`/admin/products/${result.id}`);
       mutate(`/cart/${user.id}`);
       message.success(
         `Product ${actionType === 'create' ? 'created' : 'updated'}`
       );
 
       if (actionType === 'create') {
-        router.push(`/admin/products/${product.id}`);
+        router.push(`/admin/products/${result.id}`);
       }
     } catch (err) {
       message.error(err.message);
@@ -243,7 +247,11 @@ const Page = memo(function Page({ slug }) {
       centered: true,
       async onOk() {
         setSwitchState(true);
-        await setProductStatus(products.id, newStatus);
+        const result = await setProductStatus(products.id, newStatus);
+        if (result?.error) {
+          message.error(result.message || 'Error updating product status');
+          return;
+        }
         setStatus(newStatus);
         setSwitchState(false);
         message.success(

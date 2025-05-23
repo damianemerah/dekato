@@ -12,5 +12,5 @@ export default async function AddressPage() {
 
   const addressData = await getUserAddress(userId);
 
-  return <AddressCard initialAddressData={addressData} />;
+  return <AddressCard initialAddressData={addressData || []} />;
 }

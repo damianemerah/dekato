@@ -4,10 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { cache } from 'react';
 import dbConnect from '@/app/lib/mongoConnection';
 import Blog from '@/models/blog';
-import handleAppError from '@/app/utils/appError';
 import { formDataToObject } from '@/app/utils/filterObj';
 import { uploadFiles } from '@/app/lib/s3Func';
 import { restrictTo } from '@/app/utils/checkPermission';
+import { handleError } from '@/app/utils/appError';
+import AppError from '@/app/utils/errorClass';
 
 const toObject = (data) => {
   if (typeof data.categories === 'string') {
@@ -53,9 +54,7 @@ export async function createBlog(formData) {
     revalidatePath('/admin/blog');
     return { id: blog._id.toString(), ...blog.toObject() };
   } catch (err) {
-    console.error('Create blog error:', err);
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Failed to create blog post');
+    return handleError(err);
   }
 }
 
@@ -80,7 +79,7 @@ export async function updateBlog(id, formData) {
     );
 
     if (!blog) {
-      throw new Error('Blog post not found');
+      throw new AppError('Blog post not found', 404);
     }
 
     revalidatePath('/blog');
@@ -89,8 +88,7 @@ export async function updateBlog(id, formData) {
     revalidatePath(`/blog/${blog.slug}`);
     return { id: blog._id.toString(), ...blog.toObject() };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Failed to update blog post');
+    return handleError(err);
   }
 }
 
@@ -104,7 +102,7 @@ export async function getBlog(id) {
       .lean();
 
     if (!blog) {
-      throw new Error('Blog post not found');
+      throw new AppError('Blog post not found', 404);
     }
 
     const formattedBlog = {
@@ -120,8 +118,7 @@ export async function getBlog(id) {
 
     return formattedBlog;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Failed to fetch blog post');
+    return handleError(err);
   }
 }
 
@@ -200,7 +197,7 @@ export async function deleteBlog(id) {
     const blog = await Blog.findByIdAndDelete(id);
 
     if (!blog) {
-      throw new Error('Blog post not found');
+      throw new AppError('Blog post not found', 404);
     }
 
     revalidatePath('/blog');
@@ -208,8 +205,7 @@ export async function deleteBlog(id) {
     revalidatePath('/admin/blog');
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Failed to delete blog post');
+    return handleError(err);
   }
 }
 
@@ -239,7 +235,6 @@ export async function getBlogBySlug(slug) {
 
     return formattedBlog;
   } catch (err) {
-    console.error('Error fetching blog by slug:', err);
-    throw new Error(err.message || 'Failed to fetch blog post');
+    return handleError(err);
   }
 }

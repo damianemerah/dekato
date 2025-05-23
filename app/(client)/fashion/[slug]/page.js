@@ -7,7 +7,7 @@ export const revalidate = 3600; // 1 hour
 export async function generateMetadata({ params }) {
   const blog = await getBlogBySlug(params.slug);
 
-  if (!blog) {
+  if (!blog || blog?.error) {
     return {
       title: 'Blog Not Found',
       description: 'The requested blog post could not be found',
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }) {
 export default async function BlogDetailPage({ params }) {
   const blog = await getBlogBySlug(params.slug);
 
-  if (!blog) {
+  if (!blog || blog?.error) {
     notFound();
   }
 

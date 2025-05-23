@@ -45,42 +45,37 @@ async function generateUniqueReference() {
 export async function getCheckoutData(userId) {
   await restrictTo('user', 'admin');
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    const cart = await Cart.findOne({ userId })
-      .populate({
-        path: 'item',
-        populate: {
-          path: 'product',
-          select: 'slug variant image name price discount discountPrice',
-        },
-      })
-      .lean({ virtuals: true });
+  const cart = await Cart.findOne({ userId })
+    .populate({
+      path: 'item',
+      populate: {
+        path: 'product',
+        select: 'slug variant image name price discount discountPrice',
+      },
+    })
+    .lean({ virtuals: true });
 
-    if (!cart) {
-      throw new AppError('Cart not found', 404);
-    }
-
-    const checkedItems = cart.item.filter((item) => item.checked);
-
-    const formattedItems = checkedItems.map(formatCartItem);
-
-    const itemCount = checkedItems.reduce(
-      (total, item) => total + item.quantity,
-      0
-    );
-
-    return {
-      userId,
-      items: formattedItems,
-      itemCount,
-      totalPrice: cart.totalPrice,
-    };
-  } catch (error) {
-    console.error('Error in getCheckoutData:', error);
-    throw error;
+  if (!cart) {
+    throw new AppError('Cart not found', 404);
   }
+
+  const checkedItems = cart.item.filter((item) => item.checked);
+
+  const formattedItems = checkedItems.map(formatCartItem);
+
+  const itemCount = checkedItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
+  return {
+    userId,
+    items: formattedItems,
+    itemCount,
+    totalPrice: cart.totalPrice,
+  };
 }
 
 export async function initiateCheckout(checkoutData) {
@@ -368,9 +363,6 @@ export async function createPendingOrder(orderInputData) {
 }
 
 export async function verifyAndCompleteOrder(paystackReference) {
-  console.log(
-    `[DEBUG verifyAndCompleteOrder] Entered with reference: ${paystackReference}`
-  );
   await restrictTo('user', 'admin');
 
   const session = await auth();
@@ -381,7 +373,6 @@ export async function verifyAndCompleteOrder(paystackReference) {
     redirect('/signin?callbackUrl=/cart'); // Redirect early if not authenticated
   }
 
-  console.log(`[DEBUG verifyAndCompleteOrder] Authenticated user: ${userId}`);
   await dbConnect();
 
   let verificationStatus = null; // Variable to hold status after try block
@@ -401,9 +392,6 @@ export async function verifyAndCompleteOrder(paystackReference) {
     });
 
     if (recentAttempts > 5) {
-      console.warn(
-        `[WARN verifyAndCompleteOrder] Too many verification attempts for ${paystackReference}`
-      );
       redirect(
         `/checkout/failed?reason=rate_limited&reference=${paystackReference}`
       ); // Early exit redirect
@@ -417,9 +405,6 @@ export async function verifyAndCompleteOrder(paystackReference) {
     });
 
     if (processingOrder) {
-      console.warn(
-        `[WARN verifyAndCompleteOrder] Order ${paystackReference} is already being processed`
-      );
       redirect(
         `/checkout/success?reference=${paystackReference}&status=processing`
       );
@@ -434,20 +419,10 @@ export async function verifyAndCompleteOrder(paystackReference) {
       }
     );
 
-    // Verify the transaction with Paystack
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Calling Paystack.transaction.verify for ref: ${paystackReference}`
-    );
     const verification = await Paystack.transaction.verify(paystackReference);
     verificationStatus = verification?.data?.status; // Store Paystack status
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Paystack verification status: ${verificationStatus}, Reference: ${verification?.data?.reference}`
-    );
 
     if (!verification.data) {
-      console.error(
-        '[ERROR verifyAndCompleteOrder] Paystack verification returned no data.'
-      );
       await Order.findOneAndUpdate(
         { paymentRef: paystackReference },
         { processingLock: false }
@@ -455,26 +430,13 @@ export async function verifyAndCompleteOrder(paystackReference) {
       throw new Error('Paystack verification failed'); // Throw operational error
     }
 
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Finding order with paymentRef: ${paystackReference}`
-    );
     const order = await Order.findOne({ paymentRef: paystackReference });
 
     if (!order) {
-      console.error(
-        `[ERROR verifyAndCompleteOrder] Order not found for ref: ${paystackReference}`
-      );
       throw new Error('Order not found'); // Throw operational error
     }
 
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Found order ID: ${order._id}, Current status: ${order.status}, UserID: ${order.userId}`
-    );
-
     if (order.userId.toString() !== userId) {
-      console.error(
-        `[ERROR verifyAndCompleteOrder] User mismatch: Order User ${order.userId}, Session User ${userId}`
-      );
       await Order.findOneAndUpdate(
         { paymentRef: paystackReference },
         { processingLock: false }
@@ -484,9 +446,6 @@ export async function verifyAndCompleteOrder(paystackReference) {
 
     // Check if order is already processed to prevent double processing
     if (order.status === 'success') {
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Order ${order._id} already processed.`
-      );
       // Release the lock
       await Order.findOneAndUpdate(
         { paymentRef: paystackReference },
@@ -499,28 +458,15 @@ export async function verifyAndCompleteOrder(paystackReference) {
 
     // Process the payment based on Paystack verification status
     if (verification.data.status === 'success') {
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Processing successful payment for order ${order._id}`
-      );
-
       // Update order status
       order.status = 'success';
       order.paidAt = new Date();
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Updated order status to 'success' and set paidAt to ${order.paidAt}`
-      );
 
-      // Update product quantities and status
-      console.log(
-        '[DEBUG verifyAndCompleteOrder] Updating product quantities...'
-      );
       await updateProductQuantity(order);
-      console.log('[DEBUG verifyAndCompleteOrder] Product quantities updated.');
 
       await User.findByIdAndUpdate(order.userId, {
         $inc: { amountSpent: order.total, orderCount: 1 },
       });
-      console.log('[DEBUG verifyAndCompleteOrder] User stats updated.');
 
       await Notification.create({
         title: 'New Order',
@@ -529,14 +475,11 @@ export async function verifyAndCompleteOrder(paystackReference) {
         orderId: order._id,
         userId: order.userId,
       });
-      console.log(`[DEBUG verifyAndCompleteOrder] Admin notification created.`);
 
       // Cart clearing logic (with its own transaction)
       if (order.cartItems && order.cartItems.length > 0) {
         const cartItemIds = order.cartItems.map((item) => item.toString());
-        console.log(
-          `[DEBUG verifyAndCompleteOrder] Clearing ${cartItemIds.length} cart items`
-        );
+
         const cartSession = await mongoose.startSession();
         await cartSession
           .withTransaction(async () => {
@@ -548,9 +491,6 @@ export async function verifyAndCompleteOrder(paystackReference) {
               { userId: order.userId },
               { $pull: { item: { $in: cartItemIds } } },
               { session: cartSession }
-            );
-            console.log(
-              `[DEBUG verifyAndCompleteOrder] Cart items deleted: ${deleteResult.deletedCount}, Cart updated.`
             );
           })
           .catch((err) => {
@@ -565,10 +505,6 @@ export async function verifyAndCompleteOrder(paystackReference) {
         console.log('[DEBUG verifyAndCompleteOrder] No cart items to clear');
       }
 
-      // Recommendation tracking
-      console.log(
-        '[DEBUG verifyAndCompleteOrder] Tracking product interactions'
-      );
       for (const item of order.product) {
         if (item.productId) {
           await recommendationService.trackProductInteraction(
@@ -578,37 +514,22 @@ export async function verifyAndCompleteOrder(paystackReference) {
           );
         }
       }
-      console.log(
-        '[DEBUG verifyAndCompleteOrder] Product interactions tracked'
-      );
-      console.log(
-        '[DEBUG verifyAndCompleteOrder] Successful processing steps completed.'
-      );
     } else {
       // Handle non-success Paystack statuses
       const status =
         verification.data.status === 'failed' ? 'failed' : 'abandoned';
-      console.log(
-        `[DEBUG verifyAndCompleteOrder] Payment ${status}, updating order status`
-      );
+
       order.status = status;
     }
 
     // Save final order state
     finalOrderStatus = order.status; // Update final status
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Attempting to save order ${order._id} with status: ${finalOrderStatus}`
-    );
+
     order.processingLock = false; // Release lock before final save
     await order.save();
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Order ${order._id} saved successfully.`
-    );
 
     // Revalidate paths after successful save
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Revalidating paths: /cart, /checkout`
-    );
+
     revalidatePath('/cart');
     revalidatePath('/checkout');
     revalidateTag('cart');
@@ -619,21 +540,10 @@ export async function verifyAndCompleteOrder(paystackReference) {
 
     // --- End of the operational logic ---
   } catch (error) {
-    // Catch ONLY operational errors from the try block
-    console.error(
-      '[ERROR verifyAndCompleteOrder] Caught operational error:',
-      error.message,
-      error.stack
-    );
     // Attempt to release lock even on error
     await Order.findOneAndUpdate(
       { paymentRef: paystackReference },
       { processingLock: false }
-    ).catch((lockError) =>
-      console.error(
-        '[ERROR verifyAndCompleteOrder] Failed to release lock on error:',
-        lockError
-      )
     );
     // Redirect to failure page for operational errors
     redirect(`/checkout/failed?reason=error&reference=${paystackReference}`); // This redirect WILL be caught by Next.js
@@ -643,24 +553,14 @@ export async function verifyAndCompleteOrder(paystackReference) {
 
   // Redirect based on the final status determined within the try block
   if (verificationStatus === 'success' && finalOrderStatus === 'success') {
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Redirecting to success page (status: success) for ref: ${paystackReference}`
-    );
     redirect(`/checkout/success?reference=${paystackReference}&status=success`);
   } else if (verificationStatus) {
-    // Handle non-success statuses that weren't operational errors (e.g., abandoned, failed payment)
-    // Redirect to the success page, but pass the *actual* final status
-    console.log(
-      `[DEBUG verifyAndCompleteOrder] Redirecting to success page (status: ${finalOrderStatus}) for ref: ${paystackReference}`
-    );
     redirect(
       `/checkout/success?reference=${paystackReference}&status=${finalOrderStatus}`
     );
   } else {
     // Should ideally not be reached if logic is sound, but as a fallback:
-    console.error(
-      `[ERROR verifyAndCompleteOrder] Reached end without definite status for ref: ${paystackReference}. Redirecting to failed.`
-    );
+
     redirect(`/checkout/failed?reason=unknown&reference=${paystackReference}`);
   }
 }
@@ -670,30 +570,17 @@ export async function verifyAndCompleteOrder(paystackReference) {
  * @param {Object} order - The order document
  */
 async function updateProductQuantity(order) {
-  console.log(`[DEBUG updateProductQuantity] Entered for order: ${order._id}`);
-
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     for (const item of order.product) {
       if (!item.productId) {
-        console.log(
-          '[DEBUG updateProductQuantity] Skipping item without productId'
-        );
         continue;
       }
 
-      console.log(
-        `[DEBUG updateProductQuantity] Processing product: ${item.productId}, quantity: ${item.quantity}`
-      );
-
       // Check if this is a variant product
       if (item.variantId) {
-        console.log(
-          `[DEBUG updateProductQuantity] Processing variant: ${item.variantId}`
-        );
-
         // Use atomic operations to update the variant quantity and check stock status
         const result = await Product.findOneAndUpdate(
           {
@@ -714,15 +601,8 @@ async function updateProductQuantity(order) {
         );
 
         if (!result) {
-          console.log(
-            `[DEBUG updateProductQuantity] Product or variant not found: ${item.productId}/${item.variantId}`
-          );
           continue;
         }
-
-        console.log(
-          `[DEBUG updateProductQuantity] Updated variant quantity for product: ${result._id}`
-        );
 
         // Check if all variants are out of stock and update status if needed
         const allVariantsOutOfStock = result.variant.every(
@@ -734,16 +614,8 @@ async function updateProductQuantity(order) {
             { status: 'outofstock' },
             { session }
           );
-          console.log(
-            '[DEBUG updateProductQuantity] All variants out of stock, marked product as outofstock'
-          );
         }
       } else {
-        // Handle non-variant products with atomic operation
-        console.log(
-          `[DEBUG updateProductQuantity] Processing non-variant product`
-        );
-
         const result = await Product.findByIdAndUpdate(
           item.productId,
           {
@@ -766,15 +638,8 @@ async function updateProductQuantity(order) {
         );
 
         if (!result) {
-          console.log(
-            `[DEBUG updateProductQuantity] Product not found: ${item.productId}`
-          );
           continue;
         }
-
-        console.log(
-          `[DEBUG updateProductQuantity] Updated product quantity to ${result.quantity}`
-        );
 
         // Additional check for out of stock status
         if (result.quantity <= 0 && result.status !== 'outofstock') {
@@ -783,30 +648,16 @@ async function updateProductQuantity(order) {
             { status: 'outofstock' },
             { session }
           );
-          console.log(
-            '[DEBUG updateProductQuantity] Product out of stock, marked as outofstock'
-          );
         }
       }
     }
 
-    console.log(
-      '[DEBUG updateProductQuantity] Successfully updated all product quantities'
-    );
-
     // Commit the transaction
     await session.commitTransaction();
-    console.log(
-      '[DEBUG updateProductQuantity] Transaction committed successfully'
-    );
   } catch (error) {
     // Abort the transaction on error
     await session.abortTransaction();
-    console.error(
-      '[ERROR updateProductQuantity] Error updating product quantity:',
-      error.message,
-      error.stack
-    );
+
     throw error;
   } finally {
     // End the session

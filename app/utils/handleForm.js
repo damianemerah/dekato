@@ -60,8 +60,6 @@ export const handleFormData = async (formData, Model, id) => {
   updateObjWithUploadedFiles(obj, uploadedVideoNames, 'video');
   updateObjWithUploadedFiles(obj, uploadedBannerNames, 'banner');
 
-  console.log('obj🔥🔥', obj);
-
   await handleVariantImages(obj, variantsFilesToUpload);
 
   if (Model === Category) {
@@ -199,8 +197,6 @@ async function uploadNewFiles(filesToUpload, fileType, productName) {
 }
 
 function updateObjWithUploadedFiles(obj, uploadedFileNames, fileType) {
-  console.log('uploadedFileNames🔥🔥', uploadedFileNames);
-  console.log('fileType🔥🔥', fileType);
   obj[fileType].push(...uploadedFileNames);
 }
 

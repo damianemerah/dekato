@@ -49,7 +49,11 @@ const CustomersList = ({ searchParams, data }) => {
           content: 'This action cannot be undone',
           async onOk() {
             try {
-              await deleteUser(id);
+              const result = await deleteUser(id);
+              if (result?.error) {
+                message.error(result.message || 'Failed to delete customer');
+                return;
+              }
               message.success('Customer deleted successfully');
             } catch (error) {
               message.error(error.message || 'Failed to delete customer');

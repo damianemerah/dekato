@@ -8,11 +8,13 @@ import {
   updateUserAddress,
   createUserAddress,
   getUserAddress,
+  deleteUserAddress,
 } from '@/app/action/userAction';
 import { SmallSpinner } from '@/app/components/spinner';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import EditIcon from '@/public/assets/icons/edit.svg';
 import { useSession } from 'next-auth/react';
+import DeleteIcon from '@/public/assets/icons/remove.svg';
 
 export default function Address({ initialAddressData }) {
   const [showForm, setShowForm] = useState(false);
@@ -43,7 +45,11 @@ export default function Address({ initialAddressData }) {
           formData.append('addressId', data);
           formData.append('isDefault', isDefault);
           formData.append('userId', userId);
-          await updateUserAddress(formData);
+          const result = await updateUserAddress(formData);
+          if (result?.error) {
+            message.error(result.message || 'Failed to update address');
+            return;
+          }
           message.success('Address updated successfully');
 
           // Update local state
@@ -60,7 +66,11 @@ export default function Address({ initialAddressData }) {
         if (data.get('isDefault') === 'on') {
           data.set('isDefault', 'true');
         }
-        await updateUserAddress(data);
+        const result = await updateUserAddress(data);
+        if (result?.error) {
+          message.error(result.message || 'Failed to update address');
+          return;
+        }
 
         message.success('Address updated successfully');
 
@@ -87,7 +97,11 @@ export default function Address({ initialAddressData }) {
       }
 
       try {
-        await createUserAddress(formData);
+        const result = await createUserAddress(formData);
+        if (result?.error) {
+          message.error(result.message || 'Failed to add address');
+          return;
+        }
 
         message.success('Address added successfully');
 
@@ -111,6 +125,39 @@ export default function Address({ initialAddressData }) {
     setShowForm(false);
     setEditingAddress(null);
   }, []);
+
+  const handleDeleteAddress = useCallback(
+    async (addressId) => {
+      setIsUpdating(true);
+      if (!userId) {
+        message.error('User ID is required to delete address');
+        return;
+      }
+      if (!addressId) {
+        message.error('Address ID is required to delete address');
+        return;
+      }
+      try {
+        console.log('Deleting address with ID:', addressId);
+        const result = await deleteUserAddress(addressId);
+        if (result?.error) {
+          message.error(result.message || 'Failed to delete address');
+          return;
+        }
+        message.success('Address deleted successfully');
+
+        setAddresses((prev) =>
+          prev.filter((address) => address.id !== addressId)
+        );
+      } catch (error) {
+        console.error('Error deleting address:', error);
+        message.error('Failed to delete address. Please try again.');
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [userId]
+  );
 
   const renderAddressForm = () => (
     <Modal
@@ -259,15 +306,23 @@ export default function Address({ initialAddressData }) {
                   Default
                 </span>
               )}
-              <button
-                className="absolute bottom-2 right-2 rounded-full bg-gray-100 p-2 transition-colors hover:bg-gray-200"
-                onClick={() => {
-                  setEditingAddress(address);
-                  setShowForm(true);
-                }}
-              >
-                <EditIcon className="h-5 w-5" />
-              </button>
+              <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                <button
+                  className="rounded-full bg-gray-100 p-2 transition-colors hover:bg-gray-200"
+                  onClick={() => {
+                    setEditingAddress(address);
+                    setShowForm(true);
+                  }}
+                >
+                  <EditIcon className="h-4 w-4" />
+                </button>
+                <button
+                  className="font-base rounded-full bg-gray-100 p-2 transition-colors hover:bg-red-100 hover:text-red-500"
+                  onClick={() => handleDeleteAddress(address.id)}
+                >
+                  <DeleteIcon className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>

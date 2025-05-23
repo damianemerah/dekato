@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Form,
-  Input,
-  Button,
-  Card,
-  Select,
-  message,
-  Typography,
-  Space,
-} from 'antd';
+import { Form, Input, Button, Card, Select, message, Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -115,6 +106,11 @@ export default function BlogForm({ initialData }) {
         message.success('Blog updated successfully');
       } else {
         const data = await createBlog(formData);
+
+        if (data?.error || data.success === false) {
+          message.error(data.message || 'Something went wrong');
+          return;
+        }
         message.success('Blog created successfully');
         router.push(`/admin/blogs/${data.id}`);
       }

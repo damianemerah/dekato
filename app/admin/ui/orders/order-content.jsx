@@ -115,7 +115,7 @@ const OrderDetails = React.memo(function OrderDetails({ params }) {
     );
   }
 
-  if (!order) {
+  if (!order || order?.error) {
     return <div>Order not found</div>;
   }
 

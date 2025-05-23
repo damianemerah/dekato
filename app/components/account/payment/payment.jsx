@@ -14,6 +14,11 @@ export default function Payment({ initialPaymentMethods }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!initialPaymentMethods) {
+      message.error('Failed to fetch payment methods');
+      setIsLoading(false);
+      return;
+    }
     if (initialPaymentMethods) {
       setPaymentMethods(initialPaymentMethods);
       setIsLoading(false);
@@ -22,7 +27,12 @@ export default function Payment({ initialPaymentMethods }) {
 
   const handleDelete = async (paymentId) => {
     try {
-      await deletePaymentMethod(paymentId);
+      const result = await deletePaymentMethod(paymentId);
+
+      if (result?.error) {
+        message.error('Failed to delete payment method');
+        return;
+      }
 
       // Update local state
       setPaymentMethods((prev) => prev.filter((item) => item.id !== paymentId));

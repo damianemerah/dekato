@@ -7,31 +7,26 @@ import { omit } from 'lodash';
 import { restrictTo } from '@/app/utils/checkPermission';
 import { auth } from '@/app/lib/auth';
 import AppError from '@/app/utils/errorClass';
-import handleAppError from '@/app/utils/appError';
+import { handleError } from '@/app/utils/appError';
 
 export async function getPaymentMethod(userId) {
   await restrictTo('user', 'admin');
 
-  try {
-    // Verify the user is either accessing their own data or is an admin
-    const session = await auth();
-    if (session?.user?.id !== userId && session?.user?.role !== 'admin') {
-      throw new AppError('Unauthorized to access these payment methods', 403);
-    }
-
-    await dbConnect();
-    const res = await Payment.find({ userId })
-      .select('_id authorization isDefault')
-      .lean();
-    return res.map((item) => ({
-      id: item._id.toString(),
-      authorization: omit(item.authorization, ['authorization_code']),
-      ...omit(item, ['_id', 'userId', 'authorization']),
-    }));
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+  // Verify the user is either accessing their own data or is an admin
+  const session = await auth();
+  if (session?.user?.id !== userId && session?.user?.role !== 'admin') {
+    throw new AppError('Unauthorized to access these payment methods', 403);
   }
+
+  await dbConnect();
+  const res = await Payment.find({ userId })
+    .select('_id authorization isDefault')
+    .lean();
+  return res.map((item) => ({
+    id: item._id.toString(),
+    authorization: omit(item.authorization, ['authorization_code']),
+    ...omit(item, ['_id', 'userId', 'authorization']),
+  }));
 }
 
 export async function deletePaymentMethod(paymentId) {
@@ -64,8 +59,7 @@ export async function deletePaymentMethod(paymentId) {
 
     return { id: res._id.toString(), ...omit(res, ['_id', 'userId']) };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -103,7 +97,6 @@ export async function updatePaymentMethod(paymentId, data) {
     }).lean();
     return res;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }

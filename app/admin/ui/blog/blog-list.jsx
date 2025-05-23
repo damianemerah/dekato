@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import useSWR from "swr";
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import useSWR from 'swr';
 import {
   Table,
   Card,
@@ -16,21 +16,21 @@ import {
   Dropdown,
   Modal,
   message,
-} from "antd";
+} from 'antd';
 import {
   PlusOutlined,
   SearchOutlined,
   MoreOutlined,
   LoadingOutlined,
-} from "@ant-design/icons";
-import { getAllBlogs, deleteBlog } from "@/app/action/blogAction";
+} from '@ant-design/icons';
+import { getAllBlogs, deleteBlog } from '@/app/action/blogAction';
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 export default function BlogList({ searchParams }) {
   const router = useRouter();
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
   const [status, setStatus] = useState(null);
   const [dateRange, setDateRange] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -44,30 +44,34 @@ export default function BlogList({ searchParams }) {
     isLoading,
     mutate,
   } = useSWR(
-    `/api/blogs?page=${page}&search=${searchText}&status=${status || ""}`,
+    `/api/blogs?page=${page}&search=${searchText}&status=${status || ''}`,
     () => getAllBlogs({ page, limit, search: searchText, status }),
     {
       revalidateOnFocus: false,
       onSuccess: (data) => {
         setTotalCount(data.pagination.total);
       },
-    },
+    }
   );
 
   const handleDelete = async (id) => {
     Modal.confirm({
-      title: "Are you sure you want to delete this blog?",
-      content: "This action cannot be undone.",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
+      title: 'Are you sure you want to delete this blog?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
       onOk: async () => {
         try {
-          await deleteBlog(id);
-          message.success("Blog deleted successfully");
+          const result = await deleteBlog(id);
+          if (result?.error) {
+            message.error(result.message || 'Failed to delete blog');
+            return;
+          }
+          message.success('Blog deleted successfully');
           mutate();
         } catch (error) {
-          message.error(error.message || "Failed to delete blog");
+          message.error(error.message || 'Failed to delete blog');
         }
       },
     });
@@ -75,9 +79,9 @@ export default function BlogList({ searchParams }) {
 
   const columns = [
     {
-      title: "Title",
-      dataIndex: "title",
-      key: "title",
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
       render: (text, record) => (
         <Link
           href={`/admin/blogs/${record._id}`}
@@ -88,42 +92,42 @@ export default function BlogList({ searchParams }) {
       ),
     },
     {
-      title: "Author",
-      dataIndex: "author",
-      key: "author",
-      render: (author) => author || "Unknown",
+      title: 'Author',
+      dataIndex: 'author',
+      key: 'author',
+      render: (author) => author || 'Unknown',
     },
     {
-      title: "Published Date",
-      dataIndex: "publishedAt",
-      key: "publishedAt",
+      title: 'Published Date',
+      dataIndex: 'publishedAt',
+      key: 'publishedAt',
       render: (date, record) =>
-        date ? new Date(date).toLocaleDateString() : "Not published",
+        date ? new Date(date).toLocaleDateString() : 'Not published',
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
       render: (status) => (
-        <Tag color={status === "published" ? "green" : "orange"}>
+        <Tag color={status === 'published' ? 'green' : 'orange'}>
           {status.toUpperCase()}
         </Tag>
       ),
     },
     {
-      title: "Actions",
-      key: "actions",
+      title: 'Actions',
+      key: 'actions',
       render: (_, record) => (
         <Dropdown
           menu={{
             items: [
               {
-                key: "edit",
+                key: 'edit',
                 label: <Link href={`/admin/blogs/${record._id}`}>Edit</Link>,
               },
               {
-                key: "delete",
-                label: "Delete",
+                key: 'delete',
+                label: 'Delete',
                 danger: true,
                 onClick: () => handleDelete(record._id),
               },
@@ -167,8 +171,8 @@ export default function BlogList({ searchParams }) {
             onChange={setStatus}
             style={{ width: 150 }}
             options={[
-              { value: "draft", label: "Draft" },
-              { value: "published", label: "Published" },
+              { value: 'draft', label: 'Draft' },
+              { value: 'published', label: 'Published' },
             ]}
           />
           <RangePicker
@@ -192,11 +196,11 @@ export default function BlogList({ searchParams }) {
             isLoading
               ? {
                   indicator: <LoadingOutlined spin className="!text-primary" />,
-                  size: "large",
+                  size: 'large',
                 }
               : false
           }
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
     </div>

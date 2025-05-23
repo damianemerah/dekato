@@ -5,9 +5,10 @@ import Campaign from '@/models/collection';
 import Product from '@/models/product';
 import { handleFormData } from '@/app/utils/handleForm';
 import { restrictTo } from '@/app/utils/checkPermission';
-import handleAppError from '@/app/utils/appError';
+import { handleError } from '@/app/utils/appError';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import APIFeatures from '@/app/utils/apiFeatures';
+import AppError from '@/app/utils/errorClass';
 
 function formatCollections(collections) {
   const formattedCollections = collections.map(
@@ -61,8 +62,7 @@ export async function getAllCollections(params) {
 
     return { data: formattedData, totalCount, limit: searchParams.limit };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -90,8 +90,7 @@ export async function createCollection(formData) {
 
     return { ...formatCollections([leanCollection])[0], productCount };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -113,7 +112,7 @@ export async function updateCollection(formData) {
     }).lean({ virtuals: true });
 
     if (!collection) {
-      throw new Error('Collection not found');
+      throw new AppError('Collection not found', 404);
     }
 
     const productCount = await Product.countDocuments({
@@ -128,8 +127,7 @@ export async function updateCollection(formData) {
 
     return { ...formatCollections([collection])[0], productCount };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -143,7 +141,7 @@ export async function deleteCollection(id) {
     });
 
     if (!deletedCollection) {
-      throw new Error('Collection not found');
+      throw new AppError('Collection not found', 404);
     }
 
     revalidatePath('/admin/collections');
@@ -153,8 +151,7 @@ export async function deleteCollection(id) {
 
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -167,7 +164,7 @@ export const addProductToCollection = async (collectionId, productId) => {
     const product = await Product.findById(productId);
 
     if (!collection || !product) {
-      throw new Error('Collection or product not found');
+      throw new AppError('Collection or product not found', 404);
     }
 
     collection.products.push(product);
@@ -182,8 +179,7 @@ export const addProductToCollection = async (collectionId, productId) => {
 
     return { ...formatCollections([collection.toObject()])[0], productCount };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 };
 
@@ -192,27 +188,22 @@ export async function getSaleCollections() {
 
   await dbConnect();
 
-  try {
-    const saleCollections = await Campaign.find({ isSale: true }).lean({
-      virtuals: true,
-    });
+  const saleCollections = await Campaign.find({ isSale: true }).lean({
+    virtuals: true,
+  });
 
-    if (!saleCollections || saleCollections.length === 0) {
-      return [];
-    }
-
-    const formattedCollections = await Promise.all(
-      saleCollections.map(async (collection) => {
-        const productCount = await Product.countDocuments({
-          collections: collection._id,
-        });
-        return { ...collection, productCount };
-      })
-    );
-
-    return formatCollections(formattedCollections);
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+  if (!saleCollections || saleCollections.length === 0) {
+    return [];
   }
+
+  const formattedCollections = await Promise.all(
+    saleCollections.map(async (collection) => {
+      const productCount = await Product.countDocuments({
+        collections: collection._id,
+      });
+      return { ...collection, productCount };
+    })
+  );
+
+  return formatCollections(formattedCollections);
 }

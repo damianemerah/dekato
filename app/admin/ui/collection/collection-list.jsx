@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, memo, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, memo, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Button,
   Flex,
@@ -11,20 +11,20 @@ import {
   message,
   Modal,
   Tag,
-} from "antd";
+} from 'antd';
 import {
   DownOutlined,
   LoadingOutlined,
   ExclamationCircleOutlined,
-} from "@ant-design/icons";
-import Image from "next/image";
-import Link from "next/link";
-import useSWRImmutable from "swr/immutable";
+} from '@ant-design/icons';
+import Image from 'next/image';
+import Link from 'next/link';
+import useSWRImmutable from 'swr/immutable';
 import {
   getAllCollections,
   deleteCollection,
-} from "@/app/action/collectionAction";
-import noImage from "@/public/assets/no-image.webp";
+} from '@/app/action/collectionAction';
+import noImage from '@/public/assets/no-image.webp';
 
 const Action = memo(function Action({ id, handleDelete }) {
   const items = [
@@ -38,7 +38,7 @@ const Action = memo(function Action({ id, handleDelete }) {
           Edit
         </Link>
       ),
-      key: "0",
+      key: '0',
     },
     {
       label: (
@@ -46,12 +46,12 @@ const Action = memo(function Action({ id, handleDelete }) {
           Delete
         </p>
       ),
-      key: "1",
+      key: '1',
       danger: true,
     },
     {
-      label: "Archive",
-      key: "3",
+      label: 'Archive',
+      key: '3',
     },
   ];
 
@@ -94,7 +94,7 @@ const CollectionList = ({ searchParams }) => {
         setTotalCount(data.totalCount);
         setLimit(data.limit);
       },
-    },
+    }
   );
 
   const dataSource = collections?.data?.map((item) => ({
@@ -102,7 +102,7 @@ const CollectionList = ({ searchParams }) => {
     image: item.image[0],
     name: item.name,
     id: item.id,
-    category: item.category?.name || "Uncategorized",
+    category: item.category?.name || 'Uncategorized',
     isSale: item.isSale,
     productCount: item.productCount,
     action: <Action id={item.id} />,
@@ -110,8 +110,8 @@ const CollectionList = ({ searchParams }) => {
 
   const columns = [
     {
-      title: "Image",
-      dataIndex: "image",
+      title: 'Image',
+      dataIndex: 'image',
       render: (_, record) => {
         const imageSrc = record?.image ? record.image : noImage;
         return (
@@ -127,8 +127,8 @@ const CollectionList = ({ searchParams }) => {
       },
     },
     {
-      title: "Name",
-      dataIndex: "name",
+      title: 'Name',
+      dataIndex: 'name',
       filters: dataSource?.map((item) => ({
         text: item.name,
         value: item.name,
@@ -137,37 +137,37 @@ const CollectionList = ({ searchParams }) => {
       onFilter: (value, record) => record.name.includes(value),
     },
     {
-      title: "Category",
-      dataIndex: "category",
+      title: 'Category',
+      dataIndex: 'category',
       filters: [...new Set(dataSource?.map((item) => item.category))].map(
         (category) => ({
           text: category,
           value: category,
-        }),
+        })
       ),
       onFilter: (value, record) => record.category === value,
     },
     {
-      title: "Sale",
-      dataIndex: "isSale",
+      title: 'Sale',
+      dataIndex: 'isSale',
       render: (isSale) => (
-        <Tag color={isSale ? "green" : "default"}>
-          {isSale ? "Sale" : "Regular"}
+        <Tag color={isSale ? 'green' : 'default'}>
+          {isSale ? 'Sale' : 'Regular'}
         </Tag>
       ),
       filters: [
-        { text: "Sale", value: true },
-        { text: "Regular", value: false },
+        { text: 'Sale', value: true },
+        { text: 'Regular', value: false },
       ],
       onFilter: (value, record) => record.isSale === value,
     },
     {
-      title: "Product Count",
-      dataIndex: "productCount",
+      title: 'Product Count',
+      dataIndex: 'productCount',
     },
     {
-      title: "Action",
-      dataIndex: "action",
+      title: 'Action',
+      dataIndex: 'action',
       render: (_, record) => {
         return (
           <Action
@@ -201,49 +201,59 @@ const CollectionList = ({ searchParams }) => {
   const handleDelete = async (id) => {
     try {
       const collection = collections?.data?.find(
-        (collection) => collection.id === id,
+        (collection) => collection.id === id
       );
       if (collection.productCount > 0) {
         message.warning(
-          "Products in this collection. Move products to other collection",
-          4,
+          'Products in this collection. Move products to other collection',
+          4
         );
         return;
       }
-      await deleteCollection(id);
+      const result = await deleteCollection(id);
+
+      if (result?.error) {
+        message.error('Error deleting collection');
+        return;
+      }
+
       await mutate();
-      message.success("Deleted");
+      message.success('Deleted');
     } catch (error) {
-      message.error("Error");
+      message.error('Error');
     }
   };
 
   const handleDeleteSelected = () => {
     Modal.confirm({
-      title: "Are you sure you want to delete these collections?",
+      title: 'Are you sure you want to delete these collections?',
       icon: <ExclamationCircleOutlined />,
-      content: "This action cannot be undone.",
+      content: 'This action cannot be undone.',
       onOk: async () => {
         try {
           setLoading(true);
           for (const id of selectedRowKeys) {
             const collection = collections?.data?.find(
-              (collection) => collection.id === id,
+              (collection) => collection.id === id
             );
             if (collection.productCount > 0) {
               message.warning(
                 `Cannot delete collection "${collection.name}". It contains products.`,
-                4,
+                4
               );
             } else {
-              await deleteCollection(id);
+              const result = await deleteCollection(id);
+              if (result?.error) {
+                message.error(`Error deleting collection "${collection.name}"`);
+                return;
+              }
             }
           }
           await mutate();
           setSelectedRowKeys([]);
-          message.success("Selected collections deleted");
+          message.success('Selected collections deleted');
         } catch (error) {
-          message.error("Error deleting collections");
+          message.error('Error deleting collections');
         } finally {
           setLoading(false);
         }
@@ -275,7 +285,7 @@ const CollectionList = ({ searchParams }) => {
         {hasSelected ? `Selected ${selectedRowKeys.length} items` : null}
       </Flex>
       <Table
-        scroll={{ x: "max-content" }}
+        scroll={{ x: 'max-content' }}
         rowSelection={rowSelection}
         columns={columns}
         dataSource={dataSource || []}
@@ -290,7 +300,7 @@ const CollectionList = ({ searchParams }) => {
           isLoading
             ? {
                 indicator: <LoadingOutlined spin className="!text-primary" />,
-                size: "large",
+                size: 'large',
               }
             : false
         }

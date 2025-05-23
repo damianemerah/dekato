@@ -12,5 +12,5 @@ export default async function PaymentPage() {
 
   const paymentMethods = await getPaymentMethod(userId);
 
-  return <Payment initialPaymentMethods={paymentMethods} />;
+  return <Payment initialPaymentMethods={paymentMethods || []} />;
 }

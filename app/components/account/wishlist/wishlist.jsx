@@ -35,12 +35,20 @@ export default function Wishlist({ product, onRemove }) {
 
         const result = await createCartItem(userId, newItem);
 
-        if (!result) {
+        if (result?.error) {
+          toast.error(result.message || 'Failed to add item to cart');
           throw new Error('Failed to add item to cart');
         }
 
         try {
-          await removeFromWishlist(userId, product.id);
+          const wishlistResult = await removeFromWishlist(userId, product.id);
+
+          if (wishlistResult?.error) {
+            toast.error(
+              wishlistResult.message || 'Failed to remove from wishlist'
+            );
+            return;
+          }
 
           if (onRemove) {
             onRemove(product.id);
@@ -71,7 +79,12 @@ export default function Wishlist({ product, onRemove }) {
 
     startRemovingTransition(async () => {
       try {
-        await removeFromWishlist(userId, product.id);
+        const result = await removeFromWishlist(userId, product.id);
+
+        if (result?.error) {
+          toast.error(result.message || 'Failed to remove from wishlist');
+          return;
+        }
 
         if (onRemove) {
           onRemove(product.id);

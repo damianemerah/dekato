@@ -108,14 +108,20 @@ const ProductCard = ({ product, showDelete = false }) => {
         try {
           if (newWishlistState) {
             const updatedUser = await addToWishlist(userId, product.id);
-            // Update the store directly to ensure consistency
+            if (updatedUser?.error) {
+              toast.error(updatedUser.message || 'Failed to add to wishlist');
+              return;
+            }
             if (updatedUser) {
               setUser(updatedUser);
             }
             toast.success('Added to wishlist');
           } else {
-            await removeFromWishlist(userId, product.id);
-            // Update the store directly to ensure consistency
+            const result = await removeFromWishlist(userId, product.id);
+            if (result?.error) {
+              toast.error(result.message || 'Failed to remove from wishlist');
+              return;
+            }
             if (user && user.wishlist) {
               setUser({
                 ...user,

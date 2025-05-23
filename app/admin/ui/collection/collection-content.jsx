@@ -159,14 +159,24 @@ export default memo(function CollectionContent({ collectionId, collection }) {
 
         await updateCollection(formData);
 
+        if (allCollections.error) {
+          message.error(allCollections.message);
+          return;
+        }
+
         message.success('Collection updated');
         titleRef.current.value = '';
         descriptionRef.current.value = '';
         return;
       }
 
-      const newCollection = await createCollection(formData);
-      router.push(`/admin/collections/${newCollection.id}`);
+      const result = await createCollection(formData);
+
+      if (result?.error) {
+        message.error(result.message || 'Error creating collection');
+        return;
+      }
+      router.push(`/admin/collections/${result.id}`);
 
       mutate('/api/allCollections');
       message.success('Collection created');
@@ -204,11 +214,11 @@ export default memo(function CollectionContent({ collectionId, collection }) {
         )}
       </div>
       <div className="mx-auto grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm lg:col-span-2">
+        <div className="shadow-shadowSm mb-4 rounded-lg bg-white p-4 lg:col-span-2">
           <div className="mb-4">
             <label
               htmlFor="title"
-              className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
+              className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary"
             >
               TITLE
             </label>
@@ -220,13 +230,13 @@ export default memo(function CollectionContent({ collectionId, collection }) {
               id="title"
               autoComplete="off"
               placeholder="Summer Collection"
-              className="block w-full rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              className="shadow-shadowSm hover:border-grayOutline block w-full rounded-md px-3 py-3 text-sm hover:border"
             />
           </div>
           <div className="mb-4">
             <label
               htmlFor="description"
-              className="mb-1 block text-xxs font-bold tracking-[0.12em] text-primary"
+              className="text-xxs mb-1 block font-bold tracking-[0.12em] text-primary"
             >
               DESCRIPTION
             </label>
@@ -235,12 +245,12 @@ export default memo(function CollectionContent({ collectionId, collection }) {
               name="description"
               id="description"
               placeholder="A collection of summer-themed products."
-              className="block h-28 w-full resize-none rounded-md px-3 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline"
+              className="shadow-shadowSm hover:border-grayOutline block h-28 w-full resize-none rounded-md px-3 py-3 text-sm hover:border"
             ></textarea>
           </div>
           <div>
-            <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
-              <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+            <div className="shadow-shadowSm mb-6 rounded-lg bg-white p-6">
+              <h4 className="text-xxs mb-1 block font-bold uppercase tracking-[0.12em] text-primary">
                 Images
               </h4>
               <MediaUpload
@@ -251,8 +261,8 @@ export default memo(function CollectionContent({ collectionId, collection }) {
                 setDefaultFileList={setDefaultFileList}
               />
             </div>
-            <div className="mb-6 rounded-lg bg-white p-6 shadow-shadowSm">
-              <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+            <div className="shadow-shadowSm mb-6 rounded-lg bg-white p-6">
+              <h4 className="text-xxs mb-1 block font-bold uppercase tracking-[0.12em] text-primary">
                 Banner
               </h4>
               <MediaUpload
@@ -266,8 +276,8 @@ export default memo(function CollectionContent({ collectionId, collection }) {
           </div>
         </div>
         <div>
-          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+          <div className="shadow-shadowSm mb-4 rounded-lg bg-white p-4">
+            <h4 className="text-xxs mb-1 block font-bold uppercase tracking-[0.12em] text-primary">
               Category
             </h4>
             <DropDown
@@ -277,8 +287,8 @@ export default memo(function CollectionContent({ collectionId, collection }) {
               placeholder="Select a category"
             />
           </div>
-          <div className="mb-4 rounded-lg bg-white p-4 shadow-shadowSm">
-            <h4 className="mb-1 block text-xxs font-bold uppercase tracking-[0.12em] text-primary">
+          <div className="shadow-shadowSm mb-4 rounded-lg bg-white p-4">
+            <h4 className="text-xxs mb-1 block font-bold uppercase tracking-[0.12em] text-primary">
               Sale Collection
             </h4>
             <Checkbox

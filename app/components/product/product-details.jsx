@@ -77,7 +77,13 @@ const ProductDetail = function ProductDetail({ product }) {
           );
           toast.success('Removed from wishlist');
         } else {
-          await addToWishlist(userId, product.id);
+          const result = await addToWishlist(userId, product.id);
+
+          if (result?.error) {
+            setIsWishlistPending(false);
+            toast.error(result.message || 'Failed to add to wishlist');
+            return;
+          }
           // Optimistically update the wishlist data
           mutateWishlist(
             (current) => ({
@@ -118,8 +124,10 @@ const ProductDetail = function ProductDetail({ product }) {
 
         const result = await createCartItem(userId, newItem);
 
-        if (!result) {
-          throw new Error('Failed to add item to cart');
+        if (result?.error) {
+          setOptimisticInCart(false);
+          toast.error(result.message || 'Failed to add item to cart');
+          return;
         }
 
         toast.success('Added to cart');

@@ -7,6 +7,7 @@ import {
   updatePaymentMethod,
   getPaymentMethod,
 } from '@/app/action/paymentAction';
+import { message } from 'antd';
 
 export default function PaymentMethodSelector({
   paymentMethods,
@@ -22,13 +23,20 @@ export default function PaymentMethodSelector({
     setIsUpdatingPayment(true);
     startTransition(async () => {
       try {
-        await updatePaymentMethod(paymentMethodId, { isDefault: true });
+        const result = await updatePaymentMethod(paymentMethodId, {
+          isDefault: true,
+        });
+        if (result.error) {
+          setIsUpdatingPayment(false);
+          message.error('Error updating payment method');
+          return;
+        }
         onPaymentMethodSelect(paymentMethodId);
 
         // Fetch updated payment methods and update parent state
         if (userId && onPaymentMethodsUpdate) {
           const updatedMethods = await getPaymentMethod(userId);
-          onPaymentMethodsUpdate(updatedMethods);
+          onPaymentMethodsUpdate(updatedMethods || []);
         }
       } catch (error) {
         console.error('Error updating payment method:', error);

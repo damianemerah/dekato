@@ -7,6 +7,8 @@ import { getQuantity } from '@/app/utils/getFunc';
 import { restrictTo } from '@/app/utils/checkPermission';
 import mongoose from 'mongoose';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { handleError } from '@/app/utils/appError';
+import AppError from '@/app/utils/errorClass';
 
 // Maximum quantity allowed per item in cart
 const MAX_QUANTITY_PER_ITEM = 10;
@@ -85,7 +87,7 @@ export async function createCartItem(userId, newItem) {
     session.startTransaction();
 
     if (!newItem.quantity || !newItem.product) {
-      throw new Error('Missing required fields for cart item');
+      throw new AppError('Missing required fields for cart item', 400);
     }
 
     const existingProduct = await Product.findById(newItem.product).session(
@@ -93,7 +95,7 @@ export async function createCartItem(userId, newItem) {
     );
 
     if (!existingProduct) {
-      throw new Error('Product not found');
+      throw new AppError('Product not found', 404);
     }
 
     const correctQuantity = getQuantity(newItem, existingProduct);
@@ -182,8 +184,7 @@ export async function createCartItem(userId, newItem) {
       await session.abortTransaction();
       session.endSession();
     }
-    console.error('Cart operation error:', error);
-    throw error;
+    return handleError(error);
   }
 }
 
@@ -224,12 +225,12 @@ export async function updateCartItemQuantity(updateData) {
       select: 'name price discountPrice slug variant image',
     });
     if (!cart) {
-      throw new Error('Something went wrong, try again');
+      throw new AppError('Something went wrong, try again', 404);
     }
     const cartItem = cart.item.find(
       (item) => item._id.toString() === cartItemId
     );
-    if (!cartItem) throw new Error('Item not found');
+    if (!cartItem) throw new AppError('Item not found', 404);
 
     const existingProduct = await Product.findById(product);
 
@@ -252,7 +253,7 @@ export async function updateCartItemQuantity(updateData) {
 
     return formatCartData(updatedCart);
   } catch (error) {
-    throw error;
+    return handleError(error);
   }
 }
 
@@ -267,14 +268,14 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
       select: 'name price discountPrice slug variant image',
     });
     if (!cart) {
-      throw new Error('Cart not found');
+      throw new AppError('Cart not found', 404);
     }
 
     const cartItem = await CartItem.findByIdAndUpdate(cartItemId, {
       checked: checked,
     });
     if (!cartItem) {
-      throw new Error('Item not found');
+      throw new AppError('Item not found', 404);
     }
 
     const updatedCart = await Cart.findById(cart._id)
@@ -291,7 +292,7 @@ export async function updateCartItemChecked(userId, cartItemId, checked) {
 
     return formatCartData(updatedCart);
   } catch (error) {
-    throw error;
+    return handleError(error);
   }
 }
 
@@ -303,7 +304,7 @@ export async function selectAllCart(userId, selectAll) {
 
     const cart = await Cart.findOne({ userId });
     if (!cart) {
-      throw new Error('Cart not found');
+      throw new AppError('Cart not found', 404);
     }
 
     const cartItems = await CartItem.updateMany(
@@ -325,7 +326,7 @@ export async function selectAllCart(userId, selectAll) {
 
     return formatCartData(updatedCart);
   } catch (error) {
-    throw error;
+    return handleError(error);
   }
 }
 
@@ -337,12 +338,12 @@ export async function removeFromCart(userId, cartItemId) {
 
     const cart = await Cart.findOne({ userId });
     if (!cart) {
-      throw new Error('Cart not found');
+      throw new AppError('Cart not found', 404);
     }
 
     const cartItem = await CartItem.findById(cartItemId);
     if (!cartItem) {
-      throw new Error('Cart item not found');
+      throw new AppError('Cart item not found', 404);
     }
 
     // Remove from cart items array
@@ -367,7 +368,7 @@ export async function removeFromCart(userId, cartItemId) {
 
     return formatCartData(updatedCart);
   } catch (error) {
-    throw error;
+    return handleError(error);
   }
 }
 
@@ -444,7 +445,6 @@ export async function verifyCartItemsAvailability(userId) {
 
     return { unavailableItems };
   } catch (error) {
-    console.error('Error verifying cart items availability:', error);
-    throw error;
+    return handleError(error);
   }
 }

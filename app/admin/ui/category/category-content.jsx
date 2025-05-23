@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, memo, useMemo } from "react";
+import { useState, memo, useMemo } from 'react';
 import {
   Button,
   Flex,
@@ -11,22 +11,22 @@ import {
   InputNumber,
   message,
   Modal,
-} from "antd";
+} from 'antd';
 import {
   DownOutlined,
   LoadingOutlined,
   ExclamationCircleOutlined,
-} from "@ant-design/icons";
-import Image from "next/image";
-import Link from "next/link";
-import useSWR from "swr";
+} from '@ant-design/icons';
+import Image from 'next/image';
+import Link from 'next/link';
+import useSWR from 'swr';
 import {
   getAllCategories,
   updateCategory,
   deleteCategory,
-} from "@/app/action/categoryAction";
-import noImage from "@/public/assets/no-image.webp";
-import { useRouter } from "next/navigation";
+} from '@/app/action/categoryAction';
+import noImage from '@/public/assets/no-image.webp';
+import { useRouter } from 'next/navigation';
 
 const Action = memo(function Action({ id, handleDelete }) {
   const items = [
@@ -40,7 +40,7 @@ const Action = memo(function Action({ id, handleDelete }) {
           Edit
         </Link>
       ),
-      key: "0",
+      key: '0',
     },
     {
       label: (
@@ -48,12 +48,12 @@ const Action = memo(function Action({ id, handleDelete }) {
           Delete
         </p>
       ),
-      key: "1",
+      key: '1',
       danger: true,
     },
     {
-      label: "Archive",
-      key: "3",
+      label: 'Archive',
+      key: '3',
     },
   ];
   return (
@@ -110,24 +110,24 @@ const Categories = ({ searchParams, data }) => {
           setPinOrders(pins);
         }
       },
-    },
+    }
   );
 
   const handlePinChange = (key, isChecked) => {
     const category = categories?.data.find((cat) => cat.id === key);
     if (
-      category.name.toLowerCase() === "men" ||
-      category.name.toLowerCase() === "women"
+      category.name.toLowerCase() === 'men' ||
+      category.name.toLowerCase() === 'women'
     ) {
       message.error("Cannot pin 'men' or 'women' categories");
       return;
     }
 
     const parentCategory = categories?.data.find(
-      (cat) => cat.id === category.parent?.id,
+      (cat) => cat.id === category.parent?.id
     );
     const pinnedCount = categories?.data.filter(
-      (cat) => cat.parent?.id === category.parent?.id && cat.pinned,
+      (cat) => cat.parent?.id === category.parent?.id && cat.pinned
     ).length;
 
     // Check if the category is already pinned
@@ -135,7 +135,7 @@ const Categories = ({ searchParams, data }) => {
 
     if (isChecked && pinnedCount >= 5 && !isAlreadyPinned) {
       message.error(
-        `Cannot pin more than 5 categories under ${parentCategory?.name || "parent category"}`,
+        `Cannot pin more than 5 categories under ${parentCategory?.name || 'parent category'}`
       );
       return;
     }
@@ -172,20 +172,24 @@ const Categories = ({ searchParams, data }) => {
   const submitForm = async (key) => {
     const { pinOrder, isChecked } = pinOrders[key];
     const formData = new FormData();
-    formData.append("id", key);
-    formData.append("pinOrder", pinOrder);
-    formData.append("pinned", isChecked);
+    formData.append('id', key);
+    formData.append('pinOrder', pinOrder);
+    formData.append('pinned', isChecked);
 
     try {
-      await updateCategory(formData);
+      const result = await updateCategory(formData);
+      if (result?.error) {
+        message.error('Error updating category');
+        return;
+      }
       setChangedRows((prev) => ({
         ...prev,
         [key]: false,
       }));
       mutate(`/api/allCategories?page=${page}`);
-      message.info("Updated");
+      message.info('Updated');
     } catch (error) {
-      message.info("Something went wrong");
+      message.info('Something went wrong');
     }
   };
 
@@ -212,7 +216,7 @@ const Categories = ({ searchParams, data }) => {
         image: item.image[0],
         name: item.name,
         productCount: item.productCount,
-        parent: item?.parent ? item.parent.name : "",
+        parent: item?.parent ? item.parent.name : '',
         id: item.id,
         action: <Action id={item.id} />,
         pinOrder: pinOrders[item.id]?.pinOrder || undefined,
@@ -222,8 +226,8 @@ const Categories = ({ searchParams, data }) => {
 
   const columns = [
     {
-      title: "Image",
-      dataIndex: "image",
+      title: 'Image',
+      dataIndex: 'image',
       render: (_, record) => {
         const imageSrc = record?.image ? record.image : noImage;
         return (
@@ -239,8 +243,8 @@ const Categories = ({ searchParams, data }) => {
       },
     },
     {
-      title: "Name",
-      dataIndex: "name",
+      title: 'Name',
+      dataIndex: 'name',
       filters: dataSource?.map((item) => ({
         text: item.name,
         value: item.name,
@@ -249,17 +253,17 @@ const Categories = ({ searchParams, data }) => {
       onFilter: (value, record) => record.name.includes(value),
     },
     {
-      title: "Products",
-      dataIndex: "productCount",
+      title: 'Products',
+      dataIndex: 'productCount',
       sorter: (a, b) => a.productCount - b.productCount,
     },
     {
-      title: "Parent Category",
-      dataIndex: "parent",
+      title: 'Parent Category',
+      dataIndex: 'parent',
       filters: Array.isArray(categories?.data)
         ? categories?.data.map((item) => ({
-            text: item.name ? item.name : "",
-            value: item.name ? item.name : "",
+            text: item.name ? item.name : '',
+            value: item.name ? item.name : '',
           }))
         : [],
       filterSearch: true,
@@ -268,8 +272,8 @@ const Categories = ({ searchParams, data }) => {
       },
     },
     {
-      title: "Action",
-      dataIndex: "action",
+      title: 'Action',
+      dataIndex: 'action',
       render: (_, record) => {
         return (
           <Action
@@ -280,8 +284,8 @@ const Categories = ({ searchParams, data }) => {
       },
     },
     {
-      title: "Pin",
-      dataIndex: "pin",
+      title: 'Pin',
+      dataIndex: 'pin',
       sorter: (a, b) => a.pinOrder - b.pinOrder,
       render: (_, record) => (
         <Flex gap="small" align="center">
@@ -338,45 +342,54 @@ const Categories = ({ searchParams, data }) => {
       const category = categories?.data.find((category) => category.id === id);
       if (category.productCount > 0) {
         message.warning(
-          "Products in this category. Move products to other category",
-          4,
+          'Products in this category. Move products to other category',
+          4
         );
         return;
       }
-      await deleteCategory(id);
+      const result = await deleteCategory(id);
+      if (result?.error) {
+        message.error('Error deleting category');
+        return;
+      }
+
       await mutate();
-      message.success("Deleted");
+      message.success('Deleted');
     } catch (error) {
-      message.error("Error");
+      message.error('Error');
     }
   };
 
   const handleDeleteSelected = () => {
     Modal.confirm({
-      title: "Are you sure you want to delete these categories?",
+      title: 'Are you sure you want to delete these categories?',
       icon: <ExclamationCircleOutlined />,
-      content: "This action cannot be undone.",
+      content: 'This action cannot be undone.',
       onOk: async () => {
         try {
           setLoading(true);
           for (const id of selectedRowKeys) {
             const category = categories?.data.find(
-              (category) => category.id === id,
+              (category) => category.id === id
             );
             if (category.productCount > 0) {
               message.warning(
                 `Cannot delete category "${category.name}". It contains products.`,
-                4,
+                4
               );
             } else {
-              await deleteCategory(id);
+              const result = await deleteCategory(id);
+              if (result?.error) {
+                message.error('Error deleting category');
+                return;
+              }
             }
           }
           await mutate();
           setSelectedRowKeys([]);
-          message.success("Selected categories deleted");
+          message.success('Selected categories deleted');
         } catch (error) {
-          message.error("Error deleting categories");
+          message.error('Error deleting categories');
         } finally {
           setLoading(false);
         }
@@ -416,7 +429,7 @@ const Categories = ({ searchParams, data }) => {
             isLoading
               ? {
                   indicator: <LoadingOutlined spin className="!text-primary" />,
-                  size: "large",
+                  size: 'large',
                 }
               : false
           }
@@ -427,7 +440,7 @@ const Categories = ({ searchParams, data }) => {
             total: totalCount,
             onChange: handlePageChange,
           }}
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 'max-content' }}
         />
       </div>
     </Flex>

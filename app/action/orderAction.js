@@ -3,46 +3,42 @@
 import dbConnect from '@/app/lib/mongoConnection';
 import Order from '@/models/order';
 import { restrictTo } from '@/app/utils/checkPermission';
-import handleAppError from '@/app/utils/appError';
 import { omit, mapKeys } from 'lodash';
 import APIFeatures from '@/app/utils/apiFeatures';
 import { revalidatePath } from 'next/cache';
 import Email from '@/app/lib/email';
 import { auth } from '@/app/lib/auth';
+import { handleError } from '@/app/utils/appError';
+import AppError from '@/app/utils/errorClass';
 
 export async function getAllOrders(query) {
   await dbConnect();
   query.limit = 20;
 
-  try {
-    const features = new APIFeatures(Order.find().populate('userId'), query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
+  const features = new APIFeatures(Order.find().populate('userId'), query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-    const orders = await features.query.lean({ virtuals: true });
+  const orders = await features.query.lean({ virtuals: true });
 
-    const renamedOrders = orders.map((order) => {
-      const renamedOrder = mapKeys(order, (value, key) =>
-        key === 'userId' ? 'user' : key
-      );
-      renamedOrder.id = renamedOrder._id.toString();
-      return omit(renamedOrder, '_id');
-    });
+  const renamedOrders = orders.map((order) => {
+    const renamedOrder = mapKeys(order, (value, key) =>
+      key === 'userId' ? 'user' : key
+    );
+    renamedOrder.id = renamedOrder._id.toString();
+    return omit(renamedOrder, '_id');
+  });
 
-    const totalCount = await Order.countDocuments();
+  const totalCount = await Order.countDocuments();
 
-    return {
-      orders: renamedOrders,
-      totalCount,
-      limit: features.queryString.limit,
-      page: features.queryString.page,
-    };
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
-  }
+  return {
+    orders: renamedOrders,
+    totalCount,
+    limit: features.queryString.limit,
+    page: features.queryString.page,
+  };
 }
 
 export async function getOrderById(id) {
@@ -65,8 +61,7 @@ export async function getOrderById(id) {
     renamedOrder.id = renamedOrder._id.toString();
     return omit(renamedOrder, '_id');
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -80,8 +75,7 @@ export async function deleteOrder(id) {
     revalidatePath('/admin/orders');
     return { success: true };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -97,14 +91,9 @@ export async function checkOrderPayment(userId, paymentRef) {
 
     return {
       success: true,
-      // order: {
-      //   ...order,
-      //   id: order._id.toString(),
-      // },
     };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -131,14 +120,14 @@ export async function fulfillOrder(
       .lean();
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new AppError('Order not found', 404);
     }
 
     // Update each product's fulfilledItems based on the provided quantities
     const updatedProducts = order.product.map((item, index) => {
       return {
         ...item,
-        fulfilledItems: quantities[index] || 0, // Set fulfilledItems based on input
+        fulfilledItems: quantities[index] || 0,
       };
     });
 
@@ -170,8 +159,7 @@ export async function fulfillOrder(
     revalidatePath('/admin/orders');
     return { success: true, message: 'Order fulfilled successfully' };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -181,10 +169,8 @@ export async function fulfillOrder(
  * @returns {Promise<Object>} The order status information
  */
 export async function getOrderStatus(reference) {
-  // Authorization check
   await restrictTo('user', 'admin');
 
-  // Get the authenticated user id
   const session = await auth();
   const userId = session?.user?.id;
 
@@ -195,7 +181,6 @@ export async function getOrderStatus(reference) {
   try {
     await dbConnect();
 
-    // Find the order with limited field selection for security
     const order = await Order.findOne(
       { paymentRef: reference },
       { status: 1, paymentRef: 1, userId: 1 }
@@ -205,7 +190,6 @@ export async function getOrderStatus(reference) {
       return { success: false, message: 'Order not found' };
     }
 
-    // Security check: ensure the user owns this order
     if (order.userId.toString() !== userId) {
       return { success: false, message: 'Unauthorized' };
     }
@@ -215,11 +199,7 @@ export async function getOrderStatus(reference) {
       status: order.status,
       reference: order.paymentRef,
     };
-  } catch (error) {
-    console.error('Error getting order status:', error);
-    return {
-      success: false,
-      message: 'Failed to get order status',
-    };
+  } catch (err) {
+    return handleError(err);
   }
 }

@@ -12,5 +12,7 @@ export default async function WishlistPage() {
 
   const wishlistProducts = await getWishlist(userId);
 
-  return <WishlistPageClient initialWishlistProducts={wishlistProducts} />;
+  return (
+    <WishlistPageClient initialWishlistProducts={wishlistProducts || []} />
+  );
 }

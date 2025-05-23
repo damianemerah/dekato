@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Product name is required'],
       trim: true,
-      maxlength: [100, 'Product name cannot exceed 100 characters'],
+      maxlength: [200, 'Product name cannot exceed 100 characters'],
       minlength: [3, 'Product name must be at least 3 characters long'],
       validate: {
         validator: function (v) {
@@ -148,7 +148,7 @@ const productSchema = new mongoose.Schema(
         price: {
           type: Number,
           required: [true, 'Variant price is required'],
-          min: [0, 'Variant price cannot be negative'],
+          min: [1, 'Variant price cannot be negative or zero'],
           set: (v) => Math.round(v),
         },
         discountPrice: {

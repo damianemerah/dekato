@@ -51,6 +51,12 @@ export default function AccountSettings({ initialUserData }) {
         formData.append('lastname', e.target.lastname.value);
 
         const updatedUser = await updateUserInfo(formData);
+        if (updatedUser?.error) {
+          toast.error('Update failed', {
+            description: updatedUser.message || 'Failed to update user info',
+          });
+          return;
+        }
         handleModalClose();
 
         toast.success('Profile updated', {
@@ -82,6 +88,12 @@ export default function AccountSettings({ initialUserData }) {
         formData.append('passwordConfirm', e.target.passwordConfirm.value);
 
         const updatedUser = await updatePassword(formData);
+        if (updatedUser?.error) {
+          toast.error('Update failed', {
+            description: updatedUser.message || 'Failed to update password',
+          });
+          return;
+        }
         handleModalClose();
 
         toast.success('Password updated', {

@@ -4,20 +4,20 @@ import dbConnect from '@/app/lib/mongoConnection';
 import OptionGroup from '@/models/variantsOption'; // Static import
 import { omit } from 'lodash';
 import { restrictTo } from '@/app/utils/checkPermission';
-import handleAppError from '@/app/utils/appError';
+import { handleError } from '@/app/utils/appError';
 
 export async function getVarOption() {
   await restrictTo('user', 'admin');
 
-  await dbConnect(); // Ensure connection is established
+  await dbConnect();
   try {
     const options = await OptionGroup.find().lean();
     return options.map((option) => ({
       id: option._id.toString(),
       ...omit(option, '_id'),
     }));
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    return handleError(err);
   }
 }
 
@@ -39,9 +39,8 @@ export async function createVarOption(option) {
     const newOption = await OptionGroup.create(option);
     const leanOption = newOption.toObject();
     return { id: leanOption._id.toString(), ...omit(leanOption, '_id') };
-  } catch (error) {
-    const err = handleAppError(error);
-    throw new Error(err.message);
+  } catch (err) {
+    return handleError(err);
   }
 }
 
@@ -58,9 +57,8 @@ export async function updateVarOption(id, option) {
       id: updatedOption._id.toString(),
       ...omit(updatedOption, '_id'),
     };
-  } catch (error) {
-    const err = handleAppError(error);
-    throw new Error(err.message);
+  } catch (err) {
+    return handleError(err);
   }
 }
 
@@ -71,8 +69,7 @@ export async function deleteVarOption(id) {
     await dbConnect();
     await OptionGroup.findByIdAndDelete(id).lean();
     return { success: true };
-  } catch (error) {
-    const err = handleAppError(error);
-    throw new Error(err.message);
+  } catch (err) {
+    return handleError(err);
   }
 }

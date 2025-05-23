@@ -1,5 +1,5 @@
 const sendErrorDev = (err) => {
-  console.log(err.code, err.name, err.message.includes("E11000"), err);
+  console.log(err.code, err.name, err.message.includes('E11000'), err);
   return {
     error: err,
     status: err.status,
@@ -13,15 +13,15 @@ const sendErrorProd = (err) => {
 
   if (
     err.code === 11000 ||
-    err.name === "MongoServerError" ||
-    err.name === "CastError" ||
-    err.name === "ValidationError"
+    err.name === 'MongoServerError' ||
+    err.name === 'CastError' ||
+    err.name === 'ValidationError'
   ) {
     err.isOperational = true;
     err.statusCode = 400;
   }
 
-  if (err.code === 11000 && err.name === "MongoServerError") {
+  if (err.code === 11000 && err.name === 'MongoServerError') {
     const value = err.message.match(/(?<=")[^"]*(?=")/);
     message = `Duplicate field value ${value}, please use another value`;
   }
@@ -29,20 +29,20 @@ const sendErrorProd = (err) => {
   // not internet connection
 
   if (
-    err.message.includes("Network Error") ||
-    err.message.includes("timeout") ||
-    err.name === "MongoNetworkError"
+    err.message.includes('Network Error') ||
+    err.message.includes('timeout') ||
+    err.name === 'MongoNetworkError'
   ) {
-    message = "Please check your internet connection";
+    message = 'Please check your internet connection';
   }
 
-  if (err.name === "CastError") {
+  if (err.name === 'CastError') {
     message = `Invalid ${err.path}: ${err.value}`;
   }
 
-  if (err.name === "ValidationError") {
+  if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map((el) => el.message);
-    message = `Invalid input data. ${errors.join(". ")}`;
+    message = `Invalid input data. ${errors.join('. ')}`;
   }
 
   if (err.isOperational) {
@@ -52,20 +52,32 @@ const sendErrorProd = (err) => {
     };
   }
 
-
   return {
-    status: "error",
+    status: 'error',
     message: err.message,
   };
 };
 
 export default function handleAppError(err) {
   err.statusCode = err.statusCode || 500;
-  err.status = err.status || "error";
+  err.status = err.status || 'error';
 
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === 'development') {
     return sendErrorDev(err);
-  } else if (process.env.NODE_ENV === "production") {
+  } else if (process.env.NODE_ENV === 'production') {
     return sendErrorProd(err);
   }
+}
+
+export function handleError(err) {
+  const error = handleAppError(err);
+
+  return {
+    success: false,
+    error: true,
+    status: error.status || 'error',
+    message: error.message || 'Something went wrong',
+    statusCode: error.statusCode || 500,
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+  };
 }

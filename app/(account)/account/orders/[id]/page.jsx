@@ -14,6 +14,7 @@ export default async function OrderDetailPage({ params }) {
 
   if (
     !order ||
+    order?.error ||
     (order.userId.toString() !== session.user.id &&
       session.user.role !== 'admin')
   ) {

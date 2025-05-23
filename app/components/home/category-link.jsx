@@ -1,12 +1,12 @@
-import { memo } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { memo } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const CategoryLink = ({ category }) => {
   return (
     <Link
       href={`/shop/${category.path[0]}`}
-      className="relative flex aspect-square w-full items-end justify-center overflow-hidden px-2 pb-4 text-center text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
+      className="relative flex aspect-[2/3] w-full items-end justify-center overflow-hidden px-2 pb-4 text-center text-lg font-bold text-white sm:px-3 sm:pb-6 sm:text-xl md:px-4 md:pb-8 md:text-2xl lg:px-5 lg:pb-10"
     >
       <div className="absolute inset-0">
         <Image
@@ -18,7 +18,7 @@ const CategoryLink = ({ category }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-black/20 to-black/50" />
       </div>
-      <span className="relative z-10">{category.name}</span>
+      <span className="relative z-10 capitalize">{category.name}</span>
     </Link>
   );
 };

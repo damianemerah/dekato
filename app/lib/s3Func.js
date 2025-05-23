@@ -22,10 +22,6 @@ export const uploadFiles = async (
   fileType = '',
   productName = ''
 ) => {
-  console.log('filesToUpload🔥🔥', filesToUpload);
-  console.log('fileType🔥🔥', fileType);
-  console.log('productName🔥🔥', productName);
-
   // Before upload logic
   const allowedPaths = ['image', 'blog', 'variant', 'blog-images'];
   if (!allowedPaths.includes(fileType)) {
@@ -112,8 +108,8 @@ export const deleteFiles = async (files) => {
       Bucket: process.env.S3_BUCKET,
       Delete: {
         Objects: files.map((file) => {
-          const parts = file.split('.com/');
-
+          const parts = file.split('.ng/');
+          console.log('parts🔥🔥', parts);
           return parts.length > 1 ? { Key: parts[1] } : { Key: file };
         }),
       },

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Table,
   Card,
@@ -11,17 +11,17 @@ import {
   Layout,
   Row,
   Col,
-} from "antd";
+} from 'antd';
 import {
   PlusOutlined,
   ExportOutlined,
   LoadingOutlined,
-} from "@ant-design/icons";
-import Link from "next/link";
-import { getAllOrders } from "@/app/action/orderAction";
-import useSWR from "swr";
-import dayjs from "dayjs";
-import { useRouter } from "next/navigation";
+} from '@ant-design/icons';
+import Link from 'next/link';
+import { getAllOrders } from '@/app/action/orderAction';
+import useSWR from 'swr';
+import dayjs from 'dayjs';
+import { useRouter } from 'next/navigation';
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -39,11 +39,11 @@ const Orders = React.memo(function Orders({ searchParams }) {
     () => getAllOrders({ page }),
     {
       revalidateOnFocus: false,
-    },
+    }
   );
 
   useEffect(() => {
-    if (orderData) {
+    if (orderData?.orders) {
       setTotalCount(orderData.totalCount || 0);
       setLimit(orderData.limit || 10);
     }
@@ -57,102 +57,102 @@ const Orders = React.memo(function Orders({ searchParams }) {
         deliveryStatus: (
           <Tag
             color={
-              item.deliveryStatus === "delivered" || item.status === "shipped"
-                ? "green"
-                : item.deliveryStatus === "cancelled"
-                  ? "red"
-                  : "orange"
+              item.deliveryStatus === 'delivered' || item.status === 'shipped'
+                ? 'green'
+                : item.deliveryStatus === 'cancelled'
+                  ? 'red'
+                  : 'orange'
             }
           >
-            {item.deliveryStatus === "delivered"
-              ? "Delivered"
-              : item.deliveryStatus === "shipped"
-                ? "Shipped"
-                : item.deliveryStatus === "failed"
-                  ? "Failed"
-                  : "Pending"}
+            {item.deliveryStatus === 'delivered'
+              ? 'Delivered'
+              : item.deliveryStatus === 'shipped'
+                ? 'Shipped'
+                : item.deliveryStatus === 'failed'
+                  ? 'Failed'
+                  : 'Pending'}
           </Tag>
         ),
         paymentStatus: (
           <Tag
             color={
-              item.status === "success"
-                ? "green"
-                : item.status === "failed"
-                  ? "red"
-                  : "orange"
+              item.status === 'success'
+                ? 'green'
+                : item.status === 'failed'
+                  ? 'red'
+                  : 'orange'
             }
           >
-            {item.status === "success"
-              ? "Paid"
-              : item.status === "failed"
-                ? "Failed"
-                : "Pending"}
+            {item.status === 'success'
+              ? 'Paid'
+              : item.status === 'failed'
+                ? 'Failed'
+                : 'Pending'}
           </Tag>
         ),
         total: item?.total,
-        date: dayjs(item?.createdAt).format("MMM D, YYYY HH:mm"),
-        customer: item?.user?.firstname + " " + item?.user?.lastname,
+        date: dayjs(item?.createdAt).format('MMM D, YYYY HH:mm'),
+        customer: item?.user?.firstname + ' ' + item?.user?.lastname,
         order: item?.paymentRef,
       })) || [],
-    [orderData],
+    [orderData]
   );
 
   const columns = useMemo(
     () => [
       {
-        title: "Order",
-        dataIndex: "order",
-        key: "order",
+        title: 'Order',
+        dataIndex: 'order',
+        key: 'order',
         sorter: (a, b) => a.order.localeCompare(b.order),
       },
       {
-        title: "Date",
-        dataIndex: "date",
-        key: "date",
+        title: 'Date',
+        dataIndex: 'date',
+        key: 'date',
         sorter: (a, b) => new Date(a.date) - new Date(b.date),
       },
       {
-        title: "Customer",
-        dataIndex: "customer",
-        key: "customer",
+        title: 'Customer',
+        dataIndex: 'customer',
+        key: 'customer',
         sorter: (a, b) => a.customer.localeCompare(b.customer),
       },
       {
-        title: "Total",
-        dataIndex: "total",
-        key: "total",
-        align: "right",
+        title: 'Total',
+        dataIndex: 'total',
+        key: 'total',
+        align: 'right',
         sorter: (a, b) => a.total - b.total,
       },
       {
-        title: "Payment Status",
-        dataIndex: "paymentStatus",
-        key: "paymentStatus",
+        title: 'Payment Status',
+        dataIndex: 'paymentStatus',
+        key: 'paymentStatus',
         filters: [
-          { text: "Paid", value: "Paid" },
-          { text: "Failed", value: "Failed" },
-          { text: "Pending", value: "Pending" },
+          { text: 'Paid', value: 'Paid' },
+          { text: 'Failed', value: 'Failed' },
+          { text: 'Pending', value: 'Pending' },
         ],
         onFilter: (value, record) =>
           record.paymentStatus.props.children === value,
       },
       {
-        title: "Delivery Status",
-        dataIndex: "deliveryStatus",
-        key: "deliveryStatus",
+        title: 'Delivery Status',
+        dataIndex: 'deliveryStatus',
+        key: 'deliveryStatus',
         filters: [
-          { text: "Delivered", value: "Delivered" },
-          { text: "Shipped", value: "Shipped" },
-          { text: "Cancelled", value: "Cancelled" },
-          { text: "Pending", value: "Pending" },
+          { text: 'Delivered', value: 'Delivered' },
+          { text: 'Shipped', value: 'Shipped' },
+          { text: 'Cancelled', value: 'Cancelled' },
+          { text: 'Pending', value: 'Pending' },
         ],
         onFilter: (value, record) =>
           record.deliveryStatus.props.children === value,
       },
       {
-        title: "Action",
-        key: "action",
+        title: 'Action',
+        key: 'action',
         render: (_, record) => (
           <Link href={`/admin/orders/${record.key}`}>
             <Button type="link">View Details</Button>
@@ -160,7 +160,7 @@ const Orders = React.memo(function Orders({ searchParams }) {
         ),
       },
     ],
-    [],
+    []
   );
 
   const onSelectChange = useCallback((newSelectedRowKeys) => {
@@ -172,14 +172,14 @@ const Orders = React.memo(function Orders({ searchParams }) {
       selectedRowKeys,
       onChange: onSelectChange,
     }),
-    [selectedRowKeys, onSelectChange],
+    [selectedRowKeys, onSelectChange]
   );
 
   const handlePageChange = useCallback(
     (newPage) => {
       router.push(`/admin/orders?page=${newPage}`);
     },
-    [router],
+    [router]
   );
 
   const hasSelected = selectedRowKeys.length > 0;
@@ -190,7 +190,7 @@ const Orders = React.memo(function Orders({ searchParams }) {
         <Row
           justify="space-between"
           align="middle"
-          style={{ marginBottom: "16px" }}
+          style={{ marginBottom: '16px' }}
         >
           <Col>
             <Title level={2}>Orders</Title>
@@ -205,7 +205,7 @@ const Orders = React.memo(function Orders({ searchParams }) {
           </Col>
         </Row>
         <Card>
-          <Row style={{ marginBottom: "16px" }}>
+          <Row style={{ marginBottom: '16px' }}>
             <Col>
               {hasSelected && (
                 <span>{`Selected ${selectedRowKeys.length} items`}</span>
@@ -229,11 +229,11 @@ const Orders = React.memo(function Orders({ searchParams }) {
                     indicator: (
                       <LoadingOutlined spin className="!text-primary" />
                     ),
-                    size: "large",
+                    size: 'large',
                   }
                 : false
             }
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 'max-content' }}
             className="overflow-x-auto sm:overflow-x-auto md:overflow-x-visible"
           />
         </Card>

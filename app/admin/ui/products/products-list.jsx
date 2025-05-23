@@ -86,7 +86,11 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
     async (id) => {
       const deleteAndUpdateProd = async () => {
         try {
-          await deleteProduct(id);
+          const result = await deleteProduct(id);
+          if (result?.error) {
+            toast.error(result.message || 'Failed to delete product');
+            return;
+          }
           await mutate();
           toast.success('Product deleted successfully');
         } catch (error) {
@@ -348,7 +352,7 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
         isOpen={isModalOpen}
         onClose={handleModalCancel}
         selectedProducts={selectedRowKeys}
-        saleCollections={saleCollections}
+        saleCollections={saleCollections || []}
         onSuccess={mutate}
         loading={loading}
         setLoading={setLoading}

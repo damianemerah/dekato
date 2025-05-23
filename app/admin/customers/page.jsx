@@ -12,5 +12,5 @@ const CustomerList = dynamic(
 
 export default async function CustomerPage({ searchParams }) {
   const data = await getAllUsers({ page: 1 });
-  return <CustomerList data={data} searchParams={searchParams} />;
+  return <CustomerList data={data || []} searchParams={searchParams} />;
 }

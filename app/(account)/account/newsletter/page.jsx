@@ -8,11 +8,8 @@ export default async function NewsletterPage() {
 
   let initialData = null;
   if (userEmail) {
-    // Call Server Action directly
     initialData = await getSubscriptionStatus(userEmail);
   } else {
-    // Handle case where email is not available (though middleware should prevent this)
-    console.warn('NewsletterPage: User email not found in session.');
     initialData = { success: false, message: 'User not authenticated' };
   }
 

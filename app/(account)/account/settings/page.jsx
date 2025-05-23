@@ -14,7 +14,6 @@ export default async function SettingsPage() {
 
   // Redirect to login if not authenticated
   if (!userId) {
-    // This would be handled by middleware, but including it here for completeness
     return null;
   }
 

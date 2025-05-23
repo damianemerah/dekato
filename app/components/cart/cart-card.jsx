@@ -27,7 +27,16 @@ const CartCard = ({ cartItem }) => {
   const handleCheckboxChange = async () => {
     setIsLoading(true);
     try {
-      await updateCartItemChecked(userId, cartItem.id, !cartItem.checked);
+      const result = await updateCartItemChecked(
+        userId,
+        cartItem.id,
+        !cartItem.checked
+      );
+      if (result?.error) {
+        setIsLoading(false);
+        toast.error(result.message || 'Failed to update selection');
+        return;
+      }
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +58,10 @@ const CartCard = ({ cartItem }) => {
         variantId: cartItem?.variantId,
         quantity: parseInt(newQuantity),
       });
+      if (updatedCart?.error) {
+        toast.error(updatedCart.message || 'Failed to update quantity');
+        return;
+      }
       const updatedItem = updatedCart.item.find(
         (item) => item.id === cartItem.id
       );
@@ -117,7 +130,12 @@ const CartCard = ({ cartItem }) => {
               onClick={async () => {
                 setIsLoading(true);
                 try {
-                  await removeFromCart(userId, cartItem?.id);
+                  const result = await removeFromCart(userId, cartItem?.id);
+                  if (result?.error) {
+                    setIsLoading(false);
+                    toast.error(result.message || 'Failed to remove item');
+                    return;
+                  }
                 } finally {
                   setIsLoading(false);
                 }
@@ -208,7 +226,12 @@ export default function CartCards({ products }) {
   const handleSelectAll = async () => {
     setIsLoading(true);
     try {
-      await selectAllCart(userId, !isAllChecked);
+      const result = await selectAllCart(userId, !isAllChecked);
+      if (result?.error) {
+        setIsLoading(false);
+        toast.error(result.message || 'Failed to update selection');
+        return;
+      }
     } finally {
       setIsLoading(false);
     }

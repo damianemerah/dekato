@@ -10,5 +10,6 @@
   "github.copilot.preferredAccount": "damianemerah",
   "eslint.run": "onSave",
   "editor.formatOnSave": true,
-  "files.autoSave": "onFocusChange"
+  "files.autoSave": "onFocusChange",
+  "compile-hero.disable-compile-files-on-did-save-code": false
 }

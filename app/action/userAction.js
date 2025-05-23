@@ -7,7 +7,8 @@ import { restrictTo } from '@/app/utils/checkPermission';
 import Email from '@/app/lib/email';
 import Address from '@/models/address';
 import { filterObj, formDataToObject } from '@/app/utils/filterObj';
-import handleAppError from '@/app/utils/appError';
+import { handleError } from '@/app/utils/appError';
+import AppError from '@/app/utils/errorClass';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import crypto from 'crypto';
 import { omit } from 'lodash';
@@ -28,7 +29,7 @@ export async function createProductNotification(productName, adminName) {
     });
   } catch (error) {
     console.error('Error creating product notification:', error);
-    throw error;
+    return handleError(error);
   }
 }
 
@@ -197,8 +198,7 @@ export async function getDashboardData() {
       newsletter,
     };
   } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    throw new Error('Failed to fetch dashboard data');
+    return handleError(error);
   }
 }
 
@@ -227,72 +227,56 @@ export async function createUser(prevState, formData) {
 
     return { success: true, message: 'User created successfully' };
   } catch (error) {
-    console.error('User creation error:', error);
-    const errorObj = handleAppError(error);
-    return {
-      success: false,
-      message: errorObj.message || 'Failed to create user',
-      errors: error.errors,
-    };
+    return handleError(error);
   }
 }
 
 export async function getUser(userId) {
   await restrictTo('admin', 'user');
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    if (!userId) {
-      return null;
-    }
-
-    const userData = await User.findById(userId)
-      .where('active', true)
-      .lean({ virtuals: true });
-
-    if (!userData) {
-      throw new Error('No active user found with that ID');
-    }
-
-    const { _id, wishlist, ...rest } = userData;
-
-    const userObj = {
-      id: _id.toString(),
-      wishlist: wishlist?.map((item) => item.toString()),
-      ...rest,
-    };
-
-    return userObj;
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+  if (!userId) {
+    return null;
   }
+
+  const userData = await User.findById(userId)
+    .where('active', true)
+    .lean({ virtuals: true });
+
+  if (!userData) {
+    throw new AppError('No active user found with that ID', 404);
+  }
+
+  const { _id, wishlist, ...rest } = userData;
+
+  const userObj = {
+    id: _id.toString(),
+    wishlist: wishlist?.map((item) => item.toString()),
+    ...rest,
+  };
+
+  return userObj;
 }
 
 export async function getWishlist(userId) {
   await restrictTo('admin', 'user');
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    const { wishlist } = await User.findById(userId)
-      .select('wishlist')
-      .populate('wishlist', 'name price image variant slug')
-      .lean();
+  const { wishlist } = await User.findById(userId)
+    .select('wishlist')
+    .populate('wishlist', 'name price image variant slug')
+    .lean();
 
-    return wishlist.map(({ _id, variant, ...rest }) => ({
+  return wishlist.map(({ _id, variant, ...rest }) => ({
+    id: _id.toString(),
+    variant: variant.map(({ _id, ...variantRest }) => ({
       id: _id.toString(),
-      variant: variant.map(({ _id, ...variantRest }) => ({
-        id: _id.toString(),
-        ...variantRest,
-      })),
-      ...rest,
-    }));
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
-  }
+      ...variantRest,
+    })),
+    ...rest,
+  }));
 }
 
 export async function updateUserInfo(formData) {
@@ -312,7 +296,7 @@ export async function updateUserInfo(formData) {
     }).lean({ virtuals: true });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError('User not found', 404);
     }
 
     const { _id, wishlist, ...rest } = user;
@@ -330,8 +314,7 @@ export async function updateUserInfo(formData) {
 
     return userInfo;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -343,7 +326,7 @@ export async function addToWishlist(userId, productId) {
 
     const user = await User.findById(userId);
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError('User not found', 404);
     }
 
     await user.addToWishlist(productId);
@@ -361,8 +344,7 @@ export async function addToWishlist(userId, productId) {
       ...rest,
     };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -385,8 +367,7 @@ export async function removeFromWishlist(userId, productId) {
 
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -399,35 +380,29 @@ export async function deleteUser(userId) {
     const user = await User.findByIdAndUpdate(userId, { active: false });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError('User not found', 404);
     }
     revalidatePath('/admin/customers');
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
 export async function getUserAddress(userId) {
   await restrictTo('admin', 'user');
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    const address = await Address.find({ userId }).lean();
+  const address = await Address.find({ userId }).lean();
 
-    if (!address.length) {
-      return [];
-    }
-    return address.map(({ _id, userId, ...rest }) => ({
-      id: _id.toString(),
-      ...omit(rest, ['_id', 'userId']),
-    }));
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+  if (!address.length) {
+    return [];
   }
+  return address.map(({ _id, userId, ...rest }) => ({
+    id: _id.toString(),
+    ...omit(rest, ['_id', 'userId']),
+  }));
 }
 
 export async function createUserAddress(formData) {
@@ -457,8 +432,7 @@ export async function createUserAddress(formData) {
 
     return newAddress;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -482,7 +456,7 @@ export async function updateUserAddress(formData) {
     });
 
     if (!address) {
-      throw new Error('No address found with that ID');
+      throw new AppError('No address found with that ID', 404);
     }
 
     // Add proper revalidation
@@ -494,8 +468,7 @@ export async function updateUserAddress(formData) {
     const { _id, ...rest } = address.toObject();
     return { id: _id.toString(), ...rest };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -507,7 +480,7 @@ export async function deleteUserAddress(addressId) {
 
     const address = await Address.findByIdAndDelete(addressId);
     if (!address) {
-      throw new Error('No address found with that ID');
+      throw new AppError('No address found with that ID', 404);
     }
 
     // Add proper revalidation
@@ -518,47 +491,41 @@ export async function deleteUserAddress(addressId) {
 
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
 export async function getAllUsers(searchParams) {
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    const page = parseInt(searchParams?.page) || 1;
-    const limit = parseInt(searchParams?.limit) || 20;
-    const skip = (page - 1) * limit;
+  const page = parseInt(searchParams?.page) || 1;
+  const limit = parseInt(searchParams?.limit) || 20;
+  const skip = (page - 1) * limit;
 
-    const totalCount = await User.countDocuments();
+  const totalCount = await User.countDocuments();
 
-    const usersDoc = await User.find()
-      .skip(skip)
-      .limit(limit)
-      .select('+active')
-      .lean({ virtuals: true });
+  const usersDoc = await User.find()
+    .skip(skip)
+    .limit(limit)
+    .select('+active')
+    .lean({ virtuals: true });
 
-    const users = usersDoc.map((user) => {
-      const { _id, ...rest } = user;
-      return {
-        id: _id.toString(),
-        ...rest,
-      };
-    });
-
+  const users = usersDoc.map((user) => {
+    const { _id, ...rest } = user;
     return {
-      data: users,
-      pagination: {
-        totalCount,
-        currentPage: page,
-        limit,
-      },
+      id: _id.toString(),
+      ...rest,
     };
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'An error occurred');
-  }
+  });
+
+  return {
+    data: users,
+    pagination: {
+      totalCount,
+      currentPage: page,
+      limit,
+    },
+  };
 }
 
 export async function sendPasswordResetToken(prevState, formData) {
@@ -591,12 +558,7 @@ export async function sendPasswordResetToken(prevState, formData) {
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });
     }
-    const error = handleAppError(err);
-    return {
-      success: false,
-      message: error.message || 'Failed to send reset email',
-      errors: err.errors,
-    };
+    return handleError(err);
   }
 }
 
@@ -608,11 +570,11 @@ export async function updatePassword(formData) {
     const user = await User.findById(body.userId).select('+password');
 
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError('User not found', 404);
     }
 
     if (!(await user.correctPassword(body.currentPassword, user.password)))
-      throw new Error('Incorrect current password');
+      throw new AppError('Incorrect current password', 404);
 
     user.password = body.password;
     user.passwordConfirm = body.passwordConfirm;
@@ -625,8 +587,7 @@ export async function updatePassword(formData) {
 
     return { success: true, data: user.toObject() };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -673,11 +634,6 @@ export async function forgotPassword(token, prevState, formData) {
       data: userObj,
     };
   } catch (error) {
-    const errorMessage = handleAppError(error);
-    return {
-      success: false,
-      message: errorMessage.message,
-      errors: error.errors,
-    };
+    return handleError(error);
   }
 }

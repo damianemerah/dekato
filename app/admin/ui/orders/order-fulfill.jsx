@@ -65,7 +65,7 @@ function Fulfillment({ id }) {
 
   const handleFulfill = async () => {
     try {
-      await fulfillOrder(
+      const result = await fulfillOrder(
         id,
         quantities,
         tracking,
@@ -73,6 +73,11 @@ function Fulfillment({ id }) {
         carrier,
         order?.shippingMethod
       );
+
+      if (result?.error) {
+        message.error(result.message);
+        return;
+      }
       mutate(`/admin/orders/${id}`);
       message.success('Order fulfilled');
     } catch (error) {
@@ -98,7 +103,7 @@ function Fulfillment({ id }) {
     );
   }
 
-  if (!order) {
+  if (!order || order?.error) {
     return null;
   }
 

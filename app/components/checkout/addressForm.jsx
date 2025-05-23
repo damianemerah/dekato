@@ -30,7 +30,11 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
           formData.append('addressId', data);
           formData.append('isDefault', isDefault);
           formData.append('userId', user.id);
-          await updateUserAddress(formData);
+          const result = await updateUserAddress(formData);
+          if (result?.error) {
+            message.error(result.message || 'Failed to update address');
+            return;
+          }
 
           message.success('Address updated successfully');
 
@@ -40,7 +44,11 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
         if (data.get('isDefault') === 'on') {
           data.set('isDefault', 'true');
         }
-        await updateUserAddress(data);
+        const result = await updateUserAddress(data);
+        if (result?.error) {
+          message.error(result.message || 'Failed to update address');
+          return;
+        }
 
         message.success('Address updated successfully');
       } catch (error) {
@@ -63,6 +71,11 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
       try {
         const res = await createUserAddress(formData);
+
+        if (res?.error) {
+          message.error(res.message || 'Failed to add address');
+          return;
+        }
 
         message.success('Address added successfully');
       } catch (error) {

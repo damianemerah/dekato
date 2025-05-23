@@ -11,11 +11,12 @@ import { handleFormData } from '@/app/utils/handleForm';
 import { restrictTo } from '@/app/utils/checkPermission';
 import dbConnect from '@/app/lib/mongoConnection';
 import { getQueryObj } from '@/app/utils/getFunc';
-import handleAppError from '@/app/utils/appError';
+import { handleError } from '@/app/utils/appError';
 import { deleteFiles } from '@/app/lib/s3Func';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import UserActivity from '@/models/userActivity';
+import AppError from '@/app/utils/errorClass';
 
 const formatProduct = (product, isAdmin = false) => {
   const { _id, category, campaign, variant = [], ...rest } = product;
@@ -52,30 +53,6 @@ const formatProduct = (product, isAdmin = false) => {
   return formattedProduct;
 };
 
-const setupIndexes = async () => {
-  try {
-    console.log('Setting up indexes...');
-    await dbConnect();
-    // await Promise.all([
-    //   Product.collection.createIndex({
-    //     name: "text",
-    //     description: "text",
-    //     tag: "text",
-    //   }),
-    //   Product.collection.createIndex({ cat: 1 }),
-    //   Product.collection.createIndex({ price: 1 }),
-    //   Product.collection.createIndex({ slug: 1 }),
-    // ]);
-    Product.collection.createIndex({
-      name: 'text',
-      description: 'text',
-      tag: 'text',
-    });
-  } catch (error) {
-    console.error('Error setting up indexes:', error);
-  }
-};
-
 export async function setProductStatus(id, status) {
   await restrictTo('admin');
 
@@ -86,9 +63,12 @@ export async function setProductStatus(id, status) {
     });
     return formatProduct(product);
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
+}
+
+function calculateDiscountPrice(price, discount) {
+  return +(price - (price * discount) / 100).toFixed(2);
 }
 
 export async function updateProductDiscount(
@@ -108,7 +88,12 @@ export async function updateProductDiscount(
       throw new Error('Product not found');
     }
 
-    product.discount = discount;
+    const discountValue = calculateDiscountPrice(
+      product.price,
+      product.discount
+    );
+    product.discount = discountValue === 0 ? 0 : discount;
+    product.discountPrice = discountValue === 0 ? 0 : discountValue;
     product.discountDuration = discountDuration;
 
     if (campaignId) {
@@ -128,8 +113,7 @@ export async function updateProductDiscount(
     const updatedProduct = await Product.findById(productId);
     return formatProduct(updatedProduct.toObject(), true);
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -151,26 +135,21 @@ const handleProductQuery = async (query, searchParams = {}) => {
 export async function getAdminProduct(params) {
   await restrictTo('admin');
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    const query = Product.find()
-      .populate('category', 'name')
-      .populate('campaign', 'name')
-      .lean();
-    const searchParams = {
-      sort: '-createdAt',
-      page: params.page || 1,
-      limit: params.limit || 20,
-    };
-    const productData = await handleProductQuery(query, searchParams);
-    const products = productData.map((product) => formatProduct(product, true));
-    const totalCount = await Product.countDocuments(query.getFilter());
-    return { data: products, totalCount, limit: searchParams.limit };
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
-  }
+  const query = Product.find()
+    .populate('category', 'name')
+    .populate('campaign', 'name')
+    .lean();
+  const searchParams = {
+    sort: '-createdAt',
+    page: params.page || 1,
+    limit: params.limit || 20,
+  };
+  const productData = await handleProductQuery(query, searchParams);
+  const products = productData.map((product) => formatProduct(product, true));
+  const totalCount = await Product.countDocuments(query.getFilter());
+  return { data: products, totalCount, limit: searchParams.limit };
 }
 
 export async function productSearch(searchQuery) {
@@ -244,8 +223,6 @@ export async function productSearch(searchQuery) {
 
     return { products, categories };
   } catch (err) {
-    console.error('Product search error:', err);
-    // Return empty results instead of throwing
     return { products: [], categories: [] };
   }
 }
@@ -320,7 +297,6 @@ export async function getVariantsByCategory(catArr, searchStr = '') {
       variant: { id: variant._id.toString(), ...variant },
     }));
   } catch (err) {
-    console.error('Error in getVariantsByCategory:', err);
     return []; // Return empty array on error
   }
 }
@@ -579,35 +555,25 @@ export const getAllProducts = cache(async (slugArray, searchParams = {}) => {
 });
 
 export const getProductById = cache(async (id) => {
-  try {
-    await dbConnect();
-    const product = await Product.findById(id)
-      .populate('category', 'name slug')
-      .populate('campaign', 'name slug')
-      .populate('variant.optionType.labelId', 'name values swatchUrl')
-      .lean({ virtuals: true });
-    if (!product) throw new Error('Product not found');
-    return formatProduct(product);
-  } catch (err) {
-    const error = handleAppError(err);
-    return null;
-  }
+  await dbConnect();
+  const product = await Product.findById(id)
+    .populate('category', 'name slug')
+    .populate('campaign', 'name slug')
+    .populate('variant.optionType.labelId', 'name values swatchUrl')
+    .lean({ virtuals: true });
+  if (!product) throw new Error('Product not found');
+  return formatProduct(product);
 });
 
 export async function getAdminProductById(id) {
-  try {
-    await dbConnect();
-    const product = await Product.findById(id)
-      .populate('category', 'name slug')
-      .populate('campaign', 'name slug')
-      .populate('variant.optionType.labelId', 'name values swatchUrl')
-      .lean({ virtuals: true });
-    if (!product) throw new Error('Product not found');
-    return formatProduct(product, true);
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
-  }
+  await dbConnect();
+  const product = await Product.findById(id)
+    .populate('category', 'name slug')
+    .populate('campaign', 'name slug')
+    .populate('variant.optionType.labelId', 'name values swatchUrl')
+    .lean({ virtuals: true });
+  if (!product) throw new Error('Product not found');
+  return formatProduct(product, true);
 }
 
 export async function createProduct(formData) {
@@ -618,7 +584,7 @@ export async function createProduct(formData) {
     const obj = await handleFormData(formData);
 
     const createdProduct = await Product.create(obj);
-    if (!createdProduct) throw new Error('Product not created');
+    if (!createdProduct) throw new AppError('Product not created', 400);
 
     const productDoc = createdProduct.toObject();
 
@@ -626,8 +592,7 @@ export async function createProduct(formData) {
     const product = formatProduct(productDoc);
     return product;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -637,7 +602,7 @@ export async function updateProduct(formData) {
   try {
     await dbConnect();
     const id = formData.get('id');
-    if (!id) throw new Error('Product not found');
+    if (!id) throw new AppError('Product not found', 404);
 
     const data = await handleFormData(formData);
 
@@ -651,8 +616,7 @@ export async function updateProduct(formData) {
 
     return formatProduct(productData);
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 }
 
@@ -676,8 +640,7 @@ export const deleteProduct = async (id) => {
 
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
+    return handleError(err);
   }
 };
 
@@ -862,6 +825,6 @@ export const getProductByIdCached = cache(async (id) => {
     };
   } catch (err) {
     console.error('Error fetching product by ID:', err);
-    throw new Error(err.message);
+    return handleError(err);
   }
 });

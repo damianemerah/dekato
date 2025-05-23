@@ -82,7 +82,6 @@ export default function NewCategory({ categoryId }) {
 
   useEffect(() => {
     if (selectedCategory) {
-      console.log('selectedCategory🔥🔥', selectedCategory);
       selectedCategory.parent && setCParent(selectedCategory?.parent.id);
       const selectedImgs = selectedCategory.image.map((img, index) => ({
         uid: index,
@@ -155,6 +154,11 @@ export default function NewCategory({ categoryId }) {
 
         const updatedCategory = await updateCategory(formData);
 
+        if (updatedCategory.error) {
+          message.error(updatedCategory.message);
+          return;
+        }
+
         message.success('Category updated');
         titleRef.current.value = '';
         setDescription('');
@@ -163,6 +167,10 @@ export default function NewCategory({ categoryId }) {
       }
 
       const newCategory = await createCategory(formData);
+      if (newCategory.error) {
+        message.error(newCategory.message);
+        return;
+      }
       mutate('/api/allCategories');
       message.success('Category created');
       titleRef.current.value = '';

@@ -6,93 +6,84 @@ import Category from '@/models/category';
 import Product from '@/models/product';
 import { handleFormData } from '@/app/utils/handleForm';
 import { restrictTo } from '@/app/utils/checkPermission';
-import handleAppError from '@/app/utils/appError';
 import APIFeatures from '@/app/utils/apiFeatures';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { formatCategories } from '@/app/utils/filterHelpers';
+import { handleError } from '@/app/utils/appError';
+import AppError from '@/app/utils/errorClass';
 
 export async function getAllCategories(params) {
   // No authorization check needed as this is a public endpoint
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    const query = Category.find(
-      {},
-      'name description image slug createdAt parent pinned pinOrder '
-    )
-      .populate('parent', 'name _id slug')
-      .lean({ virtuals: true });
+  const query = Category.find(
+    {},
+    'name description image slug createdAt parent pinned pinOrder '
+  )
+    .populate('parent', 'name _id slug')
+    .lean({ virtuals: true });
 
-    const searchParams = {
-      page: params?.page || 1,
-      limit: params?.limit || 20,
-    };
+  const searchParams = {
+    page: params?.page || 1,
+    limit: params?.limit || 20,
+  };
 
-    const feature = new APIFeatures(query, searchParams).paginate().sort();
+  const feature = new APIFeatures(query, searchParams).paginate().sort();
 
-    const categoryData = await feature.query;
+  const categoryData = await feature.query;
 
-    const formattedData = await Promise.all(
-      categoryData.map(async ({ _id, parent, ...rest }) => {
-        const productCount = await Product.countDocuments({
-          category: _id,
-        });
+  const formattedData = await Promise.all(
+    categoryData.map(async ({ _id, parent, ...rest }) => {
+      const productCount = await Product.countDocuments({
+        category: _id,
+      });
 
-        return {
-          id: _id.toString(),
-          parent: parent
-            ? {
-                id: parent._id.toString(),
-                name: parent.name,
-                slug: parent.slug,
-              }
-            : null,
-          productCount,
-          ...rest,
-        };
-      })
-    );
+      return {
+        id: _id.toString(),
+        parent: parent
+          ? {
+              id: parent._id.toString(),
+              name: parent.name,
+              slug: parent.slug,
+            }
+          : null,
+        productCount,
+        ...rest,
+      };
+    })
+  );
 
-    const totalCount = await Category.countDocuments(query.getFilter());
+  const totalCount = await Category.countDocuments(query.getFilter());
 
-    return { data: formattedData, totalCount, limit: searchParams.limit };
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message);
-  }
+  return { data: formattedData, totalCount, limit: searchParams.limit };
 }
 
 export async function getSubCategories(slug) {
   // No authorization check needed as this is a public endpoint
 
-  try {
-    await dbConnect();
+  await dbConnect();
 
-    // Early return for search routes
-    if (!Array.isArray(slug) || slug[0].toLowerCase() === 'search') {
-      return null;
-    }
-
-    // Find parent category and populate children
-    const parentCategory = await Category.findOne({
-      slug: slug[0].toLowerCase(),
-    })
-      .populate('children', 'name description image slug createdAt')
-      .sort({ slug: 1 })
-      .lean();
-
-    if (!parentCategory) {
-      return null;
-    }
-
-    // Format and return the children categories
-    const formattedCategories = formatCategories(parentCategory.children || []);
-    return formattedCategories;
-  } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'Something went wrong');
+  // Early return for search routes
+  if (!Array.isArray(slug) || slug[0].toLowerCase() === 'search') {
+    return null;
   }
+
+  // Find parent category and populate children
+  const parentCategory = await Category.findOne({
+    slug: slug[0].toLowerCase(),
+  })
+    .populate('children', 'name description image slug createdAt')
+    .sort({ slug: 1 })
+    .lean();
+
+  if (!parentCategory) {
+    return null;
+  }
+
+  // Format and return the children categories
+  const formattedCategories = formatCategories(parentCategory.children || []);
+  return formattedCategories;
 }
 
 export async function createCategory(formData) {
@@ -115,7 +106,7 @@ export async function createCategory(formData) {
       );
 
       if (!parentDoc) {
-        throw new Error('Parent category not found');
+        throw new AppError('Parent category not found', 404);
       }
 
       category.parent = parentDoc._id.toString();
@@ -133,8 +124,7 @@ export async function createCategory(formData) {
     revalidateTag('categories');
     return { id: _id.toString(), productCount, ...rest };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'An error occurred');
+    return handleError(err);
   }
 }
 
@@ -159,7 +149,7 @@ export async function updateCategory(formData) {
     // Get the current category before update
     const currentCategory = await Category.findById(id);
     if (!currentCategory) {
-      throw new Error('Category not found');
+      throw new AppError('Category not found', 404);
     }
 
     const categoryDoc = await Category.findByIdAndUpdate(id, body, {
@@ -170,7 +160,7 @@ export async function updateCategory(formData) {
       .populate('parent', 'name _id slug');
 
     if (!categoryDoc) {
-      throw new Error('Category not found');
+      throw new AppError('Category not found', 404);
     }
 
     const category = categoryDoc.toObject();
@@ -191,7 +181,7 @@ export async function updateCategory(formData) {
       ) {
         await Category.findByIdAndUpdate(
           oldParentId,
-          { $pull: { children: id } }, // Mongoose will convert 'id' to ObjectId
+          { $pull: { children: id } },
           { new: true }
         );
       }
@@ -203,7 +193,7 @@ export async function updateCategory(formData) {
       ) {
         await Category.findByIdAndUpdate(
           newParentId,
-          { $addToSet: { children: id } }, // Mongoose will convert 'id' to ObjectId
+          { $addToSet: { children: id } },
           { new: true }
         );
       }
@@ -234,8 +224,7 @@ export async function updateCategory(formData) {
       ...rest,
     };
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'An error occurred');
+    return handleError(err);
   }
 }
 
@@ -247,7 +236,7 @@ export async function deleteCategory(id) {
     const categoryToDelete = await Category.findById(id);
 
     if (!categoryToDelete) {
-      throw new Error('Category not found');
+      throw new AppError('Category not found', 404);
     }
 
     // Check if any products are using this category
@@ -256,8 +245,9 @@ export async function deleteCategory(id) {
     });
 
     if (productsUsingCategory > 0) {
-      throw new Error(
-        'Cannot delete category. It is still being used by products.'
+      throw new AppError(
+        'Cannot delete category. It is still being used by products.',
+        400
       );
     }
 
@@ -289,8 +279,7 @@ export async function deleteCategory(id) {
 
     return null;
   } catch (err) {
-    const error = handleAppError(err);
-    throw new Error(error.message || 'An error occurred');
+    return handleError(err);
   }
 }
 

@@ -7,6 +7,7 @@ import { deleteOrder } from '@/app/action/orderAction';
 import { X } from 'lucide-react';
 import { ButtonSecondary } from '../../button';
 import useConfirmModal from '@/app/components/confirm-modal';
+import { message } from 'antd';
 
 function OrderCard({ order, onDelete }) {
   const showConfirmModal = useConfirmModal();
@@ -17,7 +18,11 @@ function OrderCard({ order, onDelete }) {
       content: 'This action cannot be undone',
       async onOk() {
         try {
-          await deleteOrder(order.id);
+          const result = await deleteOrder(order.id);
+          if (result?.error) {
+            message.error(result.message || 'Error deleting order');
+            return;
+          }
           onDelete(order.id);
         } catch (error) {
           console.error('Error deleting order:', error);

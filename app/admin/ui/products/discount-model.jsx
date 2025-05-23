@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Form, InputNumber, DatePicker, Select } from 'antd';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
@@ -18,8 +18,7 @@ const DiscountModal = memo(function DiscountModal({
   setLoading,
 }) {
   const [form] = Form.useForm();
-
-  console.log(saleCollections, '12333');
+  const [error, setError] = useState(null);
 
   const handleOk = useCallback(async () => {
     try {
@@ -27,7 +26,7 @@ const DiscountModal = memo(function DiscountModal({
       setLoading(true);
 
       for (const productId of selectedProducts) {
-        await updateProductDiscount(
+        const result = await updateProductDiscount(
           productId,
           {
             discount: values.discount,
@@ -35,6 +34,12 @@ const DiscountModal = memo(function DiscountModal({
           },
           values.campaign
         );
+
+        if (result?.error) {
+          setError(result.message || 'Failed to update product discount');
+          toast.error(result.message || 'Failed to update product discount');
+          return;
+        }
       }
 
       toast.success('Products added to sales successfully');

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { PaystackButton } from 'react-paystack';
-import { useRouter } from 'next/navigation';
 import { SmallSpinner } from '@/app/components/spinner';
 import { toast } from 'sonner';
 import {
@@ -21,11 +20,9 @@ export default function CheckoutButton({
 }) {
   const [isPreparing, setIsPreparing] = useState(false);
   const [paystackProps, setPaystackProps] = useState(null);
-  const router = useRouter();
 
   const preparePayment = async () => {
     if (!userId || isPreparing) return;
-    console.log('[DEBUG CheckoutButton] preparePayment called');
     setIsPreparing(true);
 
     const orderInputData = {
@@ -51,12 +48,7 @@ export default function CheckoutButton({
     };
 
     try {
-      console.log('[DEBUG CheckoutButton] Calling createPendingOrder');
       const orderResult = await createPendingOrder(orderInputData);
-      console.log(
-        '[DEBUG CheckoutButton] createPendingOrder result:',
-        JSON.stringify(orderResult)
-      );
 
       if (!orderResult.success) {
         console.error(
@@ -67,7 +59,6 @@ export default function CheckoutButton({
       }
 
       // Set up Paystack props
-      console.log('[DEBUG CheckoutButton] Setting up Paystack props');
       const props = {
         email: orderResult.email,
         amount: Math.round(orderResult.amount * 100), // Amount in kobo
@@ -86,7 +77,6 @@ export default function CheckoutButton({
         },
         text: 'Pay Now',
         onSuccess: async (reference) => {
-          console.log('[DEBUG CheckoutButton] Payment successful:', reference);
           toast.success('Payment successful! Processing your order...');
 
           try {
@@ -103,11 +93,6 @@ export default function CheckoutButton({
               console.log('[DEBUG CheckoutButton] Server handling redirect');
               // Let the server handle it - don't do anything
             } else {
-              // This is an actual error
-              console.error(
-                '[ERROR CheckoutButton] Order verification error:',
-                error
-              );
               toast.error(
                 'An error occurred processing your order. Please contact support.'
               );
@@ -116,7 +101,6 @@ export default function CheckoutButton({
           }
         },
         onClose: () => {
-          console.log('[DEBUG CheckoutButton] Payment window closed by user');
           toast.warning('Payment window closed.');
           setIsPreparing(false);
         },
@@ -124,11 +108,6 @@ export default function CheckoutButton({
 
       setPaystackProps(props);
     } catch (error) {
-      console.error(
-        '[ERROR CheckoutButton] Payment preparation error:',
-        error.message,
-        error.stack
-      );
       toast.error(error.message || 'Failed to prepare payment');
       setIsPreparing(false);
     }
