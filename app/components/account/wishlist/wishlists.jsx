@@ -32,7 +32,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
     try {
       for (const product of products) {
         const newItem = {
-          productId: product.id,
+          product: product.id,
           name: product.name,
           price: product.price,
           quantity: 1,
@@ -41,6 +41,7 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
         };
         const result = await createCartItem(userId, newItem);
         if (result?.error) {
+          console.log(error);
           toast.error(result.message || 'Failed to add item to cart');
           throw new Error('Failed to add item to cart');
         } else await removeFromWishlist(userId, product.id);
@@ -116,11 +117,11 @@ export default function WishlistPageClient({ initialWishlistProducts }) {
               'Add all to cart'
             )}
           </ButtonSecondary>
-          <ButtonSecondary
+          {/* <ButtonSecondary
             className={`bg-grayBg text-grayText w-full border-2 border-secondary px-4 py-2 font-oswald text-xs uppercase transition-colors duration-300 hover:bg-gray-200 hover:text-primary sm:w-auto sm:text-sm`}
           >
             Share Wishlist
-          </ButtonSecondary>
+          </ButtonSecondary> */}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">

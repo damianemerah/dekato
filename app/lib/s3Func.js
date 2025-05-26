@@ -8,6 +8,7 @@ import {
   PutObjectCommand,
   DeleteObjectsCommand,
 } from '@aws-sdk/client-s3';
+import { allowedS3Paths } from '@/app/resources/contents';
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -23,8 +24,8 @@ export const uploadFiles = async (
   productName = ''
 ) => {
   // Before upload logic
-  const allowedPaths = ['image', 'blog', 'variant', 'blog-images'];
-  if (!allowedPaths.includes(fileType)) {
+  const allowedS3Paths = ['image', 'blog', 'variant', 'blog-images', 'banner'];
+  if (!allowedS3Paths.includes(fileType)) {
     throw new Error(`Invalid file type: ${fileType}`);
   }
   let files = filesToUpload;
@@ -89,7 +90,6 @@ export const uploadFiles = async (
       const data = await s3.send(command);
 
       const url = `${process.env.NEXT_PUBLIC_IMAGE_BASE}/${fileName}`;
-      console.log('url🔥🔥', url);
 
       return url;
     });
@@ -109,7 +109,6 @@ export const deleteFiles = async (files) => {
       Delete: {
         Objects: files.map((file) => {
           const parts = file.split('.ng/');
-          console.log('parts🔥🔥', parts);
           return parts.length > 1 ? { Key: parts[1] } : { Key: file };
         }),
       },

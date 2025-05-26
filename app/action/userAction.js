@@ -584,6 +584,7 @@ export async function updatePassword(formData) {
     revalidatePath('/account/settings');
     revalidatePath('/account');
     revalidateTag(`user-${body.userId}`);
+    revalidatePath('/', 'layout');
 
     return { success: true, data: user.toObject() };
   } catch (err) {

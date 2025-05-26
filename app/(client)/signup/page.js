@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import GoogleIcon from '@/public/assets/icons/google.svg';
-import ViewIcon from '@/public/assets/icons/view.svg';
-import ViewOff from '@/public/assets/icons/view-off.svg';
+import { Eye, EyeOff } from 'lucide-react';
 import { InputType } from '@/app/components/inputType';
 import { signIn } from 'next-auth/react';
 import { createUser } from '@/app/action/userAction';
@@ -65,7 +64,7 @@ const SignUp = () => {
           label="Password"
           type={viewPassword ? 'text' : 'password'}
           required={true}
-          icon={viewPassword ? ViewIcon : ViewOff}
+          icon={viewPassword ? EyeOff : Eye}
           onIconClick={() => setViewPassword(!viewPassword)}
         />
 
@@ -74,7 +73,7 @@ const SignUp = () => {
           label="Password Confirm"
           type={viewPassword ? 'text' : 'password'}
           required={true}
-          icon={viewPassword ? ViewIcon : ViewOff}
+          icon={viewPassword ? EyeOff : Eye}
           onIconClick={() => setViewPassword(!viewPassword)}
         />
 

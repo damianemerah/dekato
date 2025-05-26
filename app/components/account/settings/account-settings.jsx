@@ -16,7 +16,8 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useUserStore } from '@/app/store/store';
 
 export default function AccountSettings({ initialUserData }) {
   const { data: session, update: updateSession } = useSession();
@@ -25,6 +26,8 @@ export default function AccountSettings({ initialUserData }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const setUser = useUserStore((state) => state.setUser);
 
   const handleEditClick = useCallback(() => setShowEditModal(true), []);
   const handlePasswordClick = useCallback(() => setShowPasswordModal(true), []);
@@ -101,6 +104,9 @@ export default function AccountSettings({ initialUserData }) {
         });
 
         await updateSession({ passwordChanged: true });
+        setUser(null);
+
+        await signOut({ callbackUrl: '/signin' });
       } catch (error) {
         console.error('Failed to update password:', error);
         toast.error('Update failed', {
@@ -110,7 +116,7 @@ export default function AccountSettings({ initialUserData }) {
         setIsUpdating(false);
       }
     },
-    [userId, handleModalClose, updateSession]
+    [userId, handleModalClose, updateSession, setUser]
   );
 
   const handleDeleteAccount = useCallback(async () => {
@@ -127,7 +133,7 @@ export default function AccountSettings({ initialUserData }) {
   return (
     <div className="mx-auto py-8">
       <div className="space-y-8">
-        <section className="rounded-lg border bg-white p-8 shadow-sm">
+        <section className="rounded-lg border bg-white p-4 shadow-sm md:p-8">
           <h2 className="mb-6 font-oswald text-2xl font-medium">
             Account Settings
           </h2>
@@ -266,25 +272,74 @@ export default function AccountSettings({ initialUserData }) {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  name="currentPassword"
-                  type="password"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    name="currentPassword"
+                    type="password"
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVisible(!visible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    {visible ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">New Password</Label>
-                <Input id="password" name="password" type="password" required />
+                {/* <Input id="password" name="password" type="password" required /> */}
+                <div className="relative">
+                  <Input
+                    type={visible ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    className="pr-10"
+                    required
+                    id="password"
+                    name="password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVisible(!visible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    {visible ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="passwordConfirm">Confirm New Password</Label>
-                <Input
-                  id="passwordConfirm"
-                  name="passwordConfirm"
-                  type="password"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="passwordConfirm"
+                    name="passwordConfirm"
+                    type={visible ? 'text' : 'password'}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVisible(!visible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    {visible ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -320,9 +375,9 @@ export default function AccountSettings({ initialUserData }) {
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-gray-500">
-              Please type <strong>delete my account</strong> to confirm.
+              Please type <strong>delete</strong> to confirm.
             </p>
-            <Input className="mt-2" placeholder="delete my account" />
+            <Input className="mt-2" placeholder="delete" />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleModalClose}>

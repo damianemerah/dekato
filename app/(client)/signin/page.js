@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { SmallSpinner } from '@/app/components/spinner';
 import Link from 'next/link';
 import { InputType } from '@/app/components/inputType';
@@ -12,8 +11,7 @@ import { ButtonPrimary } from '@/app/components/button';
 import GoogleIcon from '@/public/assets/icons/google.svg';
 import ArrowRightIcon from '@/public/assets/icons/arrow_right.svg';
 import { toast } from 'sonner';
-const ViewIcon = dynamic(() => import('@/public/assets/icons/view.svg'));
-const ViewOff = dynamic(() => import('@/public/assets/icons/view-off.svg'));
+import { Eye, EyeOff } from 'lucide-react';
 
 // Define the action outside the component
 async function handleSignInAction(previousState, formData) {
@@ -121,9 +119,9 @@ function SignInContent({ searchParams }) {
             onClick={togglePasswordView}
           >
             {viewPassword ? (
-              <ViewIcon className="w-5" />
+              <EyeOff className="w-5" />
             ) : (
-              <ViewOff className="w-5" />
+              <Eye className="w-5" />
             )}
           </div>
         </div>

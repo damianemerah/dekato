@@ -36,7 +36,7 @@ export default function SearchBox({ className }) {
       if (searchString.trim().length > 2) {
         setIsLoading(true);
         try {
-          const results = await productSearch({ q: searchString });
+          const results = await productSearch({ q: searchString.trim() });
           setSearchResults(results);
           setShowResults(true);
         } catch (error) {
@@ -85,7 +85,7 @@ export default function SearchBox({ className }) {
           searchResults.categories.length > 0) && (
           <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
             {searchResults.categories.length > 0 && (
-              <div className="border-b p-2">
+              <div className="max-h-[20vh] overflow-y-auto border-b p-2">
                 <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
                   Categories
                 </h3>
@@ -116,7 +116,7 @@ export default function SearchBox({ className }) {
             )}
 
             {searchResults.products.length > 0 && (
-              <div className="p-2">
+              <div className="max-h-[60vh] overflow-y-auto p-2">
                 <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
                   Products
                 </h3>

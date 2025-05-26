@@ -145,27 +145,28 @@ const ProductGallery = memo(function ProductGallery({ product }) {
     <div className="flex flex-col-reverse gap-4 md:flex-row md:gap-6">
       {/* Thumbnails Column */}
       <div className="flex flex-row gap-2 overflow-x-auto p-2 md:max-h-[600px] md:w-20 md:flex-col md:gap-3 md:overflow-y-auto">
-        {product.image.map((image, index) => (
-          <button
-            key={index}
-            onClick={() => handleThumbnailClick(index)}
-            className={cn(
-              'relative h-20 w-16 flex-shrink-0 overflow-hidden border transition-all',
-              activeIndex === index
-                ? 'ring-2 ring-primary ring-offset-1'
-                : 'border-transparent opacity-70 hover:opacity-100'
-            )}
-            aria-label={`View image ${index + 1}`}
-          >
-            <Image
-              src={image}
-              alt={`Product thumbnail ${index + 1}`}
-              fill
-              sizes="64px"
-              className="object-cover object-center"
-            />
-          </button>
-        ))}
+        {product.image > 1 &&
+          product.image.map((image, index) => (
+            <button
+              key={index}
+              onClick={() => handleThumbnailClick(index)}
+              className={cn(
+                'relative h-20 w-16 flex-shrink-0 overflow-hidden border transition-all',
+                activeIndex === index
+                  ? 'ring-2 ring-primary ring-offset-1'
+                  : 'border-transparent opacity-70 hover:opacity-100'
+              )}
+              aria-label={`View image ${index + 1}`}
+            >
+              <Image
+                src={image}
+                alt={`Product thumbnail ${index + 1}`}
+                fill
+                sizes="64px"
+                className="object-cover object-center"
+              />
+            </button>
+          ))}
       </div>
 
       {/* Main Image Area */}
@@ -210,9 +211,11 @@ const ProductGallery = memo(function ProductGallery({ product }) {
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                   style={{
-                    cursor: isZoomed
-                      ? `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>')}")`
-                      : `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M7.5 4v7M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>')}")`,
+                    cursor: `url("data:image/svg+xml,${encodeURIComponent(
+                      isZoomed
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" width="1.8rem" height="1.8rem" viewBox="0 0 15 15"><path fill="none" stroke="white" d="M7.5 4v7M4 7.5h7m-3.5 7a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>'
+                    )}") 24 24, auto`,
                     pointerEvents:
                       isZoomed || index === activeIndex ? 'auto' : 'none',
                   }}
@@ -226,7 +229,8 @@ const ProductGallery = memo(function ProductGallery({ product }) {
                     quality={100}
                     className={cn(
                       'object-cover object-center transition-transform duration-200 ease-out',
-                      isZoomed && 'will-change-transform'
+                      isZoomed &&
+                        'h-full max-h-[80vh] w-full will-change-transform'
                     )}
                     style={{
                       transformOrigin: `${zoomPosition.x * 100}% ${zoomPosition.y * 100}%`,

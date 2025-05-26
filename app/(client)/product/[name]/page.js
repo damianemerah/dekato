@@ -3,10 +3,13 @@ import { getProductById } from '@/app/action/productAction';
 import ProductDetail from '@/app/components/product/product-details';
 import SimilarProductsServer from '@/app/components/product/similar-products';
 import ProductStructuredData from '@/app/components/products/product-structured-data';
+import BreadcrumbStructuredData from '@/app/components/products/breadcrumb-structured-data';
+import { htmlToText } from 'html-to-text';
 
 export async function generateMetadata({ params }, parent) {
   const id = params.name.split('-').slice(-1)[0];
   const product = await getProductById(id);
+  const name = params.name;
 
   if (!product) {
     return {
@@ -15,15 +18,25 @@ export async function generateMetadata({ params }, parent) {
       robots: {
         index: false,
       },
+      status: 404,
     };
   }
+  const description = htmlToText(product.description, {
+    wordwrap: false,
+    ignoreHref: true,
+    ignoreImage: true,
+  })
+    .split('.')
+    .slice(0, 2)
+    .join('.')
+    .slice(0, 160);
 
   return {
     title: `${product.name} | Dekato Outfit`,
-    description: product.description.slice(0, 160),
+    description,
     openGraph: {
       title: product.name,
-      description: product.description.slice(0, 160),
+      description,
       images: [
         {
           url: product.image[0],
@@ -34,14 +47,28 @@ export async function generateMetadata({ params }, parent) {
       ],
       type: 'website',
     },
+    keywords: product.tags || [
+      'fashion',
+      'lifestyle',
+      'Dekato Outfit',
+      'Lagos Fashion',
+      'Nigeria Fashion',
+      'online shopping',
+      'outfit',
+      'clothing',
+      'accessories',
+      'streetwear',
+      'trendy',
+      'designer fashion',
+    ],
     twitter: {
       card: 'summary_large_image',
       title: product.name,
-      description: product.description.slice(0, 160),
+      description,
       images: [product.image[0]],
     },
     alternates: {
-      canonical: `/product/${params.name}`,
+      canonical: `${process.env.NEXT_PUBLIC_URL}/product/${name}`,
     },
   };
 }
@@ -61,6 +88,20 @@ export default async function ProductInfoPage({ params: { name } }) {
     return (
       <div>
         <ProductStructuredData product={product} />
+        <BreadcrumbStructuredData
+          items={[
+            { name: 'Home', url: 'https://www.dekato.ng' },
+            {
+              name: product.category[0]?.name || 'Category',
+              url: `https://www.dekato.ng/shop/${product.category[0]?.slug || 'women'}`,
+            },
+            {
+              name: product.name,
+              url: `https://www.dekato.ng/product/${product.slug}-${product.id}`,
+            },
+          ]}
+        />
+
         <ProductDetail product={product} />
         <div className="mt-16 md:mt-24">
           <SimilarProductsServer productId={id} category={product.category} />

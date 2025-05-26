@@ -5,6 +5,7 @@ import { SmallSpinner } from '../../spinner';
 import { ButtonSecondary } from '../../button';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { formatToNaira } from '@/app/utils/getFunc';
 
 function OrderInfoItem({
   title,
@@ -137,7 +138,7 @@ export default function OrderDetailClient({ orderData }) {
                 </div>
                 <div className="mt-4 text-right sm:mt-0">
                   <p className="font-semibold">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatToNaira(item.price * item.quantity)}
                   </p>
                 </div>
               </li>
@@ -148,7 +149,9 @@ export default function OrderDetailClient({ orderData }) {
         <div className="border-t border-gray-200 pt-6">
           <div className="flex justify-between">
             <h3 className={`font-oswald text-xl font-semibold`}>Total</h3>
-            <p className="text-xl font-semibold">${order?.total?.toFixed(2)}</p>
+            <p className="text-xl font-semibold">
+              {formatToNaira(order?.total)}
+            </p>
           </div>
         </div>
       </div>

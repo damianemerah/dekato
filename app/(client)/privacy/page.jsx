@@ -1,5 +1,7 @@
 import React from 'react';
 
+export const revalidate = 1800;
+
 export default function PrivacyPolicy() {
   return (
     <div className="prose prose-slate mx-auto max-w-3xl px-4 py-6">

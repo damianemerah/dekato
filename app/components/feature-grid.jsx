@@ -1,4 +1,5 @@
 import { Shield, Truck, CreditCard, HeadphonesIcon } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 const features = [
   {
@@ -24,6 +25,18 @@ const features = [
 ];
 
 export default function FeatureGrid() {
+  const pathname = usePathname();
+
+  // If the pathname is '/checkout', do not render the feature grid
+  if (
+    pathname === '/checkout' ||
+    pathname === '/checkout/success' ||
+    pathname.startsWith('/account') ||
+    pathname.startsWith('/shop') ||
+    pathname.startsWith('/admin')
+  ) {
+    return null;
+  }
   return (
     <section className="bg-secondary pb-10 pt-14">
       <div className="container px-4 md:px-6">

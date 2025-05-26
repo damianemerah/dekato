@@ -1,15 +1,19 @@
-"use server";
+'use server';
 
-import { EmailSubscription } from "@/models/subscription";
-import dbConnect from "@/app/lib/mongoConnection";
-import Email from "@/app/lib/email";
-import { revalidateTag } from "next/cache";
-import { auth } from "@/app/lib/auth";
+import { EmailSubscription } from '@/models/subscription';
+import dbConnect from '@/app/lib/mongoConnection';
+import Email from '@/app/lib/email';
+import { revalidateTag } from 'next/cache';
+import { auth } from '@/app/lib/auth';
 
 /**
  * Subscribe a user to the newsletter
  */
-export async function subscribeUser(email, gender = "both") {
+export async function subscribeUser(prevState, formData) {
+  const email = formData.get('newsletter');
+  const gender = formData.get('gender') || 'both';
+
+  console.log(email, gender, 'formData', formData);
   try {
     await dbConnect();
 
@@ -17,7 +21,7 @@ export async function subscribeUser(email, gender = "both") {
     if (!email) {
       return {
         success: false,
-        message: "Please provide a valid email address",
+        message: 'Please provide a valid email address',
       };
     }
 
@@ -26,7 +30,7 @@ export async function subscribeUser(email, gender = "both") {
 
     if (existingSubscription) {
       // Reactivate subscription
-      existingSubscription.status = "subscribed";
+      existingSubscription.status = 'subscribed';
       existingSubscription.confirmedAt = new Date();
       existingSubscription.gender = gender;
       await existingSubscription.save();
@@ -35,7 +39,7 @@ export async function subscribeUser(email, gender = "both") {
       const subscription = new EmailSubscription({
         email,
         gender,
-        status: "subscribed",
+        status: 'subscribed',
       });
 
       await subscription.save();
@@ -46,21 +50,21 @@ export async function subscribeUser(email, gender = "both") {
       const emailObj = new Email({ email }, url);
       await emailObj.emailSubscription();
     } catch (error) {
-      console.error("Error sending confirmation email:", error);
+      console.error('Error sending confirmation email:', error);
       // Don't fail the subscription if email fails
     }
 
-    revalidateTag("emailSubscription");
+    revalidateTag('emailSubscription');
 
     return {
       success: true,
-      message: "Subscription successful",
+      message: 'Subscription successful',
     };
   } catch (error) {
-    console.error("Subscription error:", error);
+    console.error('Subscription error:', error);
     return {
       success: false,
-      message: "Error processing subscription",
+      message: 'Error processing subscription',
     };
   }
 }
@@ -76,7 +80,7 @@ export async function updateSubscription(email, status, gender) {
     if (!email) {
       return {
         success: false,
-        message: "Email is required",
+        message: 'Email is required',
       };
     }
 
@@ -99,18 +103,18 @@ export async function updateSubscription(email, status, gender) {
       const emailObj = new Email({ email }, url);
       await emailObj.emailSubscription();
     } catch (error) {
-      console.error("Error sending confirmation email:", error);
+      console.error('Error sending confirmation email:', error);
       // Don't fail the subscription if email fails
     }
 
-    revalidateTag("emailSubscription");
+    revalidateTag('emailSubscription');
 
     return {
       success: true,
       message:
-        status === "subscribed"
-          ? "Successfully updated newsletter preferences"
-          : "Successfully unsubscribed from newsletter",
+        status === 'subscribed'
+          ? 'Successfully updated newsletter preferences'
+          : 'Successfully unsubscribed from newsletter',
       subscription: {
         email: subscription.email,
         status: subscription.status,
@@ -118,10 +122,10 @@ export async function updateSubscription(email, status, gender) {
       },
     };
   } catch (error) {
-    console.error("Subscription update error:", error);
+    console.error('Subscription update error:', error);
     return {
       success: false,
-      message: "Error updating subscription",
+      message: 'Error updating subscription',
     };
   }
 }
@@ -137,7 +141,7 @@ export async function unsubscribeUser(email) {
     if (!email) {
       return {
         success: false,
-        message: "Email is required",
+        message: 'Email is required',
       };
     }
 
@@ -145,7 +149,7 @@ export async function unsubscribeUser(email) {
 
     if (subscription) {
       subscription.unsubscribedAt = new Date();
-      subscription.status = "unsubscribed";
+      subscription.status = 'unsubscribed';
 
       await subscription.save();
     }
@@ -155,21 +159,21 @@ export async function unsubscribeUser(email) {
       const emailObj = new Email({ email }, url);
       await emailObj.unsubscribeEmail();
     } catch (error) {
-      console.error("Error sending confirmation email:", error);
+      console.error('Error sending confirmation email:', error);
       // Don't fail the unsubscription if email fails
     }
 
-    revalidateTag("emailSubscription");
+    revalidateTag('emailSubscription');
 
     return {
       success: true,
-      message: "Successfully unsubscribed from newsletter",
+      message: 'Successfully unsubscribed from newsletter',
     };
   } catch (error) {
-    console.error("Error unsubscribing:", error);
+    console.error('Error unsubscribing:', error);
     return {
       success: false,
-      message: "Error processing unsubscription",
+      message: 'Error processing unsubscription',
     };
   }
 }
@@ -184,7 +188,7 @@ export async function getSubscriptionStatus(email) {
     if (!email) {
       return {
         success: false,
-        message: "Email is required",
+        message: 'Email is required',
       };
     }
 
@@ -206,10 +210,10 @@ export async function getSubscriptionStatus(email) {
       },
     };
   } catch (error) {
-    console.error("Error fetching subscription:", error);
+    console.error('Error fetching subscription:', error);
     return {
       success: false,
-      message: "Error fetching subscription",
+      message: 'Error fetching subscription',
     };
   }
 }

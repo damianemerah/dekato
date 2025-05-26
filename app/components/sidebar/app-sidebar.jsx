@@ -24,31 +24,12 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from '@/app/components/ui/sidebar';
-
+import { inlineURL } from '@/app/resources/contents';
 import { upperFirstLetter } from '@/app/lib/utils';
 
 export default function AppSidebar({ categories, collections, ...props }) {
   const pathname = usePathname();
   const [openMenuIndex, setOpenMenuIndex] = React.useState(1);
-
-  // Add debugging console log in development mode
-  // if (process.env.NODE_ENV === 'development') {
-  //   console.log(
-  //     '[Sidebar] New Arrivals Collections:',
-  //     collections
-  //       ?.filter((c) => c.slug.startsWith('new-arrival'))
-  //       .map((c) => ({
-  //         id: c.id,
-  //         name: c.name,
-  //         slug: c.slug,
-  //         category: c.category,
-  //         categoryName:
-  //           typeof c.category === 'object'
-  //             ? c.category.name
-  //             : categories?.find((cat) => cat.id === c.category)?.name,
-  //       }))
-  //   );
-  // }
 
   // Use React.useMemo to memoize sidebarItems calculation
 
@@ -61,33 +42,23 @@ export default function AppSidebar({ categories, collections, ...props }) {
           collections
             ?.filter((items) => items.slug.startsWith('new-arrival'))
             .map((collection) => {
-              // Handle both cases: when category is an object or when it's an ID
               let categoryName;
-              let categorySlug;
 
               if (
                 typeof collection.category === 'object' &&
                 collection.category !== null
               ) {
-                // Category is already an object with name property
                 categoryName = collection.category.name;
-                categorySlug = collection.category.slug;
               } else {
-                // Category is an ID, need to look it up
                 const category = categories?.find(
                   (cat) => cat.id === collection.category
                 );
                 categoryName = category?.name;
-                categorySlug = category?.slug;
               }
 
-              // Fallback to collection name or generic label if category name not found
               categoryName = categoryName || collection.name || 'New Item';
 
-              // Build the correct URL format: /shop/{category-slug}/new-arrivals
-              const href = categorySlug
-                ? `/shop/${categorySlug}/new-arrivals`
-                : `/shop/${collection.slug}`; // Fallback if category slug not found
+              const href = `/shop/${collection.path[0]}`;
 
               return {
                 label: categoryName,
@@ -106,36 +77,8 @@ export default function AppSidebar({ categories, collections, ...props }) {
               href: `/shop/${subCat.path?.[0] || subCat.slug}`,
             })) || [],
         })) || []),
-      //hot code jeans
-      {
-        label: 'JEANS',
-        href: '/shop/jeans',
-        children: [
-          {
-            label: "Men's Jeans",
-            href: '/shop/men/jeans',
-          },
-          {
-            label: "Women's Jeans",
-            href: '/shop/women/jeans',
-          },
-        ],
-      },
-      {
-        //hot code bag
-        label: 'BAGS',
-        href: '/shop/bags',
-        children: [
-          {
-            label: "Men's Bags",
-            href: '/shop/men/bags',
-          },
-          {
-            label: "Women's Bags",
-            href: '/shop/women/bags',
-          },
-        ],
-      },
+      //hot coded
+      ...inlineURL,
       {
         label: 'COLLECTIONS',
         children:
@@ -199,7 +142,7 @@ export default function AppSidebar({ categories, collections, ...props }) {
                             <SidebarMenuSubButton
                               asChild
                               isActive={pathname === item.href}
-                              className="font-bold tracking-wider text-primary/60"
+                              className="font-bold tracking-wider text-primary/80"
                             >
                               <Link href={item.href}>
                                 {upperFirstLetter(item.label)}

@@ -14,7 +14,7 @@ export default function DeliveryMethodSelector({ method, onMethodChange }) {
   ) => (
     <div
       className={`flex cursor-pointer items-center justify-between rounded-md border px-4 py-3 ${
-        method === value ? 'border-primary' : 'border-gray-300'
+        method === value ? 'border-2 border-primary' : 'border-gray-300'
       }`}
       onClick={() => onMethodChange(value)}
     >

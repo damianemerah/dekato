@@ -28,12 +28,12 @@ const ProductDetailsSections = memo(function ProductDetailsSections({
       title: 'Delivery & Returns',
       content: (
         <div className="text-sm sm:text-base">
-          <p>We deliver your order within 1-2 business days.</p>
-          <p className="mt-2">
+          <p>We deliver your order within 1-3 business days.</p>
+          {/* <p className="mt-2">
             Easy returns available within 14 days of delivery.
-          </p>
+          </p> */}
           <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>Free shipping on orders over ₦20,000</li>
+            {/* <li>Free shipping on orders over ₦20,000</li> */}
             <li>Lagos: 1-2 business days</li>
             <li>Other states: 3-7 business days</li>
             <li>Returns accepted with original packaging</li>

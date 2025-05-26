@@ -175,8 +175,8 @@ export function NewsletterContent({ initialData }) {
       <div className="flex gap-4">
         <ButtonPrimary
           type="submit"
-          disabled={isPending}
-          className="bg-primary"
+          disabled={isPending || !formData.isSubscribed}
+          className="bg-primary transition-colors hover:bg-primary/90 disabled:bg-gray-400"
           aria-busy={isPending}
         >
           {isPending ? (

@@ -76,8 +76,8 @@ const ProductInfo = memo(function ProductInfo({
         <div className="space-y-3">
           {/* Title and sharing section */}
           <div className="flex items-start justify-between">
-            <h1 className="font-oswald text-lg uppercase text-primary md:text-xl">
-              {upperFirstLetter(product.name)}
+            <h1 className="font-oswald text-lg capitalize text-primary md:text-xl">
+              {product.name}
             </h1>
             <div className="flex items-center">
               <TooltipProvider>

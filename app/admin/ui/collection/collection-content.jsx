@@ -157,10 +157,10 @@ export default memo(function CollectionContent({ collectionId, collection }) {
         ).id;
         formData.append('id', id);
 
-        await updateCollection(formData);
+        const result = await updateCollection(formData);
 
-        if (allCollections.error) {
-          message.error(allCollections.message);
+        if (result?.error) {
+          message.error(result.message);
           return;
         }
 
@@ -207,7 +207,7 @@ export default memo(function CollectionContent({ collectionId, collection }) {
       <div className="mb-4 flex justify-between">
         {actionType !== 'create' && (
           <Link href="/admin/collections/new" passHref>
-            <ButtonPrimary className="!rounded-md bg-secondary px-2 text-base font-bold tracking-wide text-white">
+            <ButtonPrimary className="!rounded-md bg-primary px-2 text-base font-bold tracking-wide text-white">
               New Collection
             </ButtonPrimary>
           </Link>
@@ -229,7 +229,7 @@ export default memo(function CollectionContent({ collectionId, collection }) {
               required
               id="title"
               autoComplete="off"
-              placeholder="Summer Collection"
+              placeholder="Summer Collection, New Arrival Men"
               className="shadow-shadowSm hover:border-grayOutline block w-full rounded-md px-3 py-3 text-sm hover:border"
             />
           </div>

@@ -54,7 +54,7 @@ const ProductActions = memo(function ProductActions({
     }Please provide more information.`
   );
 
-  const whatsappLink = `https://wa.me/+2348012345678?text=${whatsappMessage}`;
+  const whatsappLink = `https://wa.me/+2348064737122?text=${whatsappMessage}`;
 
   return (
     <Card className="mt-4 border-0 shadow-none">

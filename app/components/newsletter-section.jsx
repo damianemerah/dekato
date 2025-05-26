@@ -39,23 +39,22 @@ export default function NewsletterSection() {
     message: null,
   });
 
+  const [subscribedLocally, setSubscribedLocally] = useState(false);
+
   const { data: session } = useSession();
   const userEmail = session?.user?.email;
 
-  // Fetch subscription status using SWR to determine initial visibility
-  const { data: subscriptionData, isLoading: isLoadingStatus } = useSWR(
-    userEmail ? ['subscriptionStatus', userEmail] : null, // Key includes email
+  const { data: subscriptionData } = useSWR(
+    userEmail ? ['subscriptionStatus', userEmail] : null,
     () => getSubscriptionStatus(userEmail),
-    { revalidateOnFocus: false } // Avoid unnecessary refetches
+    { revalidateOnFocus: false }
   );
 
-  const isAlreadySubscribed =
-    subscriptionData?.subscription?.status === 'subscribed';
-
-  // Handle form submission result
   useEffect(() => {
+    console.log(state, 'STATE');
     if (state.success) {
-      // Success is handled by UI changes
+      toast.success('You have successfully subscribed!');
+      setSubscribedLocally(true);
     } else if (state.message && !state.success) {
       toast.error(state.message || 'Subscription failed.');
     }
@@ -71,7 +70,7 @@ export default function NewsletterSection() {
         Dekato newsletter subscribers
       </p>
       <div>
-        {isAlreadySubscribed ? (
+        {subscribedLocally ? (
           <div className="rounded-lg bg-primary/10 p-6 text-center">
             <div className="mb-4 flex justify-center">
               <div className="rounded-full bg-primary/20 p-2">
@@ -82,15 +81,13 @@ export default function NewsletterSection() {
               Thank you for subscribing!
             </h3>
             <p className="text-secondary">
-              You&apos;ve been added to our mailing list. You&apos;ll now
-              receive updates on new releases, exclusive offers, and a 20%
-              discount code will be sent to your email shortly.
+              You&apos;ve been added to our mailing list.
             </p>
           </div>
         ) : (
           <form action={formAction}>
             <div className="flex flex-col justify-center gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-1">
                 <Label className="whitespace-nowrap text-base">
                   Preferences <span className="text-destructive">*</span>
                 </Label>
@@ -136,7 +133,7 @@ export default function NewsletterSection() {
                 </RadioGroup>
               </div>
 
-              <div className="flexitems-center gap-4">
+              <div className="flex flex-col gap-1">
                 <Label
                   htmlFor="newsletter"
                   className="whitespace-nowrap text-base"

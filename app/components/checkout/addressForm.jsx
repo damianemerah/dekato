@@ -100,7 +100,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
             type="radio"
             checked={address.isDefault}
             onChange={() => handleUpdateAddress(address.id, true)}
-            className="mr-2 h-5 w-5 cursor-pointer appearance-none self-center rounded-full border border-gray-300 checked:border-primary checked:bg-primary checked:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22white%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%22%2F%3E%3C%2Fsvg%3E')] checked:bg-contain checked:bg-center checked:bg-no-repeat focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="relative mr-2 h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 before:absolute before:left-1/2 before:top-1/2 before:h-2 before:w-2 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:bg-white checked:border-primary checked:bg-primary checked:before:content-[''] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           />
           <div>
             <p className="font-semibold tracking-wide text-primary">

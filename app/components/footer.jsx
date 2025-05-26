@@ -18,21 +18,16 @@ import {
 import Image from 'next/image';
 import FeatureGrid from '@/app/components/feature-grid';
 import NewsletterSection from '@/app/components/newsletter-section';
+import { bizInfo } from '@/app/resources/contents';
 
 const menuItems = [
   { title: 'Frequently Asked Questions', href: '/customer-service' },
   { title: 'About Us', href: '#' },
   { title: 'Contact us', href: '#' },
   { title: 'Terms of Sale', href: '#' },
+  { title: 'Privacy Policy', href: '/privacy' },
   { title: 'Blog', href: '#' },
 ];
-
-const contactInfo = {
-  address: '30A Oseni Street, Anthony Village, Opposite GTB, Lagos',
-  phones: ['(234) 802 3024 687', '(234) 806 4737 122'],
-  email: 'Mail@Dekato-outfit.com',
-  hours: 'Mon - Sat / 8am - 8pm',
-};
 
 const socialLinks = [
   { icon: Facebook, href: '#', label: 'Facebook' },
@@ -69,12 +64,12 @@ export default function Footer() {
               <div className="space-y-4 text-sm text-gray-300">
                 <div className="flex items-start space-x-3">
                   <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                  <p className="text-secondary">{contactInfo.address}</p>
+                  <p className="text-secondary">{bizInfo.address}</p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <Phone className="mt-1 h-4 w-4 shrink-0" />
                   <div className="flex flex-col space-y-1">
-                    {contactInfo.phones.map((phone) => (
+                    {bizInfo.phones.map((phone) => (
                       <a
                         key={phone}
                         href={`tel:${phone}`}
@@ -88,15 +83,15 @@ export default function Footer() {
                 <div className="flex items-start space-x-3">
                   <Mail className="mt-1 h-4 w-4 shrink-0" />
                   <a
-                    href={`mailto:${contactInfo.email}`}
+                    href={`mailto:${bizInfo.email}`}
                     className="transition-colors hover:text-white"
                   >
-                    {contactInfo.email}
+                    {bizInfo.email}
                   </a>
                 </div>
                 <div className="flex items-start space-x-3">
                   <Clock className="mt-1 h-4 w-4 shrink-0" />
-                  <p className="text-secondary">{contactInfo.hours}</p>
+                  <p className="text-secondary">{bizInfo.hours}</p>
                 </div>
               </div>
             </div>
@@ -107,9 +102,7 @@ export default function Footer() {
                   About Dekato
                 </h3>
                 <p className="text-sm text-secondary">
-                  Dekato is a premier fashion destination offering curated
-                  collections of high-quality clothing and accessories for the
-                  modern fashion enthusiast.
+                  {bizInfo.shortDescription}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <TooltipProvider>

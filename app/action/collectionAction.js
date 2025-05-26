@@ -30,7 +30,7 @@ export async function getAllCollections(params) {
   try {
     const query = Campaign.find(
       {},
-      'name description image slug createdAt category banner isSale'
+      'name description image slug createdAt category banner isSale path'
     )
       .populate('category', 'name slug')
       .lean({ virtuals: true });
@@ -73,8 +73,6 @@ export async function createCollection(formData) {
     await dbConnect();
     const body = await handleFormData(formData);
 
-    console.log(body, 'bpdy🔥🔥');
-
     const collection = await Campaign.create(body);
     const leanCollection = await Campaign.findById(collection._id).lean({
       virtuals: true,
@@ -85,7 +83,7 @@ export async function createCollection(formData) {
     });
 
     revalidatePath(`/admin/collections/${leanCollection.slug}`);
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
     revalidateTag('collections');
 
     return { ...formatCollections([leanCollection])[0], productCount };
@@ -96,16 +94,12 @@ export async function createCollection(formData) {
 
 export async function updateCollection(formData) {
   await restrictTo('admin');
-
   try {
     await dbConnect();
     const id = formData.get('id');
     const data = await handleFormData(formData, Campaign, id);
-    const body = Object.fromEntries(
-      Object.entries(data).filter(([key]) => formData.get(key))
-    );
 
-    const collection = await Campaign.findByIdAndUpdate(id, body, {
+    const collection = await Campaign.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
       select: 'name description image slug createdAt category banner',
@@ -122,7 +116,7 @@ export async function updateCollection(formData) {
     revalidatePath(`/admin/collections/${collection.slug}`);
     revalidatePath(`/admin/collections`);
     revalidateTag('products-all');
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
     revalidateTag('collections');
 
     return { ...formatCollections([collection])[0], productCount };

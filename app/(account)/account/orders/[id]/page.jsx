@@ -11,11 +11,12 @@ export default async function OrderDetailPage({ params }) {
   }
 
   const order = await getOrderById(params.id);
+  console.log(order, '💎💎');
 
   if (
     !order ||
     order?.error ||
-    (order.userId.toString() !== session.user.id &&
+    (order?.user._id.toString() !== session.user.id &&
       session.user.role !== 'admin')
   ) {
     notFound();

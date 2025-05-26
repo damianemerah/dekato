@@ -94,7 +94,7 @@ export const viewport = {
 };
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://www.dekato.ng'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://www.dekato.ng'),
   alternates: {
     canonical: 'https://www.dekato.ng',
   },
@@ -121,19 +121,22 @@ export const metadata = {
     "women's fashion",
     'footwear',
     'style inspiration',
+    'lagos fashion',
+    'nigeria fashion',
+    'lagos',
   ],
   authors: [{ name: 'Dekato Outfit' }],
   openGraph: {
     type: 'website',
     locale: 'en_NG',
-    url: process.env.NEXTAUTH_URL || 'https://www.dekato.ng',
+    url: process.env.NEXT_PUBLIC_URL || 'https://www.dekato.ng',
     siteName: 'Dekato Outfit',
     title: 'Dekato Outfit | Fashion & Lifestyle',
     description:
       'Discover the latest fashion trends and lifestyle products at Dekato Outfit.',
     images: [
       {
-        url: `${process.env.NEXTAUTH_URL || 'https://www.dekato.ng'}/assets/images/image5.webp`,
+        url: `${process.env.NEXT_PUBLIC_URL || 'https://www.dekato.ng'}/assets/images/image5.webp`,
         width: 1200,
         height: 630,
         alt: 'Dekato Outfit',

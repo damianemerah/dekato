@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getBlogBySlug } from '@/app/action/blogAction';
+import BreadcrumbStructuredData from '@/app/components/products/breadcrumb-structured-data';
 
 export const revalidate = 3600; // 1 hour
 
@@ -14,6 +15,7 @@ export async function generateMetadata({ params }) {
       robots: {
         index: false,
       },
+      status: 404,
     };
   }
 
@@ -79,7 +81,19 @@ export default async function BlogDetailPage({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-
+      <BreadcrumbStructuredData
+        items={[
+          { name: 'Home', url: 'https://www.dekato.ng' },
+          {
+            name: product.category[0]?.name || 'Blog',
+            url: `https://www.dekato.ng/fashion`,
+          },
+          {
+            name: product.name,
+            url: `https://www.dekato.ng/fashion/${blog.slug}`,
+          },
+        ]}
+      />
       <article className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="mb-8 text-center">

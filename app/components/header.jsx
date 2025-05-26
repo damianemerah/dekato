@@ -62,12 +62,12 @@ export function Header() {
 
           <Link
             href="/"
-            className="mr-8 text-2xl font-bold tracking-wider text-white"
+            className="mr-8 font-oswald text-2xl font-bold tracking-wider text-white"
           >
             DEKATO
           </Link>
 
-          <nav className="hidden lg:flex lg:space-x-10">
+          <nav className="hidden lg:flex lg:space-x-2">
             {['women', 'men'].map((category) => (
               <Link key={category} href={`/shop/${category}`} className="px-2">
                 <span
@@ -95,7 +95,7 @@ export function Header() {
           <Sheet>
             <SheetTrigger asChild>
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="icon"
                 className="lg:hidden"
                 aria-label="Search"
@@ -189,10 +189,11 @@ export function Header() {
           </Link>
 
           {/* Shopping bag */}
-          <Link href="/cart" className="relative flex items-center">
-            <ShoppingBag
-              className={`h-5 w-5 ${isShaking ? 'animate-bounce' : ''}`}
-            />
+          <Link
+            href="/cart"
+            className={`relative flex items-center ${isShaking ? 'animate-shake' : ''}`}
+          >
+            <ShoppingBag className={`h-5 w-5`} />
             {cart?.totalItems > 0 && (
               <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold">
                 {cart.totalItems}

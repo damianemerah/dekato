@@ -9,9 +9,7 @@ import { forgotPassword } from '@/app/action/userAction';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import ViewIcon from '@/public/assets/icons/view.svg';
-import ViewOff from '@/public/assets/icons/view-off.svg';
-import { useUserStore } from '@/app/store/store';
+import { Eye, EyeOff } from 'lucide-react';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -29,7 +27,7 @@ function SubmitButton() {
 export default function ResetPassword({ params: { token } }) {
   const [viewPassword, setViewPassword] = useState(false);
   const router = useRouter();
-  const { update: updateSession } = useSession();
+  const { update: updateSession, data: session } = useSession();
 
   const resetPasswordWithToken = forgotPassword.bind(null, token);
   const [state, formAction] = useFormState(resetPasswordWithToken, {
@@ -37,29 +35,37 @@ export default function ResetPassword({ params: { token } }) {
     message: null,
     errors: null,
   });
-  const user = useUserStore((state) => state.user);
 
-  //if user is logged in, redirect to home page
   useEffect(() => {
-    if (user) {
-      router.push('/');
+    if (session?.user?.id) {
+      toast.info('You are already logged in. Redirecting to the home...');
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
     }
-  }, [user, router]);
+  }, [router, session]);
 
   useEffect(() => {
     if (state.success) {
       toast.success('Password reset successful! Redirecting to sign in...');
-      // Optional: updateSession({ passwordChanged: true });
-      const timer = setTimeout(() => {
-        router.push('/signin');
-      }, 3000); // Redirect after 3 seconds
-      return () => clearTimeout(timer); // Cleanup timer on unmount
+
+      async function updateAndRedirect() {
+        try {
+          await updateSession({ passwordChanged: true }); // await here
+          router.push('/signin');
+        } catch (error) {
+          console.error('Failed to update session', error);
+          router.push('/signin'); // fallback redirect anyway
+        }
+      }
+
+      updateAndRedirect();
     } else if (state.message && !state.success) {
       const errorPath =
         state.errors?.passwordConfirm?.[0] || state.errors?.password?.[0];
       toast.error(errorPath || state.message || 'Password reset failed.');
     }
-  }, [state, router]); // Add updateSession to deps if used
+  }, [state, router, updateSession]);
 
   return (
     <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center px-8">
@@ -73,7 +79,7 @@ export default function ResetPassword({ params: { token } }) {
             label="New Password"
             type={viewPassword ? 'text' : 'password'}
             required={true}
-            icon={viewPassword ? ViewIcon : ViewOff}
+            icon={viewPassword ? EyeOff : Eye}
             onIconClick={() => setViewPassword(!viewPassword)}
           />
           <InputType
@@ -81,7 +87,7 @@ export default function ResetPassword({ params: { token } }) {
             label="Confirm Password"
             type={viewPassword ? 'text' : 'password'}
             required={true}
-            icon={viewPassword ? ViewIcon : ViewOff}
+            icon={viewPassword ? EyeOff : Eye}
             onIconClick={() => setViewPassword(!viewPassword)}
           />
           <SubmitButton />

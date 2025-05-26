@@ -16,7 +16,7 @@ export default function AccountContent({
 }) {
   return (
     <div className="space-y-8">
-      <Card>
+      <Card className="rounded-none">
         <CardHeader>
           <CardTitle className="font-oswald text-xl">
             Account Overview
@@ -66,7 +66,7 @@ export default function AccountContent({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-none">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="font-oswald text-xl">Recent Orders</CardTitle>
           <Link href="/account/orders">

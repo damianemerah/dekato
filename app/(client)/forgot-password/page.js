@@ -7,6 +7,8 @@ import { SmallSpinner } from '@/app/components/spinner';
 import { InputType } from '@/app/components/inputType';
 import { sendPasswordResetToken } from '@/app/action/userAction';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -27,6 +29,18 @@ export default function ForgotPassword() {
     message: null,
     errors: null,
   });
+
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      toast.info('You are already logged in. Redirecting to the home...');
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
+    }
+  }, [router, session]);
 
   useEffect(() => {
     if (state.success) {

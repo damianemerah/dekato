@@ -43,7 +43,7 @@ async function getCategoryData(cat) {
   let data = await Category.findOne({
     path: { $all: path },
   })
-    .select('name description metaTitle metaDescription')
+    .select('name description metaTitle metaDescription path')
     .lean();
 
   // If not found, try as collection
@@ -51,7 +51,7 @@ async function getCategoryData(cat) {
     data = await Campaign.findOne({
       path: { $all: path },
     })
-      .select('name description metaTitle metaDescription')
+      .select('name description metaTitle metaDescription path')
       .lean();
   }
 
@@ -85,6 +85,7 @@ export async function generateMetadata({ params: { cat } }, parent) {
       robots: {
         index: false,
       },
+      status: 404,
     };
   }
 
@@ -112,32 +113,26 @@ export async function generateMetadata({ params: { cat } }, parent) {
         `Browse our ${data.name} collection`,
     },
     alternates: {
-      canonical: `/shop/${cat.join('/')}`,
+      canonical: `/shop/${data?.path[0] || cat.join('/')}`,
     },
   };
 }
 
 export default async function Product({ params: { cat }, searchParams }) {
-  // Validate that cat is an array
   if (!Array.isArray(cat) || cat.length === 0) {
     notFound();
   }
 
-  // Special handling for search path
   if (cat[0] === 'search' && !searchParams.q) {
-    // Redirect to home if search with no query
     return notFound();
   }
 
-  // Call getAllProducts directly instead of using intermediate component
   const data = await getAllProducts(cat, searchParams);
 
-  // Only throw notFound for invalid category paths, not for valid categories with no products
   if (!data && cat[0] !== 'search') {
     notFound();
   }
 
-  // Normalize data to ensure ProductList receives consistent props
   const normalizedData = {
     data: data?.data || [],
     banner: data?.banner || null,

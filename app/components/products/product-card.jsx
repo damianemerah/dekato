@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { formatToNaira } from '@/app/utils/getFunc';
 import { trackClick } from '@/app/utils/tracking';
 import { useMediaQuery } from '@/app/hooks/use-media-query';
-import { useCart } from '@/app/hooks/use-cart';
 import { addToNaughtyListSA } from '@/app/action/recommendationAction';
 import { useSession } from 'next-auth/react';
 
@@ -205,7 +204,7 @@ const ProductCard = ({ product, showDelete = false }) => {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 p-1 text-primary hover:bg-white/90"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-secondary/20 p-1 text-primary hover:bg-white/90"
               onClick={handleDelete}
               disabled={isPending}
               aria-label="Remove product"
@@ -219,9 +218,9 @@ const ProductCard = ({ product, showDelete = false }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={`absolute right-2 top-2 h-8 w-8 rounded-full transition-all duration-300 ${
+                    className={`absolute right-2 top-2 h-8 w-8 rounded-full shadow-sm transition-all duration-300 ${
                       optimisticIsFavorite
-                        ? 'bg-white shadow-sm hover:bg-white/90'
+                        ? 'bg-white hover:bg-white/90'
                         : 'bg-white/80 hover:bg-white'
                     } ${isPending ? 'animate-pulse' : ''} ${
                       isHeartAnimating ? 'scale-125' : ''

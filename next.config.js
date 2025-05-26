@@ -48,6 +48,16 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/privacy',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value:
+              'public, max-age=0, s-maxage=2592000, stale-while-revalidate',
+          },
+        ],
+      },
     ];
   },
 

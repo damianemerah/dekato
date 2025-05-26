@@ -20,7 +20,7 @@ export default function FeaturedProduct() {
         {/* Content overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-6">
-            <h2 className="mb-8 text-4xl font-bold uppercase tracking-tight text-secondary md:text-5xl lg:text-3xl">
+            <h2 className="mb-8 text-center text-3xl font-bold uppercase tracking-tight text-secondary md:text-5xl lg:text-3xl">
               Voted The Best Tees On Earth
             </h2>
 

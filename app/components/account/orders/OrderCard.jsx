@@ -32,7 +32,7 @@ function OrderCard({ order, onDelete }) {
   }, [order.id, onDelete, showConfirmModal]);
 
   return (
-    <div className="relative mb-4 border-2 border-gray-300 bg-white p-4 sm:p-6 lg:p-8">
+    <div className="relative mb-4 border bg-card p-4 text-card-foreground shadow sm:p-6 lg:p-8">
       <button
         onClick={handleDelete}
         className="absolute right-2 top-1.5 h-6 w-6 rounded-full text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:right-3 sm:top-3"

@@ -18,7 +18,7 @@ html {
 }
 
 h2 {
-  @apply text-[26px] font-bold md:text-3xl;
+  @apply text-[24px] font-semibold md:text-3xl md:font-bold;
 }
 
 h1,
@@ -67,6 +67,10 @@ a:link {
   width: 75%;
   top: 0;
   right: 0;
+}
+
+::selection {
+  @apply bg-primary text-white;
 }
 
 /* unused style */

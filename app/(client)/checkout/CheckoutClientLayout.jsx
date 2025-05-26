@@ -12,6 +12,7 @@ import AddressManager from '@/app/components/checkout/AddressManager';
 import PaymentMethodSelector from '@/app/components/checkout/PaymentMethodSelector';
 import CartSummary from '@/app/components/checkout/CartSummary';
 import CheckoutButton from '@/app/components/checkout/CheckoutButton';
+import { ButtonPrimary } from '@/app/components/button';
 
 export default function CheckoutClientLayout({
   initialCheckoutData,
@@ -28,6 +29,7 @@ export default function CheckoutClientLayout({
     initialPaymentMethods || []
   );
   const [saveCard, setSaveCard] = useState(false);
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
 
   const { deliveryMethod, setDeliveryMethod } = useUserStore();
 
@@ -93,6 +95,7 @@ export default function CheckoutClientLayout({
                   onPaymentMethodSelect={setSelectedPaymentMethod}
                   userId={userId}
                   onPaymentMethodsUpdate={setPaymentMethods}
+                  setIsUpdatingPayment={setIsUpdatingPayment}
                 />
               )}
             </section>
@@ -102,7 +105,6 @@ export default function CheckoutClientLayout({
           <div className="w-full md:w-1/3">
             <section className="mb-8 bg-white px-6 py-8 shadow-sm">
               <CartSummary checkoutData={checkoutData} />
-
               {!selectedPaymentMethod && (
                 <div className="mt-4">
                   <label className="flex items-center">
@@ -118,10 +120,10 @@ export default function CheckoutClientLayout({
                   </label>
                 </div>
               )}
-
               <div className="mt-6">
                 <CheckoutButton
                   userId={userId}
+                  isUpdatingPayment={isUpdatingPayment}
                   userEmail={userEmail}
                   checkoutData={checkoutData}
                   deliveryMethod={deliveryMethod}

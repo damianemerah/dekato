@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useTransition, useEffect } from 'react';
-import { useUserStore } from '@/app/store/store';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
 import { createCartItem } from '@/app/action/cartAction';
 import { toast } from 'sonner';
@@ -15,7 +14,7 @@ import ProductInfo from './product-info';
 import ProductVariants from './product-variants';
 import ProductActions from './product-actions';
 import ProductDetailsSections from './product-details-sections';
-import { useCart } from '@/app/hooks/use-cart';
+import useCartData from '@/app/hooks/useCartData';
 
 function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
   return (
@@ -41,6 +40,7 @@ const ProductDetail = function ProductDetail({ product }) {
   const userId = session?.user?.id;
 
   const { wishlistData, mutate: mutateWishlist } = useWishlistData(userId);
+  const { mutate: mutateCartData } = useCartData(userId);
 
   const [selectedVariantOption, setSelectedVariantOption] = useState({});
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -130,6 +130,16 @@ const ProductDetail = function ProductDetail({ product }) {
           return;
         }
 
+        mutateCartData(
+          ['cart-data', userId],
+          (current) => ({
+            ...current,
+            items: [...(current?.items || []), newItem],
+            totalItems: (current?.totalItems || 0) + 1,
+          }),
+          { revalidate: true }
+        );
+
         toast.success('Added to cart');
       } catch (error) {
         setOptimisticInCart(false);
@@ -146,6 +156,7 @@ const ProductDetail = function ProductDetail({ product }) {
     selectedVariant,
     selectedVariantOption,
     startTransition,
+    mutateCartData,
   ]);
 
   if (!product) {
@@ -157,9 +168,9 @@ const ProductDetail = function ProductDetail({ product }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+    <section className="mx-auto w-full max-w-7xl px-4 py-2 sm:px-6">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12 lg:gap-16">
-        <div className="md:col-span-7">
+        <div className="col-span-full md:col-span-7">
           <ErrorBoundary FallbackComponent={ProductDetailsErrorFallback}>
             <Suspense
               fallback={
@@ -171,9 +182,9 @@ const ProductDetail = function ProductDetail({ product }) {
           </ErrorBoundary>
         </div>
 
-        <div className="md:col-span-5">
+        <div className="col-span-full md:col-span-5">
           <ErrorBoundary FallbackComponent={ProductDetailsErrorFallback}>
-            <div className="max-w-md space-y-6">
+            <div className="space-y-6">
               <div className="px-0 sm:px-0">
                 <ProductInfo
                   product={product}

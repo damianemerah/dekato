@@ -15,8 +15,8 @@ export default function PaymentMethodSelector({
   onPaymentMethodSelect,
   userId,
   onPaymentMethodsUpdate,
+  setIsUpdatingPayment,
 }) {
-  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handlePaymentMethodSelect = (paymentMethodId) => {
@@ -72,7 +72,7 @@ export default function PaymentMethodSelector({
               >
                 {selectedPaymentMethodId === method.id &&
                   (isPending ? (
-                    <SmallSpinner className="h-5 w-5" />
+                    <SmallSpinner className="h-5 w-5 text-primary" />
                   ) : (
                     <CheckOutlined className="text-primary" />
                   ))}

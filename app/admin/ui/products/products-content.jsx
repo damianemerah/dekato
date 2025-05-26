@@ -20,6 +20,7 @@ import useConfirmModal from '@/app/components/confirm-modal';
 import { useUserStore } from '@/app/store/store';
 import ProductForm from '@/app/admin/ui/products/productForm';
 import { toast } from 'sonner';
+import { htmlToText } from 'html-to-text';
 
 const Page = memo(function Page({ slug }) {
   const router = useRouter();
@@ -174,6 +175,13 @@ const Page = memo(function Page({ slug }) {
     try {
       setProdLoading(true);
       formData.append('status', status);
+
+      const isEmpty = htmlToText(description).trim().length === 0;
+
+      if (isEmpty) {
+        toast.warning('Product description is empty');
+        return;
+      }
       formData.append('description', description);
 
       if (tags && tags.length > 0) {
@@ -210,7 +218,7 @@ const Page = memo(function Page({ slug }) {
 
       const result = await action(formData);
       if (result?.error) {
-        toast.error(result.error.message);
+        toast.error(result.message);
         return;
       }
 

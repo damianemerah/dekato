@@ -38,6 +38,15 @@ const CustomImage = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
+      src: {
+        default: null,
+      },
+      alt: {
+        default: null,
+      },
+      title: {
+        default: null,
+      },
       width: {
         default: null,
       },
@@ -47,6 +56,9 @@ const CustomImage = Image.extend({
       display: {
         default: 'inline',
         rendered: false,
+      },
+      loading: {
+        default: 'lazy', // 👈 this makes images load lazily
       },
     };
   },
