@@ -11,7 +11,11 @@ import DropDown from '../DropDown';
 import { omit, endsWith, filter, keys } from 'lodash';
 import Image from 'next/image';
 
-export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
+export default memo(function AddSingleVariant({
+  setOpenSlider,
+  openSlider,
+  productPrice,
+}) {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [defaultFileList, setDefaultFileList] = useState([]);
   const [groupList, setGroupList] = useState([]);
@@ -240,11 +244,11 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
     <ModalWrapper setOpenSlider={setOpenSlider} openSlider={openSlider}>
       <div className="flex min-h-24 items-center justify-between px-6">
         <h2 className="text-xl font-medium text-primary">Edit Variants</h2>
-        <div className="cursor-pointer rounded-md p-1 text-xl hover:bg-grayBg">
+        <div className="hover:bg-grayBg cursor-pointer rounded-md p-1 text-xl">
           <DeleteIcon onClick={() => setOpenSlider(false)} />
         </div>
       </div>
-      <div className="h-full bg-grayBg p-6">
+      <div className="bg-grayBg h-full p-6">
         <h2 className="mb-4 text-lg font-medium text-primary">
           Select options for product variants
         </h2>
@@ -270,7 +274,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
             />
           ))}
         </div>
-        <div className="mb-6 flex items-center justify-center gap-4 rounded-lg p-6 shadow-shadowSm">
+        <div className="shadow-shadowSm mb-6 flex items-center justify-center gap-4 rounded-lg p-6">
           <button
             className="mt-2 rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
             onClick={() => setIsImageModalOpen(true)}
@@ -296,7 +300,7 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
               autoComplete="off"
               placeholder="Enter quantity"
               value={quantity}
-              className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
+              className="shadow-shadowSm hover:border-grayOutline block w-full rounded-md bg-white px-3 py-4 text-sm hover:border focus:outline-none"
               onChange={(e) => handleInputChange(e.target.value, 'quantity')}
             />
           </div>
@@ -308,8 +312,8 @@ export default memo(function AddSingleVariant({ setOpenSlider, openSlider }) {
               id="price"
               autoComplete="off"
               placeholder="Enter price"
-              value={price}
-              className="block w-full rounded-md bg-white px-3 py-4 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
+              value={price || productPrice}
+              className="shadow-shadowSm hover:border-grayOutline block w-full rounded-md bg-white px-3 py-4 text-sm hover:border focus:outline-none"
               onChange={(e) => handleInputChange(e.target.value, 'price')}
             />
           </div>

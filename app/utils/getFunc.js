@@ -1,17 +1,17 @@
-import { customAlphabet } from "nanoid";
+import { customAlphabet } from 'nanoid';
 
-const nanoid = customAlphabet("0123456789", 10);
+const nanoid = customAlphabet('0123456789', 10);
 
 export function getQuantity(item, product) {
   // Check if product exists or variant exists
 
   if (item.variantId && product?.variant.length > 0) {
     const variant = product.variant.find(
-      (doc) => doc._id.toString() === item.variantId,
+      (doc) => doc._id.toString() === item.variantId
     );
 
     if (!variant || +variant.quantity === 0) {
-      throw new Error("Product out of stock");
+      throw new Error('Product out of stock');
     }
 
     if (+item.quantity > +variant.quantity && +variant.quantity > 0) {
@@ -21,7 +21,7 @@ export function getQuantity(item, product) {
       return item.quantity;
     }
   } else if (+product.quantity === 0) {
-    throw new Error("Product out of stock");
+    throw new Error('Product out of stock');
   } else if (+item.quantity > +product.quantity && +product.quantity > 0) {
     item.quantity = +product.quantity;
     return +item.quantity;
@@ -64,28 +64,28 @@ export function getQueryObj(searchParams) {
         key,
         Array.isArray(value)
           ? value.slice(-1)
-          : isFinite(value) && !key.endsWith("-vr")
+          : isFinite(value) && !key.endsWith('-vr')
             ? value
-            : value.split(","),
+            : value.split(','),
       ];
-    }),
+    })
   );
 
   let variantConditions = [];
 
   for (const key in params) {
-    if (key.includes("-vr")) {
+    if (key.includes('-vr')) {
       // Add variant conditions for size and color
-      const newKey = key.replace("-vr", "");
+      const newKey = key.replace('-vr', '');
       variantConditions.push({ [`options.${newKey}`]: { $in: params[key] } });
       delete params[key];
-    } else if (key === "price") {
+    } else if (key === 'price') {
       // Handle price range
       const [minPrice, maxPrice] = params.price.map((n) =>
-        isNaN(n) ? Number.MAX_SAFE_INTEGER : n,
+        isNaN(n) ? Number.MAX_SAFE_INTEGER : n
       );
       params.price = { $gte: minPrice, $lte: maxPrice };
-    } else if (key === "quantity") {
+    } else if (key === 'quantity') {
       params.quantity = { $gte: parseInt(params.quantity[0]) };
     } else {
       // Handle other general filters
@@ -107,9 +107,9 @@ export function getQueryObj(searchParams) {
 }
 
 export const formatToNaira = (amount) => {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);

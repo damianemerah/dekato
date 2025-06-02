@@ -54,6 +54,7 @@ const ProductForm = ({
   selectedCollectionKeys,
   setSelectedCollectionKeys,
 }) => {
+  const [hasError, setHasError] = useState(false);
   const isCreateMode = actionType === 'create';
   const [discountDuration, setDiscountDuration] = useState(null);
   const setProductImages = useAdminStore((state) => state.setProductImages);
@@ -148,13 +149,20 @@ const ProductForm = ({
         <EditVariant
           openSlider={openSlider1}
           setOpenSlider={setOpenSlider1}
-          handleOpenSlider2={() => setOpenSlider2(true)}
+          handleOpenSlider2={() => {
+            if (hasError) return;
+            setOpenSlider2(true);
+          }}
           handleEditSingleVariant={handleEditSingleVariant}
           actionType={actionType}
+          hasError={hasError}
+          setHasError={setHasError}
+          productPrice={selectedProduct?.price || ''}
         />
         <AddSingleVariant
           openSlider={openSlider2}
           setOpenSlider={setOpenSlider2}
+          productPrice={selectedProduct?.price || ''}
         />
       </div>
     </div>
@@ -190,10 +198,8 @@ const ProductDetails = ({
   const handleDiscountBlur = () => {
     const price = parseFloat(priceRef.current?.value);
     const discount = parseFloat(discountRef.current?.value);
-    console.log(price, discount, !isFinite(price));
 
     if (!isFinite(price)) {
-      console.log('Price is required');
       discountRef.current.value = '';
       toast.error('Price is required');
       return;
@@ -210,7 +216,6 @@ const ProductDetails = ({
     const discountPrice = parseFloat(discountPriceRef.current?.value);
 
     if (!isFinite(price)) {
-      console.log('Price is required');
       discountPriceRef.current.value = '';
       toast.error('Price is required');
       return;

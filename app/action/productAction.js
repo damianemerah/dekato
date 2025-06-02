@@ -5,7 +5,6 @@ import { cache } from 'react';
 import Product from '@/models/product';
 import Category from '@/models/category';
 import Campaign from '@/models/collection';
-import OptionGroup from '@/models/variantsOption';
 import APIFeatures from '@/app/utils/apiFeatures';
 import { handleFormData } from '@/app/utils/handleForm';
 import { restrictTo } from '@/app/utils/checkPermission';
@@ -35,7 +34,6 @@ const formatProduct = (product, isAdmin = false) => {
               id: labelId._id?.toString(),
               name: labelId.name,
               values: labelId.values,
-              swatchUrl: labelId.swatchUrl,
             }
           : labelId,
         ...ot,
@@ -559,7 +557,6 @@ export const getProductById = cache(async (id) => {
   const product = await Product.findById(id)
     .populate('category', 'name slug')
     .populate('campaign', 'name slug')
-    .populate('variant.optionType.labelId', 'name values swatchUrl')
     .lean({ virtuals: true });
   if (!product) throw new Error('Product not found');
   return formatProduct(product);
@@ -570,7 +567,6 @@ export async function getAdminProductById(id) {
   const product = await Product.findById(id)
     .populate('category', 'name slug')
     .populate('campaign', 'name slug')
-    .populate('variant.optionType.labelId', 'name values swatchUrl')
     .lean({ virtuals: true });
   if (!product) throw new Error('Product not found');
   return formatProduct(product, true);
@@ -613,6 +609,7 @@ export async function updateProduct(formData) {
     });
 
     revalidateProduct(productData.slug);
+    revalidatePath('/', 'layout');
 
     return formatProduct(productData);
   } catch (err) {
@@ -781,50 +778,3 @@ export const getRecommendedProducts = cache(
     }
   }
 );
-
-export const getProductByIdCached = cache(async (id) => {
-  try {
-    await dbConnect();
-    const product = await Product.findById(id)
-      .populate('category', 'name slug')
-      .populate('campaign', 'name slug')
-      .populate('variant.optionType.labelId', 'name values swatchUrl')
-      .lean({ virtuals: true });
-
-    if (!product) throw new Error('Product not found');
-
-    const { _id, category, campaign, variant = [], ...rest } = product;
-
-    return {
-      id: _id.toString(),
-      ...rest,
-      category: category?.map(({ _id, ...c }) => ({
-        id: _id.toString(),
-        ...c,
-      })),
-      campaign: campaign?.map(({ _id, ...c }) => ({
-        id: _id.toString(),
-        ...c,
-      })),
-      variant: variant.map(({ _id, optionType = [], ...v }) => ({
-        id: _id.toString(),
-        optionType: optionType.map(({ _id, labelId, ...ot }) => ({
-          id: _id?.toString(),
-          labelId: labelId
-            ? {
-                id: labelId._id?.toString(),
-                name: labelId.name,
-                values: labelId.values,
-                swatchUrl: labelId.swatchUrl,
-              }
-            : labelId,
-          ...ot,
-        })),
-        ...v,
-      })),
-    };
-  } catch (err) {
-    console.error('Error fetching product by ID:', err);
-    return handleError(err);
-  }
-});

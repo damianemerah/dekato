@@ -86,7 +86,7 @@ const RecommendedProductsClient = ({
               key={product.id}
               className={getCarouselItemClass(product)}
             >
-              <ProductCard product={product} />
+              <ProductCard product={product} showDelete={true} />
             </CarouselItem>
           ))}
         </CarouselContent>

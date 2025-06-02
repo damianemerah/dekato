@@ -1,11 +1,11 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
-export const useAdminStore = create((set) => ({
+export const useAdminStore = create((set, get) => ({
   variants: [],
   variantOptions: [],
   defaultVariantOptions: [],
   variantIsSaved: true,
-  actionType: "",
+  actionType: '',
   editVariantWithId: null,
   optionIsSaved: true,
   productImages: [],
@@ -29,10 +29,11 @@ export const useAdminStore = create((set) => ({
   addVariant: (variant) =>
     set((state) => ({ variants: [...state.variants, variant] })),
 
-  removeVariant: (id) =>
+  removeVariant: (id) => {
     set((state) => ({
       variants: state.variants.filter((variant) => variant.id !== id),
-    })),
+    }));
+  },
 
   setVariantOptions: (variantOptions) => set({ variantOptions }),
   setDefaultVariantOptions: (defaultVariantOptions) =>
@@ -46,14 +47,14 @@ export const useAdminStore = create((set) => ({
   updateVariantOptionName: (id, name) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
-        option.id === id ? { ...option, name } : option,
+        option.id === id ? { ...option, name } : option
       ),
     })),
 
   updateVariantOptionValues: (id, values) =>
     set((state) => ({
       variantOptions: state.variantOptions.map((option) =>
-        option.id === id ? { ...option, values } : option,
+        option.id === id ? { ...option, values } : option
       ),
     })),
 

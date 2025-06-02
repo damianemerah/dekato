@@ -32,6 +32,7 @@ function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
 }
 
 const ProductDetail = function ProductDetail({ product }) {
+  console.log(product);
   const [isPending, startTransition] = useTransition();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isWishlistPending, setIsWishlistPending] = useState(false);
@@ -46,15 +47,62 @@ const ProductDetail = function ProductDetail({ product }) {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [optimisticInCart, setOptimisticInCart] = useState(false);
+  const [activeImage, setActiveImage] = useState(null);
+  const resetActiveImage = useCallback(() => setActiveImage(null), []);
+  const [isProductAvailable, setIsProductAvailable] = useState(true);
 
   const isInWishlist = wishlistData?.items?.includes(product.id);
 
-  const handleVariantSelection = useCallback((name, value) => {
-    setSelectedVariantOption((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }, []);
+  const handleVariantSelection = useCallback(
+    (optionName, value) => {
+      setSelectedVariantOption((prev) => {
+        const updated = { ...prev, [optionName]: value };
+
+        Object.keys(updated).forEach((otherKey) => {
+          if (otherKey === optionName) return;
+
+          const stillValid = product.variant.some(
+            (variant) =>
+              variant.options[optionName] === value &&
+              variant.options[otherKey] === updated[otherKey]
+          );
+
+          if (!stillValid) {
+            updated[otherKey] = null;
+          }
+        });
+
+        const matched = product.variant.find((variant) =>
+          Object.entries(updated).every(
+            ([k, v]) => v === null || variant.options[k] === v
+          )
+        );
+
+        if (matched) {
+          setSelectedVariant(matched);
+          setIsProductAvailable(true);
+          if (matched.image) {
+            setActiveImage(matched.image);
+          }
+          console.log(matched.options, 11111);
+          setSelectedVariantOption(matched.options);
+        } else {
+          setSelectedVariant(null);
+          setIsProductAvailable(false);
+          setSelectedVariantOption({});
+        }
+
+        console.log(matched);
+
+        if (matched.image) {
+          setActiveImage(matched.image);
+        }
+
+        return updated;
+      });
+    },
+    [product.variant, setActiveImage]
+  );
 
   const handleAddToWishlist = useCallback(() => {
     if (!userId) {
@@ -110,6 +158,11 @@ const ProductDetail = function ProductDetail({ product }) {
       return;
     }
 
+    if (product.variant.length > 0 && !selectedVariant) {
+      toast.error('You have to select a variant');
+      return;
+    }
+
     setIsAddingToCart(true);
     setOptimisticInCart(true);
 
@@ -118,11 +171,13 @@ const ProductDetail = function ProductDetail({ product }) {
         const newItem = {
           product: product.id,
           quantity: quantity,
-          variantId: selectedVariant?._id,
-          option: selectedVariantOption,
+          variantId: selectedVariant?.id,
+          option: selectedVariant.options || null,
         };
 
         const result = await createCartItem(userId, newItem);
+
+        console.log(result, 'result');
 
         if (result?.error) {
           setOptimisticInCart(false);
@@ -154,9 +209,9 @@ const ProductDetail = function ProductDetail({ product }) {
     product.id,
     quantity,
     selectedVariant,
-    selectedVariantOption,
     startTransition,
     mutateCartData,
+    product?.variant?.length,
   ]);
 
   if (!product) {
@@ -177,7 +232,12 @@ const ProductDetail = function ProductDetail({ product }) {
                 <div className="h-[450px] w-full animate-pulse bg-gray-100" />
               }
             >
-              <ProductGallery product={product} />
+              <ProductGallery
+                product={product}
+                activeImage={activeImage}
+                setActiveImage={setActiveImage}
+                resetActiveImage={resetActiveImage}
+              />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -200,6 +260,8 @@ const ProductDetail = function ProductDetail({ product }) {
                     selectedVariantOption={selectedVariantOption}
                     handleVariantSelection={handleVariantSelection}
                     setSelectedVariant={setSelectedVariant}
+                    setActiveImage={setActiveImage}
+                    isAvailable={isProductAvailable}
                   />
                 )}
 

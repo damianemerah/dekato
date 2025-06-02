@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import DeleteIcon from '@/public/assets/icons/remove.svg';
+import { Trash } from 'lucide-react';
 import {
   removeFromCart,
   updateCartItemQuantity,
@@ -142,7 +142,7 @@ const CartCard = ({ cartItem }) => {
               }}
               aria-label="Remove item"
             >
-              <DeleteIcon className="h-4 w-4 text-secondary sm:h-5 sm:w-5" />
+              <Trash className="h-4 w-4 text-red-400" />
             </button>
           </div>
 
@@ -197,7 +197,7 @@ const CartCard = ({ cartItem }) => {
               {cartItem.product.isDiscounted && (
                 <span className="text-xs text-gray-500 line-through sm:text-sm">
                   {formatToNaira(
-                    (cartItem.variantId && cartItem.product.variant.price) ||
+                    (cartItem.variantId && cartItem.product?.variant?.price) ||
                       cartItem.product.price
                   )}
                 </span>
@@ -218,6 +218,8 @@ export default function CartCards({ products }) {
   const userId = session?.user?.id;
   const [isAllChecked, setIsAllChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  console.log(products);
 
   useEffect(() => {
     setIsAllChecked(products?.every((product) => product.checked));

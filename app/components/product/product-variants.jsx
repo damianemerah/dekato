@@ -20,43 +20,37 @@ const ProductVariants = memo(function ProductVariants({
   selectedVariantOption,
   handleVariantSelection,
   setSelectedVariant,
+  setActiveImage,
+  isAvailable,
 }) {
   const [variantOptions, setVariantOptions] = useState([]);
   const [validVariants, setValidVariants] = useState(new Map());
 
-  // Generate variant options based on product variants
   useEffect(() => {
     if (product?.variant && product.variant.length > 0) {
       const options = generateVariantOptions(product.variant);
-      // Sort variant options so color comes first
       const sortedOptions = [
         ...options.filter((option) => option.name.toLowerCase() === 'color'),
         ...options.filter((option) => option.name.toLowerCase() !== 'color'),
       ];
       setVariantOptions(sortedOptions);
 
-      // Pre-compute available combinations for each option
       const newValidVariants = new Map();
 
-      // For each option name (e.g., 'color', 'size')
       sortedOptions.forEach((option) => {
         const optionName = option.name;
 
-        // For each value of this option (e.g., 'red', 'blue' for 'color')
         option.values.forEach((optionValue) => {
           const key = `${optionName}:${optionValue}`;
           newValidVariants.set(key, new Map());
 
-          // Find all variants that have this exact option value
           const matchingVariants = product.variant.filter(
             (variant) => variant.options[optionName] === optionValue
           );
 
-          // For each other option name
           sortedOptions.forEach((otherOption) => {
             const otherName = otherOption.name;
             if (otherName !== optionName) {
-              // Get all valid values for this other option when the first option is selected
               const validValues = new Set(
                 matchingVariants.map((variant) => variant.options[otherName])
               );
@@ -90,10 +84,8 @@ const ProductVariants = memo(function ProductVariants({
     }
   }, [product?.variant, selectedVariantOption, setSelectedVariant]);
 
-  // Get valid values for a given option based on other selections
   const getValidValuesForOption = useCallback(
     (optionName, value) => {
-      // If no other options are selected, all values are valid
       const otherSelections = Object.entries(selectedVariantOption).filter(
         ([name]) => name !== optionName
       );
@@ -102,7 +94,6 @@ const ProductVariants = memo(function ProductVariants({
         return true;
       }
 
-      // Check if this option value works with at least one existing selection
       for (const [selectedName, selectedValue] of otherSelections) {
         const key = `${selectedName}:${selectedValue}`;
         const validValues = validVariants.get(key)?.get(optionName);
@@ -117,9 +108,7 @@ const ProductVariants = memo(function ProductVariants({
     [selectedVariantOption, validVariants]
   );
 
-  // Handle reset of all selections
   const handleResetSelections = useCallback(() => {
-    // Reset all selections
     Object.keys(selectedVariantOption).forEach((option) => {
       handleVariantSelection(option, null);
     });
@@ -144,19 +133,7 @@ const ProductVariants = memo(function ProductVariants({
             </Button>
           )}
         </div>
-
         {variantOptions.map((option) => {
-          // Find populated option type data that matches this option name
-          // We scan through all variants and their optionTypes to find matching data
-          const populatedOptionTypeInfo = product.variant
-            .flatMap((v) => v.optionType || [])
-            .find(
-              (ot) =>
-                ot.label?.toLowerCase() === option.name.toLowerCase() ||
-                ot.labelId?.name?.toLowerCase() === option.name.toLowerCase()
-            )?.labelId;
-
-          // Use the values already aggregated by generateVariantOptions
           const optionValues = option.values;
 
           return (
@@ -181,9 +158,6 @@ const ProductVariants = memo(function ProductVariants({
                     );
                     const imageUrl = variantWithThisColor?.image || '';
 
-                    // Use swatchUrl if available from populated data
-                    const swatchUrl = populatedOptionTypeInfo?.swatchUrl;
-
                     return (
                       <TooltipProvider key={value}>
                         <Tooltip>
@@ -198,12 +172,20 @@ const ProductVariants = memo(function ProductVariants({
                                   !isSelected &&
                                   'opacity-40 hover:opacity-60'
                               )}
-                              onClick={() =>
+                              onClick={() => {
                                 handleVariantSelection(
                                   option.name,
                                   isSelected ? null : value
-                                )
-                              }
+                                );
+                                if (setActiveImage) {
+                                  if (isSelected) {
+                                    setActiveImage(null);
+                                  } else {
+                                    setActiveImage(imageUrl);
+                                  }
+                                }
+                              }}
+                              disabled={!isAvailable}
                               aria-label={`Select color: ${value}`}
                             >
                               <div className="relative h-14 w-10 overflow-hidden">
@@ -233,6 +215,7 @@ const ProductVariants = memo(function ProductVariants({
                     return (
                       <button
                         key={`${option.name}-${value}`}
+                        disabled={!isAvailable}
                         className={cn(
                           'relative h-9 min-w-[2.5rem] border px-3 text-sm uppercase transition-all duration-200',
                           isSelected

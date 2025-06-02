@@ -103,7 +103,7 @@ export default async function ProductInfoPage({ params: { name } }) {
         />
 
         <ProductDetail product={product} />
-        <div className="mt-16 md:mt-24">
+        <div className="mt-8">
           <SimilarProductsServer productId={id} category={product.category} />
         </div>
       </div>

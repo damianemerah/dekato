@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useAdminStore } from '../../store/adminStore';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
@@ -20,6 +20,9 @@ export default memo(function EditVariant({
   handleOpenSlider2,
   handleEditSingleVariant,
   actionType,
+  hasError,
+  setHasError,
+  productPrice,
 }) {
   const variants = useAdminStore((state) => state.variants);
   const setVariants = useAdminStore((state) => state.setVariants);
@@ -115,6 +118,7 @@ export default memo(function EditVariant({
   ]);
 
   const handleSaveOption = useCallback(() => {
+    setHasError(false);
     if (optionIsSaved || variantOptions.length === 0) return;
 
     if (
@@ -122,6 +126,7 @@ export default memo(function EditVariant({
         (option) => option.name === '' || option.values.length === 0
       )
     ) {
+      setHasError(true);
       message.warning('Values cannot be empty');
       return;
     }
@@ -135,6 +140,7 @@ export default memo(function EditVariant({
     );
 
     if (hasDuplicates) {
+      setHasError(true);
       message.warning('Duplicate option names are not allowed');
       return;
     }
@@ -142,8 +148,7 @@ export default memo(function EditVariant({
     // If no duplicates, proceed with saving
 
     setOptionIsSaved(true);
-    message.success('Options saved');
-  }, [setOptionIsSaved, variantOptions, optionIsSaved]);
+  }, [setOptionIsSaved, variantOptions, optionIsSaved, setHasError]);
 
   const items = [
     {
@@ -176,9 +181,9 @@ export default memo(function EditVariant({
 
   return (
     <ModalWrapper openSlider={openSlider} setOpenSlider={setOpenSlider}>
-      <div className="sticky top-0 z-[25] flex min-h-24 items-center justify-between bg-white px-6 shadow-shadowSm">
+      <div className="shadow-shadowSm sticky top-0 z-[25] flex min-h-24 items-center justify-between bg-white px-6">
         <h2 className="text-xl font-medium text-primary">Edit Variants</h2>
-        <div className="cursor-pointer rounded-md p-1 text-xl hover:bg-grayBg">
+        <div className="hover:bg-grayBg cursor-pointer rounded-md p-1 text-xl">
           <DeleteIcon onClick={() => setOpenSlider(false)} />
         </div>
       </div>
@@ -222,7 +227,11 @@ export default memo(function EditVariant({
               <div className="flex items-center gap-2">
                 <ButtonPrimary
                   className="flex items-center gap-1.5 !rounded-full bg-primary !px-4 !py-1.5 text-white"
-                  onClick={handleOpenSlider2}
+                  onClick={() => {
+                    handleSaveOption();
+                    if (hasError) return;
+                    handleOpenSlider2();
+                  }}
                 >
                   <AddIcon className="text-xxs font-extrabold text-white" />
                   Add
@@ -230,6 +239,8 @@ export default memo(function EditVariant({
                 <ButtonPrimary
                   className="flex items-center gap-1 !rounded-full !bg-slate-500 !px-4 !py-1.5"
                   onClick={() => {
+                    handleSaveOption();
+                    if (hasError) return;
                     const result = handleCreateBulkVariant(variantOptions);
                     setVariants(result);
                     setVariantIsSaved(false);
@@ -305,10 +316,10 @@ export default memo(function EditVariant({
                                       className="cursor-pointer rounded-full text-sm"
                                       key={i}
                                     >
-                                      <span className="rounded-l-full bg-slate-500 p-1.5 text-xxs font-semibold uppercase tracking-widest text-white">
+                                      <span className="text-xxs rounded-l-full bg-slate-500 p-1.5 font-semibold uppercase tracking-widest text-white">
                                         {key}
                                       </span>
-                                      <span className="rounded-r-full bg-slate-100 p-1.5 text-xxs font-semibold uppercase tracking-widest text-primary">
+                                      <span className="text-xxs rounded-r-full bg-slate-100 p-1.5 font-semibold uppercase tracking-widest text-primary">
                                         {value}
                                       </span>
                                     </div>
@@ -323,7 +334,7 @@ export default memo(function EditVariant({
                               name="quantity"
                               autoComplete="off"
                               placeholder="Quantity"
-                              className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
+                              className="shadow-shadowSm hover:border-grayOutline flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm hover:border focus:outline-none"
                               onChange={(e) =>
                                 handleInputChange(e, index, 'quantity')
                               }
@@ -333,10 +344,10 @@ export default memo(function EditVariant({
                             <input
                               type="number"
                               name="price"
-                              value={variant?.price || ''}
+                              value={variant?.price || productPrice || ''}
                               autoComplete="off"
                               placeholder="Price"
-                              className="flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm shadow-shadowSm hover:border hover:border-grayOutline focus:outline-none"
+                              className="shadow-shadowSm hover:border-grayOutline flex w-20 items-center justify-center rounded-md px-1.5 py-3 text-sm hover:border focus:outline-none"
                               onChange={(e) =>
                                 handleInputChange(e, index, 'price')
                               }
@@ -367,7 +378,7 @@ export default memo(function EditVariant({
         </div>
       )}
       {actionType === 'edit' && (
-        <div className="sticky bottom-0 z-[25] flex min-h-24 w-full items-center justify-end gap-6 bg-white shadow-shadowSm">
+        <div className="shadow-shadowSm sticky bottom-0 z-[25] flex min-h-24 w-full items-center justify-end gap-6 bg-white">
           <button
             className="text-[15px] font-bold tracking-wider"
             onClick={() => setOpenSlider(false)}
