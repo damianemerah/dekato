@@ -1,13 +1,7 @@
 import Link from 'next/link';
-import {
-  Facebook,
-  Instagram,
-  TwitterIcon as TikTok,
-  Phone,
-  Mail,
-  Clock,
-  MapPin,
-} from 'lucide-react';
+import { Phone, Mail, Clock, MapPin } from 'lucide-react';
+import FbIcon from '@/public/assets/icons/facebook-share.svg';
+import InstaIcon from '@/public/assets/icons/instagram-share.svg';
 import { Separator } from '@/app/components/ui/separator';
 import {
   Tooltip,
@@ -15,10 +9,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/app/components/ui/tooltip';
-import Image from 'next/image';
 import FeatureGrid from '@/app/components/feature-grid';
 import NewsletterSection from '@/app/components/newsletter-section';
 import { bizInfo } from '@/app/resources/contents';
+import PaystackIcon from '@/public/assets/icons/paystack.svg';
 
 const menuItems = [
   { title: 'Frequently Asked Questions', href: '/customer-service' },
@@ -30,9 +24,8 @@ const menuItems = [
 ];
 
 const socialLinks = [
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: TikTok, href: '#', label: 'TikTok' },
+  { icon: FbIcon, href: bizInfo.facebook, label: 'Facebook' },
+  { icon: InstaIcon, href: bizInfo.instagram, label: 'Instagram' },
 ];
 
 export default function Footer() {
@@ -80,7 +73,7 @@ export default function Footer() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-start space-x-3">
+                {/* <div className="flex items-start space-x-3">
                   <Mail className="mt-1 h-4 w-4 shrink-0" />
                   <a
                     href={`mailto:${bizInfo.email}`}
@@ -88,7 +81,7 @@ export default function Footer() {
                   >
                     {bizInfo.email}
                   </a>
-                </div>
+                </div> */}
                 <div className="flex items-start space-x-3">
                   <Clock className="mt-1 h-4 w-4 shrink-0" />
                   <p className="text-secondary">{bizInfo.hours}</p>
@@ -111,6 +104,8 @@ export default function Footer() {
                         <TooltipTrigger asChild>
                           <Link
                             href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
                           >
                             <Icon className="h-5 w-5" />
@@ -135,13 +130,7 @@ export default function Footer() {
           <div className="flex flex-col items-center justify-center gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-300">
               <span>Secured by</span>
-              <Image
-                src="/assets/icons/paystack.svg"
-                alt="Paystack"
-                className="h-6"
-                width={100}
-                height={100}
-              />
+              <PaystackIcon className="h-6 w-20 text-white" />
             </div>
             <p className="text-center text-sm text-secondary">
               © {new Date().getFullYear()} dekato-outfit.com. All rights

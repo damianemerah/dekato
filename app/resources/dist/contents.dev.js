@@ -12,7 +12,9 @@ var bizInfo = {
   phones: ['(234) 802 3024 687', '(234) 806 4737 122'],
   email: 'Mail@Dekato-outfit.com',
   hours: 'Mon - Sat / 8am - 8pm',
-  shortDescription: "Dekato is a premier fashion destination based in Lagos, Nigeria, offering curated collections of high-quality clothing and accessories for the modern fashion enthusiast. We are dedicated to bringing you the best in style, quality, and customer experience."
+  shortDescription: "Dekato is a premier fashion destination based in Lagos, Nigeria, offering curated collections of high-quality clothing and accessories for the modern fashion enthusiast. We are dedicated to bringing you the best in style, quality, and customer experience.",
+  instagram: 'https://www.instagram.com/dekatooutfit',
+  facebook: 'https://www.facebook.com/dekatooutfit.chikamsy'
 };
 exports.bizInfo = bizInfo;
 var allowedS3Paths = ['image', 'blog', 'variant', 'blog-images'];

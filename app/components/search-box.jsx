@@ -16,6 +16,7 @@ export default function SearchBox({ className }) {
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef(null);
+  const submitBtnRef = useRef(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -56,14 +57,19 @@ export default function SearchBox({ className }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (searchString.trim()) {
-      // Navigate to the search page with the query
       router.push(`/search?q=${encodeURIComponent(searchString.trim())}`);
       setShowResults(false);
     }
   };
 
+  const triggerSubmit = () => {
+    if (submitBtnRef.current) {
+      submitBtnRef.current.click();
+    }
+  };
+
   return (
-    <div className={`relative w-full ${className}`} ref={searchRef}>
+    <div className={`relative w-full md:static ${className}`} ref={searchRef}>
       <form onSubmit={handleSubmit} className="relative">
         <input
           type="text"
@@ -74,7 +80,8 @@ export default function SearchBox({ className }) {
         />
         <button
           type="submit"
-          className="absolute inset-y-0 left-0 flex items-center pl-3"
+          className="z-15 absolute inset-y-0 left-0 flex items-center pl-3"
+          ref={submitBtnRef}
         >
           <Search className="h-5 w-5 text-gray-400" />
         </button>
@@ -83,7 +90,7 @@ export default function SearchBox({ className }) {
       {showResults &&
         (searchResults.products.length > 0 ||
           searchResults.categories.length > 0) && (
-          <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
+          <div className="absolute left-0 right-0 z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
             {searchResults.categories.length > 0 && (
               <div className="max-h-[20vh] overflow-y-auto border-b p-2">
                 <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
@@ -91,12 +98,9 @@ export default function SearchBox({ className }) {
                 </h3>
                 <ul>
                   {searchResults.categories.map((category) => {
-                    // Format the category path for display
                     const displayName = category.parent
                       ? `${category.parent.name} / ${category.name}`
                       : category.name;
-
-                    // Format the URL path correctly
                     const urlPath = category.path || category.slug;
 
                     return (
@@ -120,30 +124,47 @@ export default function SearchBox({ className }) {
                 <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
                   Products
                 </h3>
-                <ul>
-                  {searchResults.products.map((product) => (
-                    <li key={product.id}>
+                <ul className="space-y-2 md:flex md:gap-4 md:space-y-0 md:overflow-x-auto">
+                  {searchResults.products.slice(0, 10).map((product) => (
+                    <li
+                      key={product.id}
+                      className="w-full flex-shrink-0 md:w-48"
+                    >
                       <Link
                         href={`/product/${product.slug}-${product.id}`}
-                        className="flex items-center px-4 py-2 text-primary hover:bg-secondary"
+                        className="flex items-center gap-3 rounded-md border p-2 text-primary transition hover:shadow md:flex-col md:items-start"
                         onClick={() => setShowResults(false)}
                       >
                         {product.image && product.image[0] && (
-                          <div className="mr-3 h-10 w-10 flex-shrink-0">
+                          <div className="h-16 w-16 flex-shrink-0 md:h-48 md:w-full">
                             <Image
                               src={product.image[0] || '/placeholder.svg'}
                               alt={product.name}
-                              width={40}
-                              height={40}
+                              width={192}
+                              height={192}
                               className="h-full w-full rounded-md object-cover"
                             />
                           </div>
                         )}
-                        <span>{product.name}</span>
+                        <span className="line-clamp-2 text-sm font-medium">
+                          {product.name}
+                        </span>
                       </Link>
                     </li>
                   ))}
                 </ul>
+
+                {searchResults.products.length > 8 && (
+                  <div className="mt-3 flex justify-start pr-4">
+                    <button
+                      type="button"
+                      onClick={triggerSubmit}
+                      className="text-sm font-medium text-blue-600 hover:underline"
+                    >
+                      View all search products
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

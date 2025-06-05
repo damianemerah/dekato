@@ -3,7 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Minus, Plus, Instagram, Facebook } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
+import FbIcon from '@/public/assets/icons/facebook-share.svg';
+import InstaIcon from '@/public/assets/icons/instagram-share.svg';
 
 import {
   Collapsible,
@@ -24,7 +26,7 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from '@/app/components/ui/sidebar';
-import { inlineURL } from '@/app/resources/contents';
+import { bizInfo, inlineURL } from '@/app/resources/contents';
 import { upperFirstLetter } from '@/app/lib/utils';
 
 export default function AppSidebar({ categories, collections, ...props }) {
@@ -163,20 +165,20 @@ export default function AppSidebar({ categories, collections, ...props }) {
       {/* Social Media Icons */}
       <div className="mt-8 flex items-center justify-center space-x-4 px-4">
         <a
-          href="https://instagram.com/dekatooutfit"
+          href={bizInfo.instagram}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-full p-2 text-primary transition-colors hover:bg-primary hover:text-white"
         >
-          <Instagram className="h-5 w-5" />
+          <InstaIcon className="h-5 w-5" />
         </a>
         <a
-          href="https://facebook.com/dekatooutfit"
+          href={bizInfo.facebook}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-full p-2 text-primary transition-colors hover:bg-primary hover:text-white"
         >
-          <Facebook className="h-5 w-5" />
+          <FbIcon className="h-5 w-5" />
         </a>
       </div>
 

@@ -254,35 +254,65 @@ const ProductCard = ({ product, showDelete = false }) => {
           )}
 
           {/* Show variant images on hover (desktop only) */}
-          {shouldShowVariantsOnHover &&
-            variantImages &&
-            variantImages.length > 0 && (
-              <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                {[product.image[0], ...variantImages].map(
-                  (image, index) =>
-                    image && (
-                      <button
-                        key={index}
-                        className={`h-6 w-6 rounded-full border ${
-                          currentImage === image
-                            ? 'border-primary'
-                            : 'border-border'
-                        } overflow-hidden`}
-                        onMouseEnter={() => setCurrentImage(image)}
-                        aria-label={`View ${product.name} variant ${index + 1}`}
-                      >
-                        <Image
-                          src={image}
-                          alt={`${product.name} - Dekato Outfit variant ${index + 1}`}
-                          width={24}
-                          height={24}
-                          className="h-full w-full object-cover"
-                        />
-                      </button>
-                    )
-                )}
-              </div>
-            )}
+          {variantImages && variantImages.length > 0 && (
+            <div
+              className={`absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 ${shouldShowVariantsOnHover && 'opacity-0 transition-opacity duration-300 group-hover:opacity-100'}`}
+            >
+              {[product.image[0], ...variantImages].map(
+                (image, index) =>
+                  image && (
+                    <button
+                      key={index}
+                      className={`h-8 w-8 rounded-full border md:h-10 md:w-10 ${
+                        currentImage === image
+                          ? 'border-primary'
+                          : 'border-border'
+                      } overflow-hidden`}
+                      onMouseEnter={() => setCurrentImage(image)}
+                      aria-label={`View ${product.name} variant ${index + 1}`}
+                    >
+                      <Image
+                        src={image}
+                        alt={`${product.name} - Dekato Outfit variant ${index + 1}`}
+                        width={24}
+                        height={24}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  )
+              )}
+            </div>
+          )}
+          {product?.variant?.length === 0 && product?.image.length > 1 && (
+            <div
+              className={`absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 ${shouldShowVariantsOnHover && 'opacity-0 transition-opacity duration-300 group-hover:opacity-100'}`}
+            >
+              {product.image.map(
+                (image, index) =>
+                  image && (
+                    <button
+                      key={index}
+                      className={`h-8 w-8 rounded-full border md:h-10 md:w-10 ${
+                        currentImage === image
+                          ? 'border-primary'
+                          : 'border-border'
+                      } overflow-hidden`}
+                      onMouseEnter={() => setCurrentImage(image)}
+                      onClick={(e) => e.preventDefault()}
+                      aria-label={`View ${product.name} variant ${index + 1}`}
+                    >
+                      <Image
+                        src={image}
+                        alt={`${product.name} - Dekato Outfit variant ${index + 1}`}
+                        width={24}
+                        height={24}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  )
+              )}
+            </div>
+          )}
         </div>
       </Link>
 
