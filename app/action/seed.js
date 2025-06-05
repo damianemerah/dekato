@@ -12,58 +12,63 @@ export const seedProducts = async () => {
     console.log('Clearing database...');
 
     // Clear existing data
-    await Promise.all([Product.deleteMany({}), Category.deleteMany({})]);
+    // await Promise.all([Product.deleteMany({}), Category.deleteMany({})]);
 
     // Create main categories with proper validation
-    const mainCategories = ['Men', 'Women'];
-    const mainCategoryDocs = await Promise.all(
-      mainCategories.map(async (name) =>
-        Category.create({
-          name,
-          description: `${name}'s Fashion Collection`,
-          path: [slugify(name, { lower: true, strict: true })], // Ensure proper slugify
-          image: [faker.image.url()],
-        })
-      )
-    );
+    // const mainCategories = ['Men', 'Women'];
+    // const mainCategoryDocs = await Promise.all(
+    //   mainCategories.map(async (name) =>
+    //     Category.create({
+    //       name,
+    //       description: `${name}'s Fashion Collection`,
+    //       path: [slugify(name, { lower: true, strict: true })], // Ensure proper slugify
+    //       image: [faker.image.url()],
+    //     })
+    //   )
+    // );
 
     // Create subcategories with proper validation
-    const subcategories = ['Clothing', 'Shoes', 'Accessories'];
-    const allCategories = [];
+    // const subcategories = ['Clothing', 'Shoes', 'Accessories'];
+    const allCategories = await Category.find({});
 
-    for (const mainCategory of mainCategoryDocs) {
-      const subCategoryDocs = await Promise.all(
-        subcategories.map(async (name) =>
-          Category.create({
-            name,
-            description: `${mainCategory.name}'s ${name} Collection`,
-            pinned: true,
-            parent: mainCategory._id,
-            path: [
-              mainCategory.slug,
-              `${mainCategory.slug}/${slugify(name, { lower: true, strict: true })}`,
-            ],
-            image: [faker.image.url()],
-            pinned: false,
-            pinOrder: 1,
-          })
-        )
-      );
-      allCategories.push(...subCategoryDocs);
+    // for (const mainCategory of mainCategoryDocs) {
+    //   const subCategoryDocs = await Promise.all(
+    //     subcategories.map(async (name) =>
+    //       Category.create({
+    //         name,
+    //         description: `${mainCategory.name}'s ${name} Collection`,
+    //         pinned: true,
+    //         parent: mainCategory._id,
+    //         path: [
+    //           mainCategory.slug,
+    //           `${mainCategory.slug}/${slugify(name, { lower: true, strict: true })}`,
+    //         ],
+    //         image: [faker.image.url()],
+    //         pinned: false,
+    //         pinOrder: 1,
+    //       })
+    //     )
+    //   );
+    //   allCategories.push(...subCategoryDocs);
 
-      // // Update main category with children
-      // await Category.findByIdAndUpdate(mainCategory._id.toString(), {
-      //   $push: { children: { $each: subCategoryDocs.map((doc) => doc._id) } },
-      // });
-      mainCategory.children = subCategoryDocs.map((doc) => doc._id);
-      await mainCategory.save();
-    }
+    //   // // Update main category with children
+    //   // await Category.findByIdAndUpdate(mainCategory._id.toString(), {
+    //   //   $push: { children: { $each: subCategoryDocs.map((doc) => doc._id) } },
+    //   // });
+    //   mainCategory.children = subCategoryDocs.map((doc) => doc._id);
+    //   await mainCategory.save();
+    // }
 
-    // Add main categories after subcategories to avoid duplicates
-    allCategories.push(...mainCategoryDocs);
+    // // Add main categories after subcategories to avoid duplicates
+    // allCategories.push(...mainCategoryDocs);
 
     // Function to get a random image URL
     const getRandomImage = () => faker.image.url();
+
+    const mainCategoryDocs = allCategories.filter(
+      (cat) =>
+        cat.name.toLowerCase() === 'men' || cat.name.toLowerCase() === 'women'
+    );
 
     // Generate fake clothing products
     console.log('Seeding products🔥📁🔥');

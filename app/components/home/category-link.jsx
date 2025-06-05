@@ -13,7 +13,7 @@ const CategoryLink = ({ category }) => {
           src={`${category.image[0]}?w=400&h=400&q=75`}
           alt={category.name}
           fill
-          className="object-contain object-center"
+          className="object-cover object-center"
           sizes="(max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-black/20 to-black/50" />

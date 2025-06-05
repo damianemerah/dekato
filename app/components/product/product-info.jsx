@@ -140,11 +140,11 @@ const ProductInfo = memo(function ProductInfo({
               {product.quantity > 0 ? 'In Stock' : 'Out of Stock'}
             </Badge>
 
-            {product.quantity > 0 && product.quantity < 10 && (
+            {/* {product.quantity > 0 && product.quantity < 10 && (
               <span className="text-sm text-amber-600">
                 Only {product.quantity} left!
               </span>
-            )}
+            )} */}
           </div>
         </div>
       </CardContent>

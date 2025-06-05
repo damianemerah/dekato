@@ -155,7 +155,7 @@ const ProductsList = memo(function ProductsList({ searchParams, data }) {
         ? productsData.data.map((item) => ({
             key: item.id,
             image: item.image[0],
-            name: item.name,
+            name: <Link href={`/admin/products/${item.id}`}>{item.name}</Link>,
             status: item.status,
             productCount: item.quantity,
             category: item.category?.map((cat) => cat.name).join(', ') || '',

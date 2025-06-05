@@ -185,7 +185,7 @@ const ProductCard = ({ product, showDelete = false }) => {
         >
           <Image
             src={currentImage}
-            alt={product.name}
+            alt={`${product.name} - Dekato Outfit`}
             fill={true}
             loading="lazy"
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -273,7 +273,7 @@ const ProductCard = ({ product, showDelete = false }) => {
                       >
                         <Image
                           src={image}
-                          alt={`${product.name} variant ${index + 1}`}
+                          alt={`${product.name} - Dekato Outfit variant ${index + 1}`}
                           width={24}
                           height={24}
                           className="h-full w-full object-cover"

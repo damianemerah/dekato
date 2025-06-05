@@ -90,11 +90,11 @@ const ProductActions = memo(function ProductActions({
             </Button>
           </div>
 
-          {maxQuantity < 10 && maxQuantity > 0 && (
+          {/* {maxQuantity < 10 && maxQuantity > 0 && (
             <span className="text-xs text-amber-600">
               Only {maxQuantity} available
             </span>
-          )}
+          )} */}
         </div>
 
         {/* Action buttons */}
