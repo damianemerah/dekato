@@ -15,6 +15,7 @@ const RecommendedProductsClient = ({
   initialProducts = [],
   category,
   name,
+  showDelete = false,
 }) => {
   // Use the server-provided initial products directly
   const [products] = useState(
@@ -86,7 +87,7 @@ const RecommendedProductsClient = ({
               key={product.id}
               className={getCarouselItemClass(product)}
             >
-              <ProductCard product={product} showDelete={true} />
+              <ProductCard product={product} showDelete={showDelete} />
             </CarouselItem>
           ))}
         </CarouselContent>

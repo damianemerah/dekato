@@ -11,6 +11,16 @@ import { trackClick } from '@/app/utils/tracking';
 import { useMediaQuery } from '@/app/hooks/use-media-query';
 import { addToNaughtyListSA } from '@/app/action/recommendationAction';
 import { useSession } from 'next-auth/react';
+import { Edit } from 'lucide-react';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
 
 // Shadcn components
 import { Card, CardContent } from '@/app/components/ui/card';
@@ -31,6 +41,11 @@ const ProductCard = ({ product, showDelete = false }) => {
   const [isPending, startTransition] = useTransition();
   const [optimisticIsFavorite, setOptimisticIsFavorite] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState(product.name);
+  const [editQuantity, setEditQuantity] = useState(product.quantity);
+  const [editPrice, setEditPrice] = useState(product.price);
+  const [editLoading, setEditLoading] = useState(false);
 
   // Use a ref to track if we've performed a wishlist action
   const wishlistActionPerformedRef = useRef(false);
@@ -171,8 +186,114 @@ const ProductCard = ({ product, showDelete = false }) => {
   // Control whether to show variants on hover
   const shouldShowVariantsOnHover = supportsHover && isDesktop;
 
+  // Check for admin
+  const isAdmin = session?.user?.role === 'admin';
+
+  // Handle quick admin update
+  const handleQuickUpdate = async (e) => {
+    e.preventDefault();
+    // e.stopPropagation();
+    setEditLoading(true);
+    try {
+      const res = await import('@/app/action/productAction').then((mod) =>
+        mod.quickUpdateProductInfo({
+          id: product.id,
+          name: editName,
+          quantity: Number(editQuantity),
+          price: Number(editPrice),
+        })
+      );
+      if (res && !res.error) {
+        toast.success('Product updated');
+        setEditOpen(false);
+        // Optionally update UI optimistically
+        setEditName(res.name);
+        setEditQuantity(res.quantity);
+        setEditPrice(res.price);
+      } else {
+        toast.error(res?.message || 'Update failed');
+      }
+    } catch (err) {
+      toast.error('Update failed');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   return (
     <Card className="group relative h-full overflow-hidden rounded-none border-none bg-transparent shadow-none transition-all duration-300 hover:border hover:shadow-sm">
+      {/* Admin edit icon - absolutely positioned, NOT inside Link */}
+      {isAdmin && (
+        <div className="absolute right-2 top-12 z-20 flex flex-col items-center gap-2 shadow-sm">
+          <Dialog open={editOpen} onOpenChange={setEditOpen}>
+            <DialogTrigger asChild>
+              <button
+                className="h-8 w-8 rounded-full bg-white/50 p-1 text-primary hover:bg-primary/10"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditOpen(true);
+                }}
+                aria-label="Edit product"
+                type="button"
+              >
+                <Edit className="h-5 w-5" />
+              </button>
+            </DialogTrigger>
+            <DialogContent onClick={(e) => e.stopPropagation()}>
+              <DialogHeader>
+                <DialogTitle>Edit Product Info</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleQuickUpdate(e);
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Name</label>
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    disabled={editLoading}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Quantity
+                  </label>
+                  <Input
+                    type="number"
+                    value={editQuantity}
+                    onChange={(e) => setEditQuantity(e.target.value)}
+                    disabled={editLoading}
+                    min={0}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Price
+                  </label>
+                  <Input
+                    type="number"
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    disabled={editLoading}
+                    min={0}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={editLoading}>
+                    {editLoading ? 'Saving...' : 'Save'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
       <Link
         href={`/product/${product.slug}-${product.id}`}
         onClick={handleProductClick}
@@ -191,21 +312,22 @@ const ProductCard = ({ product, showDelete = false }) => {
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="absolute left-0 top-0 h-full w-full object-cover object-center transition-all duration-300"
           />
-
           {/* Discount badge */}
           {product.isDiscounted && (
             <div className="absolute left-0 top-0 bg-destructive px-3 py-1 text-xs text-white">
               -{product.discount}%
             </div>
           )}
-
-          {/* Delete or Wishlist button */}
           {userId && showDelete ? (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-secondary/20 p-1 text-primary hover:bg-white/90"
-              onClick={handleDelete}
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-secondary/20 p-1 text-primary shadow-sm hover:bg-white/90"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDelete(e);
+              }}
               disabled={isPending}
               aria-label="Remove product"
             >
@@ -218,14 +340,14 @@ const ProductCard = ({ product, showDelete = false }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={`absolute right-2 top-2 h-8 w-8 rounded-full shadow-sm transition-all duration-300 ${
-                      optimisticIsFavorite
-                        ? 'bg-white hover:bg-white/90'
-                        : 'bg-white/80 hover:bg-white'
-                    } ${isPending ? 'animate-pulse' : ''} ${
+                    className={`absolute right-2 top-2 z-20 h-8 w-8 rounded-full bg-white/50 shadow-sm transition-all duration-300 hover:bg-primary/10 ${isPending ? 'animate-pulse' : ''} ${
                       isHeartAnimating ? 'scale-125' : ''
                     }`}
-                    onClick={handleFavoriteClick}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleFavoriteClick(e);
+                    }}
                     disabled={isPending}
                     aria-label={
                       optimisticIsFavorite
@@ -252,7 +374,6 @@ const ProductCard = ({ product, showDelete = false }) => {
               </Tooltip>
             </TooltipProvider>
           )}
-
           {/* Show variant images on hover (desktop only) */}
           {variantImages && variantImages.length > 0 && (
             <div

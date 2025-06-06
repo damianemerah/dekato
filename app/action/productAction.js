@@ -132,7 +132,6 @@ const handleProductQuery = async (query, searchParams = {}) => {
 
 export async function getAdminProduct(params) {
   await restrictTo('admin');
-
   await dbConnect();
 
   const query = Product.find()
@@ -151,77 +150,88 @@ export async function getAdminProduct(params) {
 }
 
 export async function productSearch(searchQuery) {
-  // No authorization check needed as this is a public endpoint
-
   try {
     await dbConnect();
 
-    // Create a base query for products
-    let productQuery = Product.find({
-      status: 'active',
-      quantity: { $gt: 0 },
-    })
-      .select('name slug image status price discount')
-      .lean();
+    const baseFilter = { status: 'active', quantity: { $gt: 0 } };
 
-    // Add text search if q parameter exists
-    if (searchQuery.q) {
-      const searchRegex = new RegExp(searchQuery.q, 'i');
-      productQuery = productQuery.find({
-        $or: [
-          { name: searchRegex },
-          { description: searchRegex },
-          { tag: searchRegex },
-        ],
-      });
-    }
-
-    // If category is specified and is a string (not ObjectId), find by slug
     if (searchQuery.category && typeof searchQuery.category === 'string') {
-      // Find the category by slug first
-      const category = await Category.findOne({
+      const catDoc = await Category.findOne({
         slug: searchQuery.category.toLowerCase(),
       }).lean();
-
-      if (category) {
-        // Use the category ObjectId in the product query
-        productQuery = productQuery.find({ category: category._id });
+      if (catDoc) {
+        baseFilter.category = catDoc._id;
       }
-      // If category not found, we'll just continue with other filters
     }
 
-    // Execute the query with limit
-    const productData = await productQuery.limit(9);
+    const page = parseInt(searchQuery.page, 10) || 1;
+    const limit = parseInt(searchQuery.limit, 10) || 12;
+    const skip = (page - 1) * limit;
+
+    const features = new APIFeatures(
+      Product.find(baseFilter),
+      searchQuery
+    ).search();
+    const filterObject =
+      typeof features.query.getFilter === 'function'
+        ? features.query.getFilter()
+        : baseFilter;
+
+    const totalCount = await Product.countDocuments(filterObject);
+
+    const productData = await features.query
+      .select('name slug image status price discount quantity')
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     const products = productData.map(({ _id, ...rest }) => ({
       id: _id.toString(),
       ...rest,
     }));
 
-    if (!products || products.length === 0) {
-      return {
-        products: [],
-        totalCount: 0,
-        currentPage: page,
-        limit,
-      };
+    let categories = [];
+    if (searchQuery.q && typeof searchQuery.q === 'string') {
+      const regex = new RegExp(searchQuery.q.trim(), 'i');
+      categories = await Category.find({
+        $or: [{ name: regex }, { description: regex }],
+      })
+        .populate('parent', 'name slug')
+        .select('name slug path parent')
+        .limit(6)
+        .lean();
     }
 
-    // Get categories related to the search
-    const categories = await Category.find({
-      $or: [
-        { name: { $regex: searchQuery.q || '', $options: 'i' } },
-        { description: { $regex: searchQuery.q || '', $options: 'i' } },
-      ],
-    })
-      .populate('parent', 'name slug')
-      .select('name slug path parent')
-      .limit(6)
-      .lean();
+    const formattedCategories = categories.map((cat) => ({
+      id: cat._id.toString(),
+      name: cat.name,
+      slug: cat.slug,
+      path: cat.path,
+      parent: cat.parent
+        ? {
+            id: cat.parent._id.toString(),
+            name: cat.parent.name,
+            slug: cat.parent.slug,
+          }
+        : null,
+    }));
 
-    return { products, categories };
+    return {
+      products,
+      categories: formattedCategories,
+      totalCount,
+      currentPage: page,
+      limit,
+    };
   } catch (err) {
-    return { products: [], categories: [] };
+    console.error('productSearch error:', err);
+    return {
+      products: [],
+      categories: [],
+      totalCount: 0,
+      currentPage: 1,
+      limit: 12,
+    };
   }
 }
 
@@ -348,32 +358,7 @@ export const getAllProducts = cache(async (slugArray, searchParams = {}) => {
 
     const lastSlug = slugArray[slugArray.length - 1].toLowerCase();
 
-    // Special handling for search queries
-    if (lastSlug === 'search' && searchParams.q) {
-      const searchStr = searchParams.q;
-      const regexPattern = searchStr
-        .split(' ')
-        .map((word) => `\\b${word.trim()}`)
-        .join('.*');
-
-      baseQuery = Product.find({
-        $and: [
-          { quantity: { $gt: 0 }, status: 'active' },
-          {
-            $or: [
-              { name: { $regex: regexPattern, $options: 'i' } },
-              { description: { $regex: regexPattern, $options: 'i' } },
-              { tag: { $elemMatch: { $regex: regexPattern, $options: 'i' } } },
-            ],
-          },
-        ],
-      })
-        .select(
-          'name slug _id image price discount status quantity discountPrice discountDuration variant'
-        )
-        .populate('category', 'name slug path')
-        .populate('campaign', 'name slug path');
-    } else if (lastSlug !== 'search') {
+    if (lastSlug !== 'search') {
       // Existing category logic remains the same
       // (keeping the existing code here)
 
@@ -464,7 +449,7 @@ export const getAllProducts = cache(async (slugArray, searchParams = {}) => {
       // Expand products with matching color variants
       const expandedProducts = productData.flatMap((product) => {
         const matchingVariants =
-          product.variant?.filter((v) => {
+          product?.variant?.filter((v) => {
             return (
               v.options?.color?.toLowerCase() &&
               colorVariants.includes(v.options.color.toLowerCase())
@@ -778,3 +763,28 @@ export const getRecommendedProducts = cache(
     }
   }
 );
+
+// Quick admin update for product name, quantity, and price
+export async function quickUpdateProductInfo({ id, name, quantity, price }) {
+  await restrictTo('admin');
+  await dbConnect();
+  try {
+    if (!id) throw new AppError('Product ID is required', 400);
+    const updateFields = {};
+    if (name !== undefined) updateFields.name = name;
+    if (quantity !== undefined) updateFields.quantity = quantity;
+    if (price !== undefined) updateFields.price = price;
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true, runValidators: true, lean: true }
+    );
+
+    console.log(updateProduct, '💎💎');
+    if (!updatedProduct) throw new AppError('Product not found', 404);
+    revalidateProduct(updatedProduct.id);
+    return formatProduct(updatedProduct, true);
+  } catch (err) {
+    return handleError(err);
+  }
+}

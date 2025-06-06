@@ -59,6 +59,8 @@ const ProductForm = ({
   const [discountDuration, setDiscountDuration] = useState(null);
   const setProductImages = useAdminStore((state) => state.setProductImages);
 
+  console.log(catList);
+
   useEffect(() => {
     if (selectedProduct?.discountDuration) {
       setDiscountDuration(dayjs(selectedProduct.discountDuration));

@@ -8,8 +8,8 @@ import {
   UserOutlined,
   PlusOutlined,
   TagOutlined,
-  ArrowLeftOutlined,
   FileTextOutlined,
+  DashboardOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -28,12 +28,12 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
   const menuItems = [
     {
       key: 'app-home',
-      icon: <ArrowLeftOutlined />,
+      icon: <HomeOutlined />,
       label: <Link href="/">Back to App</Link>,
     },
     {
       key: 'admin',
-      icon: <HomeOutlined />,
+      icon: <DashboardOutlined />,
       label: <Link href="/admin">Home</Link>,
     },
     {

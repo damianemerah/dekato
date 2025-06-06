@@ -34,7 +34,7 @@ function AdminLayout({ children }) {
         style={{ marginLeft: collapsed ? 80 : 200 }}
         className="-mt-[--nav-height]"
       >
-        <div style={{ minHeight: 360 }} className="p-0 sm:p-6">
+        <div style={{ minHeight: 360 }} className="p-2 sm:p-6">
           {isLoading ? (
             <div className="min-h-screen">Loading...</div>
           ) : (

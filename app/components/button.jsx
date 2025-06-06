@@ -2,7 +2,7 @@ export function Button({ children, className, type }) {
   return (
     <button
       href="#"
-      className={`${className} self-start border-2 border-primaryDark px-8 py-1 font-oswald text-[13px] font-semibold no-underline`}
+      className={`${className} border-primaryDark self-start border-2 px-8 py-1 font-oswald text-[13px] font-semibold no-underline`}
       type={type}
     >
       {children}

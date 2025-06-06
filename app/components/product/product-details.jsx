@@ -32,7 +32,6 @@ function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
 }
 
 const ProductDetail = function ProductDetail({ product }) {
-  console.log(product);
   const [isPending, startTransition] = useTransition();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isWishlistPending, setIsWishlistPending] = useState(false);
@@ -172,7 +171,7 @@ const ProductDetail = function ProductDetail({ product }) {
           product: product.id,
           quantity: quantity,
           variantId: selectedVariant?.id,
-          option: selectedVariant.options || null,
+          option: selectedVariant?.options || null,
         };
 
         const result = await createCartItem(userId, newItem);

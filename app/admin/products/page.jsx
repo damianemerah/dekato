@@ -5,7 +5,12 @@ import { notFound } from 'next/navigation';
 
 const ProductsList = dynamic(
   () => import('@/app/admin/ui/products/products-list'),
-  { ssr: false, loading: () => <LoadingSpinner className="min-h-screen" /> }
+  {
+    ssr: false,
+    loading: () => (
+      <LoadingSpinner className="f;ex min-h-screen items-center justify-center" />
+    ),
+  }
 );
 
 export default async function Page({ searchParams }) {

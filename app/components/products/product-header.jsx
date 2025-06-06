@@ -8,6 +8,7 @@ import { generateVariantOptions } from '@/app/utils/getFunc';
 import FilterContent from './filter-content';
 import { ButtonPrimary } from '../button';
 import MobileFilterContent from './mobile-filter-content';
+import { Filter as FilterIcon } from 'lucide-react';
 
 const sortOptions = [
   { value: '+createdAt', label: 'Newest' },
@@ -290,12 +291,13 @@ export default function Filter({
   return (
     <div className="bg-white shadow-sm">
       <button
-        className="w-full bg-secondary py-2 text-center text-white sm:hidden"
+        className="flex w-full items-center justify-center gap-2 bg-secondary py-2 text-center text-primary underline sm:hidden"
         onClick={() => {
           setShowFilter(true);
         }}
       >
-        Filter & Sort
+        <FilterIcon className="h-4 w-4" />
+        <span>Filter & Sort</span>
       </button>
       <FilterContent
         dropdownRef={dropdownRef}

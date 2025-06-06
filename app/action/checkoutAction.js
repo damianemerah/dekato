@@ -3,23 +3,15 @@
 import { startSession } from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { auth } from '@/app/lib/auth';
-import { Cart, CartItem } from '@/models/cart';
+import { Cart } from '@/models/cart';
 import Order from '@/models/order';
 import Address from '@/models/address';
-import Payment from '@/models/payment';
 import dbConnect from '@/app/lib/mongoConnection';
 import { restrictTo } from '@/app/utils/checkPermission';
 import AppError from '@/app/utils/errorClass';
 import { omit } from 'lodash';
-import User from '@/models/user';
 import Product from '@/models/product';
-import Notification from '@/models/notification';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
-const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
-import { recommendationService } from '@/app/lib/recommendationService';
 import mongoose from 'mongoose';
-import { VerificationAttempt } from '@/models/verificationAttempt';
 
 // Initialize nanoid for reference generation
 const nanoId = customAlphabet('0123456789', 6);
@@ -324,55 +316,4 @@ function formatCartItem(cartItem) {
     image: variant ? variant.image : product.image?.[0],
     ...rest,
   };
-}
-
-export async function verifyOrderPayment(reference, userId) {
-  await dbConnect();
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      throw new AppError('Authentication required', 401);
-    }
-
-    const verification = await Paystack.transaction.verify(reference);
-
-    if (!verification.data) {
-      return { success: false, message: 'Payment verification failed' };
-    }
-
-    const {
-      reference: paymentRef,
-      metadata: { orderId },
-    } = verification.data;
-
-    const order = await Order.findById(orderId);
-
-    if (!order) {
-      throw new AppError('Order not found', 404);
-    }
-
-    // Only allow users to verify their own orders
-    if (order.userId.toString() !== userId) {
-      throw new AppError('Unauthorized', 401);
-    }
-
-    return {
-      success: true,
-      message: 'Payment verified',
-      status: verification.data.status,
-      order: {
-        id: order._id.toString(),
-        status: order.status,
-        paymentRef: order.paymentRef,
-        total: order.total,
-      },
-    };
-  } catch (error) {
-    console.error('Payment verification error:', error);
-    return {
-      success: false,
-      message: 'Payment verification failed',
-      error: error.message,
-    };
-  }
 }

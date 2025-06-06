@@ -43,15 +43,15 @@ const ProductActions = memo(function ProductActions({
   // Construct WhatsApp message
   const productName = product.name;
   const variantInfo = selectedVariant
-    ? Object.entries(selectedVariant.options || {})
+    ? Object.entries(selectedVariant?.options || {})
         .map(([key, value]) => `${key}: ${value}`)
         .join(', ')
     : '';
 
+  const productUrl = window?.location.href || null;
+
   const whatsappMessage = encodeURIComponent(
-    `Hi, I'm interested in purchasing "${productName}" from Dekato Outfit. ${
-      variantInfo ? `Variant: ${variantInfo}. ` : ''
-    }Please provide more information.`
+    `Hello, I'm interested in purchasing "${productName}" from Dekato Outfit.${variantInfo ? ` Variant: ${variantInfo}.` : ''}\n\nProduct link: ${productUrl}`
   );
 
   const whatsappLink = `https://wa.me/+2348064737122?text=${whatsappMessage}`;
@@ -102,7 +102,7 @@ const ProductActions = memo(function ProductActions({
           <div className="flex gap-3">
             <ButtonPrimary
               variant="default"
-              className="flex h-12 w-full items-center justify-center text-base font-semibold uppercase transition-all duration-200 hover:brightness-95"
+              className={`${isOutOfStock ? 'cursor-not-allowed opacity-40' : ''} flex h-12 w-full items-center justify-center text-base font-semibold uppercase transition-all duration-200 hover:brightness-95`}
               onClick={onAddToCart}
               disabled={isPending || isOutOfStock}
             >

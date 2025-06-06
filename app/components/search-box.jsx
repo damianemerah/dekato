@@ -6,8 +6,9 @@ import { Search } from 'lucide-react';
 import { productSearch } from '@/app/action/productAction';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Button } from './button';
 
-export default function SearchBox({ className }) {
+export default function SearchBox({ className, setOpen, open }) {
   const [searchString, setSearchString] = useState('');
   const [searchResults, setSearchResults] = useState({
     products: [],
@@ -15,23 +16,33 @@ export default function SearchBox({ className }) {
   });
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const searchRef = useRef(null);
   const submitBtnRef = useRef(null);
+  const inputRef = useRef(null);
   const router = useRouter();
 
+  // 1) Close dropdown if clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowResults(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
+  // 2) Focus input whenever the sheet opens (mobile)
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [open]);
+
+  // 3) Debounced live-search: whenever searchString ≥ 3 chars, fetch results
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchString.trim().length > 2) {
@@ -46,6 +57,7 @@ export default function SearchBox({ className }) {
           setIsLoading(false);
         }
       } else {
+        // If input is < 3 chars, clear results
         setSearchResults({ products: [], categories: [] });
         setShowResults(false);
       }
@@ -54,12 +66,14 @@ export default function SearchBox({ className }) {
     return () => clearTimeout(delayDebounceFn);
   }, [searchString]);
 
+  // 4) Handle “Enter” (submit)
   const handleSubmit = (e) => {
     e.preventDefault();
     if (searchString.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchString.trim())}`);
       setShowResults(false);
     }
+    if (open) setOpen(false);
   };
 
   const triggerSubmit = () => {
@@ -69,15 +83,26 @@ export default function SearchBox({ className }) {
   };
 
   return (
-    <div className={`relative w-full md:static ${className}`} ref={searchRef}>
+    <div
+      className={`relative w-full font-roboto md:static ${className}`}
+      ref={searchRef}
+    >
+      {open && (
+        <p className="mb-3 text-center text-xl">
+          What are you looking for today?
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="relative">
         <input
           type="text"
+          ref={inputRef}
           value={searchString}
           onChange={(e) => setSearchString(e.target.value)}
           placeholder="Search products..."
           className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
+
         <button
           type="submit"
           className="z-15 absolute inset-y-0 left-0 flex items-center pl-3"
@@ -87,28 +112,30 @@ export default function SearchBox({ className }) {
         </button>
       </form>
 
-      {showResults &&
-        (searchResults.products.length > 0 ||
-          searchResults.categories.length > 0) && (
-          <div className="absolute left-0 right-0 z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
+      {showResults && (
+        <div className="absolute left-0 right-0 z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
+          {/* Scrollable area */}
+          <div className="relative max-h-[82vh] overflow-y-auto p-2 pb-16">
             {searchResults.categories.length > 0 && (
-              <div className="max-h-[20vh] overflow-y-auto border-b p-2">
-                <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
+              <div className="mb-4 border-b pb-2">
+                <h3 className="px-2 text-xs font-semibold uppercase text-primary">
                   Categories
                 </h3>
                 <ul>
-                  {searchResults.categories.map((category) => {
+                  {searchResults.categories.slice(0, 6).map((category) => {
                     const displayName = category.parent
                       ? `${category.parent.name} / ${category.name}`
                       : category.name;
                     const urlPath = category.path || category.slug;
-
                     return (
-                      <li key={category.id || category._id}>
+                      <li key={category.id}>
                         <Link
                           href={`/shop/${urlPath}`}
                           className="block px-4 py-2 text-primary hover:bg-secondary"
-                          onClick={() => setShowResults(false)}
+                          onClick={() => {
+                            setShowResults(false);
+                            open && setOpen(false);
+                          }}
                         >
                           {displayName}
                         </Link>
@@ -120,12 +147,12 @@ export default function SearchBox({ className }) {
             )}
 
             {searchResults.products.length > 0 && (
-              <div className="max-h-[60vh] overflow-y-auto p-2">
+              <div>
                 <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-primary">
                   Products
                 </h3>
                 <ul className="space-y-2 md:flex md:gap-4 md:space-y-0 md:overflow-x-auto">
-                  {searchResults.products.slice(0, 10).map((product) => (
+                  {searchResults.products.slice(0, 12).map((product) => (
                     <li
                       key={product.id}
                       className="w-full flex-shrink-0 md:w-48"
@@ -133,9 +160,12 @@ export default function SearchBox({ className }) {
                       <Link
                         href={`/product/${product.slug}-${product.id}`}
                         className="flex items-center gap-3 rounded-md border p-2 text-primary transition hover:shadow md:flex-col md:items-start"
-                        onClick={() => setShowResults(false)}
+                        onClick={() => {
+                          open && setOpen(false);
+                          setShowResults(false);
+                        }}
                       >
-                        {product.image && product.image[0] && (
+                        {product.image?.[0] && (
                           <div className="h-16 w-16 flex-shrink-0 md:h-48 md:w-full">
                             <Image
                               src={product.image[0] || '/placeholder.svg'}
@@ -153,18 +183,6 @@ export default function SearchBox({ className }) {
                     </li>
                   ))}
                 </ul>
-
-                {searchResults.products.length > 8 && (
-                  <div className="mt-3 flex justify-start pr-4">
-                    <button
-                      type="button"
-                      onClick={triggerSubmit}
-                      className="text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      View all search products
-                    </button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -174,7 +192,29 @@ export default function SearchBox({ className }) {
               </div>
             )}
           </div>
-        )}
+
+          {/* Sticky footer: always rendered at the bottom of the dropdown */}
+          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between space-x-2 border-t bg-white px-4 py-2">
+            <span className="text-sm text-gray-600">
+              Viewing {searchResults.products.length} of{' '}
+              {searchResults.totalCount} results
+            </span>
+
+            <div className="flex gap-2">
+              {/* Only show “Show all” if there truly are more results than we've listed */}
+              {searchResults.totalCount > searchResults.products.length && (
+                <button
+                  type="button"
+                  onClick={triggerSubmit}
+                  className="text-sm font-medium text-blue-500 hover:underline"
+                >
+                  Show all results
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

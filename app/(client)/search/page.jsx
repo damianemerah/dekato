@@ -3,8 +3,8 @@ import { productSearch } from '@/app/action/productAction';
 import Link from 'next/link';
 import { Button } from '@/app/components/ui/button';
 import { LoadingSpinner } from '@/app/components/spinner';
-import ProductCard from '@/app/components/products/product-card';
 import { Search, ShoppingBag } from 'lucide-react';
+import ClientSearch from '@/app/components/product/client-search';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +18,8 @@ export async function generateMetadata({ searchParams }) {
 
 async function SearchResults({ searchParams }) {
   const searchQuery = searchParams.q;
+  const page = searchQuery ? parseInt(searchParams.page, 10) || 1 : 1;
+  const limit = parseInt(searchParams.limit, 10) || 12;
 
   if (!searchQuery) {
     return <NoSearchQuery />;
@@ -25,24 +27,27 @@ async function SearchResults({ searchParams }) {
 
   try {
     // Use the productSearch function to get results
-    const { products, categories } = await productSearch({ q: searchQuery });
+    const {
+      products,
+      totalCount,
+      currentPage,
+      limit: pageLimit,
+    } = await productSearch({ q: searchQuery, page, limit });
 
     if (products.length === 0) {
       return <NoProductsFound query={searchQuery} />;
     }
 
+    // Pass all pagination info and products to the client component
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold">
-          Search Results for &quot;{searchQuery}&quot;
-        </h1>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </div>
+      <ClientSearch
+        initialProducts={products}
+        totalCount={totalCount}
+        currentPage={currentPage}
+        limit={pageLimit}
+        searchQuery={searchQuery}
+        searchParams={searchParams}
+      />
     );
   } catch (error) {
     console.error('Search error:', error);

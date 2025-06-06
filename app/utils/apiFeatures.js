@@ -1,3 +1,5 @@
+import { SYNONYMS } from '@/app/utils/synonyms';
+
 class APIFeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -15,30 +17,30 @@ class APIFeatures {
   }
 
   search() {
-    if (this.queryString.q) {
-      const searchQuery = this.queryString.q.trim();
-      // Split and clean search words
-      const searchWords = searchQuery
-        .split(/\s+/)
-        .map((word) => word.trim())
-        .filter((word) => word.length > 0);
-
-      if (searchWords.length === 0) return this;
-
-      // Create a simple regex pattern that allows partial matches
-      const regexPatterns = searchWords.map(
-        (word) => `\\b${word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`
-      );
-      const pattern = regexPatterns.join('.*');
-
-      this.query = this.query.find({
-        $or: [
-          { name: { $regex: pattern, $options: 'i' } },
-          { description: { $regex: pattern, $options: 'i' } },
-          { tag: { $elemMatch: { $regex: pattern, $options: 'i' } } },
-        ],
-      });
+    if (this.queryString.q == null) {
+      return this;
     }
+
+    const rawQuery = this.queryString.q.trim();
+    if (rawQuery === '') {
+      this.query = this.query.find({ _id: null });
+      return this;
+    }
+
+    // Optionally expand synonyms here if you want
+
+    // Use MongoDB text search
+    this.query = this.query
+      .find({
+        $text: { $search: rawQuery },
+      })
+      .sort({
+        score: { $meta: 'textScore' },
+      })
+      .select({
+        score: { $meta: 'textScore' },
+      });
+
     return this;
   }
 

@@ -214,7 +214,15 @@ const Categories = ({ searchParams, data }) => {
     ? categories?.data.map((item) => ({
         key: item.id,
         image: item.image[0],
-        name: item.name,
+        name: (
+          <Link
+            rel="noopener noreferrer"
+            href={`/admin/categories/${item.id}`}
+            className="!text-blue-500"
+          >
+            {item.name}
+          </Link>
+        ),
         productCount: item.productCount,
         parent: item?.parent ? item.parent.name : '',
         id: item.id,

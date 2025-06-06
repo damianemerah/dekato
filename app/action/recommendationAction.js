@@ -239,3 +239,46 @@ export const getTrendingProductsAction = cache(async (limit = 8) => {
     };
   });
 });
+
+// Get recently viewed products for the current user
+export async function getRecentlyViewedProducts(limit = 8) {
+  await dbConnect();
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return [];
+
+  const userActivity = await UserActivity.findOne({ userId })
+    .populate({
+      path: 'recentlyViewed.productId',
+      populate: { path: 'category', select: 'name slug' },
+    })
+    .select('recentlyViewed')
+    .lean();
+
+  if (!userActivity || !userActivity.recentlyViewed) return [];
+
+  // Sort by lastClicked or viewedAt, most recent first
+  const sorted = [...userActivity.recentlyViewed].sort((a, b) => {
+    const aTime = a.lastClicked || a.viewedAt;
+    const bTime = b.lastClicked || b.viewedAt;
+    return bTime - aTime;
+  });
+
+  // Map to product format expected by RecommendedProductsClient
+  return sorted
+    .map((item) => {
+      const product = item.productId;
+      if (!product) return null;
+      return {
+        id: product._id.toString(),
+        ...product,
+        category: product.category?.map((cat) => ({
+          id: cat._id.toString(),
+          name: cat.name,
+          slug: cat.slug,
+        })),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, limit);
+}

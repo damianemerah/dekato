@@ -3,6 +3,7 @@ import slugify from 'slugify';
 import Category from './category';
 import validator from 'validator';
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
+const { htmlToText } = require('html-to-text');
 
 const productSchema = new mongoose.Schema(
   {
@@ -116,6 +117,7 @@ const productSchema = new mongoose.Schema(
     cat: [String],
     slug: String,
     tag: [{ type: String, lowercase: true, trim: true }],
+    keyword: [{ type: String, lowercase: true, trim: true }], //for search
     variant: [
       {
         options: {
@@ -224,18 +226,24 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Text indexes for search functionality
 productSchema.index(
-  { name: 'text', description: 'text', tag: 'text' },
+  {
+    name: 'text',
+    description: 'text',
+    tag: 'text',
+    keyword: 'text',
+  },
   {
     weights: {
-      name: 10, // Name matches are most important
-      tag: 5, // Tags are second most important
-      description: 1, // Description matches are least important
+      name: 10, // Highest priority
+      tag: 5, // Medium priority
+      keyword: 3, // Lower than tag
+      description: 1, // Least important
     },
     name: 'search_index',
   }
 );
+
 // Compound indexes for common query patterns
 productSchema.index({ status: 1, discount: -1, discountDuration: 1 }); // For finding active discounted products
 productSchema.index({ category: 1, status: 1 }); // For category browsing - used in getAllProducts
@@ -246,13 +254,7 @@ productSchema.index({ createdAt: -1 }); // For recent products - used in getAdmi
 
 productSchema.index({ status: 1, createdAt: -1 }); // For listing active products by date
 productSchema.index({ status: 1, price: 1 }); // For filtering by status and price ranges
-// Compound indexes for inventory management
-
-// productSchema.index({ status: 1, sold: -1 }); // For bestsellers lists
-
-// Specific indexes for variant querying
-// productSchema.index({ "variant.quantity": 1, status: 1 }); // For variant stock management
-// productSchema.index({ "variant.price": 1, status: 1 }); // For variant price filtering
+productSchema.index({ keyword: 1 });
 
 productSchema.virtual('isDiscounted').get(function () {
   return this.discount > 0 && this.discountDuration > Date.now();
@@ -280,6 +282,62 @@ productSchema.pre('findOneAndUpdate', async function (next) {
   if (update.category) {
     await updateCategorySlug(update);
   }
+
+  if (update.name || update.description || update.tag) {
+    const extractWords = (text) =>
+      text?.toLowerCase().split(/\s+/).filter(Boolean) || [];
+
+    const nameWords = extractWords(update.name || this.get('name'));
+
+    const plainDescription = htmlToText(
+      update.description || this.get('description') || '',
+      {
+        wordwrap: false,
+        selectors: [{ selector: 'img', format: 'skip' }],
+      }
+    );
+    const descriptionWords = extractWords(plainDescription);
+
+    const tagWords = (update.tag || this.get('tag') || []).flatMap((t) =>
+      t
+        .toLowerCase()
+        .split(/[,\s]+/) // split on commas or spaces
+        .map((w) => w.trim())
+        .filter(Boolean)
+    );
+
+    update.keyword = Array.from(
+      new Set([...nameWords, ...descriptionWords, ...tagWords])
+    );
+  }
+
+  next();
+});
+
+productSchema.pre('save', function (next) {
+  const extractWords = (text) =>
+    text?.toLowerCase().split(/\s+/).filter(Boolean) || [];
+
+  const nameWords = extractWords(this.name);
+
+  // Convert Tiptap HTML to plain text, remove image tags
+  const plainDescription = htmlToText(this.description || '', {
+    wordwrap: false,
+    selectors: [{ selector: 'img', format: 'skip' }],
+  });
+  const descriptionWords = extractWords(plainDescription);
+
+  const tagWords = (this.tag || []).flatMap((t) =>
+    t
+      .toLowerCase()
+      .split(/[,\s]+/) // split on commas or spaces
+      .map((w) => w.trim().replace(/[^\w\s]/g, '')) // remove punctuation
+      .filter(Boolean)
+  );
+
+  this.keyword = Array.from(
+    new Set([...nameWords, ...descriptionWords, ...tagWords])
+  );
 
   next();
 });

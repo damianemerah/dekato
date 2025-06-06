@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -30,15 +30,16 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 
 export function Header() {
+  const [open, setOpen] = useState(false);
   const { data: session } = useSession();
   const user = session?.user;
   const userId = user?.id;
   const { cartData: cart } = useCartData(userId);
   const { wishlistData } = useWishlistData(userId);
-  const [isShaking, setIsShaking] = React.useState(false);
+  const [isShaking, setIsShaking] = useState(false);
   const pathname = usePathname();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cart?.totalItems === 0) return;
     const interval = setInterval(() => {
       setIsShaking(true);
@@ -92,7 +93,7 @@ export function Header() {
         {/* Right section - User actions */}
         <div className="flex items-center gap-6">
           {/* Search on mobile */}
-          <Sheet>
+          <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="secondary"
@@ -104,7 +105,7 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="top" className="h-screen w-full">
-              <SearchBox />
+              <SearchBox setOpen={setOpen} open={open} />
             </SheetContent>
           </Sheet>
 
