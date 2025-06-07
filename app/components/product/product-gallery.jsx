@@ -260,14 +260,13 @@ const ProductGallery = memo(function ProductGallery({
             ref={carouselRef}
             opts={{
               align: 'start',
-              loop: product.image.length > 1,
-              dragFree: !isZoomed, // Disable drag when zoomed
+              dragFree: !isZoomed,
             }}
             setApi={setEmblaApi}
             onSelect={handleSelect}
             className={cn(
               'w-full',
-              isZoomed && 'pointer-events-none' // Disable carousel navigation when zoomed
+              isZoomed && 'pointer-events-none'
             )}
             aria-label="Product images"
           >

@@ -77,17 +77,17 @@ const StickyBuyNow = ({
   };
 
   return (
-    <div className="font-o fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-10 bg-background p-4 shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-4 bg-background p-4 shadow-lg md:gap-10">
       <Button
         onClick={handleAddToCartClick}
         variant="outline"
-        className="rounded-full border-primary px-12 py-6 text-xl font-normal md:px-24"
+        className="rounded-full border-primary px-6 py-3 text-lg font-normal md:px-20 md:py-6 md:text-xl"
       >
         Add to Cart
       </Button>
       <Button
         onClick={handleBuyNow}
-        className="rounded-full px-12 py-6 text-xl font-bold md:px-24"
+        className="rounded-full px-6 py-3 text-lg font-bold md:px-20 md:py-6 md:text-xl"
       >
         Buy Now
       </Button>
