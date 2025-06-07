@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/app/components/ui/tooltip';
-import { cn } from '@/app/lib/utils';
+import { bizInfo } from '@/app/resources/contents';
 import { ButtonPrimary } from '../button';
 
 const ProductActions = memo(function ProductActions({
@@ -54,7 +54,7 @@ const ProductActions = memo(function ProductActions({
     `Hello, I'm interested in purchasing "${productName}" from Dekato Outfit.${variantInfo ? ` Variant: ${variantInfo}.` : ''}\n\nProduct link: ${productUrl}`
   );
 
-  const whatsappLink = `https://wa.me/+2348064737122?text=${whatsappMessage}`;
+  const whatsappLink = `https://wa.me/${bizInfo.whatsapp}?text=${whatsappMessage}`;
 
   return (
     <Card className="mt-4 border-0 shadow-none">
@@ -71,9 +71,9 @@ const ProductActions = memo(function ProductActions({
               onClick={decreaseQuantity}
               disabled={quantity <= 1 || isOutOfStock}
               aria-label="Decrease quantity"
-              className="h-8 w-8"
+              className="!h-8 !w-8"
             >
-              <MinusCircle className="h-5 w-5" />
+              <MinusCircle className="!h-6 !w-6" />
             </Button>
 
             <span className="w-8 text-center font-semibold">{quantity}</span>
@@ -84,9 +84,9 @@ const ProductActions = memo(function ProductActions({
               onClick={increaseQuantity}
               disabled={quantity >= maxQuantity || isOutOfStock}
               aria-label="Increase quantity"
-              className="h-8 w-8"
+              className="!h-8 !w-8"
             >
-              <PlusCircle className="h-5 w-5" />
+              <PlusCircle className="!h-6 !w-6" />
             </Button>
           </div>
 

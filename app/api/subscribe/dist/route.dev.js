@@ -1,11 +1,23 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.GET = GET;
+
+var _server = require("next/server");
+
+var _subscription = require("@/models/subscription");
+
+var _mongoConnection = _interopRequireDefault(require("@/app/lib/mongoConnection"));
+
+var _email = _interopRequireDefault(require("@/app/utils/email"));
+
+var _cache = require("next/cache");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 // UNUSED
-
-import { NextResponse } from 'next/server';
-import { EmailSubscription } from '@/models/subscription';
-import dbConnect from '@/app/lib/mongoConnection';
-import Email from '@/app/utils/email';
-import { revalidateTag, revalidatePath } from 'next/cache';
-
 // These handlers have been migrated to Server Actions in app/action/subscriptionAction.js
 // They are preserved here for reference, but should be considered deprecated.
 
@@ -73,39 +85,66 @@ export async function POST(req) {
   }
 }
 */
-
 // The GET handler is kept active as it's used for data retrieval, not state changes
-export async function GET(req) {
-  const { searchParams } = req.nextUrl;
-  const email = searchParams.get('email');
+function GET(req) {
+  var searchParams, email, subscription;
+  return regeneratorRuntime.async(function GET$(_context) {
+    while (1) {
+      switch (_context.prev = _context.next) {
+        case 0:
+          searchParams = req.nextUrl.searchParams;
+          email = searchParams.get('email');
+          _context.prev = 2;
+          _context.next = 5;
+          return regeneratorRuntime.awrap((0, _mongoConnection["default"])());
 
-  try {
-    await dbConnect();
-    if (email) {
-      const subscription = await EmailSubscription.findOne({ email });
+        case 5:
+          if (!email) {
+            _context.next = 10;
+            break;
+          }
 
-      return NextResponse.json(
-        {
-          success: true,
-          subscription: {
-            email: subscription.email,
-            status: subscription.status,
-            gender: subscription.gender,
-          },
-        },
-        { status: 200 }
-      );
+          _context.next = 8;
+          return regeneratorRuntime.awrap(_subscription.EmailSubscription.findOne({
+            email: email
+          }));
+
+        case 8:
+          subscription = _context.sent;
+          return _context.abrupt("return", _server.NextResponse.json({
+            success: true,
+            subscription: {
+              email: subscription.email,
+              status: subscription.status,
+              gender: subscription.gender
+            }
+          }, {
+            status: 200
+          }));
+
+        case 10:
+          return _context.abrupt("return", _server.NextResponse.json({
+            success: false,
+            message: 'Invalid request'
+          }));
+
+        case 13:
+          _context.prev = 13;
+          _context.t0 = _context["catch"](2);
+          return _context.abrupt("return", _server.NextResponse.json({
+            success: false,
+            message: 'Error processing request'
+          }, {
+            status: 500
+          }));
+
+        case 16:
+        case "end":
+          return _context.stop();
+      }
     }
-
-    return NextResponse.json({ success: false, message: 'Invalid request' });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, message: 'Error processing request' },
-      { status: 500 }
-    );
-  }
+  }, null, null, [[2, 13]]);
 }
-
 /*
 export async function PATCH(req) {
   try {

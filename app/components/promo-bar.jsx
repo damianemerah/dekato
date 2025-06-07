@@ -21,16 +21,16 @@ const PromoBar = () => {
   // Define promos directly in the component or import from a constants file
   const promos = [
     {
-      id: 'promo-1', // Add unique key for React list rendering
-      text: <p>Free shipping on all orders over {formatToNaira(150000)}</p>,
+      id: 'promo-1',
+      text: <p>Discover exclusive deals and offers!</p>,
     },
     {
       id: 'promo-2',
-      text: <p>20% Student Discount with valid ID</p>,
+      text: <p>Shop our latest arrivals - Fresh styles added weekly!</p>,
     },
     {
       id: 'promo-3',
-      text: <p>Up to 50% off selected items</p>,
+      text: <p>Unlock special rewards with our loyalty program!</p>,
     },
   ];
 

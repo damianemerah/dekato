@@ -4,7 +4,7 @@ import dbConnect from '@/app/lib/mongoConnection';
 import User from '@/models/user';
 import { Cart } from '@/models/cart';
 import { restrictTo } from '@/app/utils/checkPermission';
-import Email from '@/app/lib/email';
+import Email from '@/app/utils/email';
 import Address from '@/models/address';
 import { filterObj, formDataToObject } from '@/app/utils/filterObj';
 import { handleError } from '@/app/utils/appError';
@@ -222,13 +222,48 @@ export async function createUser(prevState, formData) {
       await Cart.create({ userId: user._id, items: [] });
     }
 
-    const url = `${process.env.NEXTAUTH_URL}/signin`;
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    await User.findByIdAndUpdate(user._id, {
+      verificationToken: hashedToken,
+      verificationTokenExpires: Date.now() + 10 * 60 * 1000, //10 minutes
+    });
+
+    const url = `${process.env.NEXTAUTH_URL}/signin?token=${rawToken}`;
     await new Email(user, url).sendWelcome();
 
     return { success: true, message: 'User created successfully' };
   } catch (error) {
     return handleError(error);
   }
+}
+
+//verify email
+export async function verifyEmail(token) {
+  await dbConnect();
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({ verificationToken: hashedToken });
+
+  if (!user) {
+    return { success: false, message: 'Invalid token' };
+  }
+
+  if (user.verificationTokenExpires < Date.now()) {
+    return { success: false, message: 'Token expired' };
+  }
+
+  user.active = true;
+  user.verificationToken = undefined;
+  user.verificationTokenExpires = undefined;
+  user.emailVerified = true;
+  await user.save({ validateBeforeSave: false });
+
+  return { success: true, message: 'Email verified successfully' };
 }
 
 export async function getUser(userId) {

@@ -9,6 +9,8 @@ import EditIcon from '@/public/assets/icons/edit.svg';
 import { SmallSpinner } from '@/app/components/spinner';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { InputType } from '@/app/components/inputType';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
   const [showForm, setShowForm] = useState(false);
@@ -156,7 +158,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
             onClick={toggleForm}
             className="w-full !bg-primary hover:opacity-90"
           >
-            {showForm ? 'Cancel' : 'Add New Address'}
+            {showForm ? 'Canceled' : 'Add New Address'}
           </ButtonPrimary>
         </div>
 
@@ -184,7 +186,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
               />
             </div>
 
-            <div className="flex h-full items-center justify-center">
+            {/* <div className="flex h-full items-center justify-center">
               <div className="relative flex min-h-14 min-w-11 items-center justify-center bg-gray-50 px-2 pb-2 pt-6">
                 <label className="absolute left-1 right-1 top-0.5 text-nowrap px-1 text-xs text-gray-500">
                   prefix
@@ -199,6 +201,22 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
                 type="tel"
                 value={editingAddress?.phone || ''}
               />
+            </div> */}
+
+            <div className="flex h-full items-center justify-center">
+              <div className="relative w-full">
+                <label className="absolute left-2 top-0.5 z-10 bg-white px-1 text-xs text-gray-500">
+                  Phone number
+                </label>
+                <PhoneInput
+                  international
+                  defaultCountry="NG"
+                  value={phone}
+                  onChange={setPhone}
+                  name="phone"
+                  className="react-phone-input w-full rounded-md border border-gray-300 px-3 py-3 text-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
+                />
+              </div>
             </div>
 
             <InputType
@@ -253,7 +271,7 @@ const AddressOption = ({ addresses, changeAddress, setChangeAddress }) => {
 
         {isUpdating && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-white bg-opacity-70">
-            <SmallSpinner />
+            <SmallSpinner className="!text-white" />
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback, useTransition, useEffect } from 'react';
 import { Modal, message } from 'antd';
 import { ButtonPrimary } from '@/app/components/button';
 import {
@@ -12,6 +12,8 @@ import EditIcon from '@/public/assets/icons/edit.svg';
 import { SmallSpinner } from '@/app/components/spinner';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { InputType } from '@/app/components/inputType';
+import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 export default function AddressManager({
   userId,
@@ -24,6 +26,17 @@ export default function AddressManager({
   const [editingAddress, setEditingAddress] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  useEffect(() => {
+    if (editingAddress) {
+      const parsedPhone = parsePhoneNumber(editingAddress.phone || '');
+      console.log(parsedPhone);
+      setPhoneNumber(parsedPhone.number);
+    } else {
+      setPhoneNumber('');
+    }
+  }, [editingAddress]);
 
   const toggleForm = useCallback(() => {
     setShowForm((prev) => !prev);
@@ -87,6 +100,7 @@ export default function AddressManager({
       setIsUpdating(true);
       startTransition(async () => {
         try {
+          console.log(formData);
           formData.append('userId', userId);
           if (formData.get('isDefault') === 'on') {
             formData.set('isDefault', true);
@@ -193,6 +207,14 @@ export default function AddressManager({
             onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.target);
+              // Manually append phone number as react-phone-number-input doesn't work directly with FormData
+              const phoneInput = e.target.querySelector('input[name="phone"]');
+              console.log(phoneInput);
+              console.log(phoneNumber);
+              if (phoneInput) {
+                formData.set('phone', phoneInput.value);
+              }
+
               if (editingAddress) {
                 handleUpdateAddress(formData);
               } else {
@@ -219,20 +241,17 @@ export default function AddressManager({
               />
             </div>
 
-            <div className="flex h-full items-center justify-center">
-              <div className="relative flex min-h-14 min-w-11 items-center justify-center bg-gray-50 px-2 pb-2 pt-6">
-                <label className="absolute left-1 right-1 top-0.5 text-nowrap px-1 text-xs text-gray-500">
-                  prefix
-                </label>
-                <p className="inline-block h-full text-nowrap">+234</p>
-              </div>
-
-              <InputType
+            <div className={`relative flex-grow`}>
+              <label className="absolute left-1 right-1 top-0.5 text-nowrap px-1 text-xs text-gray-500">
+                Phone number
+              </label>
+              <PhoneInput
+                international
+                defaultCountry="NG"
+                value={phoneNumber}
+                onChange={setPhoneNumber}
                 name="phone"
-                label="Phone number"
-                required={true}
-                type="tel"
-                value={editingAddress?.phone || ''}
+                className={`w-full border border-primary px-4 pb-2 pt-6 !text-primary ring-inset ring-gray-200 focus:outline-none focus:ring-4 [&_.PhoneInputInput:focus]:outline-none [&_.PhoneInputInput]:outline-none`}
               />
             </div>
 

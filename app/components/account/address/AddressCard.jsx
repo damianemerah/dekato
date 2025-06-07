@@ -15,6 +15,8 @@ import { Checkbox } from '@/app/components/ui/checkbox';
 import EditIcon from '@/public/assets/icons/edit.svg';
 import { useSession } from 'next-auth/react';
 import DeleteIcon from '@/public/assets/icons/remove.svg';
+import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 export default function Address({ initialAddressData }) {
   const [showForm, setShowForm] = useState(false);
@@ -24,12 +26,22 @@ export default function Address({ initialAddressData }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const [addresses, setAddresses] = useState([]);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   useEffect(() => {
     if (initialAddressData) {
       setAddresses(initialAddressData);
     }
   }, [initialAddressData]);
+
+  useEffect(() => {
+    if (editingAddress) {
+      const parsedPhone = parsePhoneNumber(editingAddress.phone || '');
+      setPhoneNumber(parsedPhone.number);
+    } else {
+      setPhoneNumber('');
+    }
+  }, [editingAddress]);
 
   const toggleForm = useCallback(() => {
     setShowForm((prev) => !prev);
@@ -175,7 +187,19 @@ export default function Address({ initialAddressData }) {
         <form
           ref={formRef}
           className="space-y-4"
-          action={editingAddress ? handleUpdateAddress : handleCreateAddress}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const phoneInput = e.target.querySelector('input[name="phone"]');
+            if (phoneInput) {
+              formData.set('phone', phoneInput.value);
+            }
+            if (editingAddress) {
+              handleUpdateAddress(formData);
+            } else {
+              handleCreateAddress(formData);
+            }
+          }}
         >
           {editingAddress && (
             <input type="hidden" name="addressId" value={editingAddress.id} />
@@ -196,20 +220,17 @@ export default function Address({ initialAddressData }) {
             />
           </div>
 
-          <div className="flex h-full items-center justify-center">
-            <div className="relative flex min-h-14 min-w-11 items-center justify-center bg-gray-50 px-2 pb-2 pt-6">
-              <label className="absolute left-1 right-1 top-0.5 text-nowrap px-1 text-xs text-gray-500">
-                prefix
-              </label>
-              <p className="inline-block h-full text-nowrap">+234</p>
-            </div>
-
-            <InputType
+          <div className="relative flex-grow">
+            <label className="absolute left-1 right-1 top-0.5 text-nowrap px-1 text-xs text-gray-500">
+              Phone number
+            </label>
+            <PhoneInput
+              international
+              defaultCountry="NG"
+              value={phoneNumber}
+              onChange={setPhoneNumber}
               name="phone"
-              label="Phone number"
-              required={true}
-              type="tel"
-              value={editingAddress?.phone || ''}
+              className={`w-full border border-primary px-4 pb-2 pt-6 !text-primary ring-inset ring-gray-200 focus:outline-none focus:ring-4 [&_.PhoneInputInput:focus]:outline-none [&_.PhoneInputInput]:outline-none`}
             />
           </div>
 

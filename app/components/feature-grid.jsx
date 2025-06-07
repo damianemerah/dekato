@@ -10,7 +10,7 @@ const features = [
   {
     icon: Truck,
     title: 'Free Shipping',
-    description: 'On all orders above ₦500,000 within Lagos',
+    description: 'On all orders within Lagos',
   },
   {
     icon: CreditCard,

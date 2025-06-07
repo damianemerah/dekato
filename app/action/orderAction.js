@@ -6,7 +6,7 @@ import { restrictTo } from '@/app/utils/checkPermission';
 import { omit, mapKeys } from 'lodash';
 import APIFeatures from '@/app/utils/apiFeatures';
 import { revalidatePath } from 'next/cache';
-import Email from '@/app/lib/email';
+import Email from '@/app/utils/email';
 import { auth } from '@/app/lib/auth';
 import { handleError } from '@/app/utils/appError';
 import AppError from '@/app/utils/errorClass';
@@ -109,7 +109,8 @@ export async function fulfillOrder(
   tracking,
   trackingLink,
   carrier,
-  shippingMethod
+  shippingMethod,
+  sendEmail
 ) {
   await restrictTo('admin');
 
@@ -150,11 +151,9 @@ export async function fulfillOrder(
       order.userId,
       `${process.env.NEXTAUTH_URL}/account/orders/${id}`
     );
-    await email.sendEmail(
-      'orderFulfill',
-      'Your order has been fulfilled',
-      updatedOrder
-    );
+    if (sendEmail) {
+      await email.sendOrderFulfillment(updatedOrder);
+    }
 
     revalidatePath('/admin/orders');
     return { success: true, message: 'Order fulfilled successfully' };

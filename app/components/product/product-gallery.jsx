@@ -335,7 +335,7 @@ const ProductGallery = memo(function ProductGallery({
           <>
             <button
               onClick={handlePrev}
-              className={`absolute left-0 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-none border bg-white shadow-none transition-colors sm:h-10 sm:w-10 ${
+              className={`absolute left-0 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-none border bg-white shadow-none transition-colors sm:h-10 sm:w-10 ${
                 !isZoomed &&
                 (!isOverride ? emblaApi?.canScrollPrev() : activeImageIndex > 0)
                   ? 'hover:bg-white/90'
@@ -354,7 +354,7 @@ const ProductGallery = memo(function ProductGallery({
 
             <button
               onClick={handleNext}
-              className={`absolute right-0 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-none border bg-white shadow-none transition-colors sm:h-10 sm:w-10 ${
+              className={`absolute right-0 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-none border bg-white shadow-none transition-colors sm:h-10 sm:w-10 ${
                 !isZoomed &&
                 (!isOverride
                   ? emblaApi?.canScrollNext()

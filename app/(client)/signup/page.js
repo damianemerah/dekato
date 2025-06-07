@@ -33,8 +33,9 @@ const SignUp = () => {
 
   useEffect(() => {
     if (state.success) {
-      toast.success('Sign up successful! Redirecting to sign in...');
-      router.push('/signin');
+      toast.success('Check your email to complete your profile.', {
+        duration: 10000,
+      });
     } else if (state.message && !state.success) {
       // Attempt to display field-specific errors first, then general message
       const fieldErrors = state.errors

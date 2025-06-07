@@ -5,6 +5,7 @@ import SimilarProductsServer from '@/app/components/product/similar-products';
 import ProductStructuredData from '@/app/components/products/product-structured-data';
 import BreadcrumbStructuredData from '@/app/components/products/breadcrumb-structured-data';
 import { htmlToText } from 'html-to-text';
+import ProductInteractionWrapper from '@/app/components/product/product-interaction-wrapper';
 
 export async function generateMetadata({ params }, parent) {
   const id = params.name.split('-').slice(-1)[0];
@@ -89,7 +90,7 @@ export default async function ProductInfoPage({ params: { name } }) {
           ]}
         />
 
-        <ProductDetail product={product} />
+        <ProductInteractionWrapper product={product} />
         <div className="mt-8">
           <SimilarProductsServer productId={id} category={product.category} />
         </div>

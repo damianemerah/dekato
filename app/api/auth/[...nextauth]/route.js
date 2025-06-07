@@ -40,7 +40,9 @@ export const authOptions = {
             .lean();
 
           if (!user) {
-            throw new Error('User with that email not found');
+            throw new Error(
+              'It looks like there’s no account registered with that email address.'
+            );
           }
 
           const isValidPassword =
@@ -56,7 +58,7 @@ export const authOptions = {
 
           return user;
         } catch (error) {
-          throw new Error('Authentication failed');
+          throw new Error(error.message || 'Authentication failed');
         }
       },
     }),

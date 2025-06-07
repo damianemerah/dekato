@@ -384,7 +384,7 @@ const ProductCard = ({ product, showDelete = false }) => {
                   image && (
                     <button
                       key={index}
-                      className={`h-8 w-8 rounded-full border md:h-10 md:w-10 ${
+                      className={`h-7 w-7 rounded-full border md:h-8 md:w-8 ${
                         currentImage === image
                           ? 'border-primary'
                           : 'border-border'
@@ -413,7 +413,7 @@ const ProductCard = ({ product, showDelete = false }) => {
                   image && (
                     <button
                       key={index}
-                      className={`h-8 w-8 rounded-full border md:h-10 md:w-10 ${
+                      className={`h-7 w-7 rounded-full border md:h-8 md:w-8 ${
                         currentImage === image
                           ? 'border-primary'
                           : 'border-border'

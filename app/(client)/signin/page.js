@@ -12,6 +12,7 @@ import GoogleIcon from '@/public/assets/icons/google.svg';
 import ArrowRightIcon from '@/public/assets/icons/arrow_right.svg';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { verifyEmail } from '@/app/action/userAction';
 
 // Define the action outside the component
 async function handleSignInAction(previousState, formData) {
@@ -66,6 +67,26 @@ function SignInContent({ searchParams }) {
     success: false,
     message: null,
   });
+  const [hasVerified, setHasVerified] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.token && !hasVerified) {
+      const handleVerify = async () => {
+        const result = await verifyEmail(searchParams.token);
+        if (result.success) {
+          toast.success(result.message);
+          setHasVerified(true);
+          const params = new URLSearchParams(searchParams);
+          params.delete('token');
+          router.replace(`?${params.toString()}`);
+        } else if (!hasVerified) {
+          toast.error(result.message);
+          setHasVerified(true);
+        }
+      };
+      handleVerify();
+    }
+  }, [searchParams, hasVerified, router]);
 
   useEffect(() => {
     if (session?.user?.passwordChanged) {
@@ -106,13 +127,13 @@ function SignInContent({ searchParams }) {
     <div className="flex_center shadow-shadowSm mx-auto my-16 max-w-2xl border border-gray-100 bg-white px-8 py-10">
       <h2>Sign in</h2>
       <form action={formAction} className="mt-4 flex w-full flex-col gap-4">
-        <InputType name="email" label="Email" type="email" required={true} />
+        <InputType name="email" label="Email" type="email" required />
         <div className="relative">
           <InputType
             name="password"
             label="Password"
             type={viewPassword ? 'text' : 'password'}
-            required={true}
+            required
           />
           <div
             className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
@@ -125,12 +146,20 @@ function SignInContent({ searchParams }) {
             )}
           </div>
         </div>
+
         <Link
           href="/forgot-password"
           className="text-sm text-blue-600 hover:underline"
         >
           Forgot password?
         </Link>
+        <Link
+          href="/signup"
+          className="mt-2 block text-sm text-blue-600 hover:underline"
+        >
+          Don’t have an account? Sign up
+        </Link>
+
         <SubmitButton />
       </form>
 

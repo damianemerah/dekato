@@ -2,9 +2,8 @@
 
 import { EmailSubscription } from '@/models/subscription';
 import dbConnect from '@/app/lib/mongoConnection';
-import Email from '@/app/lib/email';
+import Email from '@/app/utils/email';
 import { revalidateTag } from 'next/cache';
-import { auth } from '@/app/lib/auth';
 
 /**
  * Subscribe a user to the newsletter

@@ -1,20 +1,16 @@
 'use client';
 
-import { useState, useCallback, useTransition, useEffect } from 'react';
+import { useState, useCallback, useTransition } from 'react';
 import { addToWishlist, removeFromWishlist } from '@/app/action/userAction';
-import { createCartItem } from '@/app/action/cartAction';
 import { toast } from 'sonner';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Suspense } from 'react';
-import { useSession } from 'next-auth/react';
-import useWishlistData from '@/app/hooks/useWishlistData';
 
 import ProductGallery from './product-gallery';
 import ProductInfo from './product-info';
 import ProductVariants from './product-variants';
 import ProductActions from './product-actions';
 import ProductDetailsSections from './product-details-sections';
-import useCartData from '@/app/hooks/useCartData';
 
 function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
   return (
@@ -31,188 +27,25 @@ function ProductDetailsErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
-const ProductDetail = function ProductDetail({ product }) {
-  const [isPending, startTransition] = useTransition();
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isWishlistPending, setIsWishlistPending] = useState(false);
-
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
-
-  const { wishlistData, mutate: mutateWishlist } = useWishlistData(userId);
-  const { mutate: mutateCartData } = useCartData(userId);
-
-  const [selectedVariantOption, setSelectedVariantOption] = useState({});
-  const [selectedVariant, setSelectedVariant] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [optimisticInCart, setOptimisticInCart] = useState(false);
-  const [activeImage, setActiveImage] = useState(null);
-  const resetActiveImage = useCallback(() => setActiveImage(null), []);
-  const [isProductAvailable, setIsProductAvailable] = useState(true);
-
-  const isInWishlist = wishlistData?.items?.includes(product.id);
-
-  const handleVariantSelection = useCallback(
-    (optionName, value) => {
-      setSelectedVariantOption((prev) => {
-        const updated = { ...prev, [optionName]: value };
-
-        Object.keys(updated).forEach((otherKey) => {
-          if (otherKey === optionName) return;
-
-          const stillValid = product.variant.some(
-            (variant) =>
-              variant.options[optionName] === value &&
-              variant.options[otherKey] === updated[otherKey]
-          );
-
-          if (!stillValid) {
-            updated[otherKey] = null;
-          }
-        });
-
-        const matched = product.variant.find((variant) =>
-          Object.entries(updated).every(
-            ([k, v]) => v === null || variant.options[k] === v
-          )
-        );
-
-        if (matched) {
-          setSelectedVariant(matched);
-          setIsProductAvailable(true);
-          if (matched.image) {
-            setActiveImage(matched.image);
-          }
-          console.log(matched.options, 11111);
-          setSelectedVariantOption(matched.options);
-        } else {
-          setSelectedVariant(null);
-          setIsProductAvailable(false);
-          setSelectedVariantOption({});
-        }
-
-        console.log(matched);
-
-        if (matched.image) {
-          setActiveImage(matched.image);
-        }
-
-        return updated;
-      });
-    },
-    [product.variant, setActiveImage]
-  );
-
-  const handleAddToWishlist = useCallback(() => {
-    if (!userId) {
-      toast.error('Please sign in to add items to your wishlist');
-      return;
-    }
-
-    setIsWishlistPending(true);
-    startTransition(async () => {
-      try {
-        if (isInWishlist) {
-          await removeFromWishlist(userId, product.id);
-          // Optimistically update the wishlist data
-          mutateWishlist(
-            (current) => ({
-              count: (current?.count || 0) - 1,
-              items: current?.items?.filter((id) => id !== product.id) || [],
-            }),
-            { revalidate: true }
-          );
-          toast.success('Removed from wishlist');
-        } else {
-          const result = await addToWishlist(userId, product.id);
-
-          if (result?.error) {
-            setIsWishlistPending(false);
-            toast.error(result.message || 'Failed to add to wishlist');
-            return;
-          }
-          // Optimistically update the wishlist data
-          mutateWishlist(
-            (current) => ({
-              count: (current?.count || 0) + 1,
-              items: [...(current?.items || []), product.id],
-            }),
-            { revalidate: true }
-          );
-          toast.success('Added to wishlist');
-        }
-      } catch (error) {
-        // Revalidate on error to ensure correct state
-        mutateWishlist();
-        toast.error('Failed to update wishlist');
-      } finally {
-        setIsWishlistPending(false);
-      }
-    });
-  }, [userId, product.id, isInWishlist, mutateWishlist, startTransition]);
-
-  const handleAddToCart = useCallback(async () => {
-    if (!userId) {
-      toast.error('Please sign in to add items to your cart');
-      return;
-    }
-
-    if (product.variant.length > 0 && !selectedVariant) {
-      toast.error('You have to select a variant');
-      return;
-    }
-
-    setIsAddingToCart(true);
-    setOptimisticInCart(true);
-
-    startTransition(async () => {
-      try {
-        const newItem = {
-          product: product.id,
-          quantity: quantity,
-          variantId: selectedVariant?.id,
-          option: selectedVariant?.options || null,
-        };
-
-        const result = await createCartItem(userId, newItem);
-
-        console.log(result, 'result');
-
-        if (result?.error) {
-          setOptimisticInCart(false);
-          toast.error(result.message || 'Failed to add item to cart');
-          return;
-        }
-
-        mutateCartData(
-          ['cart-data', userId],
-          (current) => ({
-            ...current,
-            items: [...(current?.items || []), newItem],
-            totalItems: (current?.totalItems || 0) + 1,
-          }),
-          { revalidate: true }
-        );
-
-        toast.success('Added to cart');
-      } catch (error) {
-        setOptimisticInCart(false);
-        console.error('Error adding to cart:', error);
-        toast.error(error.message || 'Failed to add to cart');
-      } finally {
-        setIsAddingToCart(false);
-      }
-    });
-  }, [
-    userId,
-    product.id,
-    quantity,
-    selectedVariant,
-    startTransition,
-    mutateCartData,
-    product?.variant?.length,
-  ]);
-
+const ProductDetail = function ProductDetail({
+  product,
+  selectedVariantOption,
+  setSelectedVariantOption,
+  selectedVariant,
+  setSelectedVariant,
+  quantity,
+  setQuantity,
+  isAddingToCart,
+  isWishlistPending,
+  isInWishlist,
+  handleVariantSelection,
+  handleAddToWishlist,
+  onAddToCart,
+  activeImage,
+  setActiveImage,
+  resetActiveImage,
+  isProductAvailable,
+}) {
   if (!product) {
     return (
       <div className="flex h-screen items-center justify-center text-lg font-semibold text-gray-600">
@@ -269,7 +102,7 @@ const ProductDetail = function ProductDetail({ product }) {
                   selectedVariant={selectedVariant}
                   quantity={quantity}
                   setQuantity={setQuantity}
-                  onAddToCart={handleAddToCart}
+                  onAddToCart={onAddToCart}
                   isInWishlist={isInWishlist}
                   onWishlistToggle={handleAddToWishlist}
                   isPending={isAddingToCart}

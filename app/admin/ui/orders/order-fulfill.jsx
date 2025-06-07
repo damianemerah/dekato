@@ -42,6 +42,7 @@ function Fulfillment({ id }) {
   const [trackingLink, setTrackingLink] = useState('');
   const [carrier, setCarrier] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [sendEmail, setSendEmail] = useState(false);
   const {
     data: order,
     isLoading,
@@ -71,7 +72,8 @@ function Fulfillment({ id }) {
         tracking,
         trackingLink,
         carrier,
-        order?.shippingMethod
+        order?.shippingMethod,
+        sendEmail
       );
 
       if (result?.error) {
@@ -265,7 +267,10 @@ function Fulfillment({ id }) {
                 </Row>
                 <Divider />
                 <Form.Item>
-                  <Checkbox defaultChecked>
+                  <Checkbox
+                    defaultChecked={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.checked)}
+                  >
                     Send shipment details to your customer now
                   </Checkbox>
                 </Form.Item>

@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 import dbConnect from '@/app/lib/mongoConnection';
 import Payment from '@/models/payment';
 import { recommendationService } from '@/app/lib/recommendationService';
+import Email from '@/app/utils/email';
 
 const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
 
@@ -135,7 +136,9 @@ export async function POST(req) {
       currency,
     } = body.data;
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId)
+      .populate('userId', 'email firstname lastname')
+      .populate('address');
 
     if (!order) {
       throw new AppError('Something went wrong', 404);
@@ -143,7 +146,10 @@ export async function POST(req) {
     const verification = await Paystack.transaction.verify(reference);
 
     if (verification.data.status === 'success') {
+      const email = new Email(order.userId, order.url);
+      await email.sendOrderReceived(order);
       await updateProductQuantity(order);
+      revalidatePath('/', 'layout');
     }
     const OrderStatus = {
       FAILED: 'failed',

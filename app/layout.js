@@ -9,6 +9,7 @@ import SidebarContent from '@/app/components/sidebar/sidebar-content';
 import Header from '@/app/components/header';
 import { Toaster } from '@/app/components/ui/sonner';
 import AuthSync from '@/app/components/auth-sync';
+import FixedActions from '@/app/components/common/fixed-actions';
 
 export const revalidate = 3600;
 
@@ -167,6 +168,7 @@ export default async function RootLayout({ children }) {
                 </div>
               </div>
               <Toaster />
+              <FixedActions />
             </SidebarProvider>
           </body>
         </Provider>
